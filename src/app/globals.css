@@ -1,0 +1,156 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    /* Paleta de colores - Tema Claro Profesional */
+    --background: 226 27% 98%;
+    /* #F8F9FC - Fondo principal */
+    --foreground: 234 45% 10%;
+    /* #1E1E2D - Texto principal */
+
+    --card: 0 0% 100%;
+    /* #FFFFFF - Cards */
+    --card-foreground: 234 45% 10%;
+
+    --popover: 0 0% 100%;
+    --popover-foreground: 234 45% 10%;
+
+    --primary: 252 85% 60%;
+    /* #7C5CFC - Violeta sobrio */
+    --primary-foreground: 0 0% 100%;
+
+    --secondary: 252 60% 95%;
+    /* Lavanda muy claro */
+    --secondary-foreground: 252 85% 45%;
+
+    --muted: 220 14% 96%;
+    /* Gris muy claro */
+    --muted-foreground: 220 9% 46%;
+    /* #6B7280 - Texto secundario */
+
+    --accent: 252 60% 75%;
+    /* #9F8FEF - Lavanda suave */
+    --accent-foreground: 252 85% 30%;
+
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 100%;
+
+    --success: 142 71% 45%;
+    /* Verde éxito */
+    --success-foreground: 0 0% 100%;
+
+    --warning: 38 92% 50%;
+    /* Ámbar advertencia */
+    --warning-foreground: 0 0% 100%;
+
+    --border: 220 13% 91%;
+    --input: 220 13% 91%;
+    --ring: 252 85% 60%;
+    --radius: 0.75rem;
+
+    /* Sombras personalizadas */
+    --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+    --shadow-card: 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1);
+    --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+    --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+  }
+
+  /* Tema oscuro (opcional, mantenemos compatibilidad) */
+  .dark {
+    --background: 234 45% 8%;
+    --foreground: 226 27% 98%;
+    --card: 234 45% 12%;
+    --card-foreground: 226 27% 98%;
+    --popover: 234 45% 12%;
+    --popover-foreground: 226 27% 98%;
+    --primary: 252 85% 65%;
+    --primary-foreground: 234 45% 10%;
+    --secondary: 252 30% 20%;
+    --secondary-foreground: 252 60% 80%;
+    --muted: 234 30% 18%;
+    --muted-foreground: 220 9% 60%;
+    --accent: 252 50% 40%;
+    --accent-foreground: 252 60% 90%;
+    --destructive: 0 62% 50%;
+    --destructive-foreground: 0 0% 100%;
+    --border: 234 30% 20%;
+    --input: 234 30% 20%;
+    --ring: 252 85% 65%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  html {
+    font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  }
+
+  body {
+    @apply bg-background text-foreground antialiased;
+    font-feature-settings: "cv02", "cv03", "cv04", "cv11";
+  }
+
+  /* Scrollbar personalizada */
+  ::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+
+  ::-webkit-scrollbar-track {
+    @apply bg-muted rounded-full;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    @apply bg-muted-foreground/30 rounded-full hover:bg-muted-foreground/50;
+  }
+}
+
+@layer utilities {
+
+  /* Gradientes de marca */
+  .gradient-primary {
+    background: linear-gradient(135deg, hsl(252, 85%, 60%) 0%, hsl(252, 60%, 75%) 100%);
+  }
+
+  .gradient-hero {
+    background: linear-gradient(135deg, hsl(252, 85%, 65%) 0%, hsl(220, 80%, 75%) 50%, hsl(200, 70%, 85%) 100%);
+  }
+
+  /* Animaciones sutiles */
+  .animate-fade-in {
+    animation: fadeIn 0.3s ease-out;
+  }
+
+  .animate-slide-up {
+    animation: slideUp 0.4s ease-out;
+  }
+
+  @keyframes fadeIn {
+    from {
+      opacity: 0;
+    }
+
+    to {
+      opacity: 1;
+    }
+  }
+
+  @keyframes slideUp {
+    from {
+      opacity: 0;
+      transform: translateY(10px);
+    }
+
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+}

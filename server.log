@@ -1,0 +1,20 @@
+
+> aba-supervision-system@0.1.0 dev
+> next dev
+
+▲ Next.js 16.1.6 (Turbopack)
+- Local:         http://localhost:3000
+- Network:       http://192.168.73.100:3000
+- Environments: .env
+
+✓ Starting...
+✓ Ready in 1338ms
+○ Compiling / ...
+ GET / 307 in 7.3s (compile: 6.8s, render: 529ms)
+○ Compiling /student ...
+ GET /student 200 in 9.6s (compile: 6.2s, render: 3.4s)
+⚠ Cross origin request detected from 170.55.79.9 to /_next/* resource. In a future major version of Next.js, you will need to explicitly configure "allowedDevOrigins" in next.config to allow this.
+Read more: https://nextjs.org/docs/app/api-reference/config/next-config-js/allowedDevOrigins
+ GET /placeholder-user.jpg 404 in 730ms (compile: 615ms, render: 116ms)
+ GET /student 200 in 2.4s (compile: 21ms, render: 2.4s)
+ GET /placeholder-user.jpg 404 in 225ms (compile: 15ms, render: 211ms)
