@@ -10,21 +10,20 @@ jobs:
     runs-on: self-hosted
 
     steps:
-    - name: Update Application
+    - name: Update and Build Application
       run: |
-        # Navigate to the live application directory
         cd ~/aba-supervision-system
         
         # Pull the latest changes
         git pull origin main
         
-        # Install dependencies (only if package.json changed, but safe to run)
-        # npm install --production
+        # Install dependencies
+        npm install --legacy-peer-deps
         
-        # Build (if typically required)
-        # npm run build
+        # Build the production bundle
+        npm run build
         
         # Restart the application
-        # pm2 restart aba-supervision-system
+        pm2 restart aba-supervision-system
         
-        echo "Deployment triggered successfully on Self-Hosted Runner"
+        echo "Deployment completed successfully!"
