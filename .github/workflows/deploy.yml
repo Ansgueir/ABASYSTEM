@@ -1,0 +1,49 @@
+name: Deploy to Server
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v2
+
+    - name: Setup SSH
+      run: |
+        mkdir -p ~/.ssh/
+        echo "${{ secrets.DEPLOY_KEY }}" > ~/.ssh/deploy_key
+        chmod 600 ~/.ssh/deploy_key
+        cat >>~/.ssh/config <<END
+        Host production
+          HostName ${{ secrets.HOST }}
+          User ${{ secrets.USER }}
+          Port ${{ secrets.PORT }}
+          IdentityFile ~/.ssh/deploy_key
+          StrictHostKeyChecking no
+        END
+
+    - name: Deploy to Server
+      run: |
+        ssh production 'bash -s' << 'EOF'
+          # Navigate to project directory
+          cd ~/aba-supervision-system
+          
+          # Pull latest changes
+          git pull origin main
+          
+          # Install dependencies
+          # npm install --production
+          
+          # Build project (if needed)
+          # npm run build
+          
+          # Restart application (Assuming PM2 is used, adjust as necessary)
+          # pm2 restart aba-supervision-system
+          
+          echo "Deployment successful!"
+        EOF
