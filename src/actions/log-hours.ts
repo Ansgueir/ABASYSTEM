@@ -55,7 +55,7 @@ async function validateMonthlyLimit(studentId: string, date: Date, newHours: num
     const limit = year === 2027 ? 160 : 130
 
     if (total > limit) {
-        throw new Error(`Monthly limit exceeded. Current: ${currentTotal.toFixed(2)}h + New: ${newHours.toFixed(2)}h = ${total.toFixed(2)}h > ${limit}h`)
+        throw new Error(`Limit Exceeded: You have reached the monthly cap of ${limit} hours. (Current: ${currentTotal.toFixed(2)}h + New: ${newHours.toFixed(2)}h)`)
     }
 }
 

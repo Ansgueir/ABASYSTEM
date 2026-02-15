@@ -74,6 +74,9 @@ export function LogHoursDialog() {
         },
     })
 
+    const [errorDialogOpen, setErrorDialogOpen] = useState(false)
+    const [errorMessage, setErrorMessage] = useState("")
+
     async function onSubmit(values: z.infer<typeof formSchema>) {
         console.log("Submitting form with values:", values)
         setIsPending(true)
@@ -96,10 +99,7 @@ export function LogHoursDialog() {
 
             if (result.warning) {
                 console.warn("Warning from server:", result.warning)
-                // Fallback alert for QA verification
-                alert("DEBUG ALERT: " + result.warning)
-
-                // Short delay to ensure it appears on top or isn't cleared?
+                // Short delay to ensure it appears on top of success toast
                 setTimeout(() => {
                     toast.warning(result.warning, {
                         duration: 8000,
@@ -118,217 +118,234 @@ export function LogHoursDialog() {
                 toast.success("✅ Hours logged successfully!")
             } else {
                 console.error("Error from server:", result.error)
-                toast.error("❌ Error: " + result.error)
+                // Show centralized persistent error dialog
+                setErrorMessage(result.error || "An unknown error occurred.")
+                setErrorDialogOpen(true)
             }
         } catch (error) {
             console.error("Client side error during submission:", error)
             setIsPending(false)
-            toast.error("❌ Client Error: " + (error instanceof Error ? error.message : "Unknown error"))
+            setErrorMessage(error instanceof Error ? error.message : "Unknown error")
+            setErrorDialogOpen(true)
         }
     }
 
     return (
-        <Dialog open={open} onOpenChange={setOpen}>
-            <DialogTrigger asChild>
-                <Button className="bg-indigo-600 hover:bg-indigo-700 text-white">
-                    <Clock className="mr-2 h-4 w-4" />
-                    Log Hours
-                </Button>
-            </DialogTrigger>
-            <DialogContent className="sm:max-w-[500px] max-h-[90vh] overflow-y-auto">
-                <DialogHeader>
-                    <DialogTitle>Log Hours (DEBUG v3)</DialogTitle>
-                    <DialogDescription>
-                        Record your fieldwork hours.
-                        <Button
-                            type="button"
-                            variant="outline"
-                            size="sm"
-                            className="ml-2 h-6"
-                            onClick={() => toast.info("Test Toast matches design?")}
-                        >
-                            Test Toast
-                        </Button>
-                    </DialogDescription>
-                </DialogHeader>
-                <Form {...form}>
-                    <form onSubmit={form.handleSubmit(onSubmit, (errors) => console.log("Form Errors:", errors))} className="space-y-4">
+        <>
+            <Dialog open={open} onOpenChange={setOpen}>
+                <DialogTrigger asChild>
+                    <Button className="bg-indigo-600 hover:bg-indigo-700 text-white">
+                        <Clock className="mr-2 h-4 w-4" />
+                        Log Hours
+                    </Button>
+                </DialogTrigger>
+                <DialogContent className="sm:max-w-[500px] max-h-[90vh] overflow-y-auto">
+                    <DialogHeader>
+                        <DialogTitle>Log Hours</DialogTitle>
+                        <DialogDescription>
+                            Record your fieldwork hours.
+                        </DialogDescription>
+                    </DialogHeader>
+                    <Form {...form}>
+                        <form onSubmit={form.handleSubmit(onSubmit, (errors) => console.log("Form Errors:", errors))} className="space-y-4">
 
-                        <FormField
-                            control={form.control}
-                            name="type"
-                            render={({ field }) => (
-                                <FormItem>
-                                    <FormLabel>Type</FormLabel>
-                                    <Select onValueChange={field.onChange} defaultValue={field.value}>
-                                        <FormControl>
-                                            <SelectTrigger>
-                                                <SelectValue placeholder="Select type" />
-                                            </SelectTrigger>
-                                        </FormControl>
-                                        <SelectContent>
-                                            <SelectItem value="independent">Independent</SelectItem>
-                                            <SelectItem value="supervision">Supervised</SelectItem>
-                                        </SelectContent>
-                                    </Select>
-                                    <FormMessage />
-                                </FormItem>
-                            )}
-                        />
-
-                        <div className="grid grid-cols-2 gap-4">
                             <FormField
                                 control={form.control}
-                                name="date"
+                                name="type"
                                 render={({ field }) => (
-                                    <FormItem className="flex flex-col">
-                                        <FormLabel>Date of Service</FormLabel>
-                                        <Popover>
-                                            <PopoverTrigger asChild>
+                                    <FormItem>
+                                        <FormLabel>Type</FormLabel>
+                                        <Select onValueChange={field.onChange} defaultValue={field.value}>
+                                            <FormControl>
+                                                <SelectTrigger>
+                                                    <SelectValue placeholder="Select type" />
+                                                </SelectTrigger>
+                                            </FormControl>
+                                            <SelectContent>
+                                                <SelectItem value="independent">Independent</SelectItem>
+                                                <SelectItem value="supervision">Supervised</SelectItem>
+                                            </SelectContent>
+                                        </Select>
+                                        <FormMessage />
+                                    </FormItem>
+                                )}
+                            />
+
+                            <div className="grid grid-cols-2 gap-4">
+                                <FormField
+                                    control={form.control}
+                                    name="date"
+                                    render={({ field }) => (
+                                        <FormItem className="flex flex-col">
+                                            <FormLabel>Date of Service</FormLabel>
+                                            <Popover>
+                                                <PopoverTrigger asChild>
+                                                    <FormControl>
+                                                        <Button
+                                                            variant={"outline"}
+                                                            className={cn(
+                                                                "pl-3 text-left font-normal",
+                                                                !field.value && "text-muted-foreground"
+                                                            )}
+                                                        >
+                                                            {field.value ? (
+                                                                format(field.value, "PPP")
+                                                            ) : (
+                                                                <span>Pick a date</span>
+                                                            )}
+                                                            <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+                                                        </Button>
+                                                    </FormControl>
+                                                </PopoverTrigger>
+                                                <PopoverContent className="w-auto p-0" align="start">
+                                                    <Calendar
+                                                        mode="single"
+                                                        selected={field.value}
+                                                        onSelect={field.onChange}
+                                                        disabled={(date) =>
+                                                            date > new Date() || date < new Date("1900-01-01")
+                                                        }
+                                                        initialFocus
+                                                    />
+                                                </PopoverContent>
+                                            </Popover>
+                                            <FormMessage />
+                                        </FormItem>
+                                    )}
+                                />
+
+                                <FormField
+                                    control={form.control}
+                                    name="startTime"
+                                    render={({ field }) => (
+                                        <FormItem>
+                                            <FormLabel>Start Time</FormLabel>
+                                            <FormControl>
+                                                <Input type="time" {...field} />
+                                            </FormControl>
+                                            <FormMessage />
+                                        </FormItem>
+                                    )}
+                                />
+                            </div>
+
+                            <FormField
+                                control={form.control}
+                                name="minutes"
+                                render={({ field }) => (
+                                    <FormItem>
+                                        <FormLabel>Duration (Minutes)</FormLabel>
+                                        <FormControl>
+                                            <div className="flex items-center space-x-2">
+                                                <Input type="number" {...field} />
+                                                <span className="text-sm text-muted-foreground">min</span>
+                                            </div>
+                                        </FormControl>
+                                        <FormMessage />
+                                    </FormItem>
+                                )}
+                            />
+
+                            <div className="grid grid-cols-2 gap-4">
+                                <FormField
+                                    control={form.control}
+                                    name="setting"
+                                    render={({ field }) => (
+                                        <FormItem>
+                                            <FormLabel>Setting</FormLabel>
+                                            <Select onValueChange={field.onChange} defaultValue={field.value}>
                                                 <FormControl>
-                                                    <Button
-                                                        variant={"outline"}
-                                                        className={cn(
-                                                            "pl-3 text-left font-normal",
-                                                            !field.value && "text-muted-foreground"
-                                                        )}
-                                                    >
-                                                        {field.value ? (
-                                                            format(field.value, "PPP")
-                                                        ) : (
-                                                            <span>Pick a date</span>
-                                                        )}
-                                                        <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
-                                                    </Button>
+                                                    <SelectTrigger>
+                                                        <SelectValue placeholder="Select setting" />
+                                                    </SelectTrigger>
                                                 </FormControl>
-                                            </PopoverTrigger>
-                                            <PopoverContent className="w-auto p-0" align="start">
-                                                <Calendar
-                                                    mode="single"
-                                                    selected={field.value}
-                                                    onSelect={field.onChange}
-                                                    disabled={(date) =>
-                                                        date > new Date() || date < new Date("1900-01-01")
-                                                    }
-                                                    initialFocus
-                                                />
-                                            </PopoverContent>
-                                        </Popover>
-                                        <FormMessage />
-                                    </FormItem>
-                                )}
-                            />
+                                                <SelectContent>
+                                                    {SettingTypeOptions.map(s => (
+                                                        <SelectItem key={s} value={s}>{s.replace('_', ' ')}</SelectItem>
+                                                    ))}
+                                                </SelectContent>
+                                            </Select>
+                                            <FormMessage />
+                                        </FormItem>
+                                    )}
+                                />
+
+                                <FormField
+                                    control={form.control}
+                                    name="activityType"
+                                    render={({ field }) => (
+                                        <FormItem>
+                                            <FormLabel>Activity</FormLabel>
+                                            <Select onValueChange={field.onChange} defaultValue={field.value}>
+                                                <FormControl>
+                                                    <SelectTrigger>
+                                                        <SelectValue placeholder="Select activity" />
+                                                    </SelectTrigger>
+                                                </FormControl>
+                                                <SelectContent>
+                                                    {ActivityTypeOptions.map(a => (
+                                                        <SelectItem key={a} value={a}>{a}</SelectItem>
+                                                    ))}
+                                                </SelectContent>
+                                            </Select>
+                                            <FormMessage />
+                                        </FormItem>
+                                    )}
+                                />
+                            </div>
 
                             <FormField
                                 control={form.control}
-                                name="startTime"
+                                name="notes"
                                 render={({ field }) => (
                                     <FormItem>
-                                        <FormLabel>Start Time</FormLabel>
+                                        <FormLabel>Description / Notes</FormLabel>
                                         <FormControl>
-                                            <Input type="time" {...field} />
+                                            <Input placeholder="Short description of activities..." {...field} />
                                         </FormControl>
                                         <FormMessage />
                                     </FormItem>
                                 )}
                             />
-                        </div>
 
-                        <FormField
-                            control={form.control}
-                            name="minutes"
-                            render={({ field }) => (
-                                <FormItem>
-                                    <FormLabel>Duration (Minutes)</FormLabel>
-                                    <FormControl>
-                                        <div className="flex items-center space-x-2">
-                                            <Input type="number" {...field} />
-                                            <span className="text-sm text-muted-foreground">min</span>
-                                        </div>
-                                    </FormControl>
-                                    <FormMessage />
-                                </FormItem>
-                            )}
-                        />
+                            <DialogFooter>
+                                <Button type="button" variant="ghost" onClick={() => setOpen(false)}>Cancel</Button>
+                                <Button type="submit" disabled={isPending} variant="gradient">
+                                    {isPending ? (
+                                        <>
+                                            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                                            Saving...
+                                        </>
+                                    ) : (
+                                        "Save Log"
+                                    )}
+                                </Button>
+                            </DialogFooter>
+                        </form>
+                    </Form>
+                </DialogContent>
+            </Dialog>
 
-                        <div className="grid grid-cols-2 gap-4">
-                            <FormField
-                                control={form.control}
-                                name="setting"
-                                render={({ field }) => (
-                                    <FormItem>
-                                        <FormLabel>Setting</FormLabel>
-                                        <Select onValueChange={field.onChange} defaultValue={field.value}>
-                                            <FormControl>
-                                                <SelectTrigger>
-                                                    <SelectValue placeholder="Select setting" />
-                                                </SelectTrigger>
-                                            </FormControl>
-                                            <SelectContent>
-                                                {SettingTypeOptions.map(s => (
-                                                    <SelectItem key={s} value={s}>{s.replace('_', ' ')}</SelectItem>
-                                                ))}
-                                            </SelectContent>
-                                        </Select>
-                                        <FormMessage />
-                                    </FormItem>
-                                )}
-                            />
-
-                            <FormField
-                                control={form.control}
-                                name="activityType"
-                                render={({ field }) => (
-                                    <FormItem>
-                                        <FormLabel>Activity</FormLabel>
-                                        <Select onValueChange={field.onChange} defaultValue={field.value}>
-                                            <FormControl>
-                                                <SelectTrigger>
-                                                    <SelectValue placeholder="Select activity" />
-                                                </SelectTrigger>
-                                            </FormControl>
-                                            <SelectContent>
-                                                {ActivityTypeOptions.map(a => (
-                                                    <SelectItem key={a} value={a}>{a}</SelectItem>
-                                                ))}
-                                            </SelectContent>
-                                        </Select>
-                                        <FormMessage />
-                                    </FormItem>
-                                )}
-                            />
-                        </div>
-
-                        <FormField
-                            control={form.control}
-                            name="notes"
-                            render={({ field }) => (
-                                <FormItem>
-                                    <FormLabel>Description / Notes</FormLabel>
-                                    <FormControl>
-                                        <Input placeholder="Short description of activities..." {...field} />
-                                    </FormControl>
-                                    <FormMessage />
-                                </FormItem>
-                            )}
-                        />
-
-                        <DialogFooter>
-                            <Button type="button" variant="ghost" onClick={() => setOpen(false)}>Cancel</Button>
-                            <Button type="submit" disabled={isPending} variant="gradient">
-                                {isPending ? (
-                                    <>
-                                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                                        Saving...
-                                    </>
-                                ) : (
-                                    "Save Log"
-                                )}
-                            </Button>
-                        </DialogFooter>
-                    </form>
-                </Form>
-            </DialogContent>
-        </Dialog>
+            <Dialog open={errorDialogOpen} onOpenChange={setErrorDialogOpen}>
+                <DialogContent className="sm:max-w-[425px] border-l-4 border-red-600">
+                    <DialogHeader>
+                        <DialogTitle className="flex items-center gap-2 text-red-600 text-xl">
+                            <span className="text-2xl">❌</span> Error
+                        </DialogTitle>
+                        <DialogDescription className="pt-4 text-base text-gray-900 font-medium">
+                            {errorMessage}
+                        </DialogDescription>
+                    </DialogHeader>
+                    <DialogFooter className="mt-4">
+                        <Button
+                            onClick={() => setErrorDialogOpen(false)}
+                            className="bg-red-600 hover:bg-red-700 text-white w-full sm:w-auto"
+                        >
+                            Understood / Entendido
+                        </Button>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
+        </>
     )
 }

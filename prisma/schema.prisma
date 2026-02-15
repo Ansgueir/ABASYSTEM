@@ -7,7 +7,273 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-// Enums
+model User {
+  id                 String              @id @default(uuid())
+  email              String              @unique
+  passwordHash       String
+  role               UserRole
+  createdAt          DateTime            @default(now())
+  updatedAt          DateTime            @updatedAt
+  uploadedDocuments  Document[]
+  officeMember       OfficeMember?
+  repeatingSchedules RepeatingSchedule[]
+  student            Student?
+  supervisor         Supervisor?
+}
+
+model Student {
+  id                    String                       @id @default(uuid())
+  userId                String                       @unique
+  fullName              String
+  paymentAlias          String[]
+  supervisorId          String?
+  bacbId                String                       @db.VarChar(10)
+  credential            CredentialType
+  school                String
+  level                 LevelType
+  phone                 String
+  email                 String
+  city                  String
+  state                 String
+  startDate             DateTime
+  supervisionType       SupervisionType
+  supervisionPercentage Decimal
+  hoursToDo             Int
+  hoursToPay            Int
+  amountToPay           Decimal                      @db.Decimal(10, 2)
+  hoursPerMonth         Int
+  totalMonths           Int
+  endDate               DateTime
+  status                StudentStatus                @default(ACTIVE)
+  availableDaysGroup    String[]
+  notes                 String?
+  createdAt             DateTime                     @default(now())
+  updatedAt             DateTime                     @updatedAt
+  academicDegree        String?
+  contractStartDate     DateTime?
+  contracts             Contract[]
+  documents             Document[]
+  groupAttendance       GroupSupervisionAttendance[]
+  independentHours      IndependentHour[]
+  invoices              Invoice[]
+  supervisor            Supervisor?                  @relation(fields: [supervisorId], references: [id])
+  user                  User                         @relation(fields: [userId], references: [id])
+  evaluations           StudentEvaluation[]
+  payments              StudentPayment[]
+  supervisionHours      SupervisionHour[]
+  supervisorPayments    SupervisorPayment[]
+}
+
+model Supervisor {
+  id                 String                    @id @default(uuid())
+  userId             String                    @unique
+  fullName           String
+  phone              String
+  email              String
+  address            String
+  bacbId             String
+  certificantNumber  String
+  examDate           DateTime?
+  training8hrDate    DateTime?
+  availableDaysGroup String[]
+  monthStarted       DateTime?
+  status             SupervisorStatus          @default(ACTIVE)
+  companyName        String?
+  taxId              String?
+  bankName           String?
+  routingNumber      String?
+  accountNumber      String?
+  canEnterGroupHours Boolean                   @default(false)
+  rateRegular        Decimal?                  @db.Decimal(10, 2)
+  rateConcentrated   Decimal?                  @db.Decimal(10, 2)
+  paymentPercentage  Decimal?                  @db.Decimal(5, 4)
+  comments           String?
+  createdAt          DateTime                  @default(now())
+  updatedAt          DateTime                  @updatedAt
+  credentialType     CredentialType            @default(BCBA)
+  maxStudents        Int                       @default(10)
+  documents          Document[]
+  groupSessions      GroupSupervisionSession[]
+  students           Student[]
+  evaluations        StudentEvaluation[]
+  supervisionHours   SupervisionHour[]
+  user               User                      @relation(fields: [userId], references: [id])
+  payments           SupervisorPayment[]
+}
+
+model OfficeMember {
+  id          String   @id @default(uuid())
+  userId      String   @unique
+  fullName    String
+  permissions Json?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  user        User     @relation(fields: [userId], references: [id])
+}
+
+model IndependentHour {
+  id                  String             @id @default(uuid())
+  studentId           String
+  date                DateTime
+  startTime           DateTime
+  hours               Decimal            @db.Decimal(4, 2)
+  setting             SettingType
+  activityType        ActivityType
+  notes               String?
+  isRepeating         Boolean            @default(false)
+  repeatingScheduleId String?
+  createdAt           DateTime           @default(now())
+  repeatingSchedule   RepeatingSchedule? @relation(fields: [repeatingScheduleId], references: [id])
+  student             Student            @relation(fields: [studentId], references: [id])
+}
+
+model SupervisionHour {
+  id                  String             @id @default(uuid())
+  studentId           String
+  supervisorId        String
+  date                DateTime
+  startTime           DateTime
+  hours               Decimal            @db.Decimal(4, 2)
+  supervisionType     SupervisionFormat
+  setting             SettingType
+  activityType        ActivityType
+  notes               String?
+  groupTopic          String?
+  isRepeating         Boolean            @default(false)
+  repeatingScheduleId String?
+  createdAt           DateTime           @default(now())
+  repeatingSchedule   RepeatingSchedule? @relation(fields: [repeatingScheduleId], references: [id])
+  student             Student            @relation(fields: [studentId], references: [id])
+  supervisor          Supervisor         @relation(fields: [supervisorId], references: [id])
+}
+
+model RepeatingSchedule {
+  id                      String            @id @default(uuid())
+  userId                  String
+  name                    String
+  frequencyType           String
+  frequencyValue          Int
+  daysOfWeek              String[]
+  endAfterOccurrences     Int?
+  endDate                 DateTime?
+  templateData            Json
+  isActive                Boolean           @default(true)
+  createdAt               DateTime          @default(now())
+  createdIndependentHours IndependentHour[]
+  user                    User              @relation(fields: [userId], references: [id])
+  createdSupervisionHours SupervisionHour[]
+}
+
+model StudentPayment {
+  id          String      @id @default(uuid())
+  studentId   String
+  paymentDate DateTime
+  amount      Decimal     @db.Decimal(10, 2)
+  paymentType PaymentType
+  notes       String?
+  createdAt   DateTime    @default(now())
+  student     Student     @relation(fields: [studentId], references: [id])
+}
+
+model SupervisorPayment {
+  id                  String     @id @default(uuid())
+  supervisorId        String
+  studentId           String
+  monthYear           DateTime
+  amountDue           Decimal    @db.Decimal(10, 2)
+  amountPaidThisMonth Decimal    @db.Decimal(10, 2)
+  amountAlreadyPaid   Decimal    @db.Decimal(10, 2)
+  balanceDue          Decimal    @db.Decimal(10, 2)
+  createdAt           DateTime   @default(now())
+  student             Student    @relation(fields: [studentId], references: [id])
+  supervisor          Supervisor @relation(fields: [supervisorId], references: [id])
+}
+
+model Invoice {
+  id          String        @id @default(uuid())
+  studentId   String
+  invoiceDate DateTime
+  amountDue   Decimal       @db.Decimal(10, 2)
+  amountPaid  Decimal       @db.Decimal(10, 2)
+  status      InvoiceStatus
+  sentAt      DateTime?
+  createdAt   DateTime      @default(now())
+  student     Student       @relation(fields: [studentId], references: [id])
+}
+
+model Document {
+  id           String         @id @default(uuid())
+  studentId    String?
+  supervisorId String?
+  documentType DocumentType
+  fileUrl      String
+  fileName     String
+  fileSize     Int
+  uploadedById String?
+  uploadedAt   DateTime       @default(now())
+  status       DocumentStatus @default(PENDING)
+  student      Student?       @relation(fields: [studentId], references: [id])
+  supervisor   Supervisor?    @relation(fields: [supervisorId], references: [id])
+  uploadedBy   User?          @relation(fields: [uploadedById], references: [id])
+}
+
+model GroupSupervisionSession {
+  id           String                       @id @default(uuid())
+  supervisorId String
+  date         DateTime
+  startTime    DateTime
+  topic        String
+  maxStudents  Int                          @default(10)
+  createdAt    DateTime                     @default(now())
+  attendance   GroupSupervisionAttendance[]
+  supervisor   Supervisor                   @relation(fields: [supervisorId], references: [id])
+}
+
+model GroupSupervisionAttendance {
+  id        String                  @id @default(uuid())
+  sessionId String
+  studentId String
+  attended  Boolean                 @default(true)
+  createdAt DateTime                @default(now())
+  session   GroupSupervisionSession @relation(fields: [sessionId], references: [id])
+  student   Student                 @relation(fields: [studentId], references: [id])
+}
+
+model StudentEvaluation {
+  id             String             @id @default(uuid())
+  studentId      String
+  supervisorId   String
+  monthYear      DateTime
+  criteria       EvaluationCriteria
+  evaluationText String?
+  createdAt      DateTime           @default(now())
+  student        Student            @relation(fields: [studentId], references: [id])
+  supervisor     Supervisor         @relation(fields: [supervisorId], references: [id])
+}
+
+model Contract {
+  id            String         @id @default(uuid())
+  studentId     String
+  effectiveDate DateTime
+  contractUrl   String
+  status        ContractStatus
+  signedAt      DateTime?
+  createdAt     DateTime       @default(now())
+  student       Student        @relation(fields: [studentId], references: [id])
+}
+
+model GeneralValues {
+  id                          String   @id @default(uuid())
+  rateRegular                 Decimal  @db.Decimal(10, 2)
+  rateConcentrated            Decimal  @db.Decimal(10, 2)
+  supervisorPaymentPercentage Decimal  @db.Decimal(5, 4)
+  companyName                 String
+  companyAddress              String
+  companyPhone                String
+  companyEmail                String
+  updatedAt                   DateTime @updatedAt
+}
+
 enum UserRole {
   STUDENT
   SUPERVISOR
@@ -19,9 +285,9 @@ enum CredentialType {
   RBT
   RBT_NOT_WORKING
   BCaBA
-  BCBA
   LMHC
   NO_CREDENTIAL
+  BCBA
 }
 
 enum LevelType {
@@ -111,331 +377,4 @@ enum DocumentStatus {
   PENDING
   APPROVED
   REJECTED
-}
-
-// Models
-
-model User {
-  id            String    @id @default(uuid())
-  email         String    @unique
-  passwordHash  String
-  role          UserRole
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @updatedAt
-
-  student       Student?
-  supervisor    Supervisor?
-  officeMember  OfficeMember?
-  repeatingSchedules RepeatingSchedule[]
-  uploadedDocuments  Document[]
-}
-
-model Student {
-  id                  String        @id @default(uuid())
-  userId              String        @unique
-  user                User          @relation(fields: [userId], references: [id])
-  
-  fullName            String
-  paymentAlias        String[]      // Array of strings in Postgres
-  
-  supervisorId        String?
-  supervisor          Supervisor?   @relation(fields: [supervisorId], references: [id])
-  
-  bacbId              String        @db.VarChar(10)
-  credential          CredentialType
-  school              String
-  level               LevelType
-  phone               String
-  email               String        // Contact email distinct from login
-  city                String
-  state               String
-  startDate           DateTime
-  
-  supervisionType     SupervisionType
-  supervisionPercentage Decimal     // 0.05 or 0.10
-  hoursToDo           Int
-  hoursToPay          Int
-  amountToPay         Decimal       @db.Decimal(10, 2)
-  hoursPerMonth       Int
-  totalMonths         Int
-  
-  contractStartDate   DateTime?
-  academicDegree      String?
-  
-  endDate             DateTime
-  
-  status              StudentStatus @default(ACTIVE)
-  availableDaysGroup  String[]      // e.g. ["Monday", "Wednesday"]
-  notes               String?       @db.Text
-  
-  createdAt           DateTime      @default(now())
-  updatedAt           DateTime      @updatedAt
-
-  // Relations
-  independentHours    IndependentHour[]
-  supervisionHours    SupervisionHour[]
-  groupAttendance     GroupSupervisionAttendance[]
-  payments            StudentPayment[]
-  invoices            Invoice[]
-  evaluations         StudentEvaluation[]
-  documents           Document[]
-  contracts           Contract[]
-  supervisorPayments  SupervisorPayment[]
-}
-
-model Supervisor {
-  id                  String        @id @default(uuid())
-  userId              String        @unique
-  user                User          @relation(fields: [userId], references: [id])
-  
-  fullName            String
-  phone               String
-  email               String
-  address             String        @db.Text
-  bacbId              String
-  certificantNumber   String
-  credentialType      CredentialType @default(BCBA)
-  maxStudents         Int           @default(10)
-  
-  examDate            DateTime?
-  training8hrDate     DateTime?
-  
-  availableDaysGroup  String[]
-  monthStarted        DateTime?
-  status              SupervisorStatus @default(ACTIVE)
-  
-  companyName         String?
-  taxId               String?
-  bankName            String?
-  routingNumber       String?
-  accountNumber       String?
-  
-  canEnterGroupHours  Boolean       @default(false)
-  
-  // Custom rates if needed, otherwise use general values
-  rateRegular         Decimal?      @db.Decimal(10, 2)
-  rateConcentrated    Decimal?      @db.Decimal(10, 2)
-  paymentPercentage   Decimal?      @db.Decimal(5, 4) // 0.54 or 0.60
-  
-  comments            String?       @db.Text
-  
-  createdAt           DateTime      @default(now())
-  updatedAt           DateTime      @updatedAt
-
-  // Relations
-  students            Student[]
-  supervisionHours    SupervisionHour[]
-  groupSessions       GroupSupervisionSession[]
-  evaluations         StudentEvaluation[]
-  documents           Document[]
-  payments            SupervisorPayment[]
-}
-
-model OfficeMember {
-  id            String    @id @default(uuid())
-  userId        String    @unique
-  user          User      @relation(fields: [userId], references: [id])
-  
-  fullName      String
-  permissions   Json?     // Granular permissions
-  
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @updatedAt
-}
-
-model IndependentHour {
-  id                  String    @id @default(uuid())
-  studentId           String
-  student             Student   @relation(fields: [studentId], references: [id])
-  
-  date                DateTime
-  startTime           DateTime  // Storing as DateTime but only time matters
-  hours               Decimal   @db.Decimal(4, 2)
-  setting             SettingType
-  activityType        ActivityType
-  notes               String?   @db.Text
-  
-  isRepeating         Boolean   @default(false)
-  repeatingScheduleId String?
-  repeatingSchedule   RepeatingSchedule? @relation(fields: [repeatingScheduleId], references: [id])
-  
-  createdAt           DateTime  @default(now())
-}
-
-model SupervisionHour {
-  id                  String    @id @default(uuid())
-  studentId           String
-  student             Student   @relation(fields: [studentId], references: [id])
-  
-  supervisorId        String
-  supervisor          Supervisor @relation(fields: [supervisorId], references: [id])
-  
-  date                DateTime
-  startTime           DateTime
-  hours               Decimal   @db.Decimal(4, 2)
-  supervisionType     SupervisionFormat
-  setting             SettingType
-  activityType        ActivityType
-  notes               String?   @db.Text
-  groupTopic          String?   // For group supervision
-  
-  isRepeating         Boolean   @default(false)
-  repeatingScheduleId String?
-  repeatingSchedule   RepeatingSchedule? @relation(fields: [repeatingScheduleId], references: [id])
-  
-  createdAt           DateTime  @default(now())
-}
-
-model RepeatingSchedule {
-  id                  String    @id @default(uuid())
-  userId              String    // Can belong to student or supervisor
-  user                User      @relation(fields: [userId], references: [id])
-  
-  name                String
-  frequencyType       String    // 'week' or 'month'
-  frequencyValue      Int       // e.g. every 1 week
-  daysOfWeek          String[]  // e.g. ["MO", "WE"]
-  endAfterOccurrences Int?
-  endDate             DateTime?
-  
-  templateData        Json      // Stores the data to replicate
-  isActive            Boolean   @default(true)
-  
-  createdIndependentHours IndependentHour[]
-  createdSupervisionHours SupervisionHour[]
-  
-  createdAt           DateTime  @default(now())
-}
-
-model StudentPayment {
-  id            String      @id @default(uuid())
-  studentId     String
-  student       Student     @relation(fields: [studentId], references: [id])
-  
-  paymentDate   DateTime
-  amount        Decimal     @db.Decimal(10, 2)
-  paymentType   PaymentType
-  notes         String?     @db.Text
-  
-  createdAt     DateTime    @default(now())
-}
-
-model SupervisorPayment {
-  id                    String    @id @default(uuid())
-  supervisorId          String
-  supervisor            Supervisor @relation(fields: [supervisorId], references: [id])
-  
-  studentId             String
-  student               Student   @relation(fields: [studentId], references: [id])
-  
-  monthYear             DateTime  // First day of month
-  amountDue             Decimal   @db.Decimal(10, 2)
-  amountPaidThisMonth   Decimal   @db.Decimal(10, 2)
-  amountAlreadyPaid     Decimal   @db.Decimal(10, 2)
-  balanceDue            Decimal   @db.Decimal(10, 2)
-  
-  createdAt             DateTime  @default(now())
-}
-
-model Invoice {
-  id            String        @id @default(uuid())
-  studentId     String
-  student       Student       @relation(fields: [studentId], references: [id])
-  
-  invoiceDate   DateTime
-  amountDue     Decimal       @db.Decimal(10, 2)
-  amountPaid    Decimal       @db.Decimal(10, 2)
-  status        InvoiceStatus
-  
-  sentAt        DateTime?
-  createdAt     DateTime      @default(now())
-}
-
-model Document {
-  id            String        @id @default(uuid())
-  
-  studentId     String?       // Owner can be student
-  student       Student?      @relation(fields: [studentId], references: [id])
-  
-  supervisorId  String?       // Or supervisor
-  supervisor    Supervisor?   @relation(fields: [supervisorId], references: [id])
-  
-  documentType  DocumentType
-  fileUrl       String
-  fileName      String
-  fileSize      Int
-  
-  uploadedById  String?
-  uploadedBy    User?         @relation(fields: [uploadedById], references: [id])
-  
-  uploadedAt    DateTime      @default(now())
-  status        DocumentStatus @default(PENDING)
-}
-
-model GroupSupervisionSession {
-  id            String      @id @default(uuid())
-  supervisorId  String
-  supervisor    Supervisor  @relation(fields: [supervisorId], references: [id])
-  
-  date          DateTime
-  startTime     DateTime
-  topic         String
-  maxStudents   Int         @default(10)
-  
-  attendance    GroupSupervisionAttendance[]
-  
-  createdAt     DateTime    @default(now())
-}
-
-model GroupSupervisionAttendance {
-  id            String                  @id @default(uuid())
-  sessionId     String
-  session       GroupSupervisionSession @relation(fields: [sessionId], references: [id])
-  
-  studentId     String
-  student       Student                 @relation(fields: [studentId], references: [id])
-  
-  attended      Boolean                 @default(true)
-  createdAt     DateTime                @default(now())
-}
-
-model StudentEvaluation {
-  id            String              @id @default(uuid())
-  studentId     String
-  student       Student             @relation(fields: [studentId], references: [id])
-  
-  supervisorId  String
-  supervisor    Supervisor          @relation(fields: [supervisorId], references: [id])
-  
-  monthYear     DateTime
-  criteria      EvaluationCriteria
-  evaluationText String?            @db.Text
-  
-  createdAt     DateTime            @default(now())
-}
-
-model Contract {
-  id            String          @id @default(uuid())
-  studentId     String
-  student       Student         @relation(fields: [studentId], references: [id])
-  
-  effectiveDate DateTime
-  contractUrl   String
-  status        ContractStatus
-  signedAt      DateTime?
-  
-  createdAt     DateTime        @default(now())
-}
-
-model GeneralValues {
-  id                          String    @id @default(uuid())
-  rateRegular                 Decimal   @db.Decimal(10, 2)
-  rateConcentrated            Decimal   @db.Decimal(10, 2)
-  supervisorPaymentPercentage Decimal   @db.Decimal(5, 4)
-  companyName                 String
-  companyAddress              String
-  companyPhone                String
-  companyEmail                String
-  
-  updatedAt                   DateTime  @updatedAt
 }
