@@ -8,7 +8,8 @@ import Link from "next/link"
 import { SupervisorDocumentReview } from "@/components/supervisor-document-review"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 
-export default async function SupervisorStudentDetailPage({ params }: { params: { studentId: string } }) {
+export default async function SupervisorStudentDetailPage({ params }: { params: Promise<{ studentId: string }> }) {
+    const { studentId } = await params
     const session = await auth()
     if (!session?.user) redirect("/login")
 
@@ -16,7 +17,7 @@ export default async function SupervisorStudentDetailPage({ params }: { params: 
     if (role !== "supervisor" && role !== "qa") redirect("/login")
 
     const student = await prisma.student.findUnique({
-        where: { id: params.studentId },
+        where: { id: studentId },
         include: { documents: { orderBy: { uploadedAt: 'desc' } } }
     })
 
