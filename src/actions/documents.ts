@@ -141,13 +141,16 @@ export async function reviewDocument(documentId: string, status: "APPROVED" | "R
     }
 
     try {
-        await prisma.document.update({
+        const doc = await prisma.document.update({
             where: { id: documentId },
             data: { status }
         })
 
-        revalidatePath("/supervisor/students/[id]")
-        revalidatePath("/student/documents")
+        if (doc.studentId) {
+            revalidatePath(`/supervisor/students/${doc.studentId}`)
+            revalidatePath("/student/documents")
+        }
+
         return { success: true }
     } catch (error) {
         console.error("Review error:", error)
