@@ -55,6 +55,7 @@ export function TimesheetsTab({ independentHours, supervisionHours }: Timesheets
                     <TableHeader>
                         <TableRow>
                             <TableHead>Date</TableHead>
+                            <TableHead>Logged At</TableHead>
                             <TableHead>Type</TableHead>
                             <TableHead>Activity</TableHead>
                             <TableHead>Setting</TableHead>
@@ -64,26 +65,29 @@ export function TimesheetsTab({ independentHours, supervisionHours }: Timesheets
                     <TableBody>
                         {allEntries.length === 0 ? (
                             <TableRow>
-                                <TableCell colSpan={5} className="text-center py-8 text-muted-foreground">
+                                <TableCell colSpan={6} className="text-center py-8 text-muted-foreground">
                                     No hours logged yet.
                                 </TableCell>
                             </TableRow>
                         ) : (
                             allEntries.map((entry) => (
                                 <TableRow key={entry.id}>
-                                    <TableCell>{format(new Date(entry.date), "MMM d, yyyy")}</TableCell>
+                                    <TableCell className="font-medium">{format(new Date(entry.date), "MMM d, yyyy")}</TableCell>
+                                    <TableCell className="text-xs text-muted-foreground">
+                                        {format(new Date(entry.createdAt), "MMM d, HH:mm")}
+                                    </TableCell>
                                     <TableCell>
-                                        <Badge variant="outline">{entry.type}</Badge>
+                                        <Badge variant="outline" className="text-[10px]">{entry.type}</Badge>
                                     </TableCell>
                                     <TableCell>
                                         <div className="flex flex-col">
-                                            <span className="font-medium">{entry.activityType}</span>
+                                            <span className="text-sm font-medium">{entry.activityType}</span>
                                             {/* @ts-ignore */}
-                                            {entry.notes && <span className="text-xs text-muted-foreground truncate max-w-[200px]">{entry.notes}</span>}
+                                            {entry.notes && <span className="text-[10px] text-muted-foreground truncate max-w-[150px]">{entry.notes}</span>}
                                         </div>
                                     </TableCell>
-                                    <TableCell className="capitalize">{entry.setting?.toLowerCase().replace(/_/g, ' ') || 'N/A'}</TableCell>
-                                    <TableCell className="text-right">{getHours(entry.hours).toFixed(2)}</TableCell>
+                                    <TableCell className="text-sm capitalize">{entry.setting?.toLowerCase().replace(/_/g, ' ') || 'N/A'}</TableCell>
+                                    <TableCell className="text-right font-mono">{getHours(entry.hours).toFixed(2)}</TableCell>
                                 </TableRow>
                             ))
                         )}
