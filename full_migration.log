@@ -1,0 +1,49 @@
+=== Final Full Migration (Schema + Data) ===
+
+--- Step 1: Pushing Schema to Local DB ---
+Prisma Push Failed: Command failed: npx prisma db push --accept-data-loss
+Error: P1001: Can't reach database server at `localhost:5432`
+
+Please make sure your database server is running at `localhost:5432`.
+
+Environment variables loaded from .env
+Prisma schema loaded from prisma\schema.prisma
+Datasource "db": PostgreSQL database "aba_supervision", schema "public" at "localhost:5432"
+
+
+Error: P1001: Can't reach database server at `localhost:5432`
+
+Please make sure your database server is running at `localhost:5432`.
+
+
+--- Step 2: Migrating Data ---
+Users: 5 records
+  📊 0 success
+Supervisors: 1 records
+  📊 0 success
+OfficeMembers: 2 records
+  📊 0 success
+Students: 2 records
+  📊 0 success
+IndependentHours: 0 records
+  📊 0 success
+SupervisionHours: 0 records
+  📊 0 success
+Contracts: 0 records
+  📊 0 success
+Documents: 0 records
+  📊 0 success
+Invoices: 0 records
+  📊 0 success
+StudentPayments: 0 records
+  📊 0 success
+SupervisorPayments: 0 records
+  📊 0 success
+GeneralValues: 0 records
+  📊 0 success
+GroupSessions: 0 records
+  📊 0 success
+StudentEvaluations: 0 records
+  📊 0 success
+
+=== FULL MIGRATION COMPLETE ===

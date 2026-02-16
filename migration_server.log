@@ -1,0 +1,102 @@
+=== Migrating data: Supabase → Local PG on Server ===
+
+Users: 5 records
+  Error in Users: 
+Invalid `prisma.user.upsert()` invocation:
+
+
+Can't reach database server at `localhost:5432`
+
+Please make sure your database server is running at `localhost:5432`.
+  Error in Users: 
+Invalid `prisma.user.upsert()` invocation:
+
+
+Can't reach database server at `localhost:5432`
+
+Please make sure your database server is running at `localhost:5432`.
+  Error in Users: 
+Invalid `prisma.user.upsert()` invocation:
+
+
+Can't reach database server at `localhost:5432`
+
+Please make sure your database server is running at `localhost:5432`.
+  Error in Users: 
+Invalid `prisma.user.upsert()` invocation:
+
+
+Can't reach database server at `localhost:5432`
+
+Please make sure your database server is running at `localhost:5432`.
+  Error in Users: 
+Invalid `prisma.user.upsert()` invocation:
+
+
+Can't reach database server at `localhost:5432`
+
+Please make sure your database server is running at `localhost:5432`.
+  📊 0 success, 5 errors
+Supervisors: 1 records
+  Error in Supervisors: 
+Invalid `prisma.supervisor.upsert()` invocation:
+
+
+Can't reach database server at `localhost:5432`
+
+Please make sure your database server is running at `localhost:5432`.
+  📊 0 success, 1 errors
+OfficeMembers: 2 records
+  Error in OfficeMembers: 
+Invalid `prisma.officeMember.upsert()` invocation:
+
+
+Can't reach database server at `localhost:5432`
+
+Please make sure your database server is running at `localhost:5432`.
+  Error in OfficeMembers: 
+Invalid `prisma.officeMember.upsert()` invocation:
+
+
+Can't reach database server at `localhost:5432`
+
+Please make sure your database server is running at `localhost:5432`.
+  📊 0 success, 2 errors
+Students: 2 records
+  Error in Students: 
+Invalid `prisma.student.upsert()` invocation:
+
+
+Can't reach database server at `localhost:5432`
+
+Please make sure your database server is running at `localhost:5432`.
+  Error in Students: 
+Invalid `prisma.student.upsert()` invocation:
+
+
+Can't reach database server at `localhost:5432`
+
+Please make sure your database server is running at `localhost:5432`.
+  📊 0 success, 2 errors
+IndependentHours: 0 records
+  📊 0 success, 0 errors
+SupervisionHours: 0 records
+  📊 0 success, 0 errors
+Contracts: 0 records
+  📊 0 success, 0 errors
+Documents: 0 records
+  📊 0 success, 0 errors
+Invoices: 0 records
+  📊 0 success, 0 errors
+StudentPayments: 0 records
+  📊 0 success, 0 errors
+SupervisorPayments: 0 records
+  📊 0 success, 0 errors
+GeneralValues: 0 records
+  📊 0 success, 0 errors
+GroupSessions: 0 records
+  📊 0 success, 0 errors
+StudentEvaluations: 0 records
+  📊 0 success, 0 errors
+
+=== MIGRATION COMPLETE ===

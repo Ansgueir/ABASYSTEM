@@ -5,7 +5,7 @@ $RemoteBase = "/home/administrador/aba-supervision-system"
 
 Write-Host "Stopping all Next.js servers..."
 # Run pkill but ignore exit code using "|| true" equivalent in bash
-ssh -p $Port -o BatchMode=yes -o StrictHostKeyChecking=no $User@$HostName "pkill -f 'next-server'; pkill -f 'next-dev'; echo 'Stopped'"
+ssh -p $Port -o BatchMode=yes -o StrictHostKeyChecking=no $User@$HostName "pkill -f 'next dev' || pkill -f 'next-server' || echo 'No process found'"
 
 Write-Host "Starting server on PORT 3000 (Internal)..."
 # Truncate log file first
