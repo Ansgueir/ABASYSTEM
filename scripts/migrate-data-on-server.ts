@@ -1,4 +1,11 @@
 import { PrismaClient } from '@prisma/client'
+import fs from 'fs'
+
+const LOG_FILE = 'migration_server.log'
+const log = (msg: string) => {
+    fs.appendFileSync(LOG_FILE, msg + '\n')
+    console.log(msg)
+}
 
 // Source: Supabase
 const supabase = new PrismaClient({
@@ -17,7 +24,7 @@ async function migrateTable(
 ) {
     try {
         const items = await fetchFn()
-        console.log(`${name}: ${items.length} records`)
+        log(`${name}: ${items.length} records`)
         let success = 0
         let errors = 0
         for (const item of items) {
@@ -26,17 +33,18 @@ async function migrateTable(
                 success++
             } catch (e: any) {
                 errors++
-                if (errors <= 3) console.error(`  Error in ${name}: ${e.message?.substring(0, 200)}`)
+                if (errors <= 5) log(`  Error in ${name}: ${e.message}`)
             }
         }
-        console.log(`  📊 ${success} success, ${errors} errors`)
+        log(`  📊 ${success} success, ${errors} errors`)
     } catch (e: any) {
-        console.error(`  ❌ Critical failure on ${name}: ${e.message}`)
+        log(`  ❌ Critical failure on ${name}: ${e.message}`)
     }
 }
 
 async function migrate() {
-    console.log("=== Migrating data: Supabase → Local PG on Server ===\n")
+    if (fs.existsSync(LOG_FILE)) fs.unlinkSync(LOG_FILE)
+    log("=== Migrating data: Supabase → Local PG on Server ===\n")
 
     await migrateTable("Users", () => supabase.user.findMany(), (u) => server.user.upsert({ where: { id: u.id }, update: u, create: u }))
     await migrateTable("Supervisors", () => supabase.supervisor.findMany(), (s) => server.supervisor.upsert({ where: { id: s.id }, update: s, create: s }))
@@ -53,9 +61,9 @@ async function migrate() {
     await migrateTable("GroupSessions", () => supabase.groupSupervisionSession.findMany(), (g) => server.groupSupervisionSession.upsert({ where: { id: g.id }, update: g, create: g }))
     await migrateTable("StudentEvaluations", () => supabase.studentEvaluation.findMany(), (e) => server.studentEvaluation.upsert({ where: { id: e.id }, update: e, create: e }))
 
-    console.log("\n=== MIGRATION COMPLETE ===")
+    log("\n=== MIGRATION COMPLETE ===")
     await supabase.$disconnect()
     await server.$disconnect()
 }
 
-migrate().catch(console.error)
+migrate().catch(e => log(`Migration failed: ${e.message}`))
