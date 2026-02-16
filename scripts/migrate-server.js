@@ -12,9 +12,9 @@ const supabase = new PrismaClient({
     datasources: { db: { url: "postgresql://postgres.svvxhmhkghauhnvqcgbi:Pr0s1s.2026@aws-0-us-west-2.pooler.supabase.com:5432/postgres?sslmode=require&connect_timeout=60" } }
 });
 
-// Destination: Localhost (Server DB)
+// Destination: Localhost (Server DB) - Using aba_admin
 const server = new PrismaClient({
-    datasources: { db: { url: "postgresql://postgres:Pr0s1s.2026@127.0.0.1:5432/aba_supervision?schema=public" } }
+    datasources: { db: { url: "postgresql://aba_admin:Pr0s1s.2026@127.0.0.1:5432/aba_supervision?schema=public" } }
 });
 
 async function migrateTable(name, modelName) {
@@ -25,6 +25,7 @@ async function migrateTable(name, modelName) {
         let errors = 0;
         for (const item of items) {
             try {
+                // Remove some potential conflicting data if necessary or just upsert
                 await server[modelName].upsert({
                     where: { id: item.id },
                     update: item,
@@ -33,7 +34,7 @@ async function migrateTable(name, modelName) {
                 success++;
             } catch (e) {
                 errors++;
-                if (errors <= 3) log(`  Error in ${name}: ${e.message}`);
+                if (errors <= 5) log(`  Error in ${name} (ID: ${item.id}): ${e.message}`);
             }
         }
         log(`  📊 ${success} success, ${errors} errors`);
@@ -44,22 +45,27 @@ async function migrateTable(name, modelName) {
 
 async function migrate() {
     if (fs.existsSync(LOG_FILE)) fs.unlinkSync(LOG_FILE);
-    log("=== Starting Data Migration (JS Version) ===\n");
+    log("=== Final Data Migration (JS + aba_admin) ===\n");
 
+    // Order matters for FK constraints: 
+    // 1. Independent entities 
+    // 2. Supervisors/Students 
+    // 3. Child entities (Hours, Invoices, etc.)
     const tables = [
         { name: "Users", model: "user" },
         { name: "Supervisors", model: "supervisor" },
         { name: "OfficeMembers", model: "officeMember" },
         { name: "Students", model: "student" },
-        { name: "IndependentHours", model: "independentHour" },
-        { name: "SupervisionHours", model: "supervisionHour" },
+        { name: "GeneralValues", model: "generalValues" },
         { name: "Contracts", model: "contract" },
         { name: "Documents", model: "document" },
+        { name: "IndependentHours", model: "independentHour" },
+        { name: "SupervisionHours", model: "supervisionHour" },
         { name: "Invoices", model: "invoice" },
         { name: "StudentPayments", model: "studentPayment" },
         { name: "SupervisorPayments", model: "supervisorPayment" },
-        { name: "GeneralValues", model: "generalValues" },
-        { name: "GroupSessions", model: "groupSupervisionSession" },
+        { name: "RepeatingSchedules", model: "repeatingSchedule" },
+        { name: "GroupSupervisionSessions", model: "groupSupervisionSession" },
         { name: "StudentEvaluations", model: "studentEvaluation" }
     ];
 
@@ -72,4 +78,4 @@ async function migrate() {
     await server.$disconnect();
 }
 
-migrate().catch(e => log(`Migration failed: ${e.message}`));
+migrate().catch(e => log(`Migration failed: ${e.stack}`));
