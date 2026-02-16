@@ -26,18 +26,18 @@ async function migrateTable(
                 success++
             } catch (e: any) {
                 errors++
+                if (errors <= 3) console.error(`  Error in ${name}: ${e.message?.substring(0, 200)}`)
             }
         }
-        console.log(`  ✅ ${success} migrated, ${errors} errors`)
+        console.log(`  📊 ${success} success, ${errors} errors`)
     } catch (e: any) {
-        console.error(`  ❌ Failed to migrate ${name}: ${e.message}`)
+        console.error(`  ❌ Critical failure on ${name}: ${e.message}`)
     }
 }
 
 async function migrate() {
     console.log("=== Migrating data: Supabase → Local PG on Server ===\n")
 
-    // Order matters for FK constraints
     await migrateTable("Users", () => supabase.user.findMany(), (u) => server.user.upsert({ where: { id: u.id }, update: u, create: u }))
     await migrateTable("Supervisors", () => supabase.supervisor.findMany(), (s) => server.supervisor.upsert({ where: { id: s.id }, update: s, create: s }))
     await migrateTable("OfficeMembers", () => supabase.officeMember.findMany(), (o) => server.officeMember.upsert({ where: { id: o.id }, update: o, create: o }))
