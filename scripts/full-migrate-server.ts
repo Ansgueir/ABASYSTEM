@@ -8,7 +8,8 @@ const log = (msg: string) => {
     console.log(msg)
 }
 
-const LOCAL_DB_URL = "postgresql://aba_admin:Pr0s1s.2026@localhost:5432/aba_supervision?schema=public"
+// USE 127.0.0.1 instead of localhost for stability on Linux
+const LOCAL_DB_URL = "postgresql://postgres:Pr0s1s.2026@127.0.0.1:5432/aba_supervision?schema=public"
 const SUPABASE_DB_URL = "postgresql://postgres.svvxhmhkghauhnvqcgbi:Pr0s1s.2026@aws-0-us-west-2.pooler.supabase.com:5432/postgres?sslmode=require&connect_timeout=60"
 
 async function main() {
@@ -18,15 +19,14 @@ async function main() {
     // 1. Prisma DB Push
     log("\n--- Step 1: Pushing Schema to Local DB ---")
     try {
-        // Set env var and run prisma
         process.env.DATABASE_URL = LOCAL_DB_URL
+        log(`Using DATABASE_URL: ${LOCAL_DB_URL.replace(/:[^@]+@/, ':****@')}`)
         const output = execSync('npx prisma db push --accept-data-loss', { encoding: 'utf-8' })
         log(output)
     } catch (e: any) {
         log(`Prisma Push Failed: ${e.message}`)
-        log(e.stdout)
-        log(e.stderr)
-        // return; // Continue anyway?
+        if (e.stdout) log(e.stdout)
+        if (e.stderr) log(e.stderr)
     }
 
     // 2. Data Migration
@@ -56,6 +56,7 @@ async function main() {
             const items = await (supabase as any)[table.model].findMany()
             log(`${table.name}: ${items.length} records`)
             let success = 0
+            let errors = 0
             for (const item of items) {
                 try {
                     await (server as any)[table.model].upsert({
@@ -65,10 +66,11 @@ async function main() {
                     })
                     success++
                 } catch (e: any) {
-                    // console.error(e)
+                    errors++
+                    if (errors <= 1) log(`    Example error: ${e.message?.substring(0, 100)}`)
                 }
             }
-            log(`  📊 ${success} success`)
+            log(`  📊 ${success} success, ${errors} errors`)
         } catch (e: any) {
             log(`  ❌ Error in ${table.name}: ${e.message}`)
         }
