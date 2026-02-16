@@ -7,6 +7,8 @@ import { auth } from "@/auth"
 import { prisma } from "@/lib/prisma"
 import { redirect } from "next/navigation"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
+import { AddSupervisorDialog } from "@/components/office/add-supervisor-dialog"
+import { UserActions } from "@/components/office/user-actions"
 
 export default async function OfficeSupervisorsPage() {
     const session = await auth()
@@ -20,7 +22,10 @@ export default async function OfficeSupervisorsPage() {
     try {
         supervisors = await prisma.supervisor.findMany({
             orderBy: { fullName: 'asc' },
-            include: { _count: { select: { students: true } } }
+            include: {
+                _count: { select: { students: true } },
+                user: { select: { isActive: true, email: true } }
+            }
         })
     } catch (error) {
         console.error("Error fetching supervisors:", error)
@@ -43,10 +48,7 @@ export default async function OfficeSupervisorsPage() {
                         <Button variant="outline" className="rounded-xl">
                             <Filter className="h-4 w-4" />
                         </Button>
-                        <Button variant="gradient" className="rounded-xl">
-                            <Plus className="h-4 w-4 mr-2" />
-                            Add Supervisor
-                        </Button>
+                        <AddSupervisorDialog />
                     </div>
                 </div>
 
@@ -57,10 +59,9 @@ export default async function OfficeSupervisorsPage() {
                             <div className="text-center py-12">
                                 <Users className="h-12 w-12 mx-auto text-muted-foreground/50 mb-4" />
                                 <p className="text-muted-foreground">No supervisors registered yet</p>
-                                <Button variant="gradient" className="mt-4">
-                                    <Plus className="h-4 w-4 mr-2" />
-                                    Add First Supervisor
-                                </Button>
+                                <div className="mt-4 flex justify-center">
+                                    <AddSupervisorDialog />
+                                </div>
                             </div>
                         ) : (
                             <div className="overflow-x-auto">
@@ -102,9 +103,16 @@ export default async function OfficeSupervisorsPage() {
                                                     <span className="text-sm font-medium">{Number(supervisor.paymentPercentage || 0.54) * 100}%</span>
                                                 </td>
                                                 <td className="p-4 text-right">
-                                                    <Button variant="ghost" size="sm" className="rounded-xl">
-                                                        <MoreHorizontal className="h-4 w-4" />
-                                                    </Button>
+                                                    <div className="flex justify-end gap-2">
+                                                        <UserActions
+                                                            id={supervisor.id}
+                                                            userId={supervisor.userId}
+                                                            name={supervisor.fullName}
+                                                            email={supervisor.email}
+                                                            type="supervisor"
+                                                            isActive={supervisor.user?.isActive ?? true}
+                                                        />
+                                                    </div>
                                                 </td>
                                             </tr>
                                         ))}

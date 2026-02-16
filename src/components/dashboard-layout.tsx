@@ -3,7 +3,7 @@
 import { useState } from "react"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
-import { signOut } from "next-auth/react"
+import { signOut, useSession } from "next-auth/react"
 import {
     LayoutDashboard,
     Users,
@@ -32,12 +32,23 @@ interface DashboardLayoutProps {
 
 export default function DashboardLayout({
     children,
-    role = "student",
+    role: initialRole = "student",
     rightPanel
 }: DashboardLayoutProps) {
+    const { data: session } = useSession()
     const [isSidebarOpen, setIsSidebarOpen] = useState(false)
     const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false)
     const pathname = usePathname()
+
+    // Use session role if available
+    const userRole = (session?.user as any)?.role?.toLowerCase() || initialRole
+    const userName = session?.user?.name || "User"
+    const userEmail = session?.user?.email || ""
+    const initials = userName
+        .split(" ")
+        .map((n) => n[0])
+        .join("")
+        .toUpperCase()
 
     const routes = {
         student: [
@@ -60,11 +71,12 @@ export default function DashboardLayout({
             { name: "Supervisors", href: "/office/supervisors", icon: Users },
             { name: "Payments", href: "/office/payments", icon: CreditCard },
             { name: "Group Supervision", href: "/office/group-supervision", icon: Users },
+            { name: "Team", href: "/office/team", icon: Users },
             { name: "Settings", href: "/office/settings", icon: Settings },
         ]
     }
 
-    const currentRoutes = routes[role]
+    const currentRoutes = routes[userRole as keyof typeof routes] || routes.student
 
     return (
         <div className="min-h-screen bg-background">
@@ -82,7 +94,9 @@ export default function DashboardLayout({
                                 routes={currentRoutes}
                                 pathname={pathname}
                                 collapsed={false}
+                                onToggleCollapse={undefined}
                                 onClose={() => setIsSidebarOpen(false)}
+                                user={{ name: userName, role: userRole, avatar: initials }}
                             />
                         </SheetContent>
                     </Sheet>
@@ -98,10 +112,12 @@ export default function DashboardLayout({
                         <Bell className="h-5 w-5" />
                         <span className="absolute top-1.5 right-1.5 h-2 w-2 rounded-full bg-destructive" />
                     </Button>
-                    <Avatar className="h-9 w-9 border-2 border-primary/20">
-                        <AvatarImage src="/placeholder-user.jpg" />
-                        <AvatarFallback className="bg-primary/10 text-primary font-medium">JD</AvatarFallback>
-                    </Avatar>
+                    <Link href={`/${userRole}/profile`}>
+                        <Avatar className="h-9 w-9 border-2 border-primary/20">
+                            {session?.user?.image && <AvatarImage src={session.user.image} />}
+                            <AvatarFallback className="bg-primary/10 text-primary font-medium">{initials}</AvatarFallback>
+                        </Avatar>
+                    </Link>
                 </div>
             </header>
 
@@ -116,6 +132,7 @@ export default function DashboardLayout({
                         pathname={pathname}
                         collapsed={isSidebarCollapsed}
                         onToggleCollapse={() => setIsSidebarCollapsed(!isSidebarCollapsed)}
+                        user={{ name: userName, role: userRole, avatar: initials }}
                     />
                 </aside>
 
@@ -140,16 +157,16 @@ export default function DashboardLayout({
                                 <Bell className="h-5 w-5" />
                                 <span className="absolute top-2 right-2 h-2 w-2 rounded-full bg-destructive" />
                             </Button>
-                            <div className="flex items-center gap-3 pl-3 border-l border-border">
+                            <Link href={`/${userRole}/profile`} className="flex items-center gap-3 pl-3 border-l border-border hover:opacity-80 transition-opacity">
                                 <div className="text-right">
-                                    <p className="text-sm font-medium">John Doe</p>
-                                    <p className="text-xs text-muted-foreground">Student</p>
+                                    <p className="text-sm font-medium">{userName}</p>
+                                    <p className="text-xs text-muted-foreground capitalize">{userRole}</p>
                                 </div>
                                 <Avatar className="h-10 w-10 border-2 border-primary/20">
-                                    <AvatarImage src="/placeholder-user.jpg" />
-                                    <AvatarFallback className="bg-primary/10 text-primary font-medium">JD</AvatarFallback>
+                                    {session?.user?.image && <AvatarImage src={session.user.image} />}
+                                    <AvatarFallback className="bg-primary/10 text-primary font-medium">{initials}</AvatarFallback>
                                 </Avatar>
-                            </div>
+                            </Link>
                         </div>
                     </header>
 
@@ -185,9 +202,14 @@ interface SidebarContentProps {
     collapsed: boolean
     onToggleCollapse?: () => void
     onClose?: () => void
+    user: {
+        name: string
+        role: string
+        avatar: string
+    }
 }
 
-function SidebarContent({ routes, pathname, collapsed, onToggleCollapse, onClose }: SidebarContentProps) {
+function SidebarContent({ routes, pathname, collapsed, onToggleCollapse, onClose, user }: SidebarContentProps) {
     return (
         <div className="flex flex-col h-full">
             {/* Logo */}
@@ -259,16 +281,19 @@ function SidebarContent({ routes, pathname, collapsed, onToggleCollapse, onClose
                 collapsed && "flex flex-col items-center"
             )}>
                 {!collapsed && (
-                    <div className="flex items-center gap-3 mb-4 p-3 rounded-xl bg-muted/50">
+                    <Link
+                        href={`/${user.role}/profile`}
+                        onClick={onClose}
+                        className="flex items-center gap-3 mb-4 p-3 rounded-xl bg-muted/50 hover:bg-muted transition-colors"
+                    >
                         <Avatar className="h-10 w-10 border-2 border-primary/20">
-                            <AvatarImage src="/placeholder-user.jpg" />
-                            <AvatarFallback className="bg-primary/10 text-primary font-medium">JD</AvatarFallback>
+                            <AvatarFallback className="bg-primary/10 text-primary font-medium">{user.avatar}</AvatarFallback>
                         </Avatar>
                         <div className="flex-1 min-w-0">
-                            <p className="text-sm font-medium truncate">John Doe</p>
-                            <p className="text-xs text-muted-foreground">Student</p>
+                            <p className="text-sm font-medium truncate">{user.name}</p>
+                            <p className="text-xs text-muted-foreground capitalize">{user.role}</p>
                         </div>
-                    </div>
+                    </Link>
                 )}
                 <Button
                     variant="ghost"

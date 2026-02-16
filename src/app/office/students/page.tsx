@@ -7,6 +7,8 @@ import { auth } from "@/auth"
 import { prisma } from "@/lib/prisma"
 import { redirect } from "next/navigation"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
+import { AddStudentDialog } from "@/components/office/add-student-dialog"
+import { UserActions } from "@/components/office/user-actions"
 
 export default async function OfficeStudentsPage() {
     const session = await auth()
@@ -20,7 +22,12 @@ export default async function OfficeStudentsPage() {
     try {
         students = await prisma.student.findMany({
             orderBy: { fullName: 'asc' },
-            include: { supervisor: true }
+            include: {
+                supervisor: true,
+                user: {
+                    select: { isActive: true, email: true }
+                }
+            }
         })
     } catch (error) {
         console.error("Error fetching students:", error)
@@ -43,10 +50,7 @@ export default async function OfficeStudentsPage() {
                         <Button variant="outline" className="rounded-xl">
                             <Filter className="h-4 w-4" />
                         </Button>
-                        <Button variant="gradient" className="rounded-xl">
-                            <Plus className="h-4 w-4 mr-2" />
-                            Add Student
-                        </Button>
+                        <AddStudentDialog />
                     </div>
                 </div>
 
@@ -57,10 +61,9 @@ export default async function OfficeStudentsPage() {
                             <div className="text-center py-12">
                                 <GraduationCap className="h-12 w-12 mx-auto text-muted-foreground/50 mb-4" />
                                 <p className="text-muted-foreground">No students registered yet</p>
-                                <Button variant="gradient" className="mt-4">
-                                    <Plus className="h-4 w-4 mr-2" />
-                                    Add First Student
-                                </Button>
+                                <div className="mt-4 flex justify-center">
+                                    <AddStudentDialog />
+                                </div>
                             </div>
                         ) : (
                             <div className="overflow-x-auto">
@@ -97,17 +100,26 @@ export default async function OfficeStudentsPage() {
                                                     <span className="text-sm">{student.academicDegree || '-'}</span>
                                                 </td>
                                                 <td className="p-4 hidden sm:table-cell">
-                                                    <span className={`text-xs px-2 py-1 rounded-full ${student.status === 'ACTIVE'
-                                                        ? 'bg-success/10 text-success'
-                                                        : 'bg-muted text-muted-foreground'
+                                                    <span className={`text-xs px-2 py-1 rounded-full ${!student.user.isActive
+                                                            ? 'bg-red-100 text-red-700'
+                                                            : student.status === 'ACTIVE'
+                                                                ? 'bg-green-100 text-green-700'
+                                                                : 'bg-muted text-muted-foreground'
                                                         }`}>
-                                                        {student.status || 'PENDING'}
+                                                        {!student.user.isActive ? 'INACTIVE' : (student.status || 'PENDING')}
                                                     </span>
                                                 </td>
                                                 <td className="p-4 text-right">
-                                                    <Button variant="ghost" size="sm" className="rounded-xl">
-                                                        <MoreHorizontal className="h-4 w-4" />
-                                                    </Button>
+                                                    <div className="flex justify-end gap-2">
+                                                        <UserActions
+                                                            id={student.id}
+                                                            userId={student.userId}
+                                                            name={student.fullName}
+                                                            email={student.email}
+                                                            type="student"
+                                                            isActive={student.user?.isActive ?? true}
+                                                        />
+                                                    </div>
                                                 </td>
                                             </tr>
                                         ))}
