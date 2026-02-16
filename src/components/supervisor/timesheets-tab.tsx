@@ -4,6 +4,16 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { format } from "date-fns"
 import { Badge } from "@/components/ui/badge"
+import { Button } from "@/components/ui/button"
+import { Eye, Clock, Calendar, FileText, MapPin, Tag } from "lucide-react"
+import {
+    Dialog,
+    DialogContent,
+    DialogHeader,
+    DialogTitle,
+    DialogDescription,
+    DialogTrigger,
+} from "@/components/ui/dialog"
 
 interface TimesheetsTabProps {
     // Using any[] to allow serialized data (number instead of Decimal) without strict type conflicts
@@ -25,9 +35,7 @@ export function TimesheetsTab({ independentHours, supervisionHours }: Timesheets
     const restrictedHours = allEntries.filter(e => e.activityType === 'RESTRICTED').reduce((sum, entry) => sum + getHours(entry.hours), 0)
     const unrestrictedHours = allEntries.filter(e => e.activityType === 'UNRESTRICTED').reduce((sum, entry) => sum + getHours(entry.hours), 0)
 
-    const isRestrictedAlert = restrictedHours > (totalHours * 1.0) // Placeholder logic, rule is complicated (40% of total fieldwork hours etc). 
     // Rule: "Alerta si las horas restringidas superan el 40% (BCBA)"
-    // Interpreting literally: if restricted / total > 0.4
     const isAlert = totalHours > 0 && (restrictedHours / totalHours) > 0.4
 
     return (
@@ -60,12 +68,13 @@ export function TimesheetsTab({ independentHours, supervisionHours }: Timesheets
                             <TableHead>Activity</TableHead>
                             <TableHead>Setting</TableHead>
                             <TableHead className="text-right">Hours</TableHead>
+                            <TableHead className="text-right w-[80px]">Actions</TableHead>
                         </TableRow>
                     </TableHeader>
                     <TableBody>
                         {allEntries.length === 0 ? (
                             <TableRow>
-                                <TableCell colSpan={6} className="text-center py-8 text-muted-foreground">
+                                <TableCell colSpan={7} className="text-center py-8 text-muted-foreground">
                                     No hours logged yet.
                                 </TableCell>
                             </TableRow>
@@ -88,6 +97,86 @@ export function TimesheetsTab({ independentHours, supervisionHours }: Timesheets
                                     </TableCell>
                                     <TableCell className="text-sm capitalize">{entry.setting?.toLowerCase().replace(/_/g, ' ') || 'N/A'}</TableCell>
                                     <TableCell className="text-right font-mono">{getHours(entry.hours).toFixed(2)}</TableCell>
+                                    <TableCell className="text-right">
+                                        <Dialog>
+                                            <DialogTrigger asChild>
+                                                <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-primary">
+                                                    <Eye className="h-4 w-4" />
+                                                </Button>
+                                            </DialogTrigger>
+                                            <DialogContent className="max-w-md">
+                                                <DialogHeader>
+                                                    <DialogTitle className="flex items-center gap-2">
+                                                        <FileText className="h-5 w-5 text-primary" />
+                                                        Activity Details
+                                                    </DialogTitle>
+                                                    <DialogDescription>
+                                                        Review full entry details for compliance auditing.
+                                                    </DialogDescription>
+                                                </DialogHeader>
+
+                                                <div className="grid gap-4 py-4">
+                                                    <div className="flex items-center gap-4 p-3 rounded-lg bg-muted/50 border">
+                                                        <div className="bg-background p-2 rounded-md shadow-sm">
+                                                            <Calendar className="h-4 w-4 text-primary" />
+                                                        </div>
+                                                        <div>
+                                                            <p className="text-[10px] uppercase font-bold text-muted-foreground tracking-wider">Execution Date</p>
+                                                            <p className="text-sm font-semibold">{format(new Date(entry.date), "EEEE, MMMM do, yyyy")}</p>
+                                                        </div>
+                                                    </div>
+
+                                                    <div className="grid grid-cols-2 gap-3">
+                                                        <div className="p-3 rounded-lg border bg-card">
+                                                            <div className="flex items-center gap-2 mb-1">
+                                                                <Clock className="h-3 w-3 text-muted-foreground" />
+                                                                <span className="text-[10px] uppercase font-bold text-muted-foreground">Logged At</span>
+                                                            </div>
+                                                            <p className="text-xs font-semibold">{format(new Date(entry.createdAt), "MMM d, yyyy • HH:mm")}</p>
+                                                        </div>
+                                                        <div className="p-3 rounded-lg border bg-card text-right">
+                                                            <div className="flex items-center justify-end gap-2 mb-1">
+                                                                <span className="text-[10px] uppercase font-bold text-muted-foreground">Duration</span>
+                                                                <Tag className="h-3 w-3 text-muted-foreground" />
+                                                            </div>
+                                                            <p className="text-sm font-bold text-primary">{getHours(entry.hours).toFixed(2)} hours</p>
+                                                        </div>
+                                                    </div>
+
+                                                    <div className="space-y-3">
+                                                        <div className="grid grid-cols-2 gap-4">
+                                                            <div className="space-y-1">
+                                                                <p className="text-[10px] uppercase font-bold text-muted-foreground">Type</p>
+                                                                <Badge variant="secondary" className="font-mono text-[10px]">{entry.type}</Badge>
+                                                            </div>
+                                                            <div className="space-y-1 text-right">
+                                                                <p className="text-[10px] uppercase font-bold text-muted-foreground">Category</p>
+                                                                <Badge variant={entry.activityType === 'RESTRICTED' ? 'destructive' : 'default'} className="text-[10px]">
+                                                                    {entry.activityType}
+                                                                </Badge>
+                                                            </div>
+                                                        </div>
+
+                                                        <div className="space-y-1">
+                                                            <p className="text-[10px] uppercase font-bold text-muted-foreground">Setting</p>
+                                                            <div className="flex items-center gap-2 text-sm font-medium">
+                                                                <MapPin className="h-4 w-4 text-muted-foreground" />
+                                                                <span className="capitalize">{entry.setting?.toLowerCase().replace(/_/g, ' ') || 'N/A'}</span>
+                                                            </div>
+                                                        </div>
+
+                                                        <div className="space-y-1">
+                                                            <p className="text-[10px] uppercase font-bold text-muted-foreground">Notes / Description</p>
+                                                            <div className="p-4 rounded-lg bg-muted text-sm leading-relaxed border italic text-muted-foreground">
+                                                                {/* @ts-ignore */}
+                                                                {entry.notes || "No additional description provided."}
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </DialogContent>
+                                        </Dialog>
+                                    </TableCell>
                                 </TableRow>
                             ))
                         )}
