@@ -106,6 +106,7 @@ model Supervisor {
   supervisionHours   SupervisionHour[]
   user               User                      @relation(fields: [userId], references: [id])
   payments           SupervisorPayment[]
+  contracts          ContractSupervisor[]
 }
 
 model OfficeMember {
@@ -260,14 +261,25 @@ model StudentEvaluation {
 }
 
 model Contract {
-  id            String         @id @default(uuid())
-  studentId     String
-  effectiveDate DateTime
-  contractUrl   String
-  status        ContractStatus
-  signedAt      DateTime?
-  createdAt     DateTime       @default(now())
-  student       Student        @relation(fields: [studentId], references: [id])
+  id              String               @id @default(uuid())
+  studentId       String
+  effectiveDate   DateTime
+  status          ContractStatus       @default(DRAFT)
+  createdAt       DateTime             @default(now())
+  updatedAt       DateTime             @updatedAt
+  student         Student              @relation(fields: [studentId], references: [id])
+  supervisors     ContractSupervisor[]
+}
+
+model ContractSupervisor {
+  id              String     @id @default(uuid())
+  contractId      String
+  supervisorId    String
+  isMainSupervisor Boolean   @default(false)
+  contract        Contract   @relation(fields: [contractId], references: [id], onDelete: Cascade)
+  supervisor      Supervisor @relation(fields: [supervisorId], references: [id])
+
+  @@unique([contractId, supervisorId])
 }
 
 model GeneralValues {
@@ -279,6 +291,7 @@ model GeneralValues {
   companyAddress              String
   companyPhone                String
   companyEmail                String
+  companyWebsite              String   @default("")
   updatedAt                   DateTime @updatedAt
 }
 
@@ -376,7 +389,8 @@ enum InvoiceStatus {
 }
 
 enum ContractStatus {
-  GENERATED
+  DRAFT
+  ACTIVE
   SENT
   SIGNED
 }

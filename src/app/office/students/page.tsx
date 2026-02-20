@@ -2,13 +2,14 @@ import DashboardLayout from "@/components/dashboard-layout"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { GraduationCap, Search, Plus, Filter, ArrowRight, MoreHorizontal } from "lucide-react"
+import { GraduationCap, Search, Plus, Filter, ArrowRight, MoreHorizontal, Eye } from "lucide-react"
 import { auth } from "@/auth"
 import { prisma } from "@/lib/prisma"
 import { redirect } from "next/navigation"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import { AddStudentDialog } from "@/components/office/add-student-dialog"
 import { UserActions } from "@/components/office/user-actions"
+import Link from "next/link"
 
 export default async function OfficeStudentsPage() {
     const session = await auth()
@@ -101,16 +102,21 @@ export default async function OfficeStudentsPage() {
                                                 </td>
                                                 <td className="p-4 hidden sm:table-cell">
                                                     <span className={`text-xs px-2 py-1 rounded-full ${!student.user.isActive
-                                                            ? 'bg-red-100 text-red-700'
-                                                            : student.status === 'ACTIVE'
-                                                                ? 'bg-green-100 text-green-700'
-                                                                : 'bg-muted text-muted-foreground'
+                                                        ? 'bg-red-100 text-red-700'
+                                                        : student.status === 'ACTIVE'
+                                                            ? 'bg-green-100 text-green-700'
+                                                            : 'bg-muted text-muted-foreground'
                                                         }`}>
                                                         {!student.user.isActive ? 'INACTIVE' : (student.status || 'PENDING')}
                                                     </span>
                                                 </td>
                                                 <td className="p-4 text-right">
                                                     <div className="flex justify-end gap-2">
+                                                        <Button variant="ghost" size="sm" asChild className="gap-1">
+                                                            <Link href={`/office/students/${student.id}`}>
+                                                                <Eye className="h-4 w-4" /> View
+                                                            </Link>
+                                                        </Button>
                                                         <UserActions
                                                             id={student.id}
                                                             userId={student.userId}
