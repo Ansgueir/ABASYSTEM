@@ -9,6 +9,7 @@ import { format } from "date-fns"
 import { deleteContract } from "@/actions/contracts"
 import { ContractFormDialog } from "@/components/office/contract-form-dialog"
 import { useRouter } from "next/navigation"
+import { ConfirmDialog } from "@/components/ui/confirm-dialog"
 
 interface Supervisor {
     id: string
@@ -45,13 +46,19 @@ const STATUS_COLORS: Record<string, string> = {
 export function OfficeContractsTab({ studentId, contracts, allSupervisors }: OfficeContractsTabProps) {
     const router = useRouter()
     const [deletingId, setDeletingId] = useState<string | null>(null)
-    const [, startTransition] = useTransition()
+    const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
+    const [isPending, startTransition] = useTransition()
 
-    function handleDelete(id: string) {
-        if (!confirm("Delete this contract permanently?")) return
+    function handleDeleteClick(id: string) {
         setDeletingId(id)
+        setShowDeleteConfirm(true)
+    }
+
+    function handleConfirmDelete() {
+        if (!deletingId) return
         startTransition(async () => {
-            await deleteContract(id)
+            await deleteContract(deletingId)
+            setShowDeleteConfirm(false)
             setDeletingId(null)
             router.refresh()
         })
@@ -135,10 +142,10 @@ export function OfficeContractsTab({ studentId, contracts, allSupervisors }: Off
                                             variant="ghost"
                                             size="icon"
                                             className="h-8 w-8 text-destructive hover:text-destructive"
-                                            disabled={deletingId === contract.id}
-                                            onClick={() => handleDelete(contract.id)}
+                                            disabled={deletingId === contract.id && isPending}
+                                            onClick={() => handleDeleteClick(contract.id)}
                                         >
-                                            {deletingId === contract.id
+                                            {deletingId === contract.id && isPending
                                                 ? <Loader2 className="h-4 w-4 animate-spin" />
                                                 : <Trash2 className="h-4 w-4" />
                                             }
@@ -173,6 +180,17 @@ export function OfficeContractsTab({ studentId, contracts, allSupervisors }: Off
                     </div>
                 )}
             </CardContent>
+            {/* Reusable Confirm Dialog */}
+            <ConfirmDialog
+                open={showDeleteConfirm}
+                onOpenChange={setShowDeleteConfirm}
+                onConfirm={handleConfirmDelete}
+                title="Delete Contract"
+                description="Are you sure you want to delete this contract permanently? This action cannot be undone."
+                confirmText="Delete Contract"
+                variant="destructive"
+                isLoading={isPending}
+            />
         </Card>
     )
 }

@@ -110,6 +110,8 @@ export default async function OfficeTeamPage() {
                                                         type="office"
                                                         // @ts-ignore
                                                         isActive={member.isActive !== false}
+                                                        fullData={member.officeMember}
+                                                        isSuperAdmin={isSuperAdmin}
                                                     />
                                                 </td>
                                             )}

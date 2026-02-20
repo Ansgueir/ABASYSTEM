@@ -14,6 +14,7 @@ import { useState } from "react"
 import { format } from "date-fns"
 import { markInvoiceAsPaid } from "@/actions/billing"
 import { useRouter } from "next/navigation"
+import { toast } from "sonner"
 
 interface PaymentsTableProps {
     invoices: (Invoice & { student: Student })[]
@@ -37,9 +38,10 @@ export function PaymentsTable({ invoices }: PaymentsTableProps) {
             setOpen(false)
             setSelectedInvoice(null)
             setAmount("")
+            toast.success("Payment processed successfully")
             router.refresh()
         } else {
-            alert("Error processing payment")
+            toast.error("Error processing payment")
         }
     }
 

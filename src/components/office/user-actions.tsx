@@ -15,10 +15,13 @@ import {
     PopoverContent,
     PopoverTrigger,
 } from "@/components/ui/popover"
-import { MoreHorizontal, Power, RotateCcw, Trash2 } from "lucide-react"
+import { MoreHorizontal, Power, RotateCcw, Trash2, Edit, ExternalLink } from "lucide-react"
 import { useState, useTransition } from "react"
 import { toast } from "sonner"
 import { toggleUserStatus, resetUserPassword, deleteStudent, deleteSupervisor, deleteOfficeMember } from "@/actions/users"
+import Link from "next/link"
+import { EditSupervisorDialog } from "./edit-supervisor-dialog"
+import { EditOfficeMemberDialog } from "./edit-office-member-dialog"
 
 interface UserActionsProps {
     id: string
@@ -27,12 +30,15 @@ interface UserActionsProps {
     email: string
     type: "student" | "supervisor" | "office"
     isActive: boolean
+    fullData?: any
+    isSuperAdmin?: boolean
 }
 
-export function UserActions({ id, userId, name, email, type, isActive }: UserActionsProps) {
+export function UserActions({ id, userId, name, email, type, isActive, fullData, isSuperAdmin = false }: UserActionsProps) {
     const [isPending, startTransition] = useTransition()
     const [showDeleteDialog, setShowDeleteDialog] = useState(false)
     const [showResetDialog, setShowResetDialog] = useState(false)
+    const [showEditDialog, setShowEditDialog] = useState(false)
     const [isPopoverOpen, setIsPopoverOpen] = useState(false)
 
     const handleToggleStatus = () => {
@@ -80,6 +86,36 @@ export function UserActions({ id, userId, name, email, type, isActive }: UserAct
                 </PopoverTrigger>
                 <PopoverContent align="end" className="w-[200px] p-2 space-y-1">
                     <p className="px-2 py-1.5 text-xs font-semibold text-muted-foreground">Actions</p>
+
+                    {type === "student" ? (
+                        <Button
+                            variant="ghost"
+                            size="sm"
+                            asChild
+                            className="w-full justify-start h-8 px-2"
+                        >
+                            <Link href={`/office/students/${id}`}>
+                                <ExternalLink className="mr-2 h-4 w-4" />
+                                View Details
+                            </Link>
+                        </Button>
+                    ) : (
+                        isSuperAdmin && (
+                            <Button
+                                variant="ghost"
+                                size="sm"
+                                className="w-full justify-start h-8 px-2"
+                                onClick={() => {
+                                    setIsPopoverOpen(false)
+                                    setShowEditDialog(true)
+                                }}
+                            >
+                                <Edit className="mr-2 h-4 w-4" />
+                                Edit Details
+                            </Button>
+                        )
+                    )}
+
                     <Button
                         variant="ghost"
                         size="sm"
@@ -116,6 +152,22 @@ export function UserActions({ id, userId, name, email, type, isActive }: UserAct
                     </Button>
                 </PopoverContent>
             </Popover>
+
+            {/* Edit Dialogs */}
+            {type === "supervisor" && fullData && (
+                <EditSupervisorDialog
+                    supervisor={fullData}
+                    open={showEditDialog}
+                    onOpenChange={setShowEditDialog}
+                />
+            )}
+            {type === "office" && fullData && (
+                <EditOfficeMemberDialog
+                    member={fullData}
+                    open={showEditDialog}
+                    onOpenChange={setShowEditDialog}
+                />
+            )}
 
             {/* Delete Dialog */}
             <Dialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>

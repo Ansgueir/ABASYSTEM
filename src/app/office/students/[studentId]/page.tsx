@@ -8,6 +8,8 @@ import Link from "next/link"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/custom-tabs"
 import { OfficeContractsTab } from "@/components/office/contracts-tab"
+import { serialize } from "@/lib/serialize"
+import { EditStudentDialog } from "@/components/office/edit-student-dialog"
 
 export default async function OfficeStudentDetailPage({ params }: { params: Promise<{ studentId: string }> }) {
     const { studentId } = await params
@@ -15,6 +17,7 @@ export default async function OfficeStudentDetailPage({ params }: { params: Prom
     if (!session?.user) redirect("/login")
     const role = String((session.user as any).role).toLowerCase()
     if (role !== "office" && role !== "qa") redirect("/login")
+    const isSuperAdmin = (session.user as any).officeRole === "SUPER_ADMIN"
 
     // Use `any` cast to avoid stale Prisma type errors after migration until server restarts
     const student = await (prisma as any).student.findUnique({
@@ -47,16 +50,20 @@ export default async function OfficeStudentDetailPage({ params }: { params: Prom
         )
     }
 
-    // All active supervisors for the multi-select
-    const allSupervisors = await prisma.supervisor.findMany({
+    // All active supervisors for the multi-select — serialize to avoid Decimal crash
+    const rawSupervisors = await prisma.supervisor.findMany({
         where: { status: "ACTIVE" },
         select: { id: true, fullName: true, bacbId: true, credentialType: true },
         orderBy: { fullName: "asc" }
     })
+    const allSupervisors = serialize(rawSupervisors)
 
     const totalHours =
         (student.independentHours ?? []).reduce((s: number, h: any) => s + Number(h.hours), 0) +
         (student.supervisionHours ?? []).reduce((s: number, h: any) => s + Number(h.hours), 0)
+
+    // Serialize student for the edit dialog
+    const safeStudent = serialize(student)
 
     return (
         <DashboardLayout role="office">
@@ -68,7 +75,7 @@ export default async function OfficeStudentDetailPage({ params }: { params: Prom
                             <ArrowLeft className="mr-2 h-4 w-4" /> Back to Students
                         </Link>
                     </Button>
-                    <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                    <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
                         <div className="flex items-center gap-4">
                             <Avatar className="h-16 w-16 border-2 border-primary/20">
                                 <AvatarFallback className="text-lg bg-primary/10 text-primary">
@@ -94,12 +101,16 @@ export default async function OfficeStudentDetailPage({ params }: { params: Prom
                             </div>
                             <div className="px-6 py-3 text-center hidden sm:block">
                                 <p className="text-xs text-muted-foreground uppercase font-semibold">Contracts</p>
-                                <p className="text-2xl font-bold">{(student.contracts ?? []).length}</p>
+                                <p className="text-2xl font-bold">{(safeStudent.contracts ?? []).length}</p>
                             </div>
                             <div className="px-6 py-3 text-center hidden sm:block">
                                 <p className="text-xs text-muted-foreground uppercase font-semibold">Documents</p>
                                 <p className="text-2xl font-bold">{(student.documents ?? []).length}</p>
                             </div>
+                        </div>
+
+                        <div className="flex items-center gap-2">
+                            {isSuperAdmin && <EditStudentDialog student={safeStudent} />}
                         </div>
                     </div>
                 </div>
@@ -115,7 +126,7 @@ export default async function OfficeStudentDetailPage({ params }: { params: Prom
                     <TabsContent value="contracts">
                         <OfficeContractsTab
                             studentId={studentId}
-                            contracts={student.contracts ?? []}
+                            contracts={safeStudent.contracts ?? []}
                             allSupervisors={allSupervisors}
                         />
                     </TabsContent>
@@ -184,8 +195,8 @@ export default async function OfficeStudentDetailPage({ params }: { params: Prom
                                             <p className="text-xs text-muted-foreground">{doc.fileName}</p>
                                         </div>
                                         <span className={`text-xs font-semibold px-2 py-1 rounded-full ${doc.status === "APPROVED" ? "bg-success/10 text-success" :
-                                                doc.status === "REJECTED" ? "bg-destructive/10 text-destructive" :
-                                                    "bg-muted text-muted-foreground"
+                                            doc.status === "REJECTED" ? "bg-destructive/10 text-destructive" :
+                                                "bg-muted text-muted-foreground"
                                             }`}>{doc.status}</span>
                                     </div>
                                 ))

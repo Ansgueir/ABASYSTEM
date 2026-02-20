@@ -14,6 +14,7 @@ import { Label } from "@/components/ui/label"
 import { createGroupSession } from "@/actions/groups"
 import { useRouter } from "next/navigation"
 import { Plus } from "lucide-react"
+import { toast } from "sonner"
 
 export function CreateGroupSessionDialog() {
     const [open, setOpen] = useState(false)
@@ -33,10 +34,10 @@ export function CreateGroupSessionDialog() {
             setOpen(false)
             setTopic("")
             setDate("")
+            toast.success("Session created!")
             router.refresh()
-            alert("Session created!")
         } else {
-            alert("Error: " + res.error)
+            toast.error(res.error)
         }
     }
 

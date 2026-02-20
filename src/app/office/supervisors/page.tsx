@@ -9,6 +9,7 @@ import { redirect } from "next/navigation"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import { AddSupervisorDialog } from "@/components/office/add-supervisor-dialog"
 import { UserActions } from "@/components/office/user-actions"
+import { serialize } from "@/lib/serialize"
 
 export default async function OfficeSupervisorsPage() {
     const session = await auth()
@@ -16,6 +17,7 @@ export default async function OfficeSupervisorsPage() {
 
     const role = String((session.user as any).role).toLowerCase()
     if (role !== "office" && role !== "qa") redirect("/login")
+    const isSuperAdmin = (session.user as any).officeRole === "SUPER_ADMIN"
 
     let supervisors: any[] = []
 
@@ -30,6 +32,8 @@ export default async function OfficeSupervisorsPage() {
     } catch (error) {
         console.error("Error fetching supervisors:", error)
     }
+
+    const safeSupervisors = serialize(supervisors)
 
     return (
         <DashboardLayout role="office">
@@ -76,7 +80,7 @@ export default async function OfficeSupervisorsPage() {
                                         </tr>
                                     </thead>
                                     <tbody>
-                                        {supervisors.map((supervisor) => (
+                                        {safeSupervisors.map((supervisor: any) => (
                                             <tr key={supervisor.id} className="border-b hover:bg-muted/30 transition-colors">
                                                 <td className="p-4">
                                                     <div className="flex items-center gap-3">
@@ -108,9 +112,11 @@ export default async function OfficeSupervisorsPage() {
                                                             id={supervisor.id}
                                                             userId={supervisor.userId}
                                                             name={supervisor.fullName}
-                                                            email={supervisor.email}
+                                                            email={supervisor.user?.email || supervisor.email}
                                                             type="supervisor"
                                                             isActive={supervisor.user?.isActive ?? true}
+                                                            fullData={supervisor}
+                                                            isSuperAdmin={isSuperAdmin}
                                                         />
                                                     </div>
                                                 </td>

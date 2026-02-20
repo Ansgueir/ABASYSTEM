@@ -41,6 +41,7 @@ import {
 } from "@/components/ui/popover"
 import { cn } from "@/lib/utils"
 import { logHours } from "@/actions/log-hours"
+import { toast } from "sonner"
 
 const SettingTypeOptions = ["CLIENTS_HOME", "SCHOOL", "DAYCARE", "OFFICE_CLINIC", "GROUP_HOME", "COMMUNITY"] as const
 const ActivityTypeOptions = ["RESTRICTED", "UNRESTRICTED"] as const
@@ -99,9 +100,9 @@ export function LogSupervisionDialog({ students }: LogSupervisionDialogProps) {
         if (result.success) {
             setOpen(false)
             form.reset()
-            alert("Supervision hours logged successfully!")
+            toast.success("Supervision hours logged successfully!")
         } else {
-            alert("Error: " + result.error)
+            toast.error(result.error)
         }
     }
 

@@ -442,3 +442,62 @@ export async function deleteOfficeMember(memberId: string) {
         return { error: "Failed to delete office member" }
     }
 }
+
+export async function updateStudent(studentId: string, data: any) {
+    const currentUser = await getSessionUser()
+    if (!currentUser || (currentUser.role !== "OFFICE" && currentUser.role !== "QA")) {
+        return { error: "Unauthorized" }
+    }
+
+    try {
+        await prisma.student.update({
+            where: { id: studentId },
+            data: data
+        })
+        revalidatePath(`/office/students/${studentId}`)
+        revalidatePath("/office/students")
+        return { success: true }
+    } catch (error) {
+        console.error("Update student error:", error)
+        return { error: "Failed to update student" }
+    }
+}
+
+export async function updateSupervisor(supervisorId: string, data: any) {
+    const currentUser = await getSessionUser()
+    if (!currentUser || (currentUser.role !== "OFFICE" && currentUser.role !== "QA")) {
+        return { error: "Unauthorized" }
+    }
+
+    try {
+        await prisma.supervisor.update({
+            where: { id: supervisorId },
+            data: data
+        })
+        revalidatePath(`/office/supervisors/${supervisorId}`)
+        revalidatePath("/office/supervisors")
+        return { success: true }
+    } catch (error) {
+        console.error("Update supervisor error:", error)
+        return { error: "Failed to update supervisor" }
+    }
+}
+
+export async function updateOfficeMember(memberId: string, data: any) {
+    const currentUser = await getSessionUser()
+    if (!currentUser || currentUser.role !== "OFFICE" || currentUser.officeRole !== "SUPER_ADMIN") {
+        return { error: "Unauthorized: Only Super Admin can edit office members" }
+    }
+
+    try {
+        await prisma.officeMember.update({
+            where: { id: memberId },
+            data: data
+        })
+        revalidatePath("/office/team")
+        return { success: true }
+    } catch (error) {
+        console.error("Update office member error:", error)
+        return { error: "Failed to update office member" }
+    }
+}

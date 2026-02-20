@@ -23,6 +23,7 @@ import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Input } from "@/components/ui/input"
 import { cn } from "@/lib/utils"
+import { NotificationBell } from "@/components/notification-bell"
 
 interface DashboardLayoutProps {
     children: React.ReactNode
@@ -54,6 +55,7 @@ export default function DashboardLayout({
         student: [
             { name: "Dashboard", href: "/student", icon: LayoutDashboard },
             { name: "Timesheet", href: "/student/timesheet", icon: FileText },
+            { name: "Contracts", href: "/student/contracts", icon: FileText },
             { name: "Payments", href: "/student/payments", icon: CreditCard },
             { name: "Documents", href: "/student/documents", icon: FileText },
             { name: "Profile", href: "/student/profile", icon: Users },
@@ -108,10 +110,7 @@ export default function DashboardLayout({
                     </div>
                 </div>
                 <div className="flex items-center gap-2">
-                    <Button variant="ghost" size="icon" className="rounded-xl relative">
-                        <Bell className="h-5 w-5" />
-                        <span className="absolute top-1.5 right-1.5 h-2 w-2 rounded-full bg-destructive" />
-                    </Button>
+                    <NotificationBell />
                     <Link href={`/${userRole}/profile`}>
                         <Avatar className="h-9 w-9 border-2 border-primary/20">
                             {session?.user?.image && <AvatarImage src={session.user.image} />}
@@ -153,10 +152,7 @@ export default function DashboardLayout({
                             </div>
                         </div>
                         <div className="flex items-center gap-3">
-                            <Button variant="ghost" size="icon" className="rounded-xl relative">
-                                <Bell className="h-5 w-5" />
-                                <span className="absolute top-2 right-2 h-2 w-2 rounded-full bg-destructive" />
-                            </Button>
+                            <NotificationBell />
                             <Link href={`/${userRole}/profile`} className="flex items-center gap-3 pl-3 border-l border-border hover:opacity-80 transition-opacity">
                                 <div className="text-right">
                                     <p className="text-sm font-medium">{userName}</p>

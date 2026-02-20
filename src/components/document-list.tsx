@@ -8,8 +8,9 @@ import { FileText, CheckCircle, ExternalLink, Trash2, AlertCircle } from "lucide
 import { UploadDocumentDialog } from "./upload-document-dialog"
 import { deleteDocument } from "@/actions/documents"
 import { format } from "date-fns"
-import { useState } from "react"
+import { useState, useTransition } from "react"
 import { useRouter } from "next/navigation"
+import { ConfirmDialog } from "./ui/confirm-dialog"
 
 interface DocumentListProps {
     documents: Document[]
@@ -24,14 +25,23 @@ const REQUIRED_DOCS = [
 export function DocumentList({ documents }: DocumentListProps) {
     const router = useRouter()
     const [deletingId, setDeletingId] = useState<string | null>(null)
+    const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
+    const [isPending, startTransition] = useTransition()
 
-    async function handleDelete(id: string) {
-        if (!confirm("Are you sure you want to delete this document?")) return
+    function handleDeleteClick(id: string) {
         setDeletingId(id)
-        // @ts-ignore
-        await deleteDocument(id)
-        setDeletingId(null)
-        router.refresh()
+        setShowDeleteConfirm(true)
+    }
+
+    async function handleConfirmDelete() {
+        if (!deletingId) return
+        startTransition(async () => {
+            // @ts-ignore
+            await deleteDocument(deletingId)
+            setDeletingId(null)
+            setShowDeleteConfirm(false)
+            router.refresh()
+        })
     }
 
     return (
@@ -89,10 +99,10 @@ export function DocumentList({ documents }: DocumentListProps) {
                                                 variant="ghost"
                                                 size="icon"
                                                 className="text-destructive hover:text-destructive/90"
-                                                onClick={() => handleDelete(doc.id)}
-                                                disabled={deletingId === doc.id}
+                                                onClick={() => handleDeleteClick(doc.id)}
+                                                disabled={deletingId === doc.id && isPending}
                                             >
-                                                {deletingId === doc.id ? <div className="h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" /> : <Trash2 className="h-4 w-4" />}
+                                                {deletingId === doc.id && isPending ? <div className="h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" /> : <Trash2 className="h-4 w-4" />}
                                             </Button>
                                         </div>
                                     ) : (
@@ -144,10 +154,10 @@ export function DocumentList({ documents }: DocumentListProps) {
                                             variant="ghost"
                                             size="icon"
                                             className="text-destructive hover:text-destructive/90"
-                                            onClick={() => handleDelete(doc.id)}
-                                            disabled={deletingId === doc.id}
+                                            onClick={() => handleDeleteClick(doc.id)}
+                                            disabled={deletingId === doc.id && isPending}
                                         >
-                                            {deletingId === doc.id ? <div className="h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" /> : <Trash2 className="h-4 w-4" />}
+                                            {deletingId === doc.id && isPending ? <div className="h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" /> : <Trash2 className="h-4 w-4" />}
                                         </Button>
                                     </div>
                                 </div>
@@ -156,6 +166,16 @@ export function DocumentList({ documents }: DocumentListProps) {
                     )}
                 </CardContent>
             </Card>
+            <ConfirmDialog
+                open={showDeleteConfirm}
+                onOpenChange={setShowDeleteConfirm}
+                onConfirm={handleConfirmDelete}
+                title="Delete Document"
+                description="Are you sure you want to delete this document? This action cannot be undone."
+                confirmText="Delete Document"
+                variant="destructive"
+                isLoading={isPending}
+            />
         </div>
     )
 }

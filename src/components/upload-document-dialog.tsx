@@ -35,6 +35,7 @@ import {
 import { Input } from "@/components/ui/input"
 import { uploadDocument } from "@/actions/documents"
 import { useRouter } from "next/navigation"
+import { toast } from "sonner"
 
 const DocumentTypeOptions = Object.keys(DocumentType) as [string, ...string[]]
 
@@ -62,7 +63,7 @@ export function UploadDocumentDialog({ defaultType }: UploadDocumentDialogProps)
 
     async function onSubmit(values: z.infer<typeof formSchema>) {
         if (!file) {
-            alert("Please select a file")
+            toast.error("Please select a file")
             return
         }
 
@@ -80,10 +81,10 @@ export function UploadDocumentDialog({ defaultType }: UploadDocumentDialogProps)
             setOpen(false)
             form.reset()
             setFile(null)
+            toast.success("Document uploaded successfully")
             router.refresh()
-            // toast success
         } else {
-            alert("Error: " + result.error)
+            toast.error(result.error)
         }
     }
 
