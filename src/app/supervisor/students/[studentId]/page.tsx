@@ -9,6 +9,7 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/custom-tabs"
 import { DocumentsTab } from "@/components/supervisor/documents-tab"
 import { TimesheetsTab } from "@/components/supervisor/timesheets-tab"
+import { EditableStudentBacbInfo } from "@/components/shared/editable-bacb-info"
 
 export default async function SupervisorStudentDetailPage({ params }: { params: Promise<{ studentId: string }> }) {
     const { studentId } = await params
@@ -155,6 +156,14 @@ export default async function SupervisorStudentDetailPage({ params }: { params: 
                                     </p>
                                 </div>
                             </div>
+                        </div>
+
+                        <div className="mt-6">
+                            <EditableStudentBacbInfo
+                                studentId={student.id}
+                                initialBacbId={student.bacbId || ""}
+                                initialFieldworkType={(student as any).fieldworkType || "REGULAR"}
+                            />
                         </div>
                     </TabsContent>
 

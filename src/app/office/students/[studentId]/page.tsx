@@ -10,6 +10,7 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/custom
 import { OfficeContractsTab } from "@/components/office/contracts-tab"
 import { serialize } from "@/lib/serialize"
 import { EditStudentDialog } from "@/components/office/edit-student-dialog"
+import { EditableStudentBacbInfo } from "@/components/shared/editable-bacb-info"
 
 export default async function OfficeStudentDetailPage({ params }: { params: Promise<{ studentId: string }> }) {
     const { studentId } = await params
@@ -159,27 +160,11 @@ export default async function OfficeStudentDetailPage({ params }: { params: Prom
                                     </div>
                                 </div>
                             </div>
-                            <div className="rounded-xl border bg-card p-6 space-y-4">
-                                <h3 className="font-semibold text-lg">BACB Info</h3>
-                                <div className="grid gap-2 text-sm">
-                                    <div className="flex justify-between p-3 rounded-lg bg-muted/30">
-                                        <span className="text-muted-foreground">BACB ID</span>
-                                        <span className="font-mono font-semibold">{student.bacbId}</span>
-                                    </div>
-                                    <div className="flex justify-between p-3 rounded-lg bg-muted/30">
-                                        <span className="text-muted-foreground">Credential</span>
-                                        <span className="font-semibold">{student.credential}</span>
-                                    </div>
-                                    <div className="flex justify-between p-3 rounded-lg bg-muted/30">
-                                        <span className="text-muted-foreground">Level</span>
-                                        <span className="font-semibold">{student.level}</span>
-                                    </div>
-                                    <div className="flex justify-between p-3 rounded-lg bg-muted/30">
-                                        <span className="text-muted-foreground">Start Date</span>
-                                        <span className="font-semibold">{student.startDate ? new Date(student.startDate).toLocaleDateString() : "—"}</span>
-                                    </div>
-                                </div>
-                            </div>
+                            <EditableStudentBacbInfo
+                                studentId={student.id}
+                                initialBacbId={student.bacbId || ""}
+                                initialFieldworkType={student.fieldworkType || "REGULAR"}
+                            />
                         </div>
                     </TabsContent>
 

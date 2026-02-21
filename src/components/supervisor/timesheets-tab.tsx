@@ -1,11 +1,14 @@
 "use client"
 
+import { useState } from "react"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { format } from "date-fns"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
-import { Eye, Clock, Calendar, FileText, MapPin, Tag } from "lucide-react"
+import { Eye, Clock, Calendar, FileText, MapPin, Tag, Check, X, FileSignature } from "lucide-react"
+import { toast } from "sonner"
+import { updateHourStatus } from "@/actions/audit"
 import {
     Dialog,
     DialogContent,
@@ -22,6 +25,29 @@ interface TimesheetsTabProps {
 }
 
 export function TimesheetsTab({ independentHours, supervisionHours }: TimesheetsTabProps) {
+    const [isUpdating, setIsUpdating] = useState(false)
+    const [rejectReason, setRejectReason] = useState("")
+
+    const handleUpdateStatus = async (id: string, type: string, status: "APPROVED" | "REJECTED") => {
+        setIsUpdating(true)
+        const formData = new FormData()
+        formData.append("id", id)
+        formData.append("type", type)
+        formData.append("status", status)
+        if (status === "REJECTED") {
+            formData.append("rejectReason", rejectReason)
+        }
+
+        const res = await updateHourStatus(formData)
+        setIsUpdating(false)
+        if (res.error) {
+            toast.error(res.error)
+        } else {
+            toast.success(`Hour ${status.toLowerCase()} successfully`)
+            setRejectReason("")
+        }
+    }
+
     // Combine and sort
     const allEntries = [
         ...independentHours.map(h => ({ ...h, type: 'INDEPENDENT' })),
@@ -45,7 +71,19 @@ export function TimesheetsTab({ independentHours, supervisionHours }: Timesheets
                     <CardTitle>Timesheets Audit</CardTitle>
                     <CardDescription>Review logged hours and activities.</CardDescription>
                 </div>
-                <div className="flex gap-4 text-sm font-medium">
+                <div className="flex gap-4 items-center text-sm font-medium">
+                    <Button variant="default" size="sm" className="gap-2" onClick={() => {
+                        const firstEntry = allEntries.length > 0 ? allEntries[0] : null;
+                        if (firstEntry?.studentId) {
+                            const dateObj = new Date(firstEntry.date);
+                            const monthStr = `${dateObj.getFullYear()}-${String(dateObj.getMonth() + 1).padStart(2, '0')}`;
+                            window.open(`/api/pdf/mvf/${firstEntry.studentId}?month=${monthStr}`, "_blank")
+                        } else {
+                            toast.error("No hours found to generate MVF");
+                        }
+                    }}>
+                        <FileSignature className="w-4 h-4" /> Generate Monthly Form (MVF)
+                    </Button>
                     <div className="flex flex-col items-end">
                         <span className="text-muted-foreground">Total</span>
                         <span>{totalHours.toFixed(2)} hrs</span>
@@ -68,7 +106,8 @@ export function TimesheetsTab({ independentHours, supervisionHours }: Timesheets
                             <TableHead>Activity</TableHead>
                             <TableHead>Setting</TableHead>
                             <TableHead className="text-right">Hours</TableHead>
-                            <TableHead className="text-right w-[80px]">Actions</TableHead>
+                            <TableHead className="text-center">Status</TableHead>
+                            <TableHead className="text-right w-[150px]">Actions</TableHead>
                         </TableRow>
                     </TableHeader>
                     <TableBody>
@@ -97,85 +136,143 @@ export function TimesheetsTab({ independentHours, supervisionHours }: Timesheets
                                     </TableCell>
                                     <TableCell className="text-sm capitalize">{entry.setting?.toLowerCase().replace(/_/g, ' ') || 'N/A'}</TableCell>
                                     <TableCell className="text-right font-mono">{getHours(entry.hours).toFixed(2)}</TableCell>
+                                    <TableCell className="text-center">
+                                        {!entry.status || entry.status === "PENDING" ? (
+                                            <Badge variant="outline" className="text-muted-foreground">Pending</Badge>
+                                        ) : entry.status === "APPROVED" ? (
+                                            <Badge variant="default" className="bg-success text-success-foreground border-success">Approved</Badge>
+                                        ) : (
+                                            <Badge variant="destructive">Rejected</Badge>
+                                        )}
+                                    </TableCell>
                                     <TableCell className="text-right">
-                                        <Dialog>
-                                            <DialogTrigger asChild>
-                                                <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-primary">
-                                                    <Eye className="h-4 w-4" />
-                                                </Button>
-                                            </DialogTrigger>
-                                            <DialogContent className="max-w-md">
-                                                <DialogHeader>
-                                                    <DialogTitle className="flex items-center gap-2">
-                                                        <FileText className="h-5 w-5 text-primary" />
-                                                        Activity Details
-                                                    </DialogTitle>
-                                                    <DialogDescription>
-                                                        Review full entry details for compliance auditing.
-                                                    </DialogDescription>
-                                                </DialogHeader>
+                                        <div className="flex items-center justify-end gap-1">
+                                            <Dialog>
+                                                <DialogTrigger asChild>
+                                                    <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-primary" disabled={isUpdating}>
+                                                        <Eye className="h-4 w-4" />
+                                                    </Button>
+                                                </DialogTrigger>
+                                                <DialogContent className="max-w-md">
+                                                    <DialogHeader>
+                                                        <DialogTitle className="flex items-center gap-2">
+                                                            <FileText className="h-5 w-5 text-primary" />
+                                                            Activity Details
+                                                        </DialogTitle>
+                                                        <DialogDescription>
+                                                            Review full entry details for compliance auditing.
+                                                        </DialogDescription>
+                                                    </DialogHeader>
 
-                                                <div className="grid gap-4 py-4">
-                                                    <div className="flex items-center gap-4 p-3 rounded-lg bg-muted/50 border">
-                                                        <div className="bg-background p-2 rounded-md shadow-sm">
-                                                            <Calendar className="h-4 w-4 text-primary" />
-                                                        </div>
-                                                        <div>
-                                                            <p className="text-[10px] uppercase font-bold text-muted-foreground tracking-wider">Execution Date</p>
-                                                            <p className="text-sm font-semibold">{format(new Date(entry.date), "EEEE, MMMM do, yyyy")}</p>
-                                                        </div>
-                                                    </div>
-
-                                                    <div className="grid grid-cols-2 gap-3">
-                                                        <div className="p-3 rounded-lg border bg-card">
-                                                            <div className="flex items-center gap-2 mb-1">
-                                                                <Clock className="h-3 w-3 text-muted-foreground" />
-                                                                <span className="text-[10px] uppercase font-bold text-muted-foreground">Logged At</span>
+                                                    <div className="grid gap-4 py-4">
+                                                        <div className="flex items-center gap-4 p-3 rounded-lg bg-muted/50 border">
+                                                            <div className="bg-background p-2 rounded-md shadow-sm">
+                                                                <Calendar className="h-4 w-4 text-primary" />
                                                             </div>
-                                                            <p className="text-xs font-semibold">{format(new Date(entry.createdAt), "MMM d, yyyy • HH:mm")}</p>
-                                                        </div>
-                                                        <div className="p-3 rounded-lg border bg-card text-right">
-                                                            <div className="flex items-center justify-end gap-2 mb-1">
-                                                                <span className="text-[10px] uppercase font-bold text-muted-foreground">Duration</span>
-                                                                <Tag className="h-3 w-3 text-muted-foreground" />
+                                                            <div>
+                                                                <p className="text-[10px] uppercase font-bold text-muted-foreground tracking-wider">Execution Date</p>
+                                                                <p className="text-sm font-semibold">{format(new Date(entry.date), "EEEE, MMMM do, yyyy")}</p>
                                                             </div>
-                                                            <p className="text-sm font-bold text-primary">{getHours(entry.hours).toFixed(2)} hours</p>
                                                         </div>
-                                                    </div>
 
-                                                    <div className="space-y-3">
-                                                        <div className="grid grid-cols-2 gap-4">
+                                                        <div className="grid grid-cols-2 gap-3">
+                                                            <div className="p-3 rounded-lg border bg-card">
+                                                                <div className="flex items-center gap-2 mb-1">
+                                                                    <Clock className="h-3 w-3 text-muted-foreground" />
+                                                                    <span className="text-[10px] uppercase font-bold text-muted-foreground">Logged At</span>
+                                                                </div>
+                                                                <p className="text-xs font-semibold">{format(new Date(entry.createdAt), "MMM d, yyyy • HH:mm")}</p>
+                                                            </div>
+                                                            <div className="p-3 rounded-lg border bg-card text-right">
+                                                                <div className="flex items-center justify-end gap-2 mb-1">
+                                                                    <span className="text-[10px] uppercase font-bold text-muted-foreground">Duration</span>
+                                                                    <Tag className="h-3 w-3 text-muted-foreground" />
+                                                                </div>
+                                                                <p className="text-sm font-bold text-primary">{getHours(entry.hours).toFixed(2)} hours</p>
+                                                            </div>
+                                                        </div>
+
+                                                        <div className="space-y-3">
+                                                            <div className="grid grid-cols-2 gap-4">
+                                                                <div className="space-y-1">
+                                                                    <p className="text-[10px] uppercase font-bold text-muted-foreground">Type</p>
+                                                                    <Badge variant="secondary" className="font-mono text-[10px]">{entry.type}</Badge>
+                                                                </div>
+                                                                <div className="space-y-1 text-right">
+                                                                    <p className="text-[10px] uppercase font-bold text-muted-foreground">Category</p>
+                                                                    <Badge variant={entry.activityType === 'RESTRICTED' ? 'destructive' : 'default'} className="text-[10px]">
+                                                                        {entry.activityType}
+                                                                    </Badge>
+                                                                </div>
+                                                            </div>
+
                                                             <div className="space-y-1">
-                                                                <p className="text-[10px] uppercase font-bold text-muted-foreground">Type</p>
-                                                                <Badge variant="secondary" className="font-mono text-[10px]">{entry.type}</Badge>
+                                                                <p className="text-[10px] uppercase font-bold text-muted-foreground">Setting</p>
+                                                                <div className="flex items-center gap-2 text-sm font-medium">
+                                                                    <MapPin className="h-4 w-4 text-muted-foreground" />
+                                                                    <span className="capitalize">{entry.setting?.toLowerCase().replace(/_/g, ' ') || 'N/A'}</span>
+                                                                </div>
                                                             </div>
-                                                            <div className="space-y-1 text-right">
-                                                                <p className="text-[10px] uppercase font-bold text-muted-foreground">Category</p>
-                                                                <Badge variant={entry.activityType === 'RESTRICTED' ? 'destructive' : 'default'} className="text-[10px]">
-                                                                    {entry.activityType}
-                                                                </Badge>
-                                                            </div>
-                                                        </div>
 
-                                                        <div className="space-y-1">
-                                                            <p className="text-[10px] uppercase font-bold text-muted-foreground">Setting</p>
-                                                            <div className="flex items-center gap-2 text-sm font-medium">
-                                                                <MapPin className="h-4 w-4 text-muted-foreground" />
-                                                                <span className="capitalize">{entry.setting?.toLowerCase().replace(/_/g, ' ') || 'N/A'}</span>
-                                                            </div>
-                                                        </div>
-
-                                                        <div className="space-y-1">
-                                                            <p className="text-[10px] uppercase font-bold text-muted-foreground">Notes / Description</p>
-                                                            <div className="p-4 rounded-lg bg-muted text-sm leading-relaxed border italic text-muted-foreground">
-                                                                {/* @ts-ignore */}
-                                                                {entry.notes || "No additional description provided."}
+                                                            <div className="space-y-1">
+                                                                <p className="text-[10px] uppercase font-bold text-muted-foreground">Notes / Description</p>
+                                                                <div className="p-4 rounded-lg bg-muted text-sm leading-relaxed border italic text-muted-foreground">
+                                                                    {/* @ts-ignore */}
+                                                                    {entry.notes || "No additional description provided."}
+                                                                </div>
                                                             </div>
                                                         </div>
                                                     </div>
-                                                </div>
-                                            </DialogContent>
-                                        </Dialog>
+                                                </DialogContent>
+                                            </Dialog>
+
+                                            {(!entry.status || entry.status === "PENDING") && (
+                                                <>
+                                                    <Button
+                                                        variant="ghost"
+                                                        size="icon"
+                                                        className="h-8 w-8 text-success hover:bg-success/20 hover:text-success"
+                                                        disabled={isUpdating}
+                                                        onClick={() => handleUpdateStatus(entry.id, entry.type, "APPROVED")}
+                                                    >
+                                                        <Check className="h-4 w-4" />
+                                                    </Button>
+
+                                                    <Dialog>
+                                                        <DialogTrigger asChild>
+                                                            <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive hover:bg-destructive/20 hover:text-destructive" disabled={isUpdating}>
+                                                                <X className="h-4 w-4" />
+                                                            </Button>
+                                                        </DialogTrigger>
+                                                        <DialogContent>
+                                                            <DialogHeader>
+                                                                <DialogTitle>Reject Hours</DialogTitle>
+                                                                <DialogDescription>
+                                                                    Please provide a reason for rejecting these hours. This will be visible to the student.
+                                                                </DialogDescription>
+                                                            </DialogHeader>
+                                                            <div className="py-4">
+                                                                <textarea
+                                                                    className="w-full min-h-[100px] p-3 text-sm rounded-md border bg-background"
+                                                                    placeholder="Reason for rejection..."
+                                                                    value={rejectReason}
+                                                                    onChange={(e) => setRejectReason(e.target.value)}
+                                                                />
+                                                            </div>
+                                                            <div className="flex justify-end gap-2">
+                                                                <Button
+                                                                    variant="destructive"
+                                                                    disabled={!rejectReason.trim() || isUpdating}
+                                                                    onClick={() => handleUpdateStatus(entry.id, entry.type, "REJECTED")}
+                                                                >
+                                                                    Confirm Rejection
+                                                                </Button>
+                                                            </div>
+                                                        </DialogContent>
+                                                    </Dialog>
+                                                </>
+                                            )}
+                                        </div>
                                     </TableCell>
                                 </TableRow>
                             ))
@@ -183,6 +280,6 @@ export function TimesheetsTab({ independentHours, supervisionHours }: Timesheets
                     </TableBody>
                 </Table>
             </CardContent>
-        </Card>
+        </Card >
     )
 }

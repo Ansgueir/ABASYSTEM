@@ -8,6 +8,7 @@ import { auth } from "@/auth"
 import { prisma } from "@/lib/prisma"
 import { redirect } from "next/navigation"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
+import { EditableSupervisorBacbInfo } from "@/components/shared/editable-bacb-info"
 
 export default async function SupervisorProfilePage() {
     const session = await auth()
@@ -114,14 +115,10 @@ export default async function SupervisorProfilePage() {
                                 <Label>Credential Type</Label>
                                 <Input defaultValue={supervisor?.credentialType || 'BCBA'} disabled className="bg-muted" />
                             </div>
-                            <div className="space-y-2">
-                                <Label>Credential Number</Label>
-                                <Input
-                                    defaultValue={supervisor?.certificantNumber || ''}
-                                    disabled
-                                    className="bg-muted"
-                                />
-                            </div>
+                            <EditableSupervisorBacbInfo
+                                userId={session.user.id!}
+                                initialBacbId={supervisor?.bacbId || supervisor?.certificantNumber || ""}
+                            />
                             <div className="space-y-2">
                                 <Label>Payment Percentage</Label>
                                 <Input

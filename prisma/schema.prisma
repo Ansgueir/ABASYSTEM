@@ -57,6 +57,7 @@ model Student {
   state                 String
   startDate             DateTime
   supervisionType       SupervisionType
+  fieldworkType         FieldworkType       @default(REGULAR)
   supervisionPercentage Decimal
   hoursToDo             Int
   hoursToPay            Int
@@ -144,6 +145,8 @@ model IndependentHour {
   notes               String?
   isRepeating         Boolean            @default(false)
   repeatingScheduleId String?
+  status              HourStatus         @default(PENDING)
+  rejectReason        String?
   createdAt           DateTime           @default(now())
   repeatingSchedule   RepeatingSchedule? @relation(fields: [repeatingScheduleId], references: [id])
   student             Student            @relation(fields: [studentId], references: [id])
@@ -163,6 +166,8 @@ model SupervisionHour {
   groupTopic          String?
   isRepeating         Boolean            @default(false)
   repeatingScheduleId String?
+  status              HourStatus         @default(PENDING)
+  rejectReason        String?
   createdAt           DateTime           @default(now())
   repeatingSchedule   RepeatingSchedule? @relation(fields: [repeatingScheduleId], references: [id])
   student             Student            @relation(fields: [studentId], references: [id])
@@ -425,3 +430,15 @@ enum NotificationType {
   DOCUMENT
   HOURS
 }
+
+enum HourStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+enum FieldworkType {
+  REGULAR
+  CONCENTRATED
+}
+
