@@ -8,7 +8,8 @@ export default async function OnboardingPage() {
 
     // Safety check just in case middleware fails or direct access
     if (!session || !session.user) {
-        redirect("/login")
+        console.error("[ONBOARDING] Missing session or user in Server Component", session);
+        return <div className="p-8 text-center text-red-500 font-bold">Error: Session missing in Server Component. Please clear your cookies and login again.</div>;
     }
 
     const user = await prisma.user.findUnique({
@@ -19,7 +20,10 @@ export default async function OnboardingPage() {
         }
     })
 
-    if (!user) redirect("/login")
+    if (!user) {
+        console.error("[ONBOARDING] User ID not found in database:", session.user.id);
+        return <div className="p-8 text-center text-red-500 font-bold">Error: User account not found in the database. Contact support.</div>;
+    }
 
     // If already completed, redirect to role-specific dashboard
     if (user.onboardingCompleted) {
