@@ -37,6 +37,16 @@ export default async function SupervisorTimesheetPage() {
         console.error("Error fetching timesheet:", error)
     }
 
+    const serializedStudents = supervisor?.students.map(student => ({
+        ...student,
+        supervisionPercentage: Number(student.supervisionPercentage),
+        hoursToDo: student.hoursToDo ? Number(student.hoursToDo) : null,
+        hoursToPay: student.hoursToPay ? Number(student.hoursToPay) : null,
+        amountToPay: student.amountToPay ? Number(student.amountToPay) : null,
+        hoursPerMonth: student.hoursPerMonth ? Number(student.hoursPerMonth) : null,
+        totalMonths: student.totalMonths ? Number(student.totalMonths) : null,
+    })) || []
+
     return (
         <DashboardLayout role="supervisor">
             <div className="space-y-6">
@@ -51,7 +61,7 @@ export default async function SupervisorTimesheetPage() {
                             <Filter className="h-4 w-4 mr-2" />
                             Filter
                         </Button>
-                        <LogSupervisionDialog students={supervisor?.students || []} />
+                        <LogSupervisionDialog students={serializedStudents} />
                     </div>
                 </div>
 
@@ -67,7 +77,7 @@ export default async function SupervisorTimesheetPage() {
                                 <p className="text-muted-foreground">No supervision hours logged yet</p>
                                 <p className="text-muted-foreground">No supervision hours logged yet</p>
                                 <div className="mt-4">
-                                    <LogSupervisionDialog students={supervisor?.students || []} />
+                                    <LogSupervisionDialog students={serializedStudents} />
                                 </div>
                             </div>
                         ) : (
