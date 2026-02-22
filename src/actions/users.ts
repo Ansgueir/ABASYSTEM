@@ -49,6 +49,7 @@ export async function createStudent(formData: FormData) {
     const hoursToDo = Number(formData.get("hoursToDo")) || 2000
     const hoursToPay = Number(formData.get("hoursToPay")) || 2000
     const amountToPay = Number(formData.get("amountToPay")) || 1500
+    const hourlyRate = Number(formData.get("hourlyRate")) || 0
 
     if (!email || !fullName) {
         return { error: "Missing required fields" }
@@ -93,6 +94,7 @@ export async function createStudent(formData: FormData) {
                     hoursToDo,
                     hoursToPay,
                     amountToPay,
+                    hourlyRate,
                     availableDaysGroup: [],
                     paymentAlias: []
                 }

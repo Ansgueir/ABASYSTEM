@@ -43,6 +43,7 @@ export function EditStudentDialog({ student }: EditStudentDialogProps) {
             startDate: data.startDate ? new Date(data.startDate as string) : null,
             hoursPerMonth: Number(data.hoursPerMonth) || 130,
             supervisionPercentage: Number(data.supervisionPercentage) || 5,
+            hourlyRate: Number(data.hourlyRate) || 0,
         }
 
         startTransition(async () => {
@@ -146,6 +147,13 @@ export function EditStudentDialog({ student }: EditStudentDialogProps) {
                         <div className="space-y-2">
                             <Label htmlFor="supervisionPercentage">Min % Supervised</Label>
                             <Input id="supervisionPercentage" name="supervisionPercentage" type="number" defaultValue={Number(student.supervisionPercentage)} />
+                        </div>
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-4 border-t pt-4 mt-4">
+                        <div className="space-y-2">
+                            <Label htmlFor="hourlyRate">Hourly Rate ($)</Label>
+                            <Input id="hourlyRate" name="hourlyRate" type="number" step="0.01" defaultValue={Number(student.hourlyRate || 0)} />
                         </div>
                     </div>
 

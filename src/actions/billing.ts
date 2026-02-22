@@ -70,8 +70,9 @@ export async function markInvoiceAsPaid(invoiceId: string, amountPaid: number, p
                 await prisma.supervisorPayment.update({
                     where: { id: existingPayment.id },
                     data: {
-                        amountDue: { increment: commissionAmount },
-                        balanceDue: { increment: commissionAmount }
+                        balanceDue: { decrement: commissionAmount },
+                        amountAlreadyPaid: { increment: commissionAmount },
+                        amountPaidThisMonth: { increment: commissionAmount }
                     }
                 })
             } else {
@@ -81,9 +82,9 @@ export async function markInvoiceAsPaid(invoiceId: string, amountPaid: number, p
                         studentId: student.id,
                         monthYear: firstDayOfMonth,
                         amountDue: commissionAmount,
-                        amountPaidThisMonth: 0,
-                        amountAlreadyPaid: 0,
-                        balanceDue: commissionAmount
+                        amountPaidThisMonth: commissionAmount,
+                        amountAlreadyPaid: commissionAmount,
+                        balanceDue: 0
                     }
                 })
             }

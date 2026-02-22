@@ -72,6 +72,12 @@ export function AddStudentDialog() {
                             </Label>
                             <Input id="phone" name="phone" className="col-span-3" required />
                         </div>
+                        <div className="grid grid-cols-4 items-center gap-4">
+                            <Label htmlFor="hourlyRate" className="text-right">
+                                Hourly Rate ($)
+                            </Label>
+                            <Input id="hourlyRate" name="hourlyRate" type="number" step="0.01" className="col-span-3" required />
+                        </div>
                         <input type="hidden" name="city" value="Miami" />
                         <input type="hidden" name="state" value="FL" />
                         <input type="hidden" name="school" value="FSU" />
