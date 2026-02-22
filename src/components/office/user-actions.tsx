@@ -22,6 +22,8 @@ import { toggleUserStatus, resetUserPassword, deleteStudent, deleteSupervisor, d
 import Link from "next/link"
 import { EditSupervisorDialog } from "./edit-supervisor-dialog"
 import { EditOfficeMemberDialog } from "./edit-office-member-dialog"
+import { ManageStudentsDialog } from "./manage-students-dialog"
+import { Users } from "lucide-react"
 
 interface UserActionsProps {
     id: string
@@ -39,6 +41,7 @@ export function UserActions({ id, userId, name, email, type, isActive, fullData,
     const [showDeleteDialog, setShowDeleteDialog] = useState(false)
     const [showResetDialog, setShowResetDialog] = useState(false)
     const [showEditDialog, setShowEditDialog] = useState(false)
+    const [showManageStudentsDialog, setShowManageStudentsDialog] = useState(false)
     const [isPopoverOpen, setIsPopoverOpen] = useState(false)
 
     const handleToggleStatus = () => {
@@ -116,6 +119,21 @@ export function UserActions({ id, userId, name, email, type, isActive, fullData,
                         )
                     )}
 
+                    {type === "supervisor" && (
+                        <Button
+                            variant="ghost"
+                            size="sm"
+                            className="w-full justify-start h-8 px-2"
+                            onClick={() => {
+                                setIsPopoverOpen(false)
+                                setShowManageStudentsDialog(true)
+                            }}
+                        >
+                            <Users className="mr-2 h-4 w-4" />
+                            Manage Students
+                        </Button>
+                    )}
+
                     <Button
                         variant="ghost"
                         size="sm"
@@ -155,11 +173,19 @@ export function UserActions({ id, userId, name, email, type, isActive, fullData,
 
             {/* Edit Dialogs */}
             {type === "supervisor" && fullData && (
-                <EditSupervisorDialog
-                    supervisor={fullData}
-                    open={showEditDialog}
-                    onOpenChange={setShowEditDialog}
-                />
+                <>
+                    <EditSupervisorDialog
+                        supervisor={fullData}
+                        open={showEditDialog}
+                        onOpenChange={setShowEditDialog}
+                    />
+                    <ManageStudentsDialog
+                        supervisorId={id}
+                        supervisorName={name}
+                        open={showManageStudentsDialog}
+                        onOpenChange={setShowManageStudentsDialog}
+                    />
+                </>
             )}
             {type === "office" && fullData && (
                 <EditOfficeMemberDialog

@@ -244,3 +244,48 @@ export async function logHours(prevState: LogHoursState, formData: FormData) {
         return { error: "Database error occurred." }
     }
 }
+
+export async function approveSupervisionHour(logId: string) {
+    const session = await auth()
+    const role = String((session?.user as any)?.role).toLowerCase()
+
+    if (role !== "office" && role !== "qa") {
+        return { error: "Unauthorized" }
+    }
+
+    try {
+        await prisma.supervisionHour.update({
+            where: { id: logId },
+            data: { status: "APPROVED" }
+        })
+        revalidatePath("/office/supervision-logs")
+        return { success: true }
+    } catch (error) {
+        console.error("Failed to approve log:", error)
+        return { error: "Failed to approve log" }
+    }
+}
+
+export async function rejectSupervisionHour(logId: string, reason: string) {
+    const session = await auth()
+    const role = String((session?.user as any)?.role).toLowerCase()
+
+    if (role !== "office" && role !== "qa") {
+        return { error: "Unauthorized" }
+    }
+
+    try {
+        await prisma.supervisionHour.update({
+            where: { id: logId },
+            data: {
+                status: "REJECTED",
+                rejectReason: reason
+            }
+        })
+        revalidatePath("/office/supervision-logs")
+        return { success: true }
+    } catch (error) {
+        console.error("Failed to reject log:", error)
+        return { error: "Failed to reject log" }
+    }
+}
