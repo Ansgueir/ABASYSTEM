@@ -254,11 +254,67 @@ export async function approveSupervisionHour(logId: string) {
     }
 
     try {
+        const hour = await prisma.supervisionHour.findUnique({
+            where: { id: logId },
+            include: { student: { include: { supervisor: true } } }
+        })
+
+        if (!hour) return { error: "Hour log not found" }
+
+        const hourlyRate = Number(hour.student.hourlyRate || 0)
+        let percent = 0.54
+        if (hour.student.supervisor?.paymentPercentage) {
+            percent = Number(hour.student.supervisor.paymentPercentage)
+        }
+
+        const amountBilled = Number(hour.hours) * hourlyRate
+        const supervisorPay = amountBilled * percent
+
         await prisma.supervisionHour.update({
             where: { id: logId },
-            data: { status: "APPROVED" }
+            data: {
+                status: "APPROVED",
+                amountBilled,
+                supervisorPay
+            }
         })
+
+        if (hour.student.supervisorId) {
+            const today = new Date()
+            const firstDayOfMonth = new Date(today.getFullYear(), today.getMonth(), 1)
+            const existingPayment = await prisma.supervisorPayment.findFirst({
+                where: {
+                    supervisorId: hour.student.supervisorId,
+                    studentId: hour.student.id,
+                    monthYear: firstDayOfMonth
+                }
+            })
+
+            if (existingPayment) {
+                await prisma.supervisorPayment.update({
+                    where: { id: existingPayment.id },
+                    data: {
+                        amountDue: { increment: supervisorPay },
+                        balanceDue: { increment: supervisorPay }
+                    }
+                })
+            } else {
+                await prisma.supervisorPayment.create({
+                    data: {
+                        supervisorId: hour.student.supervisorId,
+                        studentId: hour.student.id,
+                        monthYear: firstDayOfMonth,
+                        amountDue: supervisorPay,
+                        balanceDue: supervisorPay,
+                        amountPaidThisMonth: 0,
+                        amountAlreadyPaid: 0
+                    }
+                })
+            }
+        }
+
         revalidatePath("/office/supervision-logs")
+        revalidatePath("/supervisor/payments")
         return { success: true }
     } catch (error) {
         console.error("Failed to approve log:", error)

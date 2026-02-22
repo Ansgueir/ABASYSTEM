@@ -62,6 +62,7 @@ model Student {
   hoursToDo             Int
   hoursToPay            Int
   amountToPay           Decimal                      @db.Decimal(10, 2)
+  hourlyRate            Decimal                      @default(0) @db.Decimal(10, 2)
   hoursPerMonth         Int
   totalMonths           Int
   endDate               DateTime
@@ -168,7 +169,11 @@ model SupervisionHour {
   repeatingScheduleId String?
   status              HourStatus         @default(PENDING)
   rejectReason        String?
+  amountBilled        Decimal?           @db.Decimal(10, 2)
+  supervisorPay       Decimal?           @db.Decimal(10, 2)
+  invoiceId           String?
   createdAt           DateTime           @default(now())
+  invoice             Invoice?           @relation(fields: [invoiceId], references: [id])
   repeatingSchedule   RepeatingSchedule? @relation(fields: [repeatingScheduleId], references: [id])
   student             Student            @relation(fields: [studentId], references: [id])
   supervisor          Supervisor         @relation(fields: [supervisorId], references: [id])
@@ -226,6 +231,7 @@ model Invoice {
   sentAt      DateTime?
   createdAt   DateTime      @default(now())
   student     Student       @relation(fields: [studentId], references: [id])
+  supervisionHours SupervisionHour[]
 }
 
 model Document {
@@ -435,6 +441,7 @@ enum HourStatus {
   PENDING
   APPROVED
   REJECTED
+  BILLED
 }
 
 enum FieldworkType {

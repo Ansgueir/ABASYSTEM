@@ -14,31 +14,44 @@ export async function generateMonthlyInvoices() {
         let generatedCount = 0
 
         for (const student of students) {
-            // Check if invoice already exists for this month
-            const existingInvoice = await prisma.invoice.findFirst({
+            // Include hours from this month or previous that are APPROVED but not billed
+            const unbilledHours = await prisma.supervisionHour.findMany({
                 where: {
                     studentId: student.id,
-                    invoiceDate: {
-                        gte: firstDayOfMonth,
-                        lt: new Date(today.getFullYear(), today.getMonth() + 1, 1)
-                    }
+                    status: "APPROVED",
+                    invoiceId: null
                 }
             })
 
-            if (existingInvoice) continue
+            if (unbilledHours.length === 0) continue
+
+            const totalAmountDue = unbilledHours.reduce((sum, h) => sum + Number(h.amountBilled || 0), 0)
+
+            if (totalAmountDue <= 0) continue
 
             // Create Invoice
-            // Ensure amountToPay is handled correctly (Decimal vs Number)
-            await prisma.invoice.create({
+            const invoice = await prisma.invoice.create({
                 data: {
                     studentId: student.id,
                     invoiceDate: today,
-                    amountDue: student.amountToPay,
+                    amountDue: totalAmountDue,
                     amountPaid: 0,
                     status: InvoiceStatus.SENT,
                     sentAt: new Date()
                 }
             })
+
+            // Link hours and update status to BILLED
+            await prisma.supervisionHour.updateMany({
+                where: {
+                    id: { in: unbilledHours.map(h => h.id) }
+                },
+                data: {
+                    status: "BILLED",
+                    invoiceId: invoice.id
+                }
+            })
+
             generatedCount++
         }
 

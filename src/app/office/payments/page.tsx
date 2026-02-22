@@ -18,6 +18,7 @@ export default async function OfficePaymentsPage() {
 
     let invoices: any[] = []
     let stats = { pending: 0, paid: 0, total: 0 }
+    let unbilledTotal = 0
 
     try {
         invoices = await prisma.invoice.findMany({
@@ -37,12 +38,15 @@ export default async function OfficePaymentsPage() {
 
         // Let's stick to simple logic for now or improve later
         // Calculating on all invoices for stats is better
+        // Calculating on all invoices for stats is better
         const pendingInvoices = await prisma.invoice.findMany({ where: { status: 'SENT' } })
         const paidInvoices = await prisma.invoice.findMany({ where: { status: 'PAID' } })
+        const unbilledHours = await prisma.supervisionHour.findMany({ where: { status: 'APPROVED', invoiceId: null } })
 
         stats.pending = pendingInvoices.reduce((s, i) => s + Number(i.amountDue), 0)
         stats.paid = paidInvoices.reduce((s, i) => s + Number(i.amountPaid), 0)
         stats.total = stats.pending + stats.paid
+        const unbilledTotal = unbilledHours.reduce((s, h) => s + Number(h.amountBilled || 0), 0)
 
     } catch (error) {
         console.error("Error fetching payments:", error)
@@ -63,14 +67,25 @@ export default async function OfficePaymentsPage() {
                 </div>
 
                 {/* Stats */}
-                <div className="grid gap-4 md:grid-cols-3">
+                <div className="grid gap-4 md:grid-cols-4">
+                    <Card>
+                        <CardContent className="flex items-center gap-4 p-6">
+                            <div className="h-12 w-12 rounded-xl bg-muted flex items-center justify-center">
+                                <Calendar className="h-6 w-6 text-muted-foreground" />
+                            </div>
+                            <div>
+                                <p className="text-sm text-muted-foreground">Ready to Invoice</p>
+                                <p className="text-2xl font-bold">${unbilledTotal?.toFixed(2) || "0.00"}</p>
+                            </div>
+                        </CardContent>
+                    </Card>
                     <Card>
                         <CardContent className="flex items-center gap-4 p-6">
                             <div className="h-12 w-12 rounded-xl bg-warning/10 flex items-center justify-center">
                                 <Clock className="h-6 w-6 text-warning" />
                             </div>
                             <div>
-                                <p className="text-sm text-muted-foreground">Pending</p>
+                                <p className="text-sm text-muted-foreground">Pending Collection</p>
                                 <p className="text-2xl font-bold">${stats.pending.toFixed(2)}</p>
                             </div>
                         </CardContent>
