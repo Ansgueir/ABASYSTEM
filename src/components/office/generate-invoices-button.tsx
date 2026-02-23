@@ -14,13 +14,16 @@ export function GenerateInvoicesButton() {
         try {
             const result = await generateInvoicesAction()
             if (result.success) {
-                // alert(`Generated ${result.count} invoices`)
-                // Better UI feedback if possible
-                console.log(`Generated ${result.count} invoices`)
+                if (result.count === 0) {
+                    toast.info("No approved logs found ready to invoice.")
+                } else {
+                    toast.success(`Invoicing complete! Generated ${result.count} invoice(s).`)
+                }
             } else {
-                console.error(result.error)
+                toast.error(result.error || "Failed to generate invoices")
             }
         } catch (error) {
+            toast.error("An unexpected error occurred")
             console.error(error)
         } finally {
             setLoading(false)

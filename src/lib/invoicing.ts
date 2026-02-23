@@ -25,30 +25,34 @@ export async function generateMonthlyInvoices() {
 
             if (unbilledHours.length === 0) continue
 
-            const totalAmountDue = unbilledHours.reduce((sum, h) => sum + Number(h.amountBilled || 0), 0)
+            const hourlyRate = Number(student.hourlyRate || 0)
+            const totalAmountDue = unbilledHours.reduce((sum, h) => sum + (Number(h.hours) * hourlyRate), 0)
 
             if (totalAmountDue <= 0) continue
 
-            // Create Invoice
-            const invoice = await prisma.invoice.create({
-                data: {
-                    studentId: student.id,
-                    invoiceDate: today,
-                    amountDue: totalAmountDue,
-                    amountPaid: 0,
-                    status: InvoiceStatus.SENT,
-                    sentAt: new Date()
-                }
-            })
+            await prisma.$transaction(async (tx) => {
+                // Create Invoice
+                const invoice = await tx.invoice.create({
+                    data: {
+                        studentId: student.id,
+                        invoiceDate: today,
+                        amountDue: totalAmountDue,
+                        amountPaid: 0,
+                        status: InvoiceStatus.SENT,
+                        sentAt: new Date()
+                    }
+                })
 
-            // Link hours and update status to BILLED
-            await prisma.supervisionHour.updateMany({
-                where: {
-                    id: { in: unbilledHours.map(h => h.id) }
-                },
-                data: {
-                    status: "BILLED",
-                    invoiceId: invoice.id
+                // Link hours and update status to BILLED, and solidify the amount billed per hour
+                for (const h of unbilledHours) {
+                    await tx.supervisionHour.update({
+                        where: { id: h.id },
+                        data: {
+                            status: "BILLED",
+                            invoiceId: invoice.id,
+                            amountBilled: Number(h.hours) * hourlyRate
+                        }
+                    })
                 }
             })
 
