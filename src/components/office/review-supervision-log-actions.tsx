@@ -60,37 +60,50 @@ export function ReviewSupervisionLogActions({ logId, status, officeRole }: Revie
         })
     }
 
-    if (status === "REJECTED" && officeRole === "SUPER_ADMIN") {
+    if (status === "REJECTED") {
         return (
             <div className="flex justify-end gap-2">
-                <Dialog open={revertDialogOpen} onOpenChange={setRevertDialogOpen}>
-                    <DialogTrigger asChild>
-                        <Button
-                            variant="outline"
-                            size="sm"
-                            className="text-warning hover:bg-warning/10 hover:text-warning border-warning/20"
-                            disabled={isPending}
-                        >
-                            <ArchiveRestore className="h-4 w-4 mr-1" />
-                            Revert to Pending
-                        </Button>
-                    </DialogTrigger>
-                    <DialogContent>
-                        <DialogHeader>
-                            <DialogTitle>Revert Log</DialogTitle>
-                            <DialogDescription>
-                                Are you sure you want to revert this log to PENDING? This will allow it to be reviewed again.
-                            </DialogDescription>
-                        </DialogHeader>
-                        <DialogFooter>
-                            <Button variant="outline" onClick={() => setRevertDialogOpen(false)}>Cancel</Button>
-                            <Button onClick={handleRevert} disabled={isPending}>
-                                {isPending ? <Loader2 className="h-4 w-4 mr-1 animate-spin" /> : null}
-                                Revert
+                {officeRole === "SUPER_ADMIN" && (
+                    <Dialog open={revertDialogOpen} onOpenChange={setRevertDialogOpen}>
+                        <DialogTrigger asChild>
+                            <Button
+                                variant="outline"
+                                size="sm"
+                                className="text-warning hover:bg-warning/10 hover:text-warning border-warning/20"
+                                disabled={isPending}
+                            >
+                                <ArchiveRestore className="h-4 w-4 mr-1" />
+                                Revert to Pending
                             </Button>
-                        </DialogFooter>
-                    </DialogContent>
-                </Dialog>
+                        </DialogTrigger>
+                        <DialogContent>
+                            <DialogHeader>
+                                <DialogTitle>Revert Log</DialogTitle>
+                                <DialogDescription>
+                                    Are you sure you want to revert this log to PENDING? This will allow it to be reviewed again.
+                                </DialogDescription>
+                            </DialogHeader>
+                            <DialogFooter>
+                                <Button variant="outline" onClick={() => setRevertDialogOpen(false)}>Cancel</Button>
+                                <Button onClick={handleRevert} disabled={isPending}>
+                                    {isPending ? <Loader2 className="h-4 w-4 mr-1 animate-spin" /> : null}
+                                    Revert
+                                </Button>
+                            </DialogFooter>
+                        </DialogContent>
+                    </Dialog>
+                )}
+
+                <Button
+                    variant="default"
+                    size="sm"
+                    className="bg-success hover:bg-success/90 text-white"
+                    onClick={handleApprove}
+                    disabled={isPending}
+                >
+                    {isPending ? <Loader2 className="h-4 w-4 animate-spin mr-1" /> : <Check className="h-4 w-4 mr-1" />}
+                    Approve
+                </Button>
             </div>
         )
     }
