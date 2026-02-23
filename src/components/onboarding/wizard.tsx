@@ -13,6 +13,8 @@ import { Progress } from "@/components/ui/progress"
 import { Loader2 } from "lucide-react"
 import dynamic from "next/dynamic"
 import { useSession } from "next-auth/react"
+import { useEffect } from "react"
+import { getGeneralSettings } from "@/actions/settings"
 
 import type SignaturePad from "react-signature-canvas"
 
@@ -51,6 +53,15 @@ export default function OnboardingWizard({ initialStep, initialData }: WizardPro
     // Step 3 State
     const [sigPad, setSigPad] = useState<SignaturePad | null>(null)
     const [initialsPad, setInitialsPad] = useState<SignaturePad | null>(null)
+    const [companyName, setCompanyName] = useState("ABA Supervision System")
+
+    useEffect(() => {
+        getGeneralSettings().then(res => {
+            if (res.success && res.settings) {
+                setCompanyName(res.settings.companyName)
+            }
+        })
+    }, [])
 
     async function handleNextStep1(e: React.FormEvent) {
         e.preventDefault()
@@ -197,7 +208,7 @@ export default function OnboardingWizard({ initialStep, initialData }: WizardPro
                         <div className="bg-gray-50 p-4 rounded-md border text-sm text-gray-700 h-64 overflow-y-auto">
                             <h4 className="font-bold mb-2">Terms of Use & Data Transparency Policy</h4>
                             <p className="mb-2">
-                                By using the ABA Supervision System, you acknowledge and agree to the following terms regarding data privacy, security, and usage.
+                                By using the {companyName}, you acknowledge and agree to the following terms regarding data privacy, security, and usage.
                             </p>
                             <p className="mb-2">
                                 <strong>1. Data Collection:</strong> We collect personal information (name, email, phone, address) and professional data (certifications, hours logged) solely for the purpose of supervision tracking and compliance with BACB standards.

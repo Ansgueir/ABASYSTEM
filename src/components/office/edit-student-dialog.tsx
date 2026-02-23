@@ -20,9 +20,10 @@ import { updateStudent } from "@/actions/users"
 
 interface EditStudentDialogProps {
     student: any
+    isSuperAdmin?: boolean
 }
 
-export function EditStudentDialog({ student }: EditStudentDialogProps) {
+export function EditStudentDialog({ student, isSuperAdmin }: EditStudentDialogProps) {
     const [open, setOpen] = useState(false)
     const [isPending, startTransition] = useTransition()
 
@@ -150,12 +151,14 @@ export function EditStudentDialog({ student }: EditStudentDialogProps) {
                         </div>
                     </div>
 
-                    <div className="grid grid-cols-2 gap-4 border-t pt-4 mt-4">
-                        <div className="space-y-2">
-                            <Label htmlFor="hourlyRate">Hourly Rate ($)</Label>
-                            <Input id="hourlyRate" name="hourlyRate" type="number" step="0.01" defaultValue={Number(student.hourlyRate || 0)} />
+                    {isSuperAdmin && (
+                        <div className="grid grid-cols-2 gap-4 border-t pt-4 mt-4">
+                            <div className="space-y-2">
+                                <Label htmlFor="hourlyRate">Hourly Rate ($)</Label>
+                                <Input id="hourlyRate" name="hourlyRate" type="number" step="0.01" defaultValue={Number(student.hourlyRate || 0)} />
+                            </div>
                         </div>
-                    </div>
+                    )}
 
                     <DialogFooter className="pt-4">
                         <Button type="button" variant="outline" onClick={() => setOpen(false)}>Cancel</Button>

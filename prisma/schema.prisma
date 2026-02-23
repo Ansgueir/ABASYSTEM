@@ -316,6 +316,8 @@ model GeneralValues {
   companyPhone                String
   companyEmail                String
   companyWebsite              String   @default("")
+  companyTaxId                String   @default("")
+  companyLogoUrl              String   @default("")
   updatedAt                   DateTime @updatedAt
 }
 

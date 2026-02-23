@@ -19,7 +19,16 @@ export async function sendEmail({
     subject: string
     html: string
 }) {
-    const fromName = process.env.SMTP_FROM_NAME || "ABA Supervision System"
+    let fromName = process.env.SMTP_FROM_NAME
+    if (!fromName) {
+        try {
+            const { prisma } = await import("@/lib/prisma")
+            const gv = await prisma.generalValues.findFirst()
+            fromName = gv?.companyName || "ABA Supervision System"
+        } catch {
+            fromName = "ABA Supervision System"
+        }
+    }
     const fromEmail = process.env.SMTP_FROM_EMAIL || "no-reply@abasystem.com"
     const from = `"${fromName}" <${fromEmail}>`
 

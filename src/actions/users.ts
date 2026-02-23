@@ -49,7 +49,10 @@ export async function createStudent(formData: FormData) {
     const hoursToDo = Number(formData.get("hoursToDo")) || 2000
     const hoursToPay = Number(formData.get("hoursToPay")) || 2000
     const amountToPay = Number(formData.get("amountToPay")) || 1500
-    const hourlyRate = Number(formData.get("hourlyRate")) || 0
+
+    // Only super_admin can set hourlyRate
+    const isSuperAdmin = currentUser.officeRole === "SUPER_ADMIN"
+    const hourlyRate = isSuperAdmin ? (Number(formData.get("hourlyRate")) || 0) : 0
 
     if (!email || !fullName) {
         return { error: "Missing required fields" }
@@ -101,13 +104,16 @@ export async function createStudent(formData: FormData) {
             })
         })
 
+        const settings = await prisma.generalValues.findFirst()
+        const companyName = settings?.companyName || "Our Clinic"
+
         await sendEmail({
             to: email,
-            subject: "Welcome to ABA Supervision System",
+            subject: `Welcome to ${companyName}`,
             html: `
                 <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto;">
                     <h2 style="color: #333;">Welcome, ${fullName}!</h2>
-                    <p>You have been registered as a <strong>Student</strong> in the ABA Supervision System.</p>
+                    <p>You have been registered as a <strong>Student</strong> in the ${companyName}.</p>
                     <p>Your journey to certification starts here.</p>
                     
                     <div style="background-color: #f5f5f5; padding: 15px; border-radius: 5px; margin: 20px 0;">
@@ -184,13 +190,16 @@ export async function createSupervisor(formData: FormData) {
             })
         })
 
+        const settings = await prisma.generalValues.findFirst()
+        const companyName = settings?.companyName || "Our Clinic"
+
         await sendEmail({
             to: email,
-            subject: "Welcome to ABA Supervision System",
+            subject: `Welcome to ${companyName}`,
             html: `
                 <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto;">
                     <h2 style="color: #333;">Welcome, ${fullName}!</h2>
-                    <p>You have been registered as a <strong>Supervisor</strong> in the ABA Supervision System.</p>
+                    <p>You have been registered as a <strong>Supervisor</strong> in the ${companyName}.</p>
                     <p>Please log in to manage your assigned students.</p>
                     
                     <div style="background-color: #f5f5f5; padding: 15px; border-radius: 5px; margin: 20px 0;">
@@ -272,9 +281,12 @@ export async function resetUserPassword(userId: string, email: string, name: str
             }
         })
 
+        const settings = await prisma.generalValues.findFirst()
+        const companyName = settings?.companyName || "Our Clinic"
+
         await sendEmail({
             to: email,
-            subject: "Password Reset - ABA System",
+            subject: `Password Reset - ${companyName}`,
             html: `
                 <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto;">
                     <h2 style="color: #333;">Password Reset</h2>
@@ -387,13 +399,16 @@ export async function createOfficeMember(formData: FormData) {
             })
         })
 
+        const settings = await prisma.generalValues.findFirst()
+        const companyName = settings?.companyName || "Our Clinic"
+
         await sendEmail({
             to: email,
-            subject: "Welcome to ABA Supervision System - Admin Access",
+            subject: `Welcome to ${companyName} - Admin Access`,
             html: `
                 <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto;">
                     <h2 style="color: #333;">Welcome, ${fullName}!</h2>
-                    <p>You have been granted <strong>${officeRole.replace("_", " ")}</strong> access to the ABA Supervision System.</p>
+                    <p>You have been granted <strong>${officeRole.replace("_", " ")}</strong> access to the ${companyName}.</p>
                     
                     <div style="background-color: #f5f5f5; padding: 15px; border-radius: 5px; margin: 20px 0;">
                         <p style="margin: 0;"><strong>Email:</strong> ${email}</p>
@@ -449,6 +464,12 @@ export async function updateStudent(studentId: string, data: any) {
     const currentUser = await getSessionUser()
     if (!currentUser || (currentUser.role !== "OFFICE" && currentUser.role !== "QA")) {
         return { error: "Unauthorized" }
+    }
+
+    // Strip hourlyRate if not SUPER_ADMIN
+    const isSuperAdmin = currentUser.officeRole === "SUPER_ADMIN"
+    if (!isSuperAdmin && data.hourlyRate !== undefined) {
+        delete data.hourlyRate
     }
 
     try {

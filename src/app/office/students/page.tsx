@@ -18,6 +18,7 @@ export default async function OfficeStudentsPage() {
     const role = String((session.user as any).role).toLowerCase()
     if (role !== "office" && role !== "qa") redirect("/login")
 
+    const isSuperAdmin = (session.user as any).officeRole === "SUPER_ADMIN"
     let students: any[] = []
 
     try {
@@ -51,7 +52,7 @@ export default async function OfficeStudentsPage() {
                         <Button variant="outline" className="rounded-xl">
                             <Filter className="h-4 w-4" />
                         </Button>
-                        <AddStudentDialog />
+                        <AddStudentDialog isSuperAdmin={isSuperAdmin} />
                     </div>
                 </div>
 
@@ -63,7 +64,7 @@ export default async function OfficeStudentsPage() {
                                 <GraduationCap className="h-12 w-12 mx-auto text-muted-foreground/50 mb-4" />
                                 <p className="text-muted-foreground">No students registered yet</p>
                                 <div className="mt-4 flex justify-center">
-                                    <AddStudentDialog />
+                                    <AddStudentDialog isSuperAdmin={isSuperAdmin} />
                                 </div>
                             </div>
                         ) : (

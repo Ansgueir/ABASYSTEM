@@ -64,7 +64,9 @@ export async function GET(
         address: settings?.companyAddress ?? "1800 W 68th ST Suite 130, Hialeah, FL 33018",
         phone: settings?.companyPhone ?? "(305) 549-8770",
         email: settings?.companyEmail ?? "info@abaplc.com",
-        website: (settings as any)?.companyWebsite ?? "www.abaplc.com",
+        website: settings?.companyWebsite ?? "www.abaplc.com",
+        taxId: (settings as any)?.companyTaxId ?? "",
+        logoUrl: (settings as any)?.companyLogoUrl ?? "",
     }
 
     // Dynamic import to avoid SSR issues with react-pdf

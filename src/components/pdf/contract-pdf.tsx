@@ -325,6 +325,8 @@ export interface ContractPDFProps {
         phone: string
         email: string
         website: string
+        taxId?: string
+        logoUrl?: string
     }
 }
 
@@ -390,7 +392,10 @@ export function ContractPDF({ trainee, supervisors, effectiveDate, clinic }: Con
                 <View style={styles.headerWrap} fixed>
                     {/* Left: Logo area */}
                     <View style={styles.logoArea}>
-                        <Text style={styles.orgName}>ABA PROFESSIONAL LEARNING CENTER</Text>
+                        {clinic.logoUrl ? (
+                            <Image src={clinic.logoUrl} style={{ width: 140, marginBottom: 10 }} />
+                        ) : null}
+                        <Text style={styles.orgName}>{clinic.name.toUpperCase()}</Text>
                         <Text style={styles.orgTagline}>BEHAVIOR ANALYSIS · SUPERVISION · TRAINING</Text>
                         <Text style={styles.orgContact}>
                             {clinic.address}{"\n"}

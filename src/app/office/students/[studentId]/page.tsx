@@ -111,7 +111,7 @@ export default async function OfficeStudentDetailPage({ params }: { params: Prom
                         </div>
 
                         <div className="flex items-center gap-2">
-                            {isSuperAdmin && <EditStudentDialog student={safeStudent} />}
+                            <EditStudentDialog student={safeStudent} isSuperAdmin={isSuperAdmin} />
                         </div>
                     </div>
                 </div>

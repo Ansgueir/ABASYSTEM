@@ -8,6 +8,7 @@ import { redirect } from "next/navigation"
 import { format } from "date-fns"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import { LogSupervisionDialog } from "@/components/log-supervision-dialog"
+import { serialize } from "@/lib/serialize"
 
 export default async function SupervisorTimesheetPage() {
     const session = await auth()
@@ -37,16 +38,7 @@ export default async function SupervisorTimesheetPage() {
         console.error("Error fetching timesheet:", error)
     }
 
-    const serializedStudents = supervisor?.students.map(student => ({
-        ...student,
-        supervisionPercentage: Number(student.supervisionPercentage),
-        hoursToDo: student.hoursToDo ? Number(student.hoursToDo) : null,
-        hoursToPay: student.hoursToPay ? Number(student.hoursToPay) : null,
-        amountToPay: student.amountToPay ? Number(student.amountToPay) : null,
-        hoursPerMonth: student.hoursPerMonth ? Number(student.hoursPerMonth) : null,
-        totalMonths: student.totalMonths ? Number(student.totalMonths) : null,
-        hourlyRate: student.hourlyRate ? Number(student.hourlyRate) : 0,
-    })) || []
+    const serializedStudents = serialize(supervisor?.students || [])
 
     return (
         <DashboardLayout role="supervisor">

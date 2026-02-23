@@ -103,9 +103,15 @@ export async function generateInvoicesAction() {
     const session = await auth()
     if (!session || !session.user) return { error: "Unauthorized" }
 
-    const role = String((session.user as any).role).toLowerCase()
+    const user = session.user as any
+    const role = String(user.role).toLowerCase()
+
     if (role !== "office") {
         return { error: "Unauthorized role" }
+    }
+
+    if (user.officeRole !== "SUPER_ADMIN") {
+        return { error: "Forbidden: Only Super Administrators can run invoicing." }
     }
 
     // Dynamic import to avoid circular dependency if any? No, lib is fine.
