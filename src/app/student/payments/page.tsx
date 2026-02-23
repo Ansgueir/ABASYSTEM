@@ -100,8 +100,11 @@ export default async function PaymentsPage() {
                         ) : (
                             <div className="space-y-3">
                                 {invoices.map((invoice) => (
-                                    <div
+                                    <a
                                         key={invoice.id}
+                                        href={`/api/student/invoices/${invoice.id}/download`}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
                                         className="flex items-center justify-between p-4 rounded-xl bg-muted/50 hover:bg-muted transition-colors cursor-pointer"
                                     >
                                         <div className="flex items-center gap-4">
@@ -129,7 +132,7 @@ export default async function PaymentsPage() {
                                             </div>
                                             <ArrowUpRight className="h-4 w-4 text-muted-foreground" />
                                         </div>
-                                    </div>
+                                    </a>
                                 ))}
                             </div>
                         )}
