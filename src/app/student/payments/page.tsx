@@ -23,19 +23,25 @@ export default async function PaymentsPage() {
         })
 
         if (student) {
-            invoices = await prisma.invoice.findMany({
+            const rawInvoices = await prisma.invoice.findMany({
                 where: { studentId: student.id },
                 orderBy: { createdAt: 'desc' },
                 take: 10
             })
+            // Map Decimal to Number natively to avoid serialization crashes
+            invoices = rawInvoices.map(inv => ({
+                ...inv,
+                amountDue: Number(inv.amountDue),
+                amountPaid: Number(inv.amountPaid)
+            }))
         }
     } catch (error) {
         console.error("Error fetching payments:", error)
     }
 
     const pendingAmount = invoices
-        .filter(i => i.status === 'pending')
-        .reduce((sum, i) => sum + Number(i.amount), 0)
+        .filter(i => i.status === 'SENT' || i.status === 'OVERDUE')
+        .reduce((sum, i) => sum + Number(i.amountDue), 0)
 
     return (
         <DashboardLayout role="student">
@@ -46,10 +52,12 @@ export default async function PaymentsPage() {
                         <h1 className="text-2xl font-bold">Payments</h1>
                         <p className="text-muted-foreground">View your invoices and payment history</p>
                     </div>
-                    <Button variant="outline" className="rounded-xl">
-                        <Download className="h-4 w-4 mr-2" />
-                        Download All
-                    </Button>
+                    <a href="/api/student/invoices/download-all" download>
+                        <Button variant="outline" className="rounded-xl">
+                            <Download className="h-4 w-4 mr-2" />
+                            Download All
+                        </Button>
+                    </a>
                 </div>
 
                 {/* Summary Cards */}
@@ -71,8 +79,8 @@ export default async function PaymentsPage() {
                                 <CreditCard className="h-6 w-6 text-success" />
                             </div>
                             <div>
-                                <p className="text-sm text-muted-foreground">Monthly Rate</p>
-                                <p className="text-2xl font-bold">${Number(student?.amountToPay || 0).toFixed(2)}</p>
+                                <p className="text-sm text-muted-foreground">Hourly Rate</p>
+                                <p className="text-2xl font-bold">${Number(student?.hourlyRate || 0).toFixed(2)}</p>
                             </div>
                         </CardContent>
                     </Card>
@@ -111,8 +119,8 @@ export default async function PaymentsPage() {
                                         </div>
                                         <div className="flex items-center gap-4">
                                             <div className="text-right">
-                                                <p className="font-semibold">${Number(invoice.amount).toFixed(2)}</p>
-                                                <span className={`text-xs px-2 py-0.5 rounded-full ${invoice.status === 'paid'
+                                                <p className="font-semibold">${Number(invoice.amountDue).toFixed(2)}</p>
+                                                <span className={`text-xs px-2 py-0.5 rounded-full ${invoice.status === 'PAID'
                                                     ? 'bg-success/10 text-success'
                                                     : 'bg-warning/10 text-warning'
                                                     }`}>

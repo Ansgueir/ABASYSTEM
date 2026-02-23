@@ -40,7 +40,7 @@ export default function DashboardLayout({
     const { data: session } = useSession()
     const [isSidebarOpen, setIsSidebarOpen] = useState(false)
     const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false)
-    const [companyName, setCompanyName] = useState("ABA System")
+    const [companyName, setCompanyName] = useState("ABA Supervision System")
     const pathname = usePathname()
 
     useEffect(() => {
