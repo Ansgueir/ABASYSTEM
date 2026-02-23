@@ -25,6 +25,7 @@ export default async function SupervisorPaymentsPage() {
         if (supervisor) {
             payments = await prisma.supervisorPayment.findMany({
                 where: { supervisorId: supervisor.id },
+                include: { student: true },
                 orderBy: { createdAt: 'desc' },
                 take: 10
             })

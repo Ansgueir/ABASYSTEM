@@ -67,12 +67,21 @@ export async function markInvoiceAsPaid(invoiceId: string, amountPaid: number, p
             })
 
             if (existingPayment) {
+                const currentBalance = Number(existingPayment.balanceDue)
+                const newBalance = Math.max(0, currentBalance - commissionAmount)
+                const newPaid = Number(existingPayment.amountAlreadyPaid) + commissionAmount
+                const currentAmtDue = Number(existingPayment.amountDue)
+
+                // If amountDue was 0 due to an hourly rate bug, self-heal it to match reality
+                const newAmtDue = Math.max(currentAmtDue, newPaid + newBalance)
+
                 await prisma.supervisorPayment.update({
                     where: { id: existingPayment.id },
                     data: {
-                        balanceDue: { decrement: commissionAmount },
-                        amountAlreadyPaid: { increment: commissionAmount },
-                        amountPaidThisMonth: { increment: commissionAmount }
+                        balanceDue: newBalance,
+                        amountAlreadyPaid: newPaid,
+                        amountPaidThisMonth: { increment: commissionAmount },
+                        amountDue: newAmtDue
                     }
                 })
             } else {
