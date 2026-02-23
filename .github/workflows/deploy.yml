@@ -20,6 +20,9 @@ jobs:
         # Install dependencies
         npm install --legacy-peer-deps
         
+        # Clean Next.js cache to avoid CSS corruption
+        rm -rf .next
+        
         # Build the production bundle
         npm run build
         
