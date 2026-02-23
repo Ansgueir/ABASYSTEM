@@ -52,7 +52,7 @@ export default async function PaymentsPage() {
                         <h1 className="text-2xl font-bold">Payments</h1>
                         <p className="text-muted-foreground">View your invoices and payment history</p>
                     </div>
-                    <a href="/api/student/invoices/download-all" download>
+                    <a href="/api/student/invoices/download-all" target="_blank">
                         <Button variant="outline" className="rounded-xl">
                             <Download className="h-4 w-4 mr-2" />
                             Download All
