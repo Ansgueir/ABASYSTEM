@@ -155,7 +155,7 @@ export function EditStudentDialog({ student, isSuperAdmin }: EditStudentDialogPr
                         <div className="grid grid-cols-2 gap-4 border-t pt-4 mt-4">
                             <div className="space-y-2">
                                 <Label htmlFor="hourlyRate">Hourly Rate ($)</Label>
-                                <Input id="hourlyRate" name="hourlyRate" type="number" step="any" defaultValue={Number(student.hourlyRate || 0)} />
+                                <Input id="hourlyRate" name="hourlyRate" type="number" step="0.01" defaultValue={Number(student.hourlyRate || 0).toFixed(2)} />
                             </div>
                         </div>
                     )}

@@ -81,7 +81,7 @@ export function AddStudentDialog({ isSuperAdmin }: AddStudentDialogProps) {
                                 <Label htmlFor="hourlyRate" className="text-right">
                                     Hourly Rate ($)
                                 </Label>
-                                <Input id="hourlyRate" name="hourlyRate" type="number" step="any" className="col-span-3" required />
+                                <Input id="hourlyRate" name="hourlyRate" type="number" step="0.01" className="col-span-3" required />
                             </div>
                         )}
                         <input type="hidden" name="city" value="Miami" />
