@@ -7,9 +7,8 @@ export async function generateMonthlyInvoices() {
         const firstDayOfMonth = new Date(today.getFullYear(), today.getMonth(), 1)
 
         // 1. Find active students
-        const students = await prisma.student.findMany({
-            where: { status: "ACTIVE" }
-        })
+        // 1. Find all students that might have unbilled hours
+        const students = await prisma.student.findMany()
 
         let generatedCount = 0
 

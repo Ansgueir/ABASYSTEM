@@ -10,7 +10,7 @@ export async function markInvoiceAsPaid(invoiceId: string, amountPaid: number, p
     if (!session || !session.user) return { error: "Unauthorized" }
 
     const role = String((session.user as any).role).toLowerCase()
-    if (role !== "office") {
+    if (role !== "office" && role !== "qa") {
         return { error: "Unauthorized role" }
     }
 
@@ -106,11 +106,11 @@ export async function generateInvoicesAction() {
     const user = session.user as any
     const role = String(user.role).toLowerCase()
 
-    if (role !== "office") {
+    if (role !== "office" && role !== "qa") {
         return { error: "Unauthorized role" }
     }
 
-    if (user.officeRole !== "SUPER_ADMIN") {
+    if (user.officeRole !== "SUPER_ADMIN" && role !== "qa") {
         return { error: "Forbidden: Only Super Administrators can run invoicing." }
     }
 
