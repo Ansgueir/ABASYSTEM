@@ -17,12 +17,12 @@ export function SettingsClient({ settings }: SettingsClientProps) {
     const [isPending, startTransition] = useTransition()
     const [formData, setFormData] = useState({
         companyName: settings?.companyName || "ABA Supervision System",
-        companyEmail: settings?.companyEmail || "office@abaclinic.com",
+        companyEmail: settings?.companyEmail || "office@abasystem.com",
         companyPhone: settings?.companyPhone || "(555) 123-4567",
         companyAddress: settings?.companyAddress || "123 Main St",
         bcbaRate: settings?.supervisorPaymentPercentage ? (settings.supervisorPaymentPercentage * 100).toString() : "54",
-        maxHours: "130", // Placeholder for actual backend support later
-        restrictedAlert: "40",
+        maxHours: settings?.maxHoursPerMonth?.toString() || "130",
+        restrictedAlert: settings?.restrictedAlertPercent?.toString() || "40",
         bcabaRate: "60",
         invoiceDay: "1"
     })
@@ -76,7 +76,7 @@ export function SettingsClient({ settings }: SettingsClientProps) {
                                 id="companyName"
                                 value={formData.companyName}
                                 onChange={handleChange}
-                                placeholder="ABA Supervision Clinic"
+                                placeholder="ABA Supervision System"
                             />
                         </div>
                         <div className="space-y-2">

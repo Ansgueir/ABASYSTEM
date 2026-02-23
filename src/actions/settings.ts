@@ -15,11 +15,11 @@ export async function getGeneralSettings() {
                     rateRegular: 45.0,
                     rateConcentrated: 60.0,
                     supervisorPaymentPercentage: 0.54,
-                    companyName: "ABA Supervision Clinic",
+                    companyName: "ABA Supervision System",
                     companyAddress: "123 Main St, Miami, FL",
                     companyPhone: "(555) 123-4567",
-                    companyEmail: "office@abaclinic.com",
-                    companyWebsite: "www.abaclinic.com",
+                    companyEmail: "office@abasystem.com",
+                    companyWebsite: "www.abasystem.com",
                     companyTaxId: "XX-XXXXXXX",
                     companyLogoUrl: "" // Will be populated with a logo link later
                 } as any // Use as any to prevent build failing on local without DB push generated
