@@ -154,7 +154,7 @@ export default function DashboardLayout({
                         </div>
                         <div className="flex items-center gap-3">
                             <NotificationBell />
-                            <Link href={`/${userRole}/profile`} className="flex items-center gap-3 pl-3 border-l border-border hover:opacity-80 transition-opacity">
+                            <Link href={userRole === "office" ? "/office/settings" : `/${userRole}/profile`} className="flex items-center gap-3 pl-3 border-l border-border hover:opacity-80 transition-opacity">
                                 <div className="text-right">
                                     <p className="text-sm font-medium">{userName}</p>
                                     <p className="text-xs text-muted-foreground capitalize">{userRole}</p>
