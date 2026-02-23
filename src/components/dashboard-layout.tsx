@@ -112,7 +112,7 @@ export default function DashboardLayout({
                 </div>
                 <div className="flex items-center gap-2">
                     <NotificationBell />
-                    <Link href={`/${userRole}/profile`}>
+                    <Link href={userRole === "office" ? "/office/settings" : `/${userRole}/profile`}>
                         <Avatar className="h-9 w-9 border-2 border-primary/20">
                             {session?.user?.image && <AvatarImage src={session.user.image} />}
                             <AvatarFallback className="bg-primary/10 text-primary font-medium">{initials}</AvatarFallback>
@@ -279,7 +279,7 @@ function SidebarContent({ routes, pathname, collapsed, onToggleCollapse, onClose
             )}>
                 {!collapsed && (
                     <Link
-                        href={`/${user.role}/profile`}
+                        href={user.role === "office" ? "/office/settings" : `/${user.role}/profile`}
                         onClick={onClose}
                         className="flex items-center gap-3 mb-4 p-3 rounded-xl bg-muted/50 hover:bg-muted transition-colors"
                     >
