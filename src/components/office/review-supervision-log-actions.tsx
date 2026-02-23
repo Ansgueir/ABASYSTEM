@@ -4,13 +4,16 @@ import { useState, useTransition } from "react"
 import { Button } from "@/components/ui/button"
 import { Check, X, Loader2 } from "lucide-react"
 import { toast } from "sonner"
-import { approveSupervisionHour, rejectSupervisionHour } from "@/actions/log-hours"
+import { approveSupervisionHour, rejectSupervisionHour, revertSupervisionHourToPending } from "@/actions/log-hours"
+import { ArchiveRestore } from "lucide-react"
 
 interface ReviewSupervisionLogActionsProps {
     logId: string
+    status: string
+    officeRole: string | null
 }
 
-export function ReviewSupervisionLogActions({ logId }: ReviewSupervisionLogActionsProps) {
+export function ReviewSupervisionLogActions({ logId, status, officeRole }: ReviewSupervisionLogActionsProps) {
     const [isPending, startTransition] = useTransition()
 
     const handleApprove = () => {
@@ -36,6 +39,40 @@ export function ReviewSupervisionLogActions({ logId }: ReviewSupervisionLogActio
                 toast.success("Supervision hour rejected")
             }
         })
+    }
+
+    const handleRevert = () => {
+        if (!window.confirm("Are you sure you want to revert this log to PENDING? This will allow it to be reviewed again.")) return
+
+        startTransition(async () => {
+            const res = await revertSupervisionHourToPending(logId)
+            if (res.error) {
+                toast.error(res.error)
+            } else {
+                toast.success("Log reverted to Pending")
+            }
+        })
+    }
+
+    if (status === "REJECTED" && officeRole === "SUPER_ADMIN") {
+        return (
+            <div className="flex justify-end gap-2">
+                <Button
+                    variant="outline"
+                    size="sm"
+                    className="text-warning hover:bg-warning/10 hover:text-warning border-warning/20"
+                    onClick={handleRevert}
+                    disabled={isPending}
+                >
+                    {isPending ? <Loader2 className="h-4 w-4 animate-spin mr-1" /> : <ArchiveRestore className="h-4 w-4 mr-1" />}
+                    Revert to Pending
+                </Button>
+            </div>
+        )
+    }
+
+    if (status !== "PENDING") {
+        return null // Other statuses don't have actions here currently
     }
 
     return (

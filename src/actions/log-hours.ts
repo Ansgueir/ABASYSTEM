@@ -345,3 +345,35 @@ export async function rejectSupervisionHour(logId: string, reason: string) {
         return { error: "Failed to reject log" }
     }
 }
+
+export async function revertSupervisionHourToPending(logId: string) {
+    const session = await auth()
+    const role = String((session?.user as any)?.role).toLowerCase()
+    const officeRole = String((session?.user as any)?.officeRole).toUpperCase()
+
+    if ((role !== "office" && role !== "qa") || officeRole !== "SUPER_ADMIN") {
+        return { error: "Forbidden: Only Super Admins can revert logs." }
+    }
+
+    try {
+        const hour = await prisma.supervisionHour.findUnique({
+            where: { id: logId }
+        })
+
+        if (!hour) return { error: "Log not found" }
+        if (hour.status !== "REJECTED") return { error: "Only rejected logs can be reverted." }
+
+        await prisma.supervisionHour.update({
+            where: { id: logId },
+            data: {
+                status: "PENDING",
+                rejectReason: null
+            }
+        })
+        revalidatePath("/office/supervision-logs")
+        return { success: true }
+    } catch (error) {
+        console.error("Failed to revert log:", error)
+        return { error: "Failed to revert log" }
+    }
+}

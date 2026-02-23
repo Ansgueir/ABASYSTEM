@@ -8,19 +8,29 @@ import { redirect } from "next/navigation"
 import { format } from "date-fns"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import { ReviewSupervisionLogActions } from "@/components/office/review-supervision-log-actions"
+import Link from "next/link"
 
-export default async function SupervisionLogsReviewPage() {
+export default async function SupervisionLogsReviewPage({
+    searchParams
+}: {
+    searchParams: { tab?: string }
+}) {
     const session = await auth()
     if (!session?.user) redirect("/login")
 
     const role = String((session.user as any).role).toLowerCase()
+    const officeRole = String((session.user as any).officeRole).toUpperCase()
     if (role !== "office" && role !== "qa") redirect("/login")
 
-    let pendingLogs: any[] = []
+    const activeTab = searchParams.tab?.toUpperCase() || "PENDING"
+    const validTabs = ["PENDING", "APPROVED", "REJECTED", "BILLED"]
+    const statusFilter = validTabs.includes(activeTab) ? activeTab : "PENDING"
+
+    let logs: any[] = []
 
     try {
-        pendingLogs = await prisma.supervisionHour.findMany({
-            where: { status: "PENDING" },
+        logs = await prisma.supervisionHour.findMany({
+            where: { status: statusFilter as any },
             orderBy: { date: 'asc' },
             include: {
                 student: { select: { fullName: true } },
@@ -28,7 +38,7 @@ export default async function SupervisionLogsReviewPage() {
             }
         })
     } catch (error) {
-        console.error("Error fetching pending logs:", error)
+        console.error(`Error fetching ${statusFilter} logs:`, error)
     }
 
     return (
@@ -37,16 +47,32 @@ export default async function SupervisionLogsReviewPage() {
                 <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
                     <div>
                         <h1 className="text-2xl font-bold">Review Logs</h1>
-                        <p className="text-muted-foreground">Approve or reject pending supervision hours</p>
+                        <p className="text-muted-foreground">Manage and archive supervision log submissions</p>
                     </div>
+                </div>
+
+                {/* Tabs */}
+                <div className="flex items-center gap-2 border-b border-border pb-px overflow-x-auto">
+                    {validTabs.map((tab) => (
+                        <Link
+                            key={tab}
+                            href={`/office/supervision-logs?tab=${tab.toLowerCase()}`}
+                            className={`px-4 py-2 text-sm font-medium border-b-2 transition-colors ${activeTab === tab
+                                    ? "border-primary text-foreground"
+                                    : "border-transparent text-muted-foreground hover:text-foreground hover:border-border"
+                                }`}
+                        >
+                            {tab.charAt(0) + tab.slice(1).toLowerCase()}
+                        </Link>
+                    ))}
                 </div>
 
                 <Card>
                     <CardContent className="p-0">
-                        {pendingLogs.length === 0 ? (
+                        {logs.length === 0 ? (
                             <div className="text-center py-12">
-                                <CheckCircle className="h-12 w-12 mx-auto text-success/50 mb-4" />
-                                <p className="text-muted-foreground">All caught up! No pending logs to review.</p>
+                                <CheckCircle className="h-12 w-12 mx-auto text-muted-foreground/50 mb-4" />
+                                <p className="text-muted-foreground">No {statusFilter.toLowerCase()} logs found.</p>
                             </div>
                         ) : (
                             <div className="overflow-x-auto">
@@ -62,7 +88,7 @@ export default async function SupervisionLogsReviewPage() {
                                         </tr>
                                     </thead>
                                     <tbody>
-                                        {pendingLogs.map((log) => (
+                                        {logs.map((log) => (
                                             <tr key={log.id} className="border-b hover:bg-muted/30 transition-colors">
                                                 <td className="p-4">
                                                     <div className="flex items-center gap-3">
@@ -96,7 +122,7 @@ export default async function SupervisionLogsReviewPage() {
                                                     <span className="font-bold text-lg">{Number(log.hours).toFixed(1)}</span>
                                                 </td>
                                                 <td className="p-4 text-right">
-                                                    <ReviewSupervisionLogActions logId={log.id} />
+                                                    <ReviewSupervisionLogActions logId={log.id} status={log.status} officeRole={officeRole} />
                                                 </td>
                                             </tr>
                                         ))}
