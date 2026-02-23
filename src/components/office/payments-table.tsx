@@ -92,7 +92,7 @@ export function PaymentsTable({ invoices }: PaymentsTableProps) {
                                     ${Number(invoice.amountDue).toFixed(2)}
                                 </TableCell>
                                 <TableCell className="text-right">
-                                    {invoice.status !== 'PAID' && (
+                                    {invoice.status !== 'PAID' ? (
                                         <Dialog open={open && selectedInvoice === invoice.id} onOpenChange={(v) => {
                                             setOpen(v)
                                             if (v) {
@@ -138,12 +138,16 @@ export function PaymentsTable({ invoices }: PaymentsTableProps) {
                                                 <DialogFooter>
                                                     <Button variant="outline" onClick={() => setOpen(false)}>Cancel</Button>
                                                     <Button onClick={handlePayment} disabled={loading}>
-                                                        {loading && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
+                                                        {loading ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
                                                         Confirm Payment
                                                     </Button>
                                                 </DialogFooter>
                                             </DialogContent>
                                         </Dialog>
+                                    ) : (
+                                        <a href={`/api/office/invoices/${invoice.id}/download`} target="_blank">
+                                            <Button size="sm" variant="secondary">View</Button>
+                                        </a>
                                     )}
                                 </TableCell>
                             </TableRow>
