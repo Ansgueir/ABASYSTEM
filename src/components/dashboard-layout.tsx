@@ -112,7 +112,7 @@ export default function DashboardLayout({
                 </div>
                 <div className="flex items-center gap-2">
                     <NotificationBell />
-                    <Link href={userRole === "office" ? "/office/settings" : `/${userRole}/profile`}>
+                    <Link href={`/${userRole}/profile`}>
                         <Avatar className="h-9 w-9 border-2 border-primary/20">
                             {session?.user?.image && <AvatarImage src={session.user.image} />}
                             <AvatarFallback className="bg-primary/10 text-primary font-medium">{initials}</AvatarFallback>
@@ -154,7 +154,7 @@ export default function DashboardLayout({
                         </div>
                         <div className="flex items-center gap-3">
                             <NotificationBell />
-                            <Link href={userRole === "office" ? "/office/settings" : `/${userRole}/profile`} className="flex items-center gap-3 pl-3 border-l border-border hover:opacity-80 transition-opacity">
+                            <Link href={`/${userRole}/profile`} className="flex items-center gap-3 pl-3 border-l border-border hover:opacity-80 transition-opacity">
                                 <div className="text-right">
                                     <p className="text-sm font-medium">{userName}</p>
                                     <p className="text-xs text-muted-foreground capitalize">{userRole}</p>
@@ -278,31 +278,19 @@ function SidebarContent({ routes, pathname, collapsed, onToggleCollapse, onClose
                 collapsed && "flex flex-col items-center"
             )}>
                 {!collapsed && (
-                    user.role === "office" ? (
-                        <div className="flex items-center gap-3 mb-4 p-3 rounded-xl bg-muted/50 transition-colors">
-                            <Avatar className="h-10 w-10 border-2 border-primary/20">
-                                <AvatarFallback className="bg-primary/10 text-primary font-medium">{user.avatar}</AvatarFallback>
-                            </Avatar>
-                            <div className="flex-1 min-w-0">
-                                <p className="text-sm font-medium truncate">{user.name}</p>
-                                <p className="text-xs text-muted-foreground capitalize">{user.role}</p>
-                            </div>
+                    <Link
+                        href={`/${user.role}/profile`}
+                        onClick={onClose}
+                        className="flex items-center gap-3 mb-4 p-3 rounded-xl bg-muted/50 hover:bg-muted transition-colors cursor-pointer"
+                    >
+                        <Avatar className="h-10 w-10 border-2 border-primary/20">
+                            <AvatarFallback className="bg-primary/10 text-primary font-medium">{user.avatar}</AvatarFallback>
+                        </Avatar>
+                        <div className="flex-1 min-w-0">
+                            <p className="text-sm font-medium truncate">{user.name}</p>
+                            <p className="text-xs text-muted-foreground capitalize">{user.role}</p>
                         </div>
-                    ) : (
-                        <Link
-                            href={`/${user.role}/profile`}
-                            onClick={onClose}
-                            className="flex items-center gap-3 mb-4 p-3 rounded-xl bg-muted/50 hover:bg-muted transition-colors cursor-pointer"
-                        >
-                            <Avatar className="h-10 w-10 border-2 border-primary/20">
-                                <AvatarFallback className="bg-primary/10 text-primary font-medium">{user.avatar}</AvatarFallback>
-                            </Avatar>
-                            <div className="flex-1 min-w-0">
-                                <p className="text-sm font-medium truncate">{user.name}</p>
-                                <p className="text-xs text-muted-foreground capitalize">{user.role}</p>
-                            </div>
-                        </Link>
-                    )
+                    </Link>
                 )}
                 <Button
                     variant="ghost"
