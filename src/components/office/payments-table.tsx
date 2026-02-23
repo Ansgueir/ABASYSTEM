@@ -97,7 +97,7 @@ export function PaymentsTable({ invoices }: PaymentsTableProps) {
                                             setOpen(v)
                                             if (v) {
                                                 setSelectedInvoice(invoice.id)
-                                                setAmount(String(invoice.amountDue))
+                                                setAmount(Number(invoice.amountDue).toFixed(2))
                                             } else {
                                                 setSelectedInvoice(null)
                                             }
