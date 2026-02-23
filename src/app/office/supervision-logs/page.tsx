@@ -10,10 +10,13 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import { ReviewSupervisionLogActions } from "@/components/office/review-supervision-log-actions"
 import Link from "next/link"
 
+export const dynamic = "force-dynamic"
+export const fetchCache = "force-no-store"
+
 export default async function SupervisionLogsReviewPage({
     searchParams
 }: {
-    searchParams: { tab?: string }
+    searchParams: Promise<{ tab?: string }>
 }) {
     const session = await auth()
     if (!session?.user) redirect("/login")
@@ -22,7 +25,8 @@ export default async function SupervisionLogsReviewPage({
     const officeRole = String((session.user as any).officeRole).toUpperCase()
     if (role !== "office" && role !== "qa") redirect("/login")
 
-    const activeTab = searchParams.tab?.toUpperCase() || "PENDING"
+    const params = await searchParams
+    const activeTab = params.tab?.toUpperCase() || "PENDING"
     const validTabs = ["PENDING", "APPROVED", "REJECTED", "BILLED"]
     const statusFilter = validTabs.includes(activeTab) ? activeTab : "PENDING"
 
@@ -58,8 +62,8 @@ export default async function SupervisionLogsReviewPage({
                             key={tab}
                             href={`/office/supervision-logs?tab=${tab.toLowerCase()}`}
                             className={`px-4 py-2 text-sm font-medium border-b-2 transition-colors ${activeTab === tab
-                                    ? "border-primary text-foreground"
-                                    : "border-transparent text-muted-foreground hover:text-foreground hover:border-border"
+                                ? "border-primary text-foreground"
+                                : "border-transparent text-muted-foreground hover:text-foreground hover:border-border"
                                 }`}
                         >
                             {tab.charAt(0) + tab.slice(1).toLowerCase()}
