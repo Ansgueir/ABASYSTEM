@@ -31,3 +31,47 @@ export async function getGeneralSettings() {
         return { success: false, error: "Failed to fetch general settings" }
     }
 }
+
+export async function updateGeneralSettings(formData: FormData) {
+    try {
+        const session = await auth()
+        if (!session?.user) return { success: false, error: "Unauthorized" }
+
+        const role = String((session.user as any).role).toUpperCase()
+        const officeRole = String((session.user as any).officeRole).toUpperCase()
+
+        if (role !== "QA" && officeRole !== "SUPER_ADMIN") {
+            return { success: false, error: "Forbidden - Super Admin access required" }
+        }
+
+        const settings = await prisma.generalValues.findFirst()
+        if (!settings) {
+            return { success: false, error: "Settings record not found" }
+        }
+
+        const companyName = formData.get("companyName") as string
+        const companyEmail = formData.get("companyEmail") as string
+        const companyPhone = formData.get("companyPhone") as string
+        const companyAddress = formData.get("companyAddress") as string
+
+        const rawBcbaRate = parseFloat(formData.get("bcbaRate") as string)
+        const supervisorPaymentPercentage = rawBcbaRate ? rawBcbaRate / 100 : settings.supervisorPaymentPercentage
+
+        await prisma.generalValues.update({
+            where: { id: settings.id },
+            data: {
+                companyName: companyName || settings.companyName,
+                companyEmail: companyEmail || settings.companyEmail,
+                companyPhone: companyPhone || settings.companyPhone,
+                companyAddress: companyAddress || settings.companyAddress,
+                supervisorPaymentPercentage
+            } as any
+        })
+
+        revalidatePath("/", "layout")
+        return { success: true }
+    } catch (error) {
+        console.error("Error updating settings:", error)
+        return { success: false, error: "Internal Server Error" }
+    }
+}

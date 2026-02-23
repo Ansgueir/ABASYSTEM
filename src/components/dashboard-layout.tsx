@@ -1,6 +1,7 @@
 "use client"
 
-import { useState } from "react"
+import { getGeneralSettings } from "@/actions/settings"
+import { useState, useEffect } from "react"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { signOut, useSession } from "next-auth/react"
@@ -39,10 +40,20 @@ export default function DashboardLayout({
     const { data: session } = useSession()
     const [isSidebarOpen, setIsSidebarOpen] = useState(false)
     const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false)
+    const [companyName, setCompanyName] = useState("ABA System")
     const pathname = usePathname()
+
+    useEffect(() => {
+        getGeneralSettings().then(res => {
+            if (res.success && res.settings?.companyName) {
+                setCompanyName(res.settings.companyName)
+            }
+        })
+    }, [])
 
     // Use session role if available
     const userRole = (session?.user as any)?.role?.toLowerCase() || initialRole
+    const officeRole = (session?.user as any)?.officeRole || null
     const userName = session?.user?.name || "User"
     const userEmail = session?.user?.email || ""
     const initials = userName
@@ -75,7 +86,7 @@ export default function DashboardLayout({
             { name: "Payments", href: "/office/payments", icon: CreditCard },
             { name: "Group Supervision", href: "/office/group-supervision", icon: Users },
             { name: "Team", href: "/office/team", icon: Users },
-            { name: "Settings", href: "/office/settings", icon: Settings },
+            ...(officeRole === "SUPER_ADMIN" ? [{ name: "Settings", href: "/office/settings", icon: Settings }] : []),
         ]
     }
 
@@ -100,6 +111,7 @@ export default function DashboardLayout({
                                 onToggleCollapse={undefined}
                                 onClose={() => setIsSidebarOpen(false)}
                                 user={{ name: userName, role: userRole, avatar: initials }}
+                                companyName={companyName}
                             />
                         </SheetContent>
                     </Sheet>
@@ -107,7 +119,7 @@ export default function DashboardLayout({
                         <div className="h-8 w-8 rounded-xl gradient-primary flex items-center justify-center">
                             <GraduationCap className="h-5 w-5 text-white" />
                         </div>
-                        <span className="font-semibold text-foreground">ABA System</span>
+                        <span className="font-semibold text-foreground truncate max-w-[150px]">{companyName}</span>
                     </div>
                 </div>
                 <div className="flex items-center gap-2">
@@ -133,6 +145,7 @@ export default function DashboardLayout({
                         collapsed={isSidebarCollapsed}
                         onToggleCollapse={() => setIsSidebarCollapsed(!isSidebarCollapsed)}
                         user={{ name: userName, role: userRole, avatar: initials }}
+                        companyName={companyName}
                     />
                 </aside>
 
@@ -204,9 +217,14 @@ interface SidebarContentProps {
         role: string
         avatar: string
     }
+    companyName: string
 }
 
-function SidebarContent({ routes, pathname, collapsed, onToggleCollapse, onClose, user }: SidebarContentProps) {
+function SidebarContent({ routes, pathname, collapsed, onToggleCollapse, onClose, user, companyName }: SidebarContentProps) {
+    const splitName = companyName.split(" ")
+    const firstWord = splitName[0]
+    const remainingWords = splitName.slice(1).join(" ")
+
     return (
         <div className="flex flex-col h-full">
             {/* Logo */}
@@ -215,13 +233,13 @@ function SidebarContent({ routes, pathname, collapsed, onToggleCollapse, onClose
                 collapsed ? "justify-center" : "justify-between"
             )}>
                 <div className="flex items-center gap-3">
-                    <div className="h-10 w-10 rounded-xl gradient-primary flex items-center justify-center shadow-soft">
+                    <div className="h-10 w-10 rounded-xl gradient-primary flex items-center justify-center shadow-soft shrink-0">
                         <GraduationCap className="h-6 w-6 text-white" />
                     </div>
                     {!collapsed && (
-                        <div>
-                            <span className="font-bold text-lg text-foreground">ABA</span>
-                            <span className="font-light text-lg text-muted-foreground ml-1">System</span>
+                        <div className="truncate">
+                            <span className="font-bold text-lg text-foreground">{firstWord}</span>
+                            <span className="font-light text-lg text-muted-foreground ml-1">{remainingWords}</span>
                         </div>
                     )}
                 </div>
