@@ -41,12 +41,17 @@ export default async function OfficePaymentsPage() {
         // Calculating on all invoices for stats is better
         const pendingInvoices = await prisma.invoice.findMany({ where: { status: 'SENT' } })
         const paidInvoices = await prisma.invoice.findMany({ where: { status: 'PAID' } })
-        const unbilledHours = await prisma.supervisionHour.findMany({ where: { status: 'APPROVED', invoiceId: null } })
+        const unbilledHours = await prisma.supervisionHour.findMany({
+            where: { status: 'APPROVED', invoiceId: null },
+            include: { student: { select: { hourlyRate: true } } }
+        })
 
         stats.pending = pendingInvoices.reduce((s, i) => s + Number(i.amountDue), 0)
         stats.paid = paidInvoices.reduce((s, i) => s + Number(i.amountPaid), 0)
         stats.total = stats.pending + stats.paid
-        const unbilledTotal = unbilledHours.reduce((s, h) => s + Number(h.amountBilled || 0), 0)
+
+        // Calculate dynamic Ready To Invoice via a virtual JOIN on current student rate
+        unbilledTotal = unbilledHours.reduce((s, h) => s + (Number(h.hours) * Number(h.student?.hourlyRate || 0)), 0)
 
     } catch (error) {
         console.error("Error fetching payments:", error)

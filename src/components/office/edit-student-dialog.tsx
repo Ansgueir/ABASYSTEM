@@ -42,9 +42,9 @@ export function EditStudentDialog({ student, isSuperAdmin }: EditStudentDialogPr
             city: data.city,
             state: data.state,
             startDate: data.startDate ? new Date(data.startDate as string) : null,
-            hoursPerMonth: Number(data.hoursPerMonth) || 130,
-            supervisionPercentage: Number(data.supervisionPercentage) || 5,
-            hourlyRate: Number(data.hourlyRate) || 0,
+            hoursPerMonth: parseInt(data.hoursPerMonth as string) || 130,
+            supervisionPercentage: parseFloat(data.supervisionPercentage as string) || 5,
+            hourlyRate: parseFloat(data.hourlyRate as string) || 0,
         }
 
         startTransition(async () => {
@@ -155,7 +155,7 @@ export function EditStudentDialog({ student, isSuperAdmin }: EditStudentDialogPr
                         <div className="grid grid-cols-2 gap-4 border-t pt-4 mt-4">
                             <div className="space-y-2">
                                 <Label htmlFor="hourlyRate">Hourly Rate ($)</Label>
-                                <Input id="hourlyRate" name="hourlyRate" type="number" step="0.01" defaultValue={Number(student.hourlyRate || 0)} />
+                                <Input id="hourlyRate" name="hourlyRate" type="number" step="any" defaultValue={Number(student.hourlyRate || 0)} />
                             </div>
                         </div>
                     )}

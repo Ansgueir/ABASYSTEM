@@ -52,7 +52,7 @@ export async function createStudent(formData: FormData) {
 
     // Only super_admin can set hourlyRate
     const isSuperAdmin = currentUser.officeRole === "SUPER_ADMIN"
-    const hourlyRate = isSuperAdmin ? (Number(formData.get("hourlyRate")) || 0) : 0
+    const hourlyRate = isSuperAdmin ? (parseFloat(formData.get("hourlyRate") as string) || 0) : 0
 
     if (!email || !fullName) {
         return { error: "Missing required fields" }
@@ -479,6 +479,7 @@ export async function updateStudent(studentId: string, data: any) {
         })
         revalidatePath(`/office/students/${studentId}`)
         revalidatePath("/office/students")
+        revalidatePath("/office/payments")
         return { success: true }
     } catch (error) {
         console.error("Update student error:", error)
