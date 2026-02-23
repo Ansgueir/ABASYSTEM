@@ -45,6 +45,7 @@ export default async function SupervisorTimesheetPage() {
         amountToPay: student.amountToPay ? Number(student.amountToPay) : null,
         hoursPerMonth: student.hoursPerMonth ? Number(student.hoursPerMonth) : null,
         totalMonths: student.totalMonths ? Number(student.totalMonths) : null,
+        hourlyRate: student.hourlyRate ? Number(student.hourlyRate) : 0,
     })) || []
 
     return (
