@@ -15,7 +15,6 @@ import { format } from "date-fns"
 import { markInvoiceAsPaid } from "@/actions/billing"
 import { useRouter } from "next/navigation"
 import { toast } from "sonner"
-import { Checkbox } from "@/components/ui/checkbox"
 
 interface PaymentsTableProps {
     invoices: (Invoice & { student: Student })[]
@@ -28,7 +27,6 @@ export function PaymentsTable({ invoices }: PaymentsTableProps) {
     const [method, setMethod] = useState("CHECK")
     const [loading, setLoading] = useState(false)
     const [open, setOpen] = useState(false)
-    const [isPartialPayment, setIsPartialPayment] = useState(false)
 
     async function handlePayment() {
         if (!selectedInvoice || !amount) return
@@ -100,10 +98,8 @@ export function PaymentsTable({ invoices }: PaymentsTableProps) {
                                             if (v) {
                                                 setSelectedInvoice(invoice.id)
                                                 setAmount(String(invoice.amountDue))
-                                                setIsPartialPayment(false)
                                             } else {
                                                 setSelectedInvoice(null)
-                                                setIsPartialPayment(false)
                                             }
                                         }}>
                                             <DialogTrigger asChild>
@@ -119,29 +115,10 @@ export function PaymentsTable({ invoices }: PaymentsTableProps) {
                                                         <Input
                                                             type="number"
                                                             step="0.01"
-                                                            max={Number(invoice.amountDue)}
                                                             value={amount}
-                                                            readOnly={!isPartialPayment}
-                                                            className={!isPartialPayment ? "bg-muted cursor-not-allowed" : ""}
-                                                            onChange={(e) => {
-                                                                const val = Number(e.target.value)
-                                                                if (val > Number(invoice.amountDue)) {
-                                                                    toast.error("Cannot exceed invoice total")
-                                                                    return
-                                                                }
-                                                                setAmount(e.target.value)
-                                                            }}
+                                                            readOnly
+                                                            className="bg-muted cursor-not-allowed"
                                                         />
-                                                        <div className="flex items-center space-x-2 mt-2 pt-1">
-                                                            <Checkbox
-                                                                id="partial"
-                                                                checked={isPartialPayment}
-                                                                onCheckedChange={(checked) => setIsPartialPayment(checked === true)}
-                                                            />
-                                                            <label htmlFor="partial" className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
-                                                                Allow Partial Payment
-                                                            </label>
-                                                        </div>
                                                     </div>
                                                     <div className="space-y-2">
                                                         <Label>Payment Method</Label>

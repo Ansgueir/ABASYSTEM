@@ -90,7 +90,7 @@ export default async function OfficePaymentsPage() {
                                 <Clock className="h-6 w-6 text-warning" />
                             </div>
                             <div>
-                                <p className="text-sm text-muted-foreground">Pending Collection</p>
+                                <p className="text-sm text-muted-foreground">Pending Payment</p>
                                 <p className="text-2xl font-bold">${stats.pending.toFixed(2)}</p>
                             </div>
                         </CardContent>
@@ -101,7 +101,7 @@ export default async function OfficePaymentsPage() {
                                 <CheckCircle className="h-6 w-6 text-success" />
                             </div>
                             <div>
-                                <p className="text-sm text-muted-foreground">Collected</p>
+                                <p className="text-sm text-muted-foreground">Paid Out</p>
                                 <p className="text-2xl font-bold">${stats.paid.toFixed(2)}</p>
                             </div>
                         </CardContent>
