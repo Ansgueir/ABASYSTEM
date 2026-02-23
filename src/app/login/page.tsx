@@ -8,7 +8,7 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { GraduationCap, Briefcase, Building2, Loader2 } from "lucide-react"
-import { getGeneralSettings } from "@/actions/settings"
+
 
 export default function LoginPage() {
     const router = useRouter()
@@ -17,15 +17,6 @@ export default function LoginPage() {
     const [email, setEmail] = useState("")
     const [password, setPassword] = useState("")
     const [error, setError] = useState("")
-    const [companyName, setCompanyName] = useState("ABA Supervision System")
-
-    useEffect(() => {
-        getGeneralSettings().then(res => {
-            if (res.success && res.settings) {
-                setCompanyName(res.settings.companyName)
-            }
-        })
-    }, [])
 
     const handleLogin = async (e: React.FormEvent) => {
         e.preventDefault()
@@ -69,7 +60,7 @@ export default function LoginPage() {
                         </div>
                     </div>
                     <CardTitle className="text-2xl font-bold tracking-tight text-balance">
-                        {companyName}
+                        ABA Supervision System
                     </CardTitle>
                     <CardDescription>
                         Enter your credentials to access your portal
@@ -163,7 +154,7 @@ export default function LoginPage() {
                 </CardContent>
                 <CardFooter className="flex justify-center border-t pt-4">
                     <p className="text-xs text-muted-foreground">
-                        {companyName}
+                        ABA Supervision System
                     </p>
                 </CardFooter>
             </Card>
