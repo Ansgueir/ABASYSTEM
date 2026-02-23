@@ -71,8 +71,25 @@ export function ReviewSupervisionLogActions({ logId, status, officeRole }: Revie
         )
     }
 
+    if (status === "APPROVED") {
+        return (
+            <div className="flex justify-end gap-2">
+                <Button
+                    variant="outline"
+                    size="sm"
+                    className="text-destructive hover:bg-destructive/10 hover:text-destructive border-destructive/20"
+                    onClick={handleReject}
+                    disabled={isPending}
+                >
+                    {isPending ? <Loader2 className="h-4 w-4 animate-spin mr-1" /> : <X className="h-4 w-4 mr-1" />}
+                    Reject (Refund)
+                </Button>
+            </div>
+        )
+    }
+
     if (status !== "PENDING") {
-        return null // Other statuses don't have actions here currently
+        return null // Other statuses like BILLED don't have actions here currently
     }
 
     return (

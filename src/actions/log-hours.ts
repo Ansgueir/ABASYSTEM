@@ -331,11 +331,43 @@ export async function rejectSupervisionHour(logId: string, reason: string) {
     }
 
     try {
+        const hour = await prisma.supervisionHour.findUnique({
+            where: { id: logId }
+        })
+
+        if (!hour) return { error: "Log not found" }
+        if (hour.status === "BILLED") return { error: "Cannot reject a log that has already been billed." }
+
+        // If reversing an APPROVED log, deduct the pay from the payment card
+        if (hour.status === "APPROVED" && hour.supervisorPay) {
+            const today = new Date(hour.date) // Use the hour's date to find the month card
+            const firstDayOfMonth = new Date(today.getFullYear(), today.getMonth(), 1)
+
+            const existingPayment = await prisma.supervisorPayment.findFirst({
+                where: {
+                    studentId: hour.studentId,
+                    monthYear: firstDayOfMonth
+                }
+            })
+
+            if (existingPayment) {
+                await prisma.supervisorPayment.update({
+                    where: { id: existingPayment.id },
+                    data: {
+                        amountDue: { decrement: hour.supervisorPay },
+                        balanceDue: { decrement: hour.supervisorPay }
+                    }
+                })
+            }
+        }
+
         await prisma.supervisionHour.update({
             where: { id: logId },
             data: {
                 status: "REJECTED",
-                rejectReason: reason
+                rejectReason: reason,
+                amountBilled: 0,
+                supervisorPay: 0
             }
         })
         revalidatePath("/office/supervision-logs")
