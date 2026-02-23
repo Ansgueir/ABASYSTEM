@@ -125,7 +125,19 @@ export default async function OfficePaymentsPage() {
                         <CardTitle className="text-lg">Recent Invoices</CardTitle>
                     </CardHeader>
                     <CardContent>
-                        <PaymentsTable invoices={invoices} />
+                        <PaymentsTable
+                            invoices={invoices.map(inv => ({
+                                ...inv,
+                                amountDue: Number(inv.amountDue),
+                                amountPaid: Number(inv.amountPaid),
+                                student: {
+                                    ...inv.student,
+                                    hourlyRate: Number(inv.student.hourlyRate),
+                                    supervisionPercentage: Number(inv.student.supervisionPercentage),
+                                    amountToPay: Number(inv.student.amountToPay)
+                                }
+                            })) as any}
+                        />
                     </CardContent>
                 </Card>
             </div>
