@@ -75,7 +75,7 @@ export function PaymentsTable({ invoices }: PaymentsTableProps) {
                     ) : (
                         invoices.map((invoice) => (
                             <TableRow key={invoice.id}>
-                                <TableCell className="font-medium text-xs font-mono">{invoice.id.substring(0, 8)}...</TableCell>
+                                <TableCell className="font-medium text-xs font-mono">#{invoice.id.slice(-6).toUpperCase()}</TableCell>
                                 <TableCell>
                                     <div className="flex flex-col">
                                         <span className="font-medium">{invoice.student.fullName}</span>
