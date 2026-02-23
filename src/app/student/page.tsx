@@ -51,7 +51,7 @@ export default async function StudentDashboard() {
         if (student) {
             const currentMonthStart = startOfMonth(new Date())
 
-            const [indepMonth, supMonth, indepTotal, supTotal] = await Promise.all([
+            const [indepMonth, supMonth, indepTotal, supTotal, pendingInvoices] = await Promise.all([
                 prisma.independentHour.aggregate({
                     where: { studentId: student.id, date: { gte: currentMonthStart } },
                     _sum: { hours: true }
@@ -67,6 +67,10 @@ export default async function StudentDashboard() {
                 prisma.supervisionHour.aggregate({
                     where: { studentId: student.id },
                     _sum: { hours: true }
+                }),
+                prisma.invoice.aggregate({
+                    where: { studentId: student.id, status: { in: ['SENT', 'OVERDUE'] } },
+                    _sum: { amountDue: true }
                 })
             ])
 
@@ -77,11 +81,11 @@ export default async function StudentDashboard() {
 
             stats = {
                 hoursThisMonth,
-                maxHours: student.hoursPerMonth || 130,
+                maxHours: Number(student.hoursPerMonth || 130),
                 totalProgress,
                 totalRequired: 2000,
-                nextPayment: Number(student.amountToPay) || 0,
-                dueDate: "March 1st",
+                nextPayment: Number(pendingInvoices?._sum?.amountDue || 0),
+                dueDate: "Currently Due",
                 supervisedHours,
                 independentHours
             }
@@ -222,16 +226,18 @@ export default async function StudentDashboard() {
 
                     <Card className="animate-slide-up" style={{ animationDelay: '200ms' }}>
                         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                            <CardTitle className="text-sm font-medium text-muted-foreground">Next Payment</CardTitle>
+                            <CardTitle className="text-sm font-medium text-muted-foreground">Pending Balance</CardTitle>
                             <div className="h-9 w-9 rounded-xl bg-warning/10 flex items-center justify-center">
                                 <DollarSign className="h-5 w-5 text-warning" />
                             </div>
                         </CardHeader>
                         <CardContent>
                             <div className="text-3xl font-bold">${stats.nextPayment.toFixed(2)}</div>
-                            <p className="text-sm text-muted-foreground mt-1">Due by {stats.dueDate}</p>
-                            <Button variant="link" className="px-0 text-primary h-auto mt-2 text-sm">
-                                View Invoice <ArrowRight className="ml-1 h-4 w-4" />
+                            <p className="text-sm text-muted-foreground mt-1">{stats.dueDate}</p>
+                            <Button variant="link" className="px-0 text-primary h-auto mt-2 text-sm" asChild>
+                                <a href="/student/payments">
+                                    View Payments <ArrowRight className="ml-1 h-4 w-4" />
+                                </a>
                             </Button>
                         </CardContent>
                     </Card>

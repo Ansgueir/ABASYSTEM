@@ -237,9 +237,11 @@ function SidebarContent({ routes, pathname, collapsed, onToggleCollapse, onClose
                         <GraduationCap className="h-6 w-6 text-white" />
                     </div>
                     {!collapsed && (
-                        <div className="truncate">
-                            <span className="font-bold text-lg text-foreground">{firstWord}</span>
-                            <span className="font-light text-lg text-muted-foreground ml-1">{remainingWords}</span>
+                        <div className="flex flex-col leading-tight pt-1">
+                            <div className="truncate w-full max-w-[140px]" title={companyName}>
+                                <span className="font-bold text-base text-foreground">{firstWord}</span>
+                                <span className="font-light text-base text-muted-foreground ml-1">{remainingWords}</span>
+                            </div>
                         </div>
                     )}
                 </div>
