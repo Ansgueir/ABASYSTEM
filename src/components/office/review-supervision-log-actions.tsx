@@ -20,6 +20,7 @@ export function ReviewSupervisionLogActions({ logId, status, officeRole }: Revie
     const [isPending, startTransition] = useTransition()
     const [rejectDialogOpen, setRejectDialogOpen] = useState(false)
     const [revertDialogOpen, setRevertDialogOpen] = useState(false)
+    const [approveDialogOpen, setApproveDialogOpen] = useState(false)
     const [rejectReason, setRejectReason] = useState("")
 
     const handleApprove = () => {
@@ -29,6 +30,7 @@ export function ReviewSupervisionLogActions({ logId, status, officeRole }: Revie
                 toast.error(res.error)
             } else {
                 toast.success("Supervision hour approved")
+                setApproveDialogOpen(false)
             }
         })
     }
@@ -94,16 +96,34 @@ export function ReviewSupervisionLogActions({ logId, status, officeRole }: Revie
                     </Dialog>
                 )}
 
-                <Button
-                    variant="default"
-                    size="sm"
-                    className="bg-success hover:bg-success/90 text-white"
-                    onClick={handleApprove}
-                    disabled={isPending}
-                >
-                    {isPending ? <Loader2 className="h-4 w-4 animate-spin mr-1" /> : <Check className="h-4 w-4 mr-1" />}
-                    Approve
-                </Button>
+                <Dialog open={approveDialogOpen} onOpenChange={setApproveDialogOpen}>
+                    <DialogTrigger asChild>
+                        <Button
+                            variant="default"
+                            size="sm"
+                            className="bg-success hover:bg-success/90 text-white"
+                            disabled={isPending}
+                        >
+                            <Check className="h-4 w-4 mr-1" />
+                            Approve
+                        </Button>
+                    </DialogTrigger>
+                    <DialogContent>
+                        <DialogHeader>
+                            <DialogTitle>Approve Rejected Log</DialogTitle>
+                            <DialogDescription>
+                                You are about to approve a log that was previously rejected. This will calculate and apply the supervisor's payment for this hour and move the log to the APPROVED tab.
+                            </DialogDescription>
+                        </DialogHeader>
+                        <DialogFooter>
+                            <Button variant="outline" onClick={() => setApproveDialogOpen(false)}>Cancel</Button>
+                            <Button className="bg-success hover:bg-success/90 text-white" onClick={handleApprove} disabled={isPending}>
+                                {isPending ? <Loader2 className="h-4 w-4 mr-1 animate-spin" /> : <Check className="h-4 w-4 mr-1" />}
+                                Confirm Approval
+                            </Button>
+                        </DialogFooter>
+                    </DialogContent>
+                </Dialog>
             </div>
         )
     }
