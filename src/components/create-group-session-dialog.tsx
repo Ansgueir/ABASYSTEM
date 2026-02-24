@@ -26,17 +26,22 @@ import { format } from "date-fns"
 import { cn } from "@/lib/utils"
 import { Calendar } from "@/components/ui/calendar"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
+import { Checkbox } from "@/components/ui/checkbox"
 
 interface CreateGroupSessionDialogProps {
     supervisors?: { id: string, fullName: string }[]
+    students?: { id: string, fullName: string }[]
 }
 
-export function CreateGroupSessionDialog({ supervisors }: CreateGroupSessionDialogProps = {}) {
+export function CreateGroupSessionDialog({ supervisors, students }: CreateGroupSessionDialogProps = {}) {
     const [open, setOpen] = useState(false)
     const [topic, setTopic] = useState("")
     const [date, setDate] = useState<Date | undefined>(undefined)
     const [time, setTime] = useState("09:00")
     const [maxStudents, setMaxStudents] = useState("10")
+    const [durationMin, setDurationMin] = useState("60")
+    const [selectedStudents, setSelectedStudents] = useState<string[]>([])
+    const [studentSearch, setStudentSearch] = useState("")
     const [supervisorId, setSupervisorId] = useState("")
     const [isPending, setIsPending] = useState(false)
     const router = useRouter()
@@ -49,12 +54,15 @@ export function CreateGroupSessionDialog({ supervisors }: CreateGroupSessionDial
             setIsPending(false)
             return
         }
-        const res = await createGroupSession(date, time, topic, parseInt(maxStudents), supervisorId || undefined)
+        const res = await createGroupSession(date, time, topic, parseInt(maxStudents), supervisorId || undefined, parseInt(durationMin), selectedStudents)
         setIsPending(false)
         if (res.success) {
             setOpen(false)
             setTopic("")
             setDate(undefined)
+            setDurationMin("60")
+            setSelectedStudents([])
+            setStudentSearch("")
             toast.success("Session created!")
             router.refresh()
         } else {
@@ -126,10 +134,56 @@ export function CreateGroupSessionDialog({ supervisors }: CreateGroupSessionDial
                             <Input type="time" value={time} onChange={e => setTime(e.target.value)} required />
                         </div>
                     </div>
-                    <div className="space-y-2">
-                        <Label>Max Students (Limit 10)</Label>
-                        <Input type="number" value={maxStudents} onChange={e => setMaxStudents(e.target.value)} max={10} min={1} required />
+                    <div className="grid grid-cols-2 gap-4">
+                        <div className="space-y-2">
+                            <Label>Max Students (Limit 10)</Label>
+                            <Input type="number" value={maxStudents} onChange={e => setMaxStudents(e.target.value)} max={10} min={1} required />
+                        </div>
+                        <div className="space-y-2">
+                            <Label>Duration (Min)</Label>
+                            <Input type="number" value={durationMin} onChange={e => setDurationMin(e.target.value)} min={1} required />
+                        </div>
                     </div>
+                    {students && students.length > 0 && (
+                        <div className="space-y-2">
+                            <div className="flex justify-between items-center mb-1">
+                                <Label>Select Students</Label>
+                                <span className="text-xs text-muted-foreground">{selectedStudents.length} / {maxStudents}</span>
+                            </div>
+                            <Input
+                                placeholder="Search students..."
+                                value={studentSearch}
+                                onChange={e => setStudentSearch(e.target.value)}
+                                className="mb-2 h-8"
+                            />
+                            <div className="max-h-40 overflow-y-auto border rounded-md p-3 space-y-3">
+                                {students
+                                    .filter(s => s.fullName.toLowerCase().includes(studentSearch.toLowerCase()))
+                                    .map(student => (
+                                        <div key={student.id} className="flex items-center space-x-2">
+                                            <Checkbox
+                                                id={`student-${student.id}`}
+                                                checked={selectedStudents.includes(student.id)}
+                                                disabled={!selectedStudents.includes(student.id) && selectedStudents.length >= parseInt(maxStudents || "10")}
+                                                onCheckedChange={(checked) => {
+                                                    if (checked) {
+                                                        if (selectedStudents.length < parseInt(maxStudents || "10")) {
+                                                            setSelectedStudents([...selectedStudents, student.id])
+                                                        }
+                                                    } else {
+                                                        setSelectedStudents(selectedStudents.filter(id => id !== student.id))
+                                                    }
+                                                }}
+                                            />
+                                            <Label htmlFor={`student-${student.id}`} className="font-normal cursor-pointer leading-none">{student.fullName}</Label>
+                                        </div>
+                                    ))}
+                                {students.filter(s => s.fullName.toLowerCase().includes(studentSearch.toLowerCase())).length === 0 && (
+                                    <div className="text-sm text-muted-foreground text-center py-2">No students found</div>
+                                )}
+                            </div>
+                        </div>
+                    )}
                     <div className="pt-4 flex justify-end">
                         <Button type="button" variant="ghost" onClick={() => setOpen(false)} className="mr-2">Cancel</Button>
                         <Button type="submit" disabled={isPending}>{isPending ? "Creating..." : "Create Session"}</Button>

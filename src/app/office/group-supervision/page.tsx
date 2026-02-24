@@ -21,6 +21,12 @@ export default async function GroupSupervisionPage() {
         orderBy: { fullName: 'asc' }
     })
 
+    const students = await prisma.student.findMany({
+        where: { status: 'ACTIVE' },
+        select: { id: true, fullName: true },
+        orderBy: { fullName: 'asc' }
+    })
+
     const groupSessions = await prisma.groupSupervisionSession.findMany({
         include: {
             supervisor: true,
@@ -51,7 +57,7 @@ export default async function GroupSupervisionPage() {
                             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                             <Input placeholder="Search sessions..." className="pl-10" />
                         </div>
-                        <CreateGroupSessionDialog supervisors={supervisors} />
+                        <CreateGroupSessionDialog supervisors={supervisors} students={students} />
                     </div>
                 </div>
 
@@ -65,7 +71,7 @@ export default async function GroupSupervisionPage() {
                             <div className="text-center py-12">
                                 <Users className="h-12 w-12 mx-auto text-muted-foreground/50 mb-4" />
                                 <p className="text-muted-foreground mb-4">No group sessions scheduled</p>
-                                <CreateGroupSessionDialog supervisors={supervisors} />
+                                <CreateGroupSessionDialog supervisors={supervisors} students={students} />
                             </div>
                         ) : (
                             <div className="space-y-4">

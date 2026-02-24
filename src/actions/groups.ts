@@ -6,7 +6,7 @@ import { revalidatePath } from "next/cache"
 
 const GENERIC_GROUP_LIMIT = 10
 
-export async function createGroupSession(date: Date, startTime: string, topic: string, maxStudents: number = 10, explicitSupervisorId?: string) {
+export async function createGroupSession(date: Date, startTime: string, topic: string, maxStudents: number = 10, explicitSupervisorId?: string, durationMin: number = 60, studentIds: string[] = []) {
     const session = await auth()
     if (!session || !session.user) return { error: "Unauthorized" }
 
@@ -31,13 +31,45 @@ export async function createGroupSession(date: Date, startTime: string, topic: s
         const startDateTime = new Date(date)
         startDateTime.setHours(hours, mins, 0, 0)
 
-        await prisma.groupSupervisionSession.create({
-            data: {
-                supervisorId: targetSupervisorId,
-                date: date,
-                startTime: startDateTime,
-                topic: topic,
-                maxStudents: maxStudents > GENERIC_GROUP_LIMIT ? GENERIC_GROUP_LIMIT : maxStudents // Enforce absolute max
+        const finalMax = maxStudents > GENERIC_GROUP_LIMIT ? GENERIC_GROUP_LIMIT : maxStudents
+        const selectedStudents = studentIds.slice(0, finalMax)
+
+        await prisma.$transaction(async (tx) => {
+            const groupSession = await tx.groupSupervisionSession.create({
+                data: {
+                    supervisorId: targetSupervisorId as string,
+                    date: date,
+                    startTime: startDateTime,
+                    topic: topic,
+                    maxStudents: finalMax
+                }
+            })
+
+            // Generate attendance and supervision hours for each student
+            for (const sId of selectedStudents) {
+                await tx.groupSupervisionAttendance.create({
+                    data: {
+                        sessionId: groupSession.id,
+                        studentId: sId,
+                        attended: true
+                    }
+                })
+
+                await tx.supervisionHour.create({
+                    data: {
+                        studentId: sId,
+                        supervisorId: targetSupervisorId as string,
+                        date: date,
+                        startTime: startDateTime,
+                        hours: durationMin / 60,
+                        supervisionType: "GROUP",
+                        setting: "OFFICE_CLINIC", // Default setting for group sessions
+                        activityType: "RESTRICTED", // Default activity for group sessions commonly, can be queried
+                        notes: `Group Session: ${topic}`,
+                        groupTopic: topic,
+                        status: "PENDING"
+                    }
+                })
             }
         })
 

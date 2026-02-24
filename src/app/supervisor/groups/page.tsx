@@ -24,6 +24,12 @@ export default async function SupervisorGroupsPage() {
         }
     })
 
+    const students = await prisma.student.findMany({
+        where: { status: 'ACTIVE' },
+        select: { id: true, fullName: true },
+        orderBy: { fullName: 'asc' }
+    })
+
     const sessions = supervisor?.groupSessions || []
 
     return (
@@ -34,7 +40,7 @@ export default async function SupervisorGroupsPage() {
                         <h1 className="text-2xl font-bold">Group Supervision</h1>
                         <p className="text-muted-foreground">Manage your group sessions and attendance</p>
                     </div>
-                    <CreateGroupSessionDialog />
+                    <CreateGroupSessionDialog students={students} />
                 </div>
 
                 {sessions.length === 0 ? (
