@@ -1,7 +1,7 @@
 import DashboardLayout from "@/components/dashboard-layout"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
-import { Users, Plus, Calendar, Clock, Search } from "lucide-react"
+import { Users, Plus, Calendar, Clock, Search, Eye } from "lucide-react"
 import { Input } from "@/components/ui/input"
 import { auth } from "@/auth"
 import { prisma } from "@/lib/prisma"
@@ -111,9 +111,12 @@ export default async function GroupSupervisionPage() {
                                                             </div>
                                                         )}
                                                     </div>
-                                                    <span className="text-sm text-muted-foreground">
+                                                    <span className="text-sm text-muted-foreground mr-2">
                                                         {session.participants?.length || 0}/10
                                                     </span>
+                                                    <Button variant="ghost" size="icon" className="h-8 w-8 rounded-full" asChild>
+                                                        <div><Eye className="h-4 w-4" /></div>
+                                                    </Button>
                                                 </div>
                                             </div>
                                         </div>

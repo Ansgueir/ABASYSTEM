@@ -1,12 +1,13 @@
 import DashboardLayout from "@/components/dashboard-layout"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Button } from "@/components/ui/button"
 import { auth } from "@/auth"
 import { prisma } from "@/lib/prisma"
 import { redirect } from "next/navigation"
 import { format } from "date-fns"
 import { CreateGroupSessionDialog } from "@/components/create-group-session-dialog"
 import { GroupSessionDetailsDialog } from "@/components/group-session-details-dialog"
-import { Users, Calendar, Clock } from "lucide-react"
+import { Users, Calendar, Clock, Eye } from "lucide-react"
 
 export default async function SupervisorGroupsPage() {
     const session = await auth()
@@ -73,8 +74,13 @@ export default async function SupervisorGroupsPage() {
                                             <Clock className="h-3 w-3 mr-1" />
                                             {format(new Date(session.startTime), "p")}
                                         </div>
-                                        <div className="text-xs text-muted-foreground">
-                                            {session.attendance.length === 0 ? "No students registered yet" : `${session.attendance.length} students registered`}
+                                        <div className="flex items-center justify-between mt-4">
+                                            <div className="text-xs text-muted-foreground">
+                                                {session.attendance.length === 0 ? "No students registered yet" : `${session.attendance.length} students registered`}
+                                            </div>
+                                            <Button variant="ghost" size="icon" className="h-8 w-8 rounded-full bg-primary/5 text-primary hover:bg-primary/15" asChild>
+                                                <div><Eye className="h-4 w-4" /></div>
+                                            </Button>
                                         </div>
                                     </CardContent>
                                 </Card>
