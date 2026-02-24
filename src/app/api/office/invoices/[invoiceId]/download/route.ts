@@ -22,7 +22,15 @@ export async function GET(
         const invoice = await prisma.invoice.findUnique({
             where: { id: invoiceId },
             include: {
-                student: true
+                student: true,
+                supervisionHours: {
+                    include: {
+                        supervisor: true
+                    },
+                    orderBy: {
+                        date: 'asc'
+                    }
+                }
             }
         })
 
@@ -88,15 +96,29 @@ export async function GET(
                 <table>
                     <thead>
                         <tr>
-                            <th>Description</th>
+                            <th>Description/Activity</th>
+                            <th>Hours</th>
                             <th style="text-align: right;">Amount</th>
                         </tr>
                     </thead>
                     <tbody>
-                        <tr>
-                            <td>ABA Supervision Services</td>
-                            <td style="text-align: right;">$${Number(invoice.amountDue).toFixed(2)}</td>
-                        </tr>
+                        ${invoice.supervisionHours.length > 0 ? invoice.supervisionHours.map(hour => `
+                            <tr>
+                                <td>
+                                    <strong>${hour.date.toISOString().split('T')[0]} - ${hour.activityType} (${hour.setting.replace('_', ' ')})</strong><br/>
+                                    <span style="font-size: 12px; color: #666;">
+                                        Reg. by: ${hour.supervisor ? hour.supervisor.fullName : 'Supervisor'}
+                                    </span>
+                                </td>
+                                <td>${Number(hour.hours).toFixed(1)} hrs</td>
+                                <td style="text-align: right;">$${Number(hour.amountBilled).toFixed(2)}</td>
+                            </tr>
+                        `).join('') : `
+                            <tr>
+                                <td colspan="2">ABA Supervision Services</td>
+                                <td style="text-align: right;">$${Number(invoice.amountDue).toFixed(2)}</td>
+                            </tr>
+                        `}
                     </tbody>
                 </table>
                 
