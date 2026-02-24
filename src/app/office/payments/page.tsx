@@ -24,7 +24,10 @@ export default async function OfficePaymentsPage() {
         invoices = await prisma.invoice.findMany({
             orderBy: { createdAt: 'desc' },
             take: 20,
-            include: { student: true }
+            include: {
+                student: true,
+                supervisionHours: { include: { supervisor: true } }
+            }
         })
 
         // Simple stats calculation on fetched items (approximate)

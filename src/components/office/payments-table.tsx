@@ -17,7 +17,7 @@ import { useRouter } from "next/navigation"
 import { toast } from "sonner"
 
 interface PaymentsTableProps {
-    invoices: (Invoice & { student: Student })[]
+    invoices: (Invoice & { student: Student, supervisionHours?: any[] })[]
 }
 
 export function PaymentsTable({ invoices }: PaymentsTableProps) {
@@ -27,6 +27,8 @@ export function PaymentsTable({ invoices }: PaymentsTableProps) {
     const [method, setMethod] = useState("CHECK")
     const [loading, setLoading] = useState(false)
     const [open, setOpen] = useState(false)
+    const [logOpen, setLogOpen] = useState(false)
+    const [selectedLogInvoice, setSelectedLogInvoice] = useState<string | null>(null)
 
     async function handlePayment() {
         if (!selectedInvoice || !amount) return
@@ -93,6 +95,46 @@ export function PaymentsTable({ invoices }: PaymentsTableProps) {
                                 </TableCell>
                                 <TableCell className="text-right">
                                     <div className="flex justify-end gap-2">
+                                        <Dialog open={logOpen && selectedLogInvoice === invoice.id} onOpenChange={(v) => {
+                                            setLogOpen(v)
+                                            if (v) setSelectedLogInvoice(invoice.id)
+                                            else setSelectedLogInvoice(null)
+                                        }}>
+                                            <DialogTrigger asChild>
+                                                <Button size="sm" variant="outline">Logs</Button>
+                                            </DialogTrigger>
+                                            <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
+                                                <DialogHeader>
+                                                    <DialogTitle>Invoice #{invoice.id.slice(-6).toUpperCase()} Details</DialogTitle>
+                                                </DialogHeader>
+                                                <div className="space-y-4 py-4">
+                                                    {invoice.supervisionHours && invoice.supervisionHours.length > 0 ? (
+                                                        <div className="space-y-3">
+                                                            {invoice.supervisionHours.map((hour: any) => (
+                                                                <div key={hour.id} className="p-4 rounded-xl border bg-muted/20 text-sm">
+                                                                    <div className="flex justify-between items-start mb-2">
+                                                                        <div>
+                                                                            <p className="font-semibold">{hour.activityType}</p>
+                                                                            <p className="text-muted-foreground text-xs">{hour.setting.replace('_', ' ')} &bull; {new Date(hour.date).toISOString().split('T')[0]}</p>
+                                                                        </div>
+                                                                        <div className="text-right">
+                                                                            <p className="font-medium">${Number(hour.amountBilled).toFixed(2)}</p>
+                                                                            <p className="text-muted-foreground text-xs">{Number(hour.hours).toFixed(1)} hrs</p>
+                                                                        </div>
+                                                                    </div>
+                                                                    <div className="mt-2 text-xs border-t pt-2 text-muted-foreground flex justify-between">
+                                                                        <span>Reg. by: {hour.supervisor?.fullName || 'Unknown'}</span>
+                                                                        <span>Status: <span className="text-success font-medium">{hour.status}</span></span>
+                                                                    </div>
+                                                                </div>
+                                                            ))}
+                                                        </div>
+                                                    ) : (
+                                                        <p className="text-sm text-muted-foreground text-center py-4">No detailed logs found for this invoice.</p>
+                                                    )}
+                                                </div>
+                                            </DialogContent>
+                                        </Dialog>
                                         <a href={`/api/office/invoices/${invoice.id}/download`} target="_blank">
                                             <Button size="sm" variant="secondary">View</Button>
                                         </a>
