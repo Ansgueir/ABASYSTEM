@@ -6,16 +6,25 @@ import { revalidatePath } from "next/cache"
 
 const GENERIC_GROUP_LIMIT = 10
 
-export async function createGroupSession(date: Date, startTime: string, topic: string, maxStudents: number = 10) {
+export async function createGroupSession(date: Date, startTime: string, topic: string, maxStudents: number = 10, explicitSupervisorId?: string) {
     const session = await auth()
     if (!session || !session.user) return { error: "Unauthorized" }
 
     const role = String((session.user as any).role).toLowerCase()
-    if (role !== "supervisor") return { error: "Unauthorized role" }
+    if (role !== "supervisor" && role !== "office" && role !== "qa") return { error: "Unauthorized role" }
+
+    let targetSupervisorId = explicitSupervisorId
 
     try {
-        const supervisor = await prisma.supervisor.findUnique({ where: { userId: session.user.id } })
-        if (!supervisor) return { error: "Supervisor profile not found" }
+        if (role === "supervisor") {
+            const supervisor = await prisma.supervisor.findUnique({ where: { userId: session.user.id } })
+            if (!supervisor) return { error: "Supervisor profile not found" }
+            targetSupervisorId = supervisor.id
+        }
+
+        if (!targetSupervisorId) {
+            return { error: "Supervisor ID is required for Office/QA" }
+        }
 
         // Start Time Date Object
         const [hours, mins] = startTime.split(':').map(Number)
@@ -24,7 +33,7 @@ export async function createGroupSession(date: Date, startTime: string, topic: s
 
         await prisma.groupSupervisionSession.create({
             data: {
-                supervisorId: supervisor.id,
+                supervisorId: targetSupervisorId,
                 date: date,
                 startTime: startDateTime,
                 topic: topic,

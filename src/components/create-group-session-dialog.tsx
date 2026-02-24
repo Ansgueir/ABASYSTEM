@@ -9,6 +9,13 @@ import {
     DialogTitle,
     DialogTrigger,
 } from "@/components/ui/dialog"
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from "@/components/ui/select"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { createGroupSession } from "@/actions/groups"
@@ -16,19 +23,24 @@ import { useRouter } from "next/navigation"
 import { Plus } from "lucide-react"
 import { toast } from "sonner"
 
-export function CreateGroupSessionDialog() {
+interface CreateGroupSessionDialogProps {
+    supervisors?: { id: string, fullName: string }[]
+}
+
+export function CreateGroupSessionDialog({ supervisors }: CreateGroupSessionDialogProps = {}) {
     const [open, setOpen] = useState(false)
     const [topic, setTopic] = useState("")
     const [date, setDate] = useState("")
     const [time, setTime] = useState("09:00")
     const [maxStudents, setMaxStudents] = useState("10")
+    const [supervisorId, setSupervisorId] = useState("")
     const [isPending, setIsPending] = useState(false)
     const router = useRouter()
 
     async function handleSubmit(e: React.FormEvent) {
         e.preventDefault()
         setIsPending(true)
-        const res = await createGroupSession(new Date(date), time, topic, parseInt(maxStudents))
+        const res = await createGroupSession(new Date(date), time, topic, parseInt(maxStudents), supervisorId || undefined)
         setIsPending(false)
         if (res.success) {
             setOpen(false)
@@ -54,6 +66,21 @@ export function CreateGroupSessionDialog() {
                     <DialogTitle>New Group Session</DialogTitle>
                 </DialogHeader>
                 <form onSubmit={handleSubmit} className="space-y-4">
+                    {supervisors && supervisors.length > 0 && (
+                        <div className="space-y-2">
+                            <Label>Supervisor (Required for Office)</Label>
+                            <Select onValueChange={setSupervisorId} value={supervisorId} required>
+                                <SelectTrigger>
+                                    <SelectValue placeholder="Select supervisor..." />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    {supervisors.map(sup => (
+                                        <SelectItem key={sup.id} value={sup.id}>{sup.fullName}</SelectItem>
+                                    ))}
+                                </SelectContent>
+                            </Select>
+                        </div>
+                    )}
                     <div className="space-y-2">
                         <Label>Topic</Label>
                         <Input value={topic} onChange={e => setTopic(e.target.value)} required placeholder="e.g. Ethics" />

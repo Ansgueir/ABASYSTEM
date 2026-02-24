@@ -4,8 +4,10 @@ import { Button } from "@/components/ui/button"
 import { Users, Plus, Calendar, Clock, Search } from "lucide-react"
 import { Input } from "@/components/ui/input"
 import { auth } from "@/auth"
+import { prisma } from "@/lib/prisma"
 import { redirect } from "next/navigation"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
+import { CreateGroupSessionDialog } from "@/components/create-group-session-dialog"
 
 export default async function GroupSupervisionPage() {
     const session = await auth()
@@ -14,8 +16,26 @@ export default async function GroupSupervisionPage() {
     const role = String((session.user as any).role).toLowerCase()
     if (role !== "office" && role !== "qa") redirect("/login")
 
-    // GroupSession model not yet in schema - using empty array
-    const groupSessions: any[] = []
+    const supervisors = await prisma.supervisor.findMany({
+        select: { id: true, fullName: true },
+        orderBy: { fullName: 'asc' }
+    })
+
+    const groupSessions = await prisma.groupSupervisionSession.findMany({
+        include: {
+            supervisor: true,
+            attendance: {
+                include: { student: true }
+            }
+        },
+        orderBy: { date: 'desc' }
+    })
+
+    // Map properties for UI compatibility
+    const mappedSessions = groupSessions.map(session => ({
+        ...session,
+        participants: session.attendance
+    }))
 
     return (
         <DashboardLayout role="office">
@@ -31,10 +51,7 @@ export default async function GroupSupervisionPage() {
                             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                             <Input placeholder="Search sessions..." className="pl-10" />
                         </div>
-                        <Button variant="gradient" className="rounded-xl">
-                            <Plus className="h-4 w-4 mr-2" />
-                            New Session
-                        </Button>
+                        <CreateGroupSessionDialog supervisors={supervisors} />
                     </div>
                 </div>
 
@@ -44,18 +61,15 @@ export default async function GroupSupervisionPage() {
                         <CardTitle className="text-lg">Upcoming & Recent Sessions</CardTitle>
                     </CardHeader>
                     <CardContent>
-                        {groupSessions.length === 0 ? (
+                        {mappedSessions.length === 0 ? (
                             <div className="text-center py-12">
                                 <Users className="h-12 w-12 mx-auto text-muted-foreground/50 mb-4" />
-                                <p className="text-muted-foreground">No group sessions scheduled</p>
-                                <Button variant="gradient" className="mt-4">
-                                    <Plus className="h-4 w-4 mr-2" />
-                                    Schedule First Session
-                                </Button>
+                                <p className="text-muted-foreground mb-4">No group sessions scheduled</p>
+                                <CreateGroupSessionDialog supervisors={supervisors} />
                             </div>
                         ) : (
                             <div className="space-y-4">
-                                {groupSessions.map((session) => (
+                                {mappedSessions.map((session) => (
                                     <div
                                         key={session.id}
                                         className="p-4 rounded-xl bg-muted/50 hover:bg-muted transition-colors"
@@ -104,6 +118,6 @@ export default async function GroupSupervisionPage() {
                     </CardContent>
                 </Card>
             </div>
-        </DashboardLayout>
+        </DashboardLayout >
     )
 }
