@@ -4,6 +4,8 @@ import { useState } from "react"
 import { format } from "date-fns"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
+import { Button } from "@/components/ui/button"
+import { Eye } from "lucide-react"
 
 export function SupervisorSessionsList({ hours }: { hours: any[] }) {
     const [selectedHour, setSelectedHour] = useState<string | null>(null)
@@ -12,22 +14,22 @@ export function SupervisorSessionsList({ hours }: { hours: any[] }) {
         <div className="space-y-3">
             {hours.map((hour) => (
                 <Dialog key={hour.id} open={selectedHour === hour.id} onOpenChange={(v) => setSelectedHour(v ? hour.id : null)}>
-                    <DialogTrigger asChild>
-                        <div className="flex items-center justify-between p-4 rounded-xl bg-muted/50 hover:bg-muted transition-colors cursor-pointer">
-                            <div className="flex items-center gap-4">
-                                <Avatar className="h-10 w-10 border-2 border-primary/20">
-                                    <AvatarFallback className="bg-primary/10 text-primary font-medium">
-                                        {hour.student?.fullName?.split(' ').map((n: string) => n[0]).join('') || 'ST'}
-                                    </AvatarFallback>
-                                </Avatar>
-                                <div className="text-left">
-                                    <p className="font-medium">{hour.student?.fullName || 'Student'}</p>
-                                    <p className="text-sm text-muted-foreground">
-                                        {format(new Date(hour.date), 'MMM d, yyyy')}
-                                        {hour.activityType && <span> &bull; {hour.activityType}</span>}
-                                    </p>
-                                </div>
+                    <div className="flex items-center justify-between p-4 rounded-xl bg-muted/50 transition-colors">
+                        <div className="flex items-center gap-4">
+                            <Avatar className="h-10 w-10 border-2 border-primary/20">
+                                <AvatarFallback className="bg-primary/10 text-primary font-medium">
+                                    {hour.student?.fullName?.split(' ').map((n: string) => n[0]).join('') || 'ST'}
+                                </AvatarFallback>
+                            </Avatar>
+                            <div className="text-left">
+                                <p className="font-medium">{hour.student?.fullName || 'Student'}</p>
+                                <p className="text-sm text-muted-foreground">
+                                    {format(new Date(hour.date), 'MMM d, yyyy')}
+                                    {hour.activityType && <span> &bull; {hour.activityType}</span>}
+                                </p>
                             </div>
+                        </div>
+                        <div className="flex items-center gap-2">
                             <div className="text-right">
                                 <p className="font-semibold">{Number(hour.hours).toFixed(1)}h</p>
                                 <span className={`text-xs px-2 py-0.5 rounded-full ${hour.status === 'APPROVED' || hour.status === 'BILLED' || hour.status === 'PAID'
@@ -37,8 +39,13 @@ export function SupervisorSessionsList({ hours }: { hours: any[] }) {
                                     {hour.status || 'PENDING'}
                                 </span>
                             </div>
+                            <DialogTrigger asChild>
+                                <Button variant="ghost" size="icon" className="ml-2">
+                                    <Eye className="h-4 w-4 text-muted-foreground" />
+                                </Button>
+                            </DialogTrigger>
                         </div>
-                    </DialogTrigger>
+                    </div>
                     <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
                         <DialogHeader>
                             <DialogTitle>Session Detail - {format(new Date(hour.date), 'MMM d, yyyy')}</DialogTitle>
