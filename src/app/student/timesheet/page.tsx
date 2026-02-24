@@ -8,6 +8,7 @@ import { redirect } from "next/navigation"
 import { format } from "date-fns"
 import { LogHoursDialog } from "@/components/log-hours-dialog"
 import { StudentStats } from "@/components/student-stats"
+import { HourDetailsDialog } from "@/components/student/hour-details-dialog"
 
 export default async function TimesheetPage() {
     const session = await auth()
@@ -115,16 +116,19 @@ export default async function TimesheetPage() {
                                                 </p>
                                             </div>
                                         </div>
-                                        <div className="text-right">
-                                            <p className="font-semibold">{Number(hour.hours).toFixed(1)}h</p>
-                                            <span className={`text-xs px-2 py-0.5 rounded-full ${hour.status === 'approved'
-                                                ? 'bg-success/10 text-success'
-                                                : hour.status === 'pending'
-                                                    ? 'bg-warning/10 text-warning'
-                                                    : 'bg-muted text-muted-foreground'
-                                                }`}>
-                                                {hour.status || 'logged'}
-                                            </span>
+                                        <div className="flex items-center gap-3">
+                                            <div className="text-right">
+                                                <p className="font-semibold">{Number(hour.hours).toFixed(1)}h</p>
+                                                <span className={`text-xs px-2 py-0.5 rounded-full ${hour.status === 'approved'
+                                                    ? 'bg-success/10 text-success'
+                                                    : hour.status === 'pending'
+                                                        ? 'bg-warning/10 text-warning'
+                                                        : 'bg-muted text-muted-foreground'
+                                                    }`}>
+                                                    {hour.status?.toUpperCase() || 'LOGGED'}
+                                                </span>
+                                            </div>
+                                            <HourDetailsDialog hour={hour} />
                                         </div>
                                     </div>
                                 ))}
