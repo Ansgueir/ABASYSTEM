@@ -38,10 +38,14 @@ export default async function GroupSupervisionPage() {
         orderBy: { date: 'desc' }
     })
 
-    // Map properties for UI compatibility
+    // Map properties for UI compatibility and exclude Decimal objects from the Student model
     const mappedSessions = groupSessions.map(session => ({
         ...session,
-        participants: session.attendance
+        participants: session.attendance.map(a => ({
+            id: a.id,
+            studentId: a.studentId,
+            student: a.student ? { fullName: a.student.fullName } : undefined
+        }))
     }))
 
     return (

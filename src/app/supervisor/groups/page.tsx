@@ -21,7 +21,7 @@ export default async function SupervisorGroupsPage() {
         include: {
             groupSessions: {
                 orderBy: { date: 'desc' },
-                include: { attendance: true }
+                include: { attendance: { include: { student: true } } }
             }
         }
     })
@@ -32,7 +32,17 @@ export default async function SupervisorGroupsPage() {
         orderBy: { fullName: 'asc' }
     })
 
-    const sessions = supervisor?.groupSessions || []
+    const rawSessions = supervisor?.groupSessions || []
+
+    // Map properties for UI compatibility and exclude Decimal objects from the Student model
+    const sessions = rawSessions.map(session => ({
+        ...session,
+        participants: session.attendance.map(a => ({
+            id: a.id,
+            studentId: a.studentId,
+            student: a.student ? { fullName: a.student.fullName } : undefined
+        }))
+    }))
 
     return (
         <DashboardLayout role="supervisor">
@@ -55,7 +65,7 @@ export default async function SupervisorGroupsPage() {
                 ) : (
                     <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
                         {sessions.map((session) => (
-                            <GroupSessionDetailsDialog key={session.id} session={{ ...session, participants: session.attendance }} students={students}>
+                            <GroupSessionDetailsDialog key={session.id} session={session} students={students}>
                                 <Card className="hover:shadow-md transition-all cursor-pointer text-left">
                                     <CardHeader className="pb-2">
                                         <div className="flex justify-between items-start">
