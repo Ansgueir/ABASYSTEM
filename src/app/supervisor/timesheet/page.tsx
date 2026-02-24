@@ -9,6 +9,7 @@ import { format } from "date-fns"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import { LogSupervisionDialog } from "@/components/log-supervision-dialog"
 import { serialize } from "@/lib/serialize"
+import { SupervisorSessionsList } from "@/components/supervisor/sessions-list"
 
 export default async function SupervisorTimesheetPage() {
     const session = await auth()
@@ -27,12 +28,25 @@ export default async function SupervisorTimesheetPage() {
         })
 
         if (supervisor) {
-            hours = await prisma.supervisionHour.findMany({
+            const raw = await prisma.supervisionHour.findMany({
                 where: { supervisorId: supervisor.id },
                 orderBy: { date: 'desc' },
                 take: 20,
                 include: { student: true }
             })
+
+            hours = raw.map(x => ({
+                ...x,
+                hours: Number(x.hours),
+                amountBilled: x.amountBilled ? Number(x.amountBilled) : null,
+                supervisorPay: x.supervisorPay ? Number(x.supervisorPay) : null,
+                student: {
+                    ...x.student,
+                    hourlyRate: Number(x.student.hourlyRate),
+                    supervisionPercentage: Number(x.student.supervisionPercentage),
+                    amountToPay: Number(x.student.amountToPay)
+                }
+            }))
         }
     } catch (error) {
         console.error("Error fetching timesheet:", error)
@@ -74,38 +88,7 @@ export default async function SupervisorTimesheetPage() {
                                 </div>
                             </div>
                         ) : (
-                            <div className="space-y-3">
-                                {hours.map((hour) => (
-                                    <div
-                                        key={hour.id}
-                                        className="flex items-center justify-between p-4 rounded-xl bg-muted/50 hover:bg-muted transition-colors"
-                                    >
-                                        <div className="flex items-center gap-4">
-                                            <Avatar className="h-10 w-10 border-2 border-primary/20">
-                                                <AvatarFallback className="bg-primary/10 text-primary font-medium">
-                                                    {hour.student?.fullName?.split(' ').map((n: string) => n[0]).join('') || 'ST'}
-                                                </AvatarFallback>
-                                            </Avatar>
-                                            <div>
-                                                <p className="font-medium">{hour.student?.fullName || 'Student'}</p>
-                                                <p className="text-sm text-muted-foreground">
-                                                    {format(new Date(hour.date), 'MMM d, yyyy')}
-                                                    {hour.sessionType && <span> • {hour.sessionType}</span>}
-                                                </p>
-                                            </div>
-                                        </div>
-                                        <div className="text-right">
-                                            <p className="font-semibold">{Number(hour.hours).toFixed(1)}h</p>
-                                            <span className={`text-xs px-2 py-0.5 rounded-full ${hour.status === 'approved'
-                                                ? 'bg-success/10 text-success'
-                                                : 'bg-warning/10 text-warning'
-                                                }`}>
-                                                {hour.status || 'pending'}
-                                            </span>
-                                        </div>
-                                    </div>
-                                ))}
-                            </div>
+                            <SupervisorSessionsList hours={hours} />
                         )}
                     </CardContent>
                 </Card>
