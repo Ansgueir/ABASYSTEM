@@ -125,3 +125,54 @@ export async function registerStudentToGroup(sessionId: string, studentId: strin
         return { error: "Failed to register student to group" }
     }
 }
+
+export async function updateGroupSession(sessionId: string, date: Date, time: string, topic: string, maxStudents: number, supervisorId: string) {
+    const session = await auth()
+    if (!session || !session.user) return { error: "Unauthorized" }
+
+    try {
+        const [hours, mins] = time.split(':').map(Number)
+        const startDateTime = new Date(date)
+        startDateTime.setHours(hours, mins, 0, 0)
+
+        await prisma.groupSupervisionSession.update({
+            where: { id: sessionId },
+            data: {
+                date,
+                startTime: startDateTime,
+                topic,
+                maxStudents,
+                supervisorId
+            }
+        })
+
+        revalidatePath("/office/group-supervision")
+        revalidatePath("/supervisor/groups")
+        return { success: true }
+    } catch (error) {
+        console.error("Update Group Error:", error)
+        return { error: "Failed to update group session" }
+    }
+}
+
+export async function deleteGroupSession(sessionId: string) {
+    const session = await auth()
+    if (!session || !session.user) return { error: "Unauthorized" }
+
+    try {
+        await prisma.groupSupervisionAttendance.deleteMany({
+            where: { sessionId }
+        })
+
+        await prisma.groupSupervisionSession.delete({
+            where: { id: sessionId }
+        })
+
+        revalidatePath("/office/group-supervision")
+        revalidatePath("/supervisor/groups")
+        return { success: true }
+    } catch (error) {
+        console.error("Delete Group Error:", error)
+        return { error: "Failed to delete group session" }
+    }
+}

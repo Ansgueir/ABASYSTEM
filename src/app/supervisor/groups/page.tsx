@@ -5,6 +5,7 @@ import { prisma } from "@/lib/prisma"
 import { redirect } from "next/navigation"
 import { format } from "date-fns"
 import { CreateGroupSessionDialog } from "@/components/create-group-session-dialog"
+import { GroupSessionDetailsDialog } from "@/components/group-session-details-dialog"
 import { Users, Calendar, Clock } from "lucide-react"
 
 export default async function SupervisorGroupsPage() {
@@ -53,29 +54,31 @@ export default async function SupervisorGroupsPage() {
                 ) : (
                     <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
                         {sessions.map((session) => (
-                            <Card key={session.id} className="hover:shadow-md transition-all">
-                                <CardHeader className="pb-2">
-                                    <div className="flex justify-between items-start">
-                                        <CardTitle className="text-lg font-semibold">{session.topic}</CardTitle>
-                                        <span className={`px-2 py-1 rounded-full text-xs font-medium ${session.attendance.length >= session.maxStudents ? 'bg-destructive/10 text-destructive' : 'bg-success/10 text-success'}`}>
-                                            {session.attendance.length} / {session.maxStudents}
-                                        </span>
-                                    </div>
-                                    <p className="text-sm text-muted-foreground flex items-center mt-1">
-                                        <Calendar className="h-3 w-3 mr-1" />
-                                        {format(new Date(session.date), "PPP")}
-                                    </p>
-                                </CardHeader>
-                                <CardContent>
-                                    <div className="flex items-center text-sm text-muted-foreground mb-4">
-                                        <Clock className="h-3 w-3 mr-1" />
-                                        {format(new Date(session.startTime), "p")}
-                                    </div>
-                                    <div className="text-xs text-muted-foreground">
-                                        {session.attendance.length === 0 ? "No students registered yet" : `${session.attendance.length} students registered`}
-                                    </div>
-                                </CardContent>
-                            </Card>
+                            <GroupSessionDetailsDialog key={session.id} session={{ ...session, participants: session.attendance }}>
+                                <Card className="hover:shadow-md transition-all cursor-pointer text-left">
+                                    <CardHeader className="pb-2">
+                                        <div className="flex justify-between items-start">
+                                            <CardTitle className="text-lg font-semibold">{session.topic}</CardTitle>
+                                            <span className={`px-2 py-1 rounded-full text-xs font-medium ${session.attendance.length >= session.maxStudents ? 'bg-destructive/10 text-destructive' : 'bg-success/10 text-success'}`}>
+                                                {session.attendance.length} / {session.maxStudents}
+                                            </span>
+                                        </div>
+                                        <p className="text-sm text-muted-foreground flex items-center mt-1">
+                                            <Calendar className="h-3 w-3 mr-1" />
+                                            {format(new Date(session.date), "PPP")}
+                                        </p>
+                                    </CardHeader>
+                                    <CardContent>
+                                        <div className="flex items-center text-sm text-muted-foreground mb-4">
+                                            <Clock className="h-3 w-3 mr-1" />
+                                            {format(new Date(session.startTime), "p")}
+                                        </div>
+                                        <div className="text-xs text-muted-foreground">
+                                            {session.attendance.length === 0 ? "No students registered yet" : `${session.attendance.length} students registered`}
+                                        </div>
+                                    </CardContent>
+                                </Card>
+                            </GroupSessionDetailsDialog>
                         ))}
                     </div>
                 )}

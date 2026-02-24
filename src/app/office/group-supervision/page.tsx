@@ -8,6 +8,7 @@ import { prisma } from "@/lib/prisma"
 import { redirect } from "next/navigation"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import { CreateGroupSessionDialog } from "@/components/create-group-session-dialog"
+import { GroupSessionDetailsDialog } from "@/components/group-session-details-dialog"
 
 export default async function GroupSupervisionPage() {
     const session = await auth()
@@ -76,48 +77,47 @@ export default async function GroupSupervisionPage() {
                         ) : (
                             <div className="space-y-4">
                                 {mappedSessions.map((session) => (
-                                    <div
-                                        key={session.id}
-                                        className="p-4 rounded-xl bg-muted/50 hover:bg-muted transition-colors"
-                                    >
-                                        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-                                            <div className="flex items-center gap-4">
-                                                <div className="h-12 w-12 rounded-xl bg-primary/10 flex items-center justify-center">
-                                                    <Calendar className="h-6 w-6 text-primary" />
-                                                </div>
-                                                <div>
-                                                    <p className="font-medium">
-                                                        {session.topic || 'Group Session'}
-                                                    </p>
-                                                    <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                                                        <Clock className="h-3 w-3" />
-                                                        {new Date(session.date).toLocaleDateString()}
-                                                        <span>•</span>
-                                                        {session.supervisor?.fullName || 'TBD'}
+                                    <GroupSessionDetailsDialog key={session.id} session={session} supervisors={supervisors}>
+                                        <div className="cursor-pointer p-4 rounded-xl bg-muted/50 hover:bg-muted transition-colors text-left">
+                                            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                                                <div className="flex items-center gap-4">
+                                                    <div className="h-12 w-12 rounded-xl bg-primary/10 flex items-center justify-center">
+                                                        <Calendar className="h-6 w-6 text-primary" />
+                                                    </div>
+                                                    <div>
+                                                        <p className="font-medium">
+                                                            {session.topic || 'Group Session'}
+                                                        </p>
+                                                        <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                                                            <Clock className="h-3 w-3" />
+                                                            {new Date(session.date).toLocaleDateString()}
+                                                            <span>•</span>
+                                                            {session.supervisor?.fullName || 'TBD'}
+                                                        </div>
                                                     </div>
                                                 </div>
-                                            </div>
-                                            <div className="flex items-center gap-2">
-                                                <div className="flex -space-x-2">
-                                                    {session.participants?.slice(0, 4).map((p: any) => (
-                                                        <Avatar key={p.id} className="h-8 w-8 border-2 border-background">
-                                                            <AvatarFallback className="bg-primary/10 text-primary text-xs">
-                                                                {p.student?.fullName?.split(' ').map((n: string) => n[0]).join('') || 'ST'}
-                                                            </AvatarFallback>
-                                                        </Avatar>
-                                                    ))}
-                                                    {session.participants?.length > 4 && (
-                                                        <div className="h-8 w-8 rounded-full bg-muted border-2 border-background flex items-center justify-center text-xs font-medium">
-                                                            +{session.participants.length - 4}
-                                                        </div>
-                                                    )}
+                                                <div className="flex items-center gap-2">
+                                                    <div className="flex -space-x-2">
+                                                        {session.participants?.slice(0, 4).map((p: any) => (
+                                                            <Avatar key={p.id} className="h-8 w-8 border-2 border-background">
+                                                                <AvatarFallback className="bg-primary/10 text-primary text-xs">
+                                                                    {p.student?.fullName?.split(' ').map((n: string) => n[0]).join('') || 'ST'}
+                                                                </AvatarFallback>
+                                                            </Avatar>
+                                                        ))}
+                                                        {session.participants?.length > 4 && (
+                                                            <div className="h-8 w-8 rounded-full bg-muted border-2 border-background flex items-center justify-center text-xs font-medium">
+                                                                +{session.participants.length - 4}
+                                                            </div>
+                                                        )}
+                                                    </div>
+                                                    <span className="text-sm text-muted-foreground">
+                                                        {session.participants?.length || 0}/10
+                                                    </span>
                                                 </div>
-                                                <span className="text-sm text-muted-foreground">
-                                                    {session.participants?.length || 0}/10
-                                                </span>
                                             </div>
                                         </div>
-                                    </div>
+                                    </GroupSessionDetailsDialog>
                                 ))}
                             </div>
                         )}
