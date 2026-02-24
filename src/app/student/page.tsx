@@ -9,6 +9,7 @@ import { redirect } from "next/navigation"
 import { startOfMonth } from "date-fns"
 import { LogHoursDialog } from "@/components/log-hours-dialog"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
+import Link from "next/link"
 
 export default async function StudentDashboard() {
     let session = null;
@@ -45,7 +46,7 @@ export default async function StudentDashboard() {
     try {
         student = await prisma.student.findUnique({
             where: { userId: session.user.id },
-            include: { supervisor: true }
+            include: { supervisor: { include: { user: true } } }
         })
 
         if (student) {
@@ -152,8 +153,8 @@ export default async function StudentDashboard() {
                                 <p className="font-medium">{student.supervisor.fullName}</p>
                                 <p className="text-sm text-muted-foreground">BCBA</p>
                             </div>
-                            <Button variant="outline" size="sm" className="rounded-full">
-                                Contact
+                            <Button variant="outline" size="sm" className="rounded-full" asChild>
+                                <a href={`mailto:${student.supervisor.user?.email || ''}`}>Contact</a>
                             </Button>
                         </div>
                     </CardContent>
@@ -245,31 +246,35 @@ export default async function StudentDashboard() {
 
                 {/* Quick Actions */}
                 <div className="grid gap-4 md:grid-cols-2">
-                    <Card className="cursor-pointer transition-all hover:shadow-elevated hover:-translate-y-1">
-                        <CardContent className="flex items-center gap-4 p-6">
-                            <div className="h-12 w-12 rounded-xl bg-primary/10 flex items-center justify-center">
-                                <BookOpen className="h-6 w-6 text-primary" />
-                            </div>
-                            <div className="flex-1">
-                                <h3 className="font-semibold">View Timesheet</h3>
-                                <p className="text-sm text-muted-foreground">Review and manage your logged hours</p>
-                            </div>
-                            <ArrowRight className="h-5 w-5 text-muted-foreground" />
-                        </CardContent>
-                    </Card>
+                    <Link href="/student/timesheet" className="block outline-none">
+                        <Card className="cursor-pointer transition-all hover:shadow-elevated hover:-translate-y-1 h-full">
+                            <CardContent className="flex items-center gap-4 p-6">
+                                <div className="h-12 w-12 rounded-xl bg-primary/10 flex items-center justify-center">
+                                    <BookOpen className="h-6 w-6 text-primary" />
+                                </div>
+                                <div className="flex-1">
+                                    <h3 className="font-semibold">View Timesheet</h3>
+                                    <p className="text-sm text-muted-foreground">Review and manage your logged hours</p>
+                                </div>
+                                <ArrowRight className="h-5 w-5 text-muted-foreground" />
+                            </CardContent>
+                        </Card>
+                    </Link>
 
-                    <Card className="cursor-pointer transition-all hover:shadow-elevated hover:-translate-y-1">
-                        <CardContent className="flex items-center gap-4 p-6">
-                            <div className="h-12 w-12 rounded-xl bg-accent/30 flex items-center justify-center">
-                                <Users className="h-6 w-6 text-accent-foreground" />
-                            </div>
-                            <div className="flex-1">
-                                <h3 className="font-semibold">Group Sessions</h3>
-                                <p className="text-sm text-muted-foreground">Join upcoming group supervision</p>
-                            </div>
-                            <ArrowRight className="h-5 w-5 text-muted-foreground" />
-                        </CardContent>
-                    </Card>
+                    <Link href="/student/timesheet" className="block outline-none">
+                        <Card className="cursor-pointer transition-all hover:shadow-elevated hover:-translate-y-1 h-full">
+                            <CardContent className="flex items-center gap-4 p-6">
+                                <div className="h-12 w-12 rounded-xl bg-accent/30 flex items-center justify-center">
+                                    <Users className="h-6 w-6 text-accent-foreground" />
+                                </div>
+                                <div className="flex-1">
+                                    <h3 className="font-semibold">Group Sessions</h3>
+                                    <p className="text-sm text-muted-foreground">Join upcoming group supervision</p>
+                                </div>
+                                <ArrowRight className="h-5 w-5 text-muted-foreground" />
+                            </CardContent>
+                        </Card>
+                    </Link>
                 </div>
             </div>
         </DashboardLayout>
