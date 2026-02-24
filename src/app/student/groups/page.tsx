@@ -53,24 +53,27 @@ export default async function StudentGroupsPage() {
                 </div>
 
                 <div className="space-y-8">
+                    {/* General Empty State (No sessions ever) */}
+                    {upcomingSessions.length === 0 && pastSessions.length === 0 && (
+                        <Card className="bg-muted/30 border-dashed mt-4">
+                            <CardContent className="flex flex-col items-center justify-center py-12 text-center">
+                                <div className="h-12 w-12 rounded-full bg-primary/10 flex items-center justify-center mb-4">
+                                    <Users className="h-6 w-6 text-primary" />
+                                </div>
+                                <h3 className="font-medium text-lg mb-1">No Group Sessions</h3>
+                                <p className="text-sm text-muted-foreground max-w-sm">
+                                    You don't have any group sessions on your record. If you believe you should be in a group, contact your supervisor.
+                                </p>
+                            </CardContent>
+                        </Card>
+                    )}
+
                     {/* Upcoming Sessions */}
-                    <section>
-                        <h2 className="text-lg font-semibold mb-4 flex items-center gap-2">
-                            <Calendar className="h-5 w-5 text-primary" /> Upcoming Sessions
-                        </h2>
-                        {upcomingSessions.length === 0 ? (
-                            <Card className="bg-muted/30 border-dashed">
-                                <CardContent className="flex flex-col items-center justify-center py-12 text-center">
-                                    <div className="h-12 w-12 rounded-full bg-primary/10 flex items-center justify-center mb-4">
-                                        <Users className="h-6 w-6 text-primary" />
-                                    </div>
-                                    <h3 className="font-medium text-lg mb-1">No Upcoming Sessions</h3>
-                                    <p className="text-sm text-muted-foreground max-w-sm">
-                                        There are no new group sessions scheduled for the upcoming days. You've either completely caught up, or your supervisor has yet to assign a new schedule.
-                                    </p>
-                                </CardContent>
-                            </Card>
-                        ) : (
+                    {upcomingSessions.length > 0 && (
+                        <section>
+                            <h2 className="text-lg font-semibold mb-4 flex items-center gap-2">
+                                <Calendar className="h-5 w-5 text-primary" /> Upcoming Sessions
+                            </h2>
                             <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
                                 {upcomingSessions.map(({ session: s }) => (
                                     <Card key={s.id} className="hover:shadow-md transition-shadow relative overflow-hidden">
@@ -103,17 +106,15 @@ export default async function StudentGroupsPage() {
                                     </Card>
                                 ))}
                             </div>
-                        )}
-                    </section>
+                        </section>
+                    )}
 
                     {/* Past Sessions */}
-                    <section>
-                        <h2 className="text-lg font-semibold mb-4 flex items-center gap-2 text-muted-foreground">
-                            <BookOpen className="h-5 w-5" /> Past Required Sessions
-                        </h2>
-                        {pastSessions.length === 0 ? (
-                            <p className="text-sm text-muted-foreground text-center py-8">No historical group sessions found.</p>
-                        ) : (
+                    {pastSessions.length > 0 && (
+                        <section>
+                            <h2 className="text-lg font-semibold mb-4 flex items-center gap-2 text-muted-foreground">
+                                <BookOpen className="h-5 w-5" /> Past Required Sessions
+                            </h2>
                             <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
                                 {pastSessions.map(({ session: s, attended }) => (
                                     <Card key={s.id} className="bg-muted/30">
@@ -146,8 +147,8 @@ export default async function StudentGroupsPage() {
                                     </Card>
                                 ))}
                             </div>
-                        )}
-                    </section>
+                        </section>
+                    )}
                 </div>
             </div>
         </DashboardLayout>
