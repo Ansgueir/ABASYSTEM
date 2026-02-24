@@ -92,63 +92,64 @@ export function PaymentsTable({ invoices }: PaymentsTableProps) {
                                     ${Number(invoice.amountDue).toFixed(2)}
                                 </TableCell>
                                 <TableCell className="text-right">
-                                    {invoice.status !== 'PAID' ? (
-                                        <Dialog open={open && selectedInvoice === invoice.id} onOpenChange={(v) => {
-                                            setOpen(v)
-                                            if (v) {
-                                                setSelectedInvoice(invoice.id)
-                                                setAmount(Number(invoice.amountDue).toFixed(2))
-                                            } else {
-                                                setSelectedInvoice(null)
-                                            }
-                                        }}>
-                                            <DialogTrigger asChild>
-                                                <Button size="sm" variant="outline">Pay</Button>
-                                            </DialogTrigger>
-                                            <DialogContent>
-                                                <DialogHeader>
-                                                    <DialogTitle>Process Payment</DialogTitle>
-                                                </DialogHeader>
-                                                <div className="space-y-4 py-4">
-                                                    <div className="space-y-2">
-                                                        <Label>Amount</Label>
-                                                        <Input
-                                                            type="number"
-                                                            step="0.01"
-                                                            value={amount}
-                                                            readOnly
-                                                            className="bg-muted cursor-not-allowed"
-                                                        />
-                                                    </div>
-                                                    <div className="space-y-2">
-                                                        <Label>Payment Method</Label>
-                                                        <Select value={method} onValueChange={setMethod}>
-                                                            <SelectTrigger>
-                                                                <SelectValue />
-                                                            </SelectTrigger>
-                                                            <SelectContent>
-                                                                <SelectItem value="CHECK">Check</SelectItem>
-                                                                <SelectItem value="TRANSFER">Transfer</SelectItem>
-                                                                <SelectItem value="CASH">Cash</SelectItem>
-                                                                <SelectItem value="STRIPE">Stripe</SelectItem>
-                                                            </SelectContent>
-                                                        </Select>
-                                                    </div>
-                                                </div>
-                                                <DialogFooter>
-                                                    <Button variant="outline" onClick={() => setOpen(false)}>Cancel</Button>
-                                                    <Button onClick={handlePayment} disabled={loading}>
-                                                        {loading ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
-                                                        Confirm Payment
-                                                    </Button>
-                                                </DialogFooter>
-                                            </DialogContent>
-                                        </Dialog>
-                                    ) : (
+                                    <div className="flex justify-end gap-2">
                                         <a href={`/api/office/invoices/${invoice.id}/download`} target="_blank">
                                             <Button size="sm" variant="secondary">View</Button>
                                         </a>
-                                    )}
+                                        {invoice.status !== 'PAID' && (
+                                            <Dialog open={open && selectedInvoice === invoice.id} onOpenChange={(v) => {
+                                                setOpen(v)
+                                                if (v) {
+                                                    setSelectedInvoice(invoice.id)
+                                                    setAmount(Number(invoice.amountDue).toFixed(2))
+                                                } else {
+                                                    setSelectedInvoice(null)
+                                                }
+                                            }}>
+                                                <DialogTrigger asChild>
+                                                    <Button size="sm" variant="outline">Pay</Button>
+                                                </DialogTrigger>
+                                                <DialogContent>
+                                                    <DialogHeader>
+                                                        <DialogTitle>Process Payment</DialogTitle>
+                                                    </DialogHeader>
+                                                    <div className="space-y-4 py-4">
+                                                        <div className="space-y-2">
+                                                            <Label>Amount</Label>
+                                                            <Input
+                                                                type="number"
+                                                                step="0.01"
+                                                                value={amount}
+                                                                readOnly
+                                                                className="bg-muted cursor-not-allowed"
+                                                            />
+                                                        </div>
+                                                        <div className="space-y-2">
+                                                            <Label>Payment Method</Label>
+                                                            <Select value={method} onValueChange={setMethod}>
+                                                                <SelectTrigger>
+                                                                    <SelectValue />
+                                                                </SelectTrigger>
+                                                                <SelectContent>
+                                                                    <SelectItem value="CHECK">Check</SelectItem>
+                                                                    <SelectItem value="TRANSFER">Transfer</SelectItem>
+                                                                    <SelectItem value="CASH">Cash</SelectItem>
+                                                                    <SelectItem value="STRIPE">Stripe</SelectItem>
+                                                                </SelectContent>
+                                                            </Select>
+                                                        </div>
+                                                    </div>
+                                                    <DialogFooter>
+                                                        <Button variant="outline" onClick={() => setOpen(false)}>Cancel</Button>
+                                                        <Button onClick={handlePayment} disabled={loading}>
+                                                            {loading ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
+                                                            Confirm Payment
+                                                        </Button>
+                                                    </DialogFooter>
+                                                </DialogContent>
+                                            </Dialog>
+                                        )}
+                                    </div>
                                 </TableCell>
                             </TableRow>
                         ))
