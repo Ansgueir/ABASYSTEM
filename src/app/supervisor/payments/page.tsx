@@ -6,6 +6,7 @@ import { auth } from "@/auth"
 import { prisma } from "@/lib/prisma"
 import { redirect } from "next/navigation"
 import { format } from "date-fns"
+import { SupervisorPaymentsList } from "@/components/supervisor/payments-list"
 
 export default async function SupervisorPaymentsPage() {
     const session = await auth()
@@ -23,12 +24,50 @@ export default async function SupervisorPaymentsPage() {
         })
 
         if (supervisor) {
-            payments = await prisma.supervisorPayment.findMany({
+            const tempPayments = await prisma.supervisorPayment.findMany({
                 where: { supervisorId: supervisor.id },
                 include: { student: true },
                 orderBy: { createdAt: 'desc' },
                 take: 10
             })
+
+            for (const p of tempPayments) {
+                const start = new Date(p.monthYear)
+                const end = new Date(p.monthYear)
+                end.setMonth(end.getMonth() + 1)
+
+                const hoursForPayment = await prisma.supervisionHour.findMany({
+                    where: {
+                        supervisorId: supervisor.id,
+                        studentId: p.studentId,
+                        date: {
+                            gte: start,
+                            lt: end
+                        }
+                    },
+                    orderBy: { date: 'asc' }
+                })
+
+                payments.push({
+                    ...p,
+                    amountDue: Number(p.amountDue),
+                    amountAlreadyPaid: Number(p.amountAlreadyPaid),
+                    balanceDue: Number(p.balanceDue),
+                    amountPaidThisMonth: Number(p.amountPaidThisMonth),
+                    student: {
+                        ...p.student,
+                        hourlyRate: Number(p.student.hourlyRate),
+                        supervisionPercentage: Number(p.student.supervisionPercentage),
+                        amountToPay: Number(p.student.amountToPay)
+                    },
+                    hours: hoursForPayment.map(h => ({
+                        ...h,
+                        hours: Number(h.hours),
+                        amountBilled: Number(h.amountBilled),
+                        supervisorPay: Number(h.supervisorPay)
+                    }))
+                })
+            }
         }
     } catch (error) {
         console.error("Error fetching payments:", error)
@@ -104,43 +143,7 @@ export default async function SupervisorPaymentsPage() {
                                 <p className="text-muted-foreground">No payments yet</p>
                             </div>
                         ) : (
-                            <div className="space-y-3">
-                                {payments.map((payment) => {
-                                    const isPaid = Number(payment.balanceDue) <= 0
-                                    return (
-                                        <div
-                                            key={payment.id}
-                                            className="flex items-center justify-between p-4 rounded-xl bg-muted/50 hover:bg-muted transition-colors"
-                                        >
-                                            <div className="flex items-center gap-4">
-                                                <div className="h-10 w-10 rounded-xl bg-primary/10 flex items-center justify-center">
-                                                    <Calendar className="h-5 w-5 text-primary" />
-                                                </div>
-                                                <div>
-                                                    <p className="font-medium">
-                                                        {format(new Date(payment.monthYear), 'MMMM yyyy')}
-                                                    </p>
-                                                    <p className="text-sm text-muted-foreground">
-                                                        Student: {payment.student?.fullName || 'Unknown'}
-                                                    </p>
-                                                </div>
-                                            </div>
-                                            <div className="flex items-center gap-4">
-                                                <div className="text-right">
-                                                    <p className="font-semibold">${Number(payment.amountDue).toFixed(2)}</p>
-                                                    <span className={`text-xs px-2 py-0.5 rounded-full ${isPaid
-                                                        ? 'bg-success/10 text-success'
-                                                        : 'bg-warning/10 text-warning'
-                                                        }`}>
-                                                        {isPaid ? 'PAID' : 'PENDING'}
-                                                    </span>
-                                                </div>
-                                                <ArrowUpRight className="h-4 w-4 text-muted-foreground" />
-                                            </div>
-                                        </div>
-                                    )
-                                })}
-                            </div>
+                            <SupervisorPaymentsList payments={payments} />
                         )}
                     </CardContent>
                 </Card>
