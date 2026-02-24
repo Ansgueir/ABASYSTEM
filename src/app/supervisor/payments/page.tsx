@@ -7,6 +7,7 @@ import { prisma } from "@/lib/prisma"
 import { redirect } from "next/navigation"
 import { format } from "date-fns"
 import { SupervisorPaymentsList } from "@/components/supervisor/payments-list"
+import { ExportPaymentsButton } from "@/components/supervisor/export-payments-button"
 
 export default async function SupervisorPaymentsPage() {
     const session = await auth()
@@ -88,10 +89,7 @@ export default async function SupervisorPaymentsPage() {
                         <h1 className="text-2xl font-bold">Payments</h1>
                         <p className="text-muted-foreground">View your earnings and payment history</p>
                     </div>
-                    <Button variant="outline" className="rounded-xl">
-                        <Download className="h-4 w-4 mr-2" />
-                        Export
-                    </Button>
+                    <ExportPaymentsButton payments={payments} />
                 </div>
 
                 {/* Summary Cards */}
