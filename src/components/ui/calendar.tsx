@@ -26,7 +26,7 @@ function Calendar({
                 month: "relative space-y-4",
                 month_caption: "flex justify-center pt-1 relative items-center",
                 caption_label: "text-sm font-medium",
-                nav: "absolute w-full flex items-center justify-between top-0 left-0 px-1",
+                nav: "absolute top-0 left-0 w-full flex items-center justify-between pt-1 px-1",
                 button_previous: cn(
                     buttonVariants({ variant: "outline" }),
                     "h-7 w-7 bg-transparent p-0 opacity-50 hover:opacity-100 z-10"
