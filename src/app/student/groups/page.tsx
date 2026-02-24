@@ -5,6 +5,7 @@ import { auth } from "@/auth"
 import { prisma } from "@/lib/prisma"
 import { redirect } from "next/navigation"
 import { format } from "date-fns"
+import { StudentGroupSessionDetails } from "@/components/student/student-group-session-details"
 
 export default async function StudentGroupsPage() {
     const session = await auth()
@@ -75,8 +76,9 @@ export default async function StudentGroupsPage() {
                                     <Card key={s.id} className="hover:shadow-md transition-shadow relative overflow-hidden">
                                         <div className="absolute top-0 left-0 w-1 h-full bg-primary" />
                                         <CardHeader className="pb-3">
-                                            <div className="flex justify-between items-start">
+                                            <div className="flex justify-between items-start w-full gap-2">
                                                 <CardTitle className="text-base font-semibold line-clamp-2">{s.topic}</CardTitle>
+                                                <StudentGroupSessionDetails session={s} />
                                             </div>
                                             <p className="text-sm text-muted-foreground mt-1 flex items-center gap-1">
                                                 By {s.supervisor?.fullName}
@@ -116,11 +118,14 @@ export default async function StudentGroupsPage() {
                                 {pastSessions.map(({ session: s, attended }) => (
                                     <Card key={s.id} className="bg-muted/30">
                                         <CardHeader className="pb-3">
-                                            <div className="flex justify-between items-start">
+                                            <div className="flex justify-between items-start w-full gap-2">
                                                 <CardTitle className="text-base font-medium text-foreground/80 line-clamp-2">{s.topic}</CardTitle>
-                                                <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold tracking-wider ${attended ? 'bg-success/10 text-success' : 'bg-destructive/10 text-destructive'}`}>
-                                                    {attended ? 'ATTENDED' : 'MISSED'}
-                                                </span>
+                                                <div className="flex items-center gap-2 shrink-0">
+                                                    <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold tracking-wider ${attended ? 'bg-success/10 text-success' : 'bg-destructive/10 text-destructive'}`}>
+                                                        {attended ? 'ATTENDED' : 'MISSED'}
+                                                    </span>
+                                                    <StudentGroupSessionDetails session={s} attended={attended} isPast={true} />
+                                                </div>
                                             </div>
                                             <p className="text-xs text-muted-foreground mt-1">
                                                 By {s.supervisor?.fullName}
