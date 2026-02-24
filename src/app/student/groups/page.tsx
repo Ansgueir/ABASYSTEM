@@ -66,7 +66,7 @@ export default async function StudentGroupsPage() {
                                     </div>
                                     <h3 className="font-medium text-lg mb-1">No Upcoming Sessions</h3>
                                     <p className="text-sm text-muted-foreground max-w-sm">
-                                        You don't have any future group sessions scheduled at this moment. You will see them here once a supervisor creates a new one.
+                                        There are no new group sessions scheduled for the upcoming days. You've either completely caught up, or your supervisor has yet to assign a new schedule.
                                     </p>
                                 </CardContent>
                             </Card>
