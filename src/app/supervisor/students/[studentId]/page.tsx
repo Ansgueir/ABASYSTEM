@@ -54,7 +54,9 @@ export default async function SupervisorStudentDetailPage({ params }: { params: 
     }))
     const serializedSupervision = student.supervisionHours.map(h => ({
         ...h,
-        hours: Number(h.hours)
+        hours: Number(h.hours),
+        amountBilled: h.amountBilled ? Number(h.amountBilled) : null,
+        supervisorPay: h.supervisorPay ? Number(h.supervisorPay) : null
     }))
 
     return (
