@@ -10,6 +10,7 @@ import { startOfMonth } from "date-fns"
 import { LogHoursDialog } from "@/components/log-hours-dialog"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import Link from "next/link"
+import { SupervisorContactDialog } from "@/components/student/supervisor-contact-dialog"
 
 export default async function StudentDashboard() {
     let session = null;
@@ -153,9 +154,7 @@ export default async function StudentDashboard() {
                                 <p className="font-medium">{student.supervisor.fullName}</p>
                                 <p className="text-sm text-muted-foreground">BCBA</p>
                             </div>
-                            <Button variant="outline" size="sm" className="rounded-full" asChild>
-                                <a href={`mailto:${student.supervisor.user?.email || ''}`}>Contact</a>
-                            </Button>
+                            <SupervisorContactDialog supervisor={student.supervisor} />
                         </div>
                     </CardContent>
                 </Card>
