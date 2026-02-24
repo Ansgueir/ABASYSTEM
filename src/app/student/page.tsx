@@ -261,7 +261,7 @@ export default async function StudentDashboard() {
                         </Card>
                     </Link>
 
-                    <Link href="/student/timesheet" className="block outline-none">
+                    <Link href="/student/groups" className="block outline-none">
                         <Card className="cursor-pointer transition-all hover:shadow-elevated hover:-translate-y-1 h-full">
                             <CardContent className="flex items-center gap-4 p-6">
                                 <div className="h-12 w-12 rounded-xl bg-accent/30 flex items-center justify-center">
