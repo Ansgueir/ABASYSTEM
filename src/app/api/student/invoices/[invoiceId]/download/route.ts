@@ -113,8 +113,11 @@ export async function GET(
                         ${invoice.supervisionHours.length > 0 ? invoice.supervisionHours.map(hour => `
                             <tr>
                                 <td>
-                                    <strong>${hour.date.toISOString().split('T')[0]} - ${hour.activityType} (${hour.setting.replace('_', ' ')})</strong><br/>
-                                    <span style="font-size: 12px; color: #666;">
+                                    <strong>${hour.date.toISOString().split('T')[0]} - ${hour.activityType} (${hour.supervisionType})</strong><br/>
+                                    <span style="font-size: 13px; color: #444;">${hour.setting.replace('_', ' ')} &bull; ${new Date(hour.startTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span><br/>
+                                    ${hour.notes ? `<i style="font-size: 12px; color: #666; display: block; margin-top: 4px;">"${hour.notes}"</i>` : ''}
+                                    ${hour.groupTopic ? `<span style="font-size: 12px; color: #666; display: block; margin-top: 2px;">Topic: ${hour.groupTopic}</span>` : ''}
+                                    <span style="font-size: 11px; color: #888; display: block; margin-top: 4px;">
                                         Reg. by: ${hour.supervisor ? hour.supervisor.fullName : 'Supervisor'}
                                     </span>
                                 </td>

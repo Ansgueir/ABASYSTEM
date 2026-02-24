@@ -114,8 +114,12 @@ export function PaymentsTable({ invoices }: PaymentsTableProps) {
                                                                 <div key={hour.id} className="p-4 rounded-xl border bg-muted/20 text-sm">
                                                                     <div className="flex justify-between items-start mb-2">
                                                                         <div>
-                                                                            <p className="font-semibold">{hour.activityType}</p>
-                                                                            <p className="text-muted-foreground text-xs">{hour.setting.replace('_', ' ')} &bull; {new Date(hour.date).toISOString().split('T')[0]}</p>
+                                                                            <p className="font-semibold">{hour.activityType} <span className="font-normal text-muted-foreground">({hour.supervisionType})</span></p>
+                                                                            <p className="text-muted-foreground text-xs">
+                                                                                {hour.setting.replace('_', ' ')} &bull; {new Date(hour.date).toISOString().split('T')[0]} &bull; {new Date(hour.startTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                                                                            </p>
+                                                                            {hour.notes && <p className="text-muted-foreground text-xs italic mt-1">&quot;{hour.notes}&quot;</p>}
+                                                                            {hour.groupTopic && <p className="text-muted-foreground text-xs mt-1">Topic: {hour.groupTopic}</p>}
                                                                         </div>
                                                                         <div className="text-right">
                                                                             <p className="font-medium">${Number(hour.amountBilled).toFixed(2)}</p>
