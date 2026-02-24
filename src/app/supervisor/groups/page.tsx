@@ -35,13 +35,15 @@ export default async function SupervisorGroupsPage() {
     const rawSessions = supervisor?.groupSessions || []
 
     // Map properties for UI compatibility and exclude Decimal objects from the Student model
-    const sessions = rawSessions.map(session => ({
+    // Map properties for UI compatibility and exclude Decimal objects from the Student model
+    const sessions = rawSessions.map(({ attendance, ...session }) => ({
         ...session,
-        participants: session.attendance.map(a => ({
+        participants: attendance.map(a => ({
             id: a.id,
             studentId: a.studentId,
             student: a.student ? { fullName: a.student.fullName } : undefined
-        }))
+        })),
+        attendance: undefined // Clear it completely from the payload although we need length later, wait length is already not an issue since it's a number, but `attendance` itself is an array of objects.
     }))
 
     return (
@@ -70,8 +72,8 @@ export default async function SupervisorGroupsPage() {
                                     <CardHeader className="pb-2">
                                         <div className="flex justify-between items-start">
                                             <CardTitle className="text-lg font-semibold">{session.topic}</CardTitle>
-                                            <span className={`px-2 py-1 rounded-full text-xs font-medium ${session.attendance.length >= session.maxStudents ? 'bg-destructive/10 text-destructive' : 'bg-success/10 text-success'}`}>
-                                                {session.attendance.length} / {session.maxStudents}
+                                            <span className={`px-2 py-1 rounded-full text-xs font-medium ${session.participants.length >= session.maxStudents ? 'bg-destructive/10 text-destructive' : 'bg-success/10 text-success'}`}>
+                                                {session.participants.length} / {session.maxStudents}
                                             </span>
                                         </div>
                                         <p className="text-sm text-muted-foreground flex items-center mt-1">
@@ -86,7 +88,7 @@ export default async function SupervisorGroupsPage() {
                                         </div>
                                         <div className="flex items-center justify-between mt-4">
                                             <div className="text-xs text-muted-foreground">
-                                                {session.attendance.length === 0 ? "No students registered yet" : `${session.attendance.length} students registered`}
+                                                {session.participants.length === 0 ? "No students registered yet" : `${session.participants.length} students registered`}
                                             </div>
                                             <Button variant="ghost" size="icon" className="h-8 w-8 rounded-full bg-primary/5 text-primary hover:bg-primary/15" asChild>
                                                 <div><Eye className="h-4 w-4" /></div>

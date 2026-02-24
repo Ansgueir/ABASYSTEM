@@ -39,9 +39,10 @@ export default async function GroupSupervisionPage() {
     })
 
     // Map properties for UI compatibility and exclude Decimal objects from the Student model
-    const mappedSessions = groupSessions.map(session => ({
+    const mappedSessions = groupSessions.map(({ attendance, supervisor, ...session }) => ({
         ...session,
-        participants: session.attendance.map(a => ({
+        supervisor: { fullName: supervisor.fullName },
+        participants: attendance.map(a => ({
             id: a.id,
             studentId: a.studentId,
             student: a.student ? { fullName: a.student.fullName } : undefined
