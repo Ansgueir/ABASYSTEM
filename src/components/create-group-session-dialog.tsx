@@ -20,8 +20,12 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { createGroupSession } from "@/actions/groups"
 import { useRouter } from "next/navigation"
-import { Plus } from "lucide-react"
+import { Plus, CalendarIcon } from "lucide-react"
 import { toast } from "sonner"
+import { format } from "date-fns"
+import { cn } from "@/lib/utils"
+import { Calendar } from "@/components/ui/calendar"
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 
 interface CreateGroupSessionDialogProps {
     supervisors?: { id: string, fullName: string }[]
@@ -30,7 +34,7 @@ interface CreateGroupSessionDialogProps {
 export function CreateGroupSessionDialog({ supervisors }: CreateGroupSessionDialogProps = {}) {
     const [open, setOpen] = useState(false)
     const [topic, setTopic] = useState("")
-    const [date, setDate] = useState("")
+    const [date, setDate] = useState<Date | undefined>(undefined)
     const [time, setTime] = useState("09:00")
     const [maxStudents, setMaxStudents] = useState("10")
     const [supervisorId, setSupervisorId] = useState("")
@@ -40,12 +44,17 @@ export function CreateGroupSessionDialog({ supervisors }: CreateGroupSessionDial
     async function handleSubmit(e: React.FormEvent) {
         e.preventDefault()
         setIsPending(true)
-        const res = await createGroupSession(new Date(date), time, topic, parseInt(maxStudents), supervisorId || undefined)
+        if (!date) {
+            toast.error("Please select a date.")
+            setIsPending(false)
+            return
+        }
+        const res = await createGroupSession(date, time, topic, parseInt(maxStudents), supervisorId || undefined)
         setIsPending(false)
         if (res.success) {
             setOpen(false)
             setTopic("")
-            setDate("")
+            setDate(undefined)
             toast.success("Session created!")
             router.refresh()
         } else {
@@ -86,9 +95,31 @@ export function CreateGroupSessionDialog({ supervisors }: CreateGroupSessionDial
                         <Input value={topic} onChange={e => setTopic(e.target.value)} required placeholder="e.g. Ethics" />
                     </div>
                     <div className="grid grid-cols-2 gap-4">
-                        <div className="space-y-2">
+                        <div className="space-y-2 flex flex-col pt-2 max-w-full overflow-hidden">
                             <Label>Date</Label>
-                            <Input type="date" value={date} onChange={e => setDate(e.target.value)} required />
+                            <Popover>
+                                <PopoverTrigger asChild>
+                                    <Button
+                                        variant={"outline"}
+                                        className={cn(
+                                            "w-full justify-start text-left font-normal",
+                                            !date && "text-muted-foreground"
+                                        )}
+                                    >
+                                        <CalendarIcon className="mr-2 h-4 w-4 shrink-0" />
+                                        {date ? format(date, "PPP") : <span>Pick a date</span>}
+                                    </Button>
+                                </PopoverTrigger>
+                                <PopoverContent className="w-auto p-0" align="start">
+                                    <Calendar
+                                        mode="single"
+                                        selected={date}
+                                        onSelect={setDate}
+                                        disabled={(day) => day < new Date("1900-01-01")}
+                                        initialFocus
+                                    />
+                                </PopoverContent>
+                            </Popover>
                         </div>
                         <div className="space-y-2">
                             <Label>Time</Label>
