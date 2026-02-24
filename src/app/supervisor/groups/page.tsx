@@ -55,7 +55,7 @@ export default async function SupervisorGroupsPage() {
                 ) : (
                     <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
                         {sessions.map((session) => (
-                            <GroupSessionDetailsDialog key={session.id} session={{ ...session, participants: session.attendance }}>
+                            <GroupSessionDetailsDialog key={session.id} session={{ ...session, participants: session.attendance }} students={students}>
                                 <Card className="hover:shadow-md transition-all cursor-pointer text-left">
                                     <CardHeader className="pb-2">
                                         <div className="flex justify-between items-start">

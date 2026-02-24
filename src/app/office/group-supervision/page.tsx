@@ -77,7 +77,7 @@ export default async function GroupSupervisionPage() {
                         ) : (
                             <div className="space-y-4">
                                 {mappedSessions.map((session) => (
-                                    <GroupSessionDetailsDialog key={session.id} session={session} supervisors={supervisors}>
+                                    <GroupSessionDetailsDialog key={session.id} session={session} supervisors={supervisors} students={students}>
                                         <div className="cursor-pointer p-4 rounded-xl bg-muted/50 hover:bg-muted transition-colors text-left">
                                             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
                                                 <div className="flex items-center gap-4">

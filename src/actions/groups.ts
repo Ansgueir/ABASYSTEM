@@ -126,7 +126,7 @@ export async function registerStudentToGroup(sessionId: string, studentId: strin
     }
 }
 
-export async function updateGroupSession(sessionId: string, date: Date, time: string, topic: string, maxStudents: number, supervisorId: string) {
+export async function updateGroupSession(sessionId: string, date: Date, time: string, topic: string, maxStudents: number, supervisorId: string, studentIds: string[] = []) {
     const session = await auth()
     if (!session || !session.user) return { error: "Unauthorized" }
 
@@ -135,14 +135,62 @@ export async function updateGroupSession(sessionId: string, date: Date, time: st
         const startDateTime = new Date(date)
         startDateTime.setHours(hours, mins, 0, 0)
 
-        await prisma.groupSupervisionSession.update({
-            where: { id: sessionId },
-            data: {
-                date,
-                startTime: startDateTime,
-                topic,
-                maxStudents,
-                supervisorId
+        const finalMax = maxStudents > GENERIC_GROUP_LIMIT ? GENERIC_GROUP_LIMIT : maxStudents
+        const selectedStudents = studentIds.slice(0, finalMax)
+
+        await prisma.$transaction(async (tx) => {
+            const currentGroup = await tx.groupSupervisionSession.findUnique({
+                where: { id: sessionId },
+                include: { attendance: true }
+            })
+
+            if (!currentGroup) throw new Error("Session not found")
+
+            await tx.groupSupervisionSession.update({
+                where: { id: sessionId },
+                data: {
+                    date,
+                    startTime: startDateTime,
+                    topic,
+                    maxStudents: finalMax,
+                    supervisorId
+                }
+            })
+
+            const existingIds = currentGroup.attendance.map(a => a.studentId)
+            const toAdd = selectedStudents.filter(id => !existingIds.includes(id))
+            const toRemove = existingIds.filter(id => !selectedStudents.includes(id))
+
+            if (toRemove.length > 0) {
+                await tx.groupSupervisionAttendance.deleteMany({
+                    where: { sessionId, studentId: { in: toRemove } }
+                })
+            }
+
+            for (const sId of toAdd) {
+                await tx.groupSupervisionAttendance.create({
+                    data: {
+                        sessionId: sessionId,
+                        studentId: sId,
+                        attended: true
+                    }
+                })
+
+                await tx.supervisionHour.create({
+                    data: {
+                        studentId: sId,
+                        supervisorId: supervisorId,
+                        date: date,
+                        startTime: startDateTime,
+                        hours: 1, // Defaulted to 1 hr sync
+                        supervisionType: "GROUP",
+                        setting: "OFFICE_CLINIC",
+                        activityType: "RESTRICTED",
+                        notes: `Group Session: ${topic}`,
+                        groupTopic: topic,
+                        status: "PENDING"
+                    }
+                })
             }
         })
 

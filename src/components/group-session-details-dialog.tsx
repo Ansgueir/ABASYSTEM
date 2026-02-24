@@ -30,10 +30,11 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 interface GroupSessionDetailsDialogProps {
     session: any
     supervisors?: { id: string, fullName: string }[]
+    students?: { id: string, fullName: string }[]
     children: React.ReactNode
 }
 
-export function GroupSessionDetailsDialog({ session, supervisors, children }: GroupSessionDetailsDialogProps) {
+export function GroupSessionDetailsDialog({ session, supervisors, students, children }: GroupSessionDetailsDialogProps) {
     const [open, setOpen] = useState(false)
     const [isEditing, setIsEditing] = useState(false)
     const [topic, setTopic] = useState(session.topic)
@@ -47,6 +48,11 @@ export function GroupSessionDetailsDialog({ session, supervisors, children }: Gr
 
     const [maxStudents, setMaxStudents] = useState(session.maxStudents.toString())
     const [supervisorId, setSupervisorId] = useState(session.supervisorId)
+    const [selectedStudents, setSelectedStudents] = useState<string[]>(
+        session.participants?.map((p: any) => p.studentId) || []
+    )
+    const [studentSearch, setStudentSearch] = useState("")
+
     const [isPending, setIsPending] = useState(false)
     const router = useRouter()
 
@@ -64,7 +70,7 @@ export function GroupSessionDetailsDialog({ session, supervisors, children }: Gr
             return
         }
 
-        const res = await updateGroupSession(session.id, date, time, topic, parseInt(maxStudents), supervisorId)
+        const res = await updateGroupSession(session.id, date, time, topic, parseInt(maxStudents), supervisorId, selectedStudents)
         setIsPending(false)
         if (res.success) {
             setIsEditing(false)
@@ -96,6 +102,8 @@ export function GroupSessionDetailsDialog({ session, supervisors, children }: Gr
         setTime(`${hours}:${mins}`)
         setMaxStudents(session.maxStudents.toString())
         setSupervisorId(session.supervisorId)
+        setSelectedStudents(session.participants?.map((p: any) => p.studentId) || [])
+        setStudentSearch("")
         setIsEditing(false)
     }
 
@@ -202,6 +210,49 @@ export function GroupSessionDetailsDialog({ session, supervisors, children }: Gr
                             <div className="p-2 border rounded-md bg-muted/30">{session.maxStudents}</div>
                         )}
                     </div>
+
+                    {isEditing && students && students.length > 0 && (
+                        <div className="space-y-2">
+                            <div className="flex justify-between items-center mb-1">
+                                <Label>Select Students</Label>
+                                <span className="text-xs text-muted-foreground">{selectedStudents.length} / {maxStudents}</span>
+                            </div>
+                            <Input
+                                placeholder="Search students..."
+                                value={studentSearch}
+                                onChange={e => setStudentSearch(e.target.value)}
+                                className="mb-2 h-8"
+                            />
+                            <div className="max-h-40 overflow-y-auto border rounded-md p-3 space-y-3">
+                                {students
+                                    .filter(s => s.fullName.toLowerCase().includes(studentSearch.toLowerCase()))
+                                    .map(student => (
+                                        <div key={student.id} className="flex items-center space-x-2">
+                                            <input
+                                                type="checkbox"
+                                                id={`edit-student-${student.id}`}
+                                                checked={selectedStudents.includes(student.id)}
+                                                disabled={!selectedStudents.includes(student.id) && selectedStudents.length >= parseInt(maxStudents || "10")}
+                                                onChange={(e) => {
+                                                    if (e.target.checked) {
+                                                        if (selectedStudents.length < parseInt(maxStudents || "10")) {
+                                                            setSelectedStudents([...selectedStudents, student.id])
+                                                        }
+                                                    } else {
+                                                        setSelectedStudents(selectedStudents.filter(id => id !== student.id))
+                                                    }
+                                                }}
+                                                className="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary"
+                                            />
+                                            <Label htmlFor={`edit-student-${student.id}`} className="font-normal cursor-pointer leading-none">{student.fullName}</Label>
+                                        </div>
+                                    ))}
+                                {students.filter(s => s.fullName.toLowerCase().includes(studentSearch.toLowerCase())).length === 0 && (
+                                    <div className="text-sm text-muted-foreground text-center py-2">No students found</div>
+                                )}
+                            </div>
+                        </div>
+                    )}
 
                     {!isEditing && (
                         <div className="space-y-2">
