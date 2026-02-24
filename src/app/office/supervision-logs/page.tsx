@@ -1,7 +1,7 @@
 import DashboardLayout from "@/components/dashboard-layout"
 import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
-import { ClipboardList, Clock, CheckCircle } from "lucide-react"
+import { ClipboardList, Clock, CheckCircle, Download } from "lucide-react"
 import { auth } from "@/auth"
 import { prisma } from "@/lib/prisma"
 import { redirect } from "next/navigation"
@@ -53,6 +53,12 @@ export default async function SupervisionLogsReviewPage({
                         <h1 className="text-2xl font-bold">Review Logs</h1>
                         <p className="text-muted-foreground">Manage and archive supervision log submissions</p>
                     </div>
+                    <a href={`/api/office/supervision-logs/export?status=${statusFilter}`} target="_blank" rel="noopener noreferrer">
+                        <Button variant="outline" className="rounded-xl">
+                            <Download className="h-4 w-4 mr-2" />
+                            Export
+                        </Button>
+                    </a>
                 </div>
 
                 {/* Tabs */}
