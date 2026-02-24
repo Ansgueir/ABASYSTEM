@@ -64,9 +64,9 @@ export default async function StudentGroupsPage() {
                                     <div className="h-12 w-12 rounded-full bg-primary/10 flex items-center justify-center mb-4">
                                         <Users className="h-6 w-6 text-primary" />
                                     </div>
-                                    <h3 className="font-medium text-lg mb-1">No Upcoming Groups</h3>
+                                    <h3 className="font-medium text-lg mb-1">No Upcoming Sessions</h3>
                                     <p className="text-sm text-muted-foreground max-w-sm">
-                                        You are not currently enrolled in any upcoming group supervision sessions. Supervisors or Office Admins handle enrollment.
+                                        You don't have any future group sessions scheduled at this moment. You will see them here once a supervisor creates a new one.
                                     </p>
                                 </CardContent>
                             </Card>
