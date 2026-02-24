@@ -75,9 +75,11 @@ export default async function TimesheetPage() {
                             Filter
                         </Button>
                         <LogHoursDialog />
-                        <Button variant="outline" className="rounded-xl">
-                            <Download className="h-4 w-4 mr-2" />
-                            Export
+                        <Button variant="outline" className="rounded-xl" asChild>
+                            <a href="/api/student/timesheet/export" target="_blank">
+                                <Download className="h-4 w-4 mr-2" />
+                                Export
+                            </a>
                         </Button>
                     </div>
                 </div>
