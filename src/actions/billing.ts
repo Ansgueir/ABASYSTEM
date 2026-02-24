@@ -119,9 +119,8 @@ export async function generateInvoicesAction() {
         return { error: "Unauthorized role" }
     }
 
-    if (user.officeRole !== "SUPER_ADMIN" && role !== "qa") {
-        return { error: "Forbidden: Only Super Administrators can run invoicing." }
-    }
+    // All office users and qa can run invoicing.
+
 
     // Dynamic import to avoid circular dependency if any? No, lib is fine.
     const { generateMonthlyInvoices } = await import("@/lib/invoicing")
