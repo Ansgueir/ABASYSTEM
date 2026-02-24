@@ -93,17 +93,6 @@ export function SupervisorContactDialog({ supervisor }: SupervisorContactDialogP
                             </div>
                         )}
 
-                        {supervisor.address && (
-                            <div className="flex items-center gap-3">
-                                <div className="h-10 w-10 shrink-0 rounded-full bg-muted flex items-center justify-center text-muted-foreground">
-                                    <MapPin className="h-5 w-5" />
-                                </div>
-                                <div className="flex-1">
-                                    <p className="text-sm font-medium">Location</p>
-                                    <p className="text-sm text-muted-foreground">{supervisor.address}</p>
-                                </div>
-                            </div>
-                        )}
                     </div>
                 </div>
             </DialogContent>
