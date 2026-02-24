@@ -34,7 +34,7 @@ export async function GET() {
         // Generate HTML
         const htmlRows = invoices.map(inv => `
             <tr>
-                <td style="padding: 12px; border-bottom: 1px solid #ddd;">${inv.id}</td>
+                <td style="padding: 12px; border-bottom: 1px solid #ddd; font-family: monospace;">#${inv.id.slice(-6).toUpperCase()}</td>
                 <td style="padding: 12px; border-bottom: 1px solid #ddd;">${inv.invoiceDate.toISOString().split('T')[0]}</td>
                 <td style="padding: 12px; border-bottom: 1px solid #ddd;">
                     <span style="padding: 4px 8px; border-radius: 9999px; font-size: 12px; font-weight: bold; background-color: ${inv.status === 'PAID' ? '#dcfce7' : '#fef08a'}; color: ${inv.status === 'PAID' ? '#166534' : '#854d0e'};">
