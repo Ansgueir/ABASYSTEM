@@ -138,7 +138,13 @@ export default async function OfficePaymentsPage() {
                                     hourlyRate: Number(inv.student.hourlyRate),
                                     supervisionPercentage: Number(inv.student.supervisionPercentage),
                                     amountToPay: Number(inv.student.amountToPay)
-                                }
+                                },
+                                supervisionHours: inv.supervisionHours?.map((sh: any) => ({
+                                    ...sh,
+                                    hours: Number(sh.hours),
+                                    amountBilled: Number(sh.amountBilled),
+                                    supervisorPay: Number(sh.supervisorPay)
+                                }))
                             })) as any}
                         />
                     </CardContent>
