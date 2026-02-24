@@ -42,8 +42,18 @@ export default async function TimesheetPage() {
             ])
 
             hours = [
-                ...indepHours.map(h => ({ ...h, type: 'independent' as const })),
-                ...supHours.map(h => ({ ...h, type: 'supervised' as const }))
+                ...indepHours.map(h => ({
+                    ...h,
+                    hours: Number(h.hours),
+                    type: 'independent' as const
+                })),
+                ...supHours.map(h => ({
+                    ...h,
+                    hours: Number(h.hours),
+                    amountBilled: h.amountBilled ? Number(h.amountBilled) : null,
+                    supervisorPay: h.supervisorPay ? Number(h.supervisorPay) : null,
+                    type: 'supervised' as const
+                }))
             ].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
         }
     } catch (error) {
