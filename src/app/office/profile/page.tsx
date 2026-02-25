@@ -56,7 +56,7 @@ export default async function OfficeProfilePage() {
                                 <p className="text-muted-foreground">{session.user.email}</p>
                                 <div className="flex items-center gap-2 mt-2 justify-center sm:justify-start">
                                     <span className="px-3 py-1 rounded-full bg-primary/10 text-primary text-sm font-medium">
-                                        {officeMember?.role || 'Office Administrator'}
+                                        {officeMember?.officeRole || 'Office Administrator'}
                                     </span>
                                 </div>
                             </div>
@@ -100,7 +100,7 @@ export default async function OfficeProfilePage() {
                                 <Input
                                     id="phone"
                                     type="tel"
-                                    defaultValue={officeMember?.phone || ''}
+                                    defaultValue={''}
                                     disabled
                                     className="bg-muted text-muted-foreground"
                                 />
@@ -109,7 +109,7 @@ export default async function OfficeProfilePage() {
                                 <Label htmlFor="roleDetails">Position Level</Label>
                                 <Input
                                     id="roleDetails"
-                                    defaultValue={officeMember?.role || 'Staff'}
+                                    defaultValue={officeMember?.officeRole || 'Staff'}
                                     disabled
                                     className="bg-muted text-muted-foreground"
                                 />
