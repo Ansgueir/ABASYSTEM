@@ -255,7 +255,7 @@ export function TimesheetPDF({ student, hours, stats }: TimesheetPDFProps) {
                             hours.map((hour, i) => {
                                 const [boxStyle, textStyle] = getStatusStyle(hour.status);
                                 return (
-                                    <View key={i} style={[styles.tableRow, i % 2 !== 0 && styles.tableRowAlt]} wrap={false}>
+                                    <View key={i} style={[styles.tableRow, i % 2 !== 0 && styles.tableRowAlt] as any}>
                                         {/* Date Component */}
                                         <View style={styles.colDate}>
                                             <Text style={styles.textBold}>{format(new Date(hour.date), 'MM/dd/yy')}</Text>
