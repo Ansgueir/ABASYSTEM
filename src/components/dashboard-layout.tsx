@@ -21,6 +21,7 @@ import {
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet"
+import { GlobalSearch } from "./global-search"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Input } from "@/components/ui/input"
 import { cn } from "@/lib/utils"
@@ -156,14 +157,8 @@ export default function DashboardLayout({
                 )}>
                     {/* Desktop Top Bar */}
                     <header className="hidden lg:flex items-center justify-between px-8 py-4 bg-card border-b border-border sticky top-0 z-30">
-                        <div className="flex items-center gap-4 flex-1 max-w-xl">
-                            <div className="relative flex-1">
-                                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                                <Input
-                                    placeholder="Search..."
-                                    className="pl-10 bg-background"
-                                />
-                            </div>
+                        <div className="flex items-center gap-4 flex-1 max-w-xl relative">
+                            <GlobalSearch />
                         </div>
                         <div className="flex items-center gap-3">
                             <NotificationBell />
