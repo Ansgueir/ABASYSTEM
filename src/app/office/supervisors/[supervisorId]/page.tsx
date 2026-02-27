@@ -12,6 +12,7 @@ import { EditSupervisorDialog } from "@/components/office/edit-supervisor-dialog
 import { ManageStudentsDialog } from "@/components/office/manage-students-dialog"
 import { format } from "date-fns"
 import { Badge } from "@/components/ui/badge"
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
 import { UploadDocumentDialog } from "@/components/upload-document-dialog"
 import { OfficeDocumentActions } from "@/components/office/office-document-actions"
 
@@ -301,6 +302,7 @@ export default async function OfficeSupervisorDetailPage({ params }: { params: P
                                                 <th className="text-left font-medium p-3">Activity</th>
                                                 <th className="text-left font-medium p-3">Hours</th>
                                                 <th className="text-left font-medium p-3">Status</th>
+                                                <th className="text-right font-medium p-3"></th>
                                             </tr>
                                         </thead>
                                         <tbody className="divide-y">
@@ -314,6 +316,64 @@ export default async function OfficeSupervisorDetailPage({ params }: { params: P
                                                         <Badge variant={hour.status === 'APPROVED' ? 'default' : hour.status === 'BILLED' ? 'default' : hour.status === 'REJECTED' ? 'destructive' : 'secondary'}>
                                                             {hour.status}
                                                         </Badge>
+                                                    </td>
+                                                    <td className="p-3 text-right">
+                                                        <Dialog>
+                                                            <DialogTrigger asChild>
+                                                                <Button variant="ghost" size="icon" className="h-8 w-8 rounded-full">
+                                                                    <Eye className="h-4 w-4 text-muted-foreground" />
+                                                                </Button>
+                                                            </DialogTrigger>
+                                                            <DialogContent className="sm:max-w-md">
+                                                                <DialogHeader>
+                                                                    <DialogTitle>Activity Details</DialogTitle>
+                                                                </DialogHeader>
+                                                                <div className="space-y-4 py-4 text-sm">
+                                                                    <div className="grid grid-cols-2 gap-4">
+                                                                        <div>
+                                                                            <p className="text-muted-foreground text-xs">Date</p>
+                                                                            <p className="font-medium">{format(new Date(hour.date), "MMMM d, yyyy")}</p>
+                                                                        </div>
+                                                                        <div>
+                                                                            <p className="text-muted-foreground text-xs">Duration</p>
+                                                                            <p className="font-medium">{Number(hour.hours).toFixed(1)} hrs</p>
+                                                                        </div>
+                                                                        <div>
+                                                                            <p className="text-muted-foreground text-xs">Student</p>
+                                                                            <p className="font-medium">{hour.student?.fullName || 'Multiple Students'}</p>
+                                                                        </div>
+                                                                        <div>
+                                                                            <p className="text-muted-foreground text-xs">Status</p>
+                                                                            <Badge variant={hour.status === 'APPROVED' ? 'default' : hour.status === 'BILLED' ? 'default' : hour.status === 'REJECTED' ? 'destructive' : 'secondary'} className="mt-1">
+                                                                                {hour.status}
+                                                                            </Badge>
+                                                                        </div>
+                                                                        <div className="col-span-2 border-t pt-4 mt-2">
+                                                                            <p className="text-muted-foreground text-xs">Activity Type</p>
+                                                                            <p className="font-medium">{hour.activityType?.replace(/_/g, ' ') || 'Group Supervision'}</p>
+                                                                        </div>
+                                                                        {hour.setting && (
+                                                                            <div className="col-span-2">
+                                                                                <p className="text-muted-foreground text-xs">Setting</p>
+                                                                                <p className="font-medium">{hour.setting?.replace(/_/g, ' ')}</p>
+                                                                            </div>
+                                                                        )}
+                                                                        {hour.notes && (
+                                                                            <div className="col-span-2 border-t pt-4 mt-2">
+                                                                                <p className="text-muted-foreground text-xs">Notes</p>
+                                                                                <p className="italic bg-muted/30 p-3 rounded-lg mt-1">{hour.notes}</p>
+                                                                            </div>
+                                                                        )}
+                                                                        {hour.groupTopic && (
+                                                                            <div className="col-span-2 border-t pt-4 mt-2">
+                                                                                <p className="text-muted-foreground text-xs">Group Topic</p>
+                                                                                <p className="font-medium">{hour.groupTopic}</p>
+                                                                            </div>
+                                                                        )}
+                                                                    </div>
+                                                                </div>
+                                                            </DialogContent>
+                                                        </Dialog>
                                                     </td>
                                                 </tr>
                                             ))}
