@@ -6,6 +6,7 @@ import { saveFileLocal, deleteFileLocal } from "@/lib/storage"
 import { DocumentType } from "@prisma/client"
 import { revalidatePath } from "next/cache"
 import { z } from "zod"
+import { logAudit } from "@/lib/audit"
 
 // Max 5MB
 const MAX_FILE_SIZE = 5 * 1024 * 1024
@@ -82,7 +83,7 @@ export async function uploadDocument(prevState: UploadState, formData: FormData)
         const { url } = await saveFileLocal(file, folder)
 
         // Save to DB
-        await prisma.document.create({
+        const newDoc = await prisma.document.create({
             data: {
                 studentId,
                 supervisorId,
@@ -92,6 +93,14 @@ export async function uploadDocument(prevState: UploadState, formData: FormData)
                 fileSize: file.size,
                 uploadedById: session.user.id
             }
+        })
+
+        await logAudit({
+            action: "UPLOAD",
+            entity: "Document",
+            entityId: newDoc.id,
+            details: `Uploaded ${documentType} document`,
+            newValues: newDoc
         })
 
         revalidatePath("/student/documents")
@@ -138,6 +147,14 @@ export async function deleteDocument(documentId: string) {
             where: { id: documentId }
         })
 
+        await logAudit({
+            action: "DELETE",
+            entity: "Document",
+            entityId: documentId,
+            details: `Deleted ${doc.documentType} document`,
+            oldValues: doc
+        })
+
         revalidatePath("/student/documents")
         if (doc.studentId) revalidatePath(`/office/students/${doc.studentId}`)
         if (doc.supervisorId) revalidatePath(`/office/supervisors/${doc.supervisorId}`)
@@ -160,9 +177,19 @@ export async function reviewDocument(documentId: string, status: "APPROVED" | "R
     }
 
     try {
+        const oldDoc = await prisma.document.findUnique({ where: { id: documentId } })
         const doc = await prisma.document.update({
             where: { id: documentId },
             data: { status }
+        })
+
+        await logAudit({
+            action: "UPDATE",
+            entity: "Document",
+            entityId: documentId,
+            details: `Reviewed document as ${status}`,
+            oldValues: oldDoc,
+            newValues: doc
         })
 
         if (doc.studentId) {

@@ -5,6 +5,7 @@ import { prisma } from "@/lib/prisma"
 import bcrypt from "bcryptjs"
 import { revalidatePath } from "next/cache"
 import { sendEmail } from "@/lib/email"
+import { logAudit } from "@/lib/audit"
 
 const generateTempPassword = () => {
     const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*"
@@ -65,6 +66,7 @@ export async function createStudent(formData: FormData) {
         const tempPassword = generateTempPassword()
         const hashedPassword = await bcrypt.hash(tempPassword, 10)
 
+        let createdStudent: any = null
         await prisma.$transaction(async (tx) => {
             const user = await tx.user.create({
                 data: {
@@ -76,7 +78,7 @@ export async function createStudent(formData: FormData) {
                 }
             })
 
-            await tx.student.create({
+            createdStudent = await tx.student.create({
                 data: {
                     userId: user.id,
                     fullName,
@@ -131,6 +133,14 @@ export async function createStudent(formData: FormData) {
             `
         })
 
+        await logAudit({
+            action: "CREATE",
+            entity: "Student",
+            entityId: createdStudent?.id,
+            details: `Created new student: ${createdStudent?.fullName}`,
+            newValues: createdStudent
+        })
+
         revalidatePath("/office/students")
         return { success: true }
     } catch (error) {
@@ -163,6 +173,7 @@ export async function createSupervisor(formData: FormData) {
         const tempPassword = generateTempPassword()
         const hashedPassword = await bcrypt.hash(tempPassword, 10)
 
+        let createdSupervisor: any = null
         await prisma.$transaction(async (tx) => {
             const user = await tx.user.create({
                 data: {
@@ -174,7 +185,7 @@ export async function createSupervisor(formData: FormData) {
                 }
             })
 
-            await tx.supervisor.create({
+            createdSupervisor = await tx.supervisor.create({
                 data: {
                     userId: user.id,
                     fullName,
@@ -215,6 +226,14 @@ export async function createSupervisor(formData: FormData) {
                     </a>
                 </div>
             `
+        })
+
+        await logAudit({
+            action: "CREATE",
+            entity: "Supervisor",
+            entityId: createdSupervisor?.id,
+            details: `Created new supervisor: ${createdSupervisor?.fullName}`,
+            newValues: createdSupervisor
         })
 
         revalidatePath("/office/supervisors")

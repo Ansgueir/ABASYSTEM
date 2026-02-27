@@ -1,0 +1,29 @@
+
+> aba-supervision-system@0.1.0 build
+> next build
+
+Ôû▓ Next.js 16.1.6 (Turbopack)
+- Environments: .env.local, .env
+
+ÔÜá The "middleware" file convention is deprecated. Please use "proxy" instead. Learn more: https://nextjs.org/docs/messages/middleware-to-proxy
+  Creating an optimized production build ...
+Ô£ô Compiled successfully in 7.0s
+  Running TypeScript ...
+Failed to compile.
+
+./src/lib/audit.ts:26:13
+Type error: Type '{ userId: string | undefined; userEmail: string | null | undefined; action: AuditAction; entity: AuditEntity; entityId: string | null; details: string | null; oldValues: any; newValues: any; ipAddress: null; }' is not assignable to type '(Without<AuditLogCreateInput, AuditLogUncheckedCreateInput> & AuditLogUncheckedCreateInput) | (Without<...> & AuditLogCreateInput)'.
+  Type '{ userId: string | undefined; userEmail: string | null | undefined; action: AuditAction; entity: AuditEntity; entityId: string | null; details: string | null; oldValues: any; newValues: any; ipAddress: null; }' is not assignable to type 'Without<AuditLogUncheckedCreateInput, AuditLogCreateInput> & AuditLogCreateInput'.
+    Type '{ userId: string | undefined; userEmail: string | null | undefined; action: AuditAction; entity: AuditEntity; entityId: string | null; details: string | null; oldValues: any; newValues: any; ipAddress: null; }' is not assignable to type 'Without<AuditLogUncheckedCreateInput, AuditLogCreateInput>'.
+      Types of property 'userId' are incompatible.
+        Type 'string | undefined' is not assignable to type 'undefined'.
+          Type 'string' is not assignable to type 'undefined'.
+
+  24 |
+  25 |         await prisma.auditLog.create({
+> 26 |             data: {
+     |             ^
+  27 |                 userId: session.user.id,
+  28 |                 userEmail: session.user.email,
+  29 |                 action,
+Next.js build worker exited with code: 1 and signal: null

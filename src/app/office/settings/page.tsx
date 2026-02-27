@@ -3,6 +3,8 @@ import { auth } from "@/auth"
 import { redirect } from "next/navigation"
 import { getGeneralSettings } from "@/actions/settings"
 import { SettingsClient } from "./settings-client"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/custom-tabs"
+import { AuditLogsTab } from "./audit-logs-tab"
 
 export default async function OfficeSettingsPage() {
     const session = await auth()
@@ -28,7 +30,22 @@ export default async function OfficeSettingsPage() {
 
     return (
         <DashboardLayout role="office">
-            <SettingsClient settings={settings} />
+            {officeRole === "SUPER_ADMIN" ? (
+                <Tabs defaultValue="general">
+                    <TabsList className="mb-6 bg-muted/50 p-1 border">
+                        <TabsTrigger value="general" className="px-6">General Settings</TabsTrigger>
+                        <TabsTrigger value="audit" className="px-6">Audit Logs</TabsTrigger>
+                    </TabsList>
+                    <TabsContent value="general">
+                        <SettingsClient settings={settings} />
+                    </TabsContent>
+                    <TabsContent value="audit">
+                        <AuditLogsTab />
+                    </TabsContent>
+                </Tabs>
+            ) : (
+                <SettingsClient settings={settings} />
+            )}
         </DashboardLayout>
     )
 }

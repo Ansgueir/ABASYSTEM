@@ -1,0 +1,54 @@
+
+> aba-supervision-system@0.1.0 build
+> next build
+
+Ôû▓ Next.js 16.1.6 (Turbopack)
+- Environments: .env.local, .env
+
+ÔÜá The "middleware" file convention is deprecated. Please use "proxy" instead. Learn more: https://nextjs.org/docs/messages/middleware-to-proxy
+  Creating an optimized production build ...
+
+> Build error occurred
+Error: Turbopack build failed with 2 errors:
+./src/components/supervisor/timesheets-tab.tsx:11:1
+Export updateHourStatus doesn't exist in target module
+   9 | import { Eye, Clock, Calendar, FileText, MapPin, Tag, Check, X, FileSignature } from "lucide-react"
+  10 | import { toast } from "sonner"
+> 11 | import { updateHourStatus } from "@/actions/audit"
+     | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  12 | import {
+  13 |     Dialog,
+  14 |     DialogContent,
+
+The export updateHourStatus was not found in module [project]/src/actions/audit.ts [app-client] (ecmascript).
+Did you mean to import getAuditLogs?
+All exports of the module are statically known (It doesn't have dynamic exports). So it's known statically that the requested export doesn't exist.
+
+Import trace:
+  Server Component:
+    ./src/components/supervisor/timesheets-tab.tsx
+    ./src/app/supervisor/students/[studentId]/page.tsx
+
+
+./src/components/supervisor/timesheets-tab.tsx:11:1
+Export updateHourStatus doesn't exist in target module
+   9 | import { Eye, Clock, Calendar, FileText, MapPin, Tag, Check, X, FileSignature } from "lucide-react"
+  10 | import { toast } from "sonner"
+> 11 | import { updateHourStatus } from "@/actions/audit"
+     | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  12 | import {
+  13 |     Dialog,
+  14 |     DialogContent,
+
+The export updateHourStatus was not found in module [project]/src/actions/audit.ts [app-ssr] (ecmascript).
+Did you mean to import getAuditLogs?
+All exports of the module are statically known (It doesn't have dynamic exports). So it's known statically that the requested export doesn't exist.
+
+Import trace:
+  Server Component:
+    ./src/components/supervisor/timesheets-tab.tsx
+    ./src/app/supervisor/students/[studentId]/page.tsx
+
+
+    at <unknown> (./src/components/supervisor/timesheets-tab.tsx:11:1)
+    at <unknown> (./src/components/supervisor/timesheets-tab.tsx:11:1)

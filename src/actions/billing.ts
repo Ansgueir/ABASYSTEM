@@ -4,6 +4,7 @@ import { auth } from "@/auth"
 import { prisma } from "@/lib/prisma"
 import { InvoiceStatus } from "@prisma/client"
 import { revalidatePath } from "next/cache"
+import { logAudit } from "@/lib/audit"
 
 export async function markInvoiceAsPaid(invoiceId: string, amountPaid: number, paymentMethod: string) {
     const session = await auth()
@@ -35,7 +36,7 @@ export async function markInvoiceAsPaid(invoiceId: string, amountPaid: number, p
         // Create Student Payment Record
         // Assuming PaymentType enum covers the method string, or cast/map
         // For now, let's assume it matches or find a default
-        await prisma.studentPayment.create({
+        const newPayment = await prisma.studentPayment.create({
             data: {
                 studentId: invoice.studentId,
                 paymentDate: new Date(),
@@ -43,6 +44,23 @@ export async function markInvoiceAsPaid(invoiceId: string, amountPaid: number, p
                 paymentType: "CHECK", // Default or map from input
                 notes: `Payment for Invoice #${invoiceId}. Method: ${paymentMethod}`
             }
+        })
+
+        await logAudit({
+            action: "UPDATE",
+            entity: "Invoice",
+            entityId: invoiceId,
+            details: `Marked invoice as PAID for amount $${amountPaid}`,
+            oldValues: { status: invoice.status, amountPaid: invoice.amountPaid },
+            newValues: { status: InvoiceStatus.PAID, amountPaid: amountPaid }
+        })
+
+        await logAudit({
+            action: "CREATE",
+            entity: "Payment",
+            entityId: newPayment.id,
+            details: `Created student payment record for invoice #${invoiceId}`,
+            newValues: newPayment
         })
 
         // Calculate Commission for Supervisor
@@ -127,6 +145,11 @@ export async function generateInvoicesAction() {
 
     const result = await generateMonthlyInvoices()
     if (result.success) {
+        await logAudit({
+            action: "CREATE",
+            entity: "System",
+            details: `Generated ${result.count} monthly invoices`
+        })
         revalidatePath("/office/payments")
         return { success: true, count: result.count }
     } else {

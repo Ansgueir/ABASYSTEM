@@ -26,6 +26,7 @@ model User {
   student            Student?
   supervisor         Supervisor?
   notifications      Notification[]
+  auditLogs          AuditLog[]
 }
 
 model Notification {
@@ -454,5 +455,26 @@ enum HourStatus {
 enum FieldworkType {
   REGULAR
   CONCENTRATED
+}
+
+model AuditLog {
+  id          String   @id @default(uuid())
+  userId      String
+  userEmail   String?
+  action      String
+  entity      String
+  entityId    String?
+  details     String?
+  oldValues   Json?
+  newValues   Json?
+  ipAddress   String?
+  createdAt   DateTime @default(now())
+  
+  user        User     @relation(fields: [userId], references: [id])
+
+  @@index([action])
+  @@index([entity])
+  @@index([userId])
+  @@index([createdAt])
 }
 

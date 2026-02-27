@@ -52,3 +52,47 @@ export async function updateHourStatus(formData: FormData) {
         return { error: "Database error occurred." }
     }
 }
+
+export async function getAuditLogs(params: {
+    page?: number
+    limit?: number
+    action?: string
+    entity?: string
+    userId?: string
+}) {
+    const session = await auth()
+    if (!session?.user) return { error: "Unauthorized" }
+
+    const role = String((session.user as any).role).toLowerCase()
+    const officeRole = String((session.user as any).officeRole).toUpperCase()
+
+    // Must be QA or Office SUPER_ADMIN
+    if (role !== "qa" && officeRole !== "SUPER_ADMIN") {
+        return { error: "Forbidden: Only Super Admins can access audit logs." }
+    }
+
+    const { page = 1, limit = 50, action, entity, userId } = params
+    const skip = (page - 1) * limit
+
+    const where: any = {}
+    if (action && action !== "ALL") where.action = action
+    if (entity && entity !== "ALL") where.entity = entity
+    if (userId && userId.trim() !== "") where.userId = userId
+
+    try {
+        const [logs, total] = await Promise.all([
+            prisma.auditLog.findMany({
+                where,
+                orderBy: { createdAt: "desc" },
+                skip,
+                take: limit,
+            }),
+            prisma.auditLog.count({ where })
+        ])
+
+        return { success: true, logs, total }
+    } catch (error) {
+        console.error("Failed to fetch audit logs:", error)
+        return { error: "Failed to fetch audit logs" }
+    }
+}
