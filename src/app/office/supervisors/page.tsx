@@ -2,8 +2,9 @@ import DashboardLayout from "@/components/dashboard-layout"
 import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { Users, Search, Plus, Filter, MoreHorizontal } from "lucide-react"
+import { Users, Search, Plus, Filter, MoreHorizontal, Eye } from "lucide-react"
 import { auth } from "@/auth"
+import Link from "next/link"
 import { prisma } from "@/lib/prisma"
 import { redirect } from "next/navigation"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
@@ -108,6 +109,11 @@ export default async function OfficeSupervisorsPage() {
                                                 </td>
                                                 <td className="p-4 text-right">
                                                     <div className="flex justify-end gap-2">
+                                                        <Button variant="ghost" size="sm" asChild className="gap-1">
+                                                            <Link href={`/office/supervisors/${supervisor.id}`}>
+                                                                <Eye className="h-4 w-4" /> View
+                                                            </Link>
+                                                        </Button>
                                                         <UserActions
                                                             id={supervisor.id}
                                                             userId={supervisor.userId}
