@@ -16,7 +16,12 @@ interface LogAuditParams {
 export async function logAudit({ action, entity, entityId, details, oldValues, newValues }: LogAuditParams) {
     try {
         const session = await auth()
-        if (!session?.user?.id) return // Don't log system actions without user context right now
+        if (!session?.user?.id) {
+            console.log("[AUDIT] No user session found, skipping log creation.")
+            return
+        }
+
+        console.log(`[AUDIT] Creating log for ${action} on ${entity} - User: ${session.user.email}`)
 
         // Remove deep circular references or huge objects if any, usually Prisma objects are fine
         const safeOld = oldValues ? JSON.parse(JSON.stringify(oldValues)) : null

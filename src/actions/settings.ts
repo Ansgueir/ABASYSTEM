@@ -4,6 +4,7 @@ import { auth } from "@/auth"
 import { prisma } from "@/lib/prisma"
 import { revalidatePath } from "next/cache"
 import { serialize } from "@/lib/serialize"
+import { logAudit } from "@/lib/audit"
 
 export async function getGeneralSettings() {
     try {
