@@ -9,6 +9,7 @@ import { format } from "date-fns"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import { ReviewSupervisionLogActions } from "@/components/office/review-supervision-log-actions"
 import Link from "next/link"
+import { serialize } from "@/lib/serialize"
 
 export const dynamic = "force-dynamic"
 export const fetchCache = "force-no-store"
@@ -132,7 +133,12 @@ export default async function SupervisionLogsReviewPage({
                                                     <span className="font-bold text-lg">{Number(log.hours).toFixed(1)}</span>
                                                 </td>
                                                 <td className="p-4 text-right">
-                                                    <ReviewSupervisionLogActions logId={log.id} status={log.status} officeRole={officeRole} />
+                                                    <ReviewSupervisionLogActions
+                                                        logId={log.id}
+                                                        status={log.status}
+                                                        officeRole={officeRole}
+                                                        logData={serialize(log)}
+                                                    />
                                                 </td>
                                             </tr>
                                         ))}

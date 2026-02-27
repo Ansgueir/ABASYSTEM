@@ -16,9 +16,10 @@ interface ReviewSupervisionLogActionsProps {
     logId: string
     status: string
     officeRole: string | null
+    logData?: any
 }
 
-export function ReviewSupervisionLogActions({ logId, status, officeRole }: ReviewSupervisionLogActionsProps) {
+export function ReviewSupervisionLogActions({ logId, status, officeRole, logData }: ReviewSupervisionLogActionsProps) {
     const [isPending, startTransition] = useTransition()
     const [rejectDialogOpen, setRejectDialogOpen] = useState(false)
     const [revertDialogOpen, setRevertDialogOpen] = useState(false)
@@ -76,37 +77,87 @@ export function ReviewSupervisionLogActions({ logId, status, officeRole }: Revie
                 <DialogHeader>
                     <DialogTitle className="flex items-center gap-2">
                         <FileText className="h-5 w-5" />
-                        Log Details
+                        Supervision Log Details
                     </DialogTitle>
                     <DialogDescription>
-                        Full supervision activity details and history.
+                        Full summary of the supervision session.
                     </DialogDescription>
                 </DialogHeader>
-                <div className="space-y-4 py-4 max-h-[70vh] overflow-y-auto pr-2 custom-scrollbar">
-                    {/* Placeholder for details - in real app we might fetch more or use props */}
-                    <div className="p-4 rounded-xl bg-muted/30 border space-y-3">
-                        <div className="flex items-center gap-3">
-                            <Clock className="h-4 w-4 text-primary" />
-                            <div className="text-sm">
-                                <p className="text-muted-foreground text-xs uppercase font-semibold">Status</p>
-                                <p className="font-medium">{status}</p>
-                            </div>
+                <div className="space-y-4 py-4 max-h-[75vh] overflow-y-auto pr-2 custom-scrollbar">
+                    {/* Header Info */}
+                    <div className="grid grid-cols-2 gap-4">
+                        <div className="p-3 rounded-xl bg-muted/30 border">
+                            <span className="text-muted-foreground block text-[10px] uppercase font-bold tracking-wider">Date</span>
+                            <span className="font-semibold text-sm">
+                                {logData?.date ? format(new Date(logData.date), "PPP") : "N/A"}
+                            </span>
                         </div>
-                        <div className="flex items-center gap-3">
-                            <Shield className="h-4 w-4 text-primary" />
-                            <div className="text-sm">
-                                <p className="text-muted-foreground text-xs uppercase font-semibold">Log ID</p>
-                                <p className="font-mono text-[10px] break-all">{logId}</p>
-                            </div>
+                        <div className="p-3 rounded-xl bg-muted/30 border">
+                            <span className="text-muted-foreground block text-[10px] uppercase font-bold tracking-wider">Hours</span>
+                            <span className="font-semibold text-sm">
+                                {Number(logData?.hours || 0).toFixed(1)} hrs
+                            </span>
                         </div>
                     </div>
-                    <p className="text-xs text-muted-foreground bg-muted p-2 rounded text-center">
-                        For full history and specific session notes, please visit the student's activity profile.
-                    </p>
+
+                    {/* Session Data */}
+                    <div className="space-y-3">
+                        <div className="flex items-start gap-3 p-3 rounded-xl bg-card border shadow-sm">
+                            <div className="h-8 w-8 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
+                                <Users className="h-4 w-4 text-primary" />
+                            </div>
+                            <div>
+                                <p className="text-xs text-muted-foreground uppercase font-semibold">Type & Setting</p>
+                                <p className="text-sm font-medium">{logData?.supervisionType} • {logData?.setting?.replace(/_/g, ' ')}</p>
+                            </div>
+                        </div>
+
+                        {logData?.groupTopic && (
+                            <div className="flex items-start gap-3 p-3 rounded-xl bg-card border shadow-sm">
+                                <div className="h-8 w-8 rounded-lg bg-secondary/10 flex items-center justify-center shrink-0">
+                                    <FileText className="h-4 w-4 text-secondary" />
+                                </div>
+                                <div>
+                                    <p className="text-xs text-muted-foreground uppercase font-semibold">Group Topic</p>
+                                    <p className="text-sm font-medium">{logData.groupTopic}</p>
+                                </div>
+                            </div>
+                        )}
+
+                        <div className="flex items-start gap-3 p-3 rounded-xl bg-card border shadow-sm">
+                            <div className="h-8 w-8 rounded-lg bg-muted flex items-center justify-center shrink-0">
+                                <Clock className="h-4 w-4 text-muted-foreground" />
+                            </div>
+                            <div>
+                                <p className="text-xs text-muted-foreground uppercase font-semibold">Time Interval</p>
+                                <p className="text-sm font-medium">
+                                    {logData?.startTime ? format(new Date(logData.startTime), "p") : "N/A"}
+                                    {logData?.endTime ? ` - ${format(new Date(logData.endTime), "p")}` : ""}
+                                </p>
+                            </div>
+                        </div>
+
+                        <div className="p-4 rounded-xl bg-muted/30 border space-y-2">
+                            <p className="text-xs text-muted-foreground uppercase font-semibold">System IDs</p>
+                            <div className="flex flex-col gap-1">
+                                <span className="font-mono text-[9px] text-muted-foreground uppercase">Log: {logId}</span>
+                                <span className="font-mono text-[9px] text-muted-foreground uppercase">Status: {status}</span>
+                            </div>
+                        </div>
+
+                        {logData?.notes && (
+                            <div className="space-y-2 pt-2">
+                                <p className="text-xs text-muted-foreground uppercase font-semibold px-1">Session Notes</p>
+                                <div className="p-4 rounded-xl bg-primary/5 border border-primary/10 italic text-sm text-foreground/80 leading-relaxed">
+                                    "{logData.notes}"
+                                </div>
+                            </div>
+                        )}
+                    </div>
                 </div>
                 <DialogFooter>
-                    <Button variant="outline" asChild className="w-full">
-                        <Link href={`/office/supervision-logs`}>Close</Link>
+                    <Button variant="outline" onClick={() => { }} className="w-full" asChild>
+                        <Link href={`/office/supervision-logs`}>Close View</Link>
                     </Button>
                 </DialogFooter>
             </DialogContent>
