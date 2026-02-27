@@ -174,7 +174,7 @@ export function AuditLogsTab() {
                                                             Audit Event Details
                                                         </DialogTitle>
                                                     </DialogHeader>
-                                                    <div className="space-y-4 pt-4">
+                                                    <div className="space-y-4 pt-4 max-h-[75vh] overflow-y-auto pr-2 custom-scrollbar">
                                                         <div className="grid grid-cols-2 gap-4 text-sm bg-muted/20 p-4 rounded-xl border">
                                                             <div>
                                                                 <span className="text-muted-foreground block text-xs">Event Timestamp</span>
