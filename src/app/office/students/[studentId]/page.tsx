@@ -11,6 +11,8 @@ import { OfficeContractsTab } from "@/components/office/contracts-tab"
 import { serialize } from "@/lib/serialize"
 import { EditStudentDialog } from "@/components/office/edit-student-dialog"
 import { EditableStudentBacbInfo } from "@/components/shared/editable-bacb-info"
+import { format } from "date-fns"
+import { Badge } from "@/components/ui/badge"
 
 export default async function OfficeStudentDetailPage({ params }: { params: Promise<{ studentId: string }> }) {
     const { studentId } = await params
@@ -37,6 +39,7 @@ export default async function OfficeStudentDetailPage({ params }: { params: Prom
             },
             independentHours: { orderBy: { date: "desc" } },
             supervisionHours: { orderBy: { date: "desc" } },
+            invoices: { orderBy: { createdAt: "desc" } },
         }
     })
 
@@ -122,6 +125,8 @@ export default async function OfficeStudentDetailPage({ params }: { params: Prom
                         <TabsTrigger value="contracts" className="px-6">Contracts</TabsTrigger>
                         <TabsTrigger value="contact" className="px-6">Contact Info</TabsTrigger>
                         <TabsTrigger value="documents" className="px-6">Documents</TabsTrigger>
+                        <TabsTrigger value="activity" className="px-6">Activity</TabsTrigger>
+                        <TabsTrigger value="billing" className="px-6">Billing</TabsTrigger>
                     </TabsList>
 
                     <TabsContent value="contracts">
@@ -186,6 +191,87 @@ export default async function OfficeStudentDetailPage({ params }: { params: Prom
                                     </div>
                                 ))
                             )}
+                        </div>
+                    </TabsContent>
+
+                    <TabsContent value="activity">
+                        <div className="rounded-xl border bg-card p-6">
+                            <h3 className="font-semibold text-lg mb-4">Approved Activity Logs</h3>
+                            <div className="overflow-x-auto">
+                                <table className="w-full text-sm">
+                                    <thead>
+                                        <tr className="border-b text-muted-foreground">
+                                            <th className="text-left font-medium p-3">Date</th>
+                                            <th className="text-left font-medium p-3">Type</th>
+                                            <th className="text-left font-medium p-3">Hours</th>
+                                            <th className="text-left font-medium p-3">Status</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody className="divide-y">
+                                        {[...(student.supervisionHours || []), ...(student.independentHours || [])]
+                                            .filter((h: any) => h.status === "APPROVED" || h.status === "BILLED")
+                                            .sort((a: any, b: any) => new Date(b.date).getTime() - new Date(a.date).getTime())
+                                            .map((hour: any) => (
+                                                <tr key={hour.id} className="hover:bg-muted/50 transition-colors">
+                                                    <td className="p-3">{format(new Date(hour.date), "MMM d, yyyy")}</td>
+                                                    <td className="p-3 font-medium">{'activityType' in hour ? 'Supervised' : 'Independent'}</td>
+                                                    <td className="p-3">{Number(hour.hours).toFixed(1)} hrs</td>
+                                                    <td className="p-3">
+                                                        <Badge variant={hour.status === 'BILLED' ? 'default' : 'secondary'}>
+                                                            {hour.status}
+                                                        </Badge>
+                                                    </td>
+                                                </tr>
+                                            ))}
+                                        {([...(student.supervisionHours || []), ...(student.independentHours || [])].filter((h: any) => h.status === "APPROVED" || h.status === "BILLED").length === 0) && (
+                                            <tr>
+                                                <td colSpan={4} className="p-6 text-center text-muted-foreground">
+                                                    No approved or billed activity found.
+                                                </td>
+                                            </tr>
+                                        )}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </TabsContent>
+
+                    <TabsContent value="billing">
+                        <div className="rounded-xl border bg-card p-6">
+                            <h3 className="font-semibold text-lg mb-4">Billing History</h3>
+                            <div className="overflow-x-auto">
+                                <table className="w-full text-sm">
+                                    <thead>
+                                        <tr className="border-b text-muted-foreground">
+                                            <th className="text-left font-medium p-3">Date</th>
+                                            <th className="text-right font-medium p-3">Amount Due</th>
+                                            <th className="text-right font-medium p-3">Amount Paid</th>
+                                            <th className="text-right font-medium p-3">Status</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody className="divide-y">
+                                        {(student.invoices || []).map((invoice: any) => (
+                                            <tr key={invoice.id} className="hover:bg-muted/50 transition-colors">
+                                                <td className="p-3">{format(new Date(invoice.createdAt), "MMM d, yyyy")}</td>
+                                                <td className="p-3 text-right font-medium">${Number(invoice.amountDue).toFixed(2)}</td>
+                                                <td className="p-3 text-right text-muted-foreground">${Number(invoice.amountPaid).toFixed(2)}</td>
+                                                <td className="p-3 text-right">
+                                                    <Badge variant={invoice.status === 'PAID' ? 'default' : 'secondary'}>
+                                                        {invoice.status}
+                                                    </Badge>
+                                                </td>
+                                            </tr>
+                                        ))}
+                                        {(!student.invoices || student.invoices.length === 0) && (
+                                            <tr>
+                                                <td colSpan={4} className="p-6 text-center text-muted-foreground">
+                                                    No billing history available.
+                                                </td>
+                                            </tr>
+                                        )}
+                                    </tbody>
+                                </table>
+                            </div>
                         </div>
                     </TabsContent>
                 </Tabs>
