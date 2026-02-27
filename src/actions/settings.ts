@@ -69,6 +69,21 @@ export async function updateGeneralSettings(formData: FormData) {
             } as any
         })
 
+        await logAudit({
+            action: "UPDATE",
+            entity: "System",
+            entityId: settings.id,
+            details: `Updated general settings`,
+            oldValues: settings,
+            newValues: {
+                companyName: companyName || settings.companyName,
+                companyEmail: companyEmail || settings.companyEmail,
+                companyPhone: companyPhone || settings.companyPhone,
+                companyAddress: companyAddress || settings.companyAddress,
+                supervisorPaymentPercentage
+            }
+        })
+
         revalidatePath("/", "layout")
         return { success: true }
     } catch (error) {
