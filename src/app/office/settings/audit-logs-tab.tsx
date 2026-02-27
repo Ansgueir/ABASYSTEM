@@ -21,7 +21,7 @@ export function AuditLogsTab() {
 
     const [filterAction, setFilterAction] = useState("ALL")
     const [filterEntity, setFilterEntity] = useState("ALL")
-    const [filterUserId, setFilterUserId] = useState("")
+    const [filterSearch, setFilterSearch] = useState("")
 
     const fetchLogs = async () => {
         setLoading(true)
@@ -30,7 +30,7 @@ export function AuditLogsTab() {
             limit: 50,
             action: filterAction,
             entity: filterEntity,
-            userId: filterUserId
+            search: filterSearch
         })
 
         if (result.success) {
@@ -98,9 +98,9 @@ export function AuditLogsTab() {
                     </Select>
 
                     <Input
-                        placeholder="Search User ID..."
-                        value={filterUserId}
-                        onChange={(e) => setFilterUserId(e.target.value)}
+                        placeholder="Search ID, Email, Detail..."
+                        value={filterSearch}
+                        onChange={(e) => setFilterSearch(e.target.value)}
                         className="max-w-[250px]"
                     />
                     <Button onClick={handleSearch} disabled={loading}>

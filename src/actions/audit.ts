@@ -58,7 +58,7 @@ export async function getAuditLogs(params: {
     limit?: number
     action?: string
     entity?: string
-    userId?: string
+    search?: string
 }) {
     const session = await auth()
     if (!session?.user) return { error: "Unauthorized" }
@@ -71,13 +71,20 @@ export async function getAuditLogs(params: {
         return { error: "Forbidden: Only Super Admins can access audit logs." }
     }
 
-    const { page = 1, limit = 50, action, entity, userId } = params
+    const { page = 1, limit = 50, action, entity, search } = params
     const skip = (page - 1) * limit
 
     const where: any = {}
     if (action && action !== "ALL") where.action = action
     if (entity && entity !== "ALL") where.entity = entity
-    if (userId && userId.trim() !== "") where.userId = userId
+    if (search && search.trim() !== "") {
+        where.OR = [
+            { userId: { contains: search, mode: "insensitive" } },
+            { userEmail: { contains: search, mode: "insensitive" } },
+            { entityId: { contains: search, mode: "insensitive" } },
+            { details: { contains: search, mode: "insensitive" } }
+        ]
+    }
 
     try {
         const [logs, total] = await Promise.all([
