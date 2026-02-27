@@ -47,9 +47,10 @@ const formSchema = z.object({
 interface UploadDocumentDialogProps {
     defaultType?: DocumentType
     targetStudentId?: string
+    targetSupervisorId?: string
 }
 
-export function UploadDocumentDialog({ defaultType, targetStudentId }: UploadDocumentDialogProps) {
+export function UploadDocumentDialog({ defaultType, targetStudentId, targetSupervisorId }: UploadDocumentDialogProps) {
     const [open, setOpen] = useState(false)
     const [isPending, setIsPending] = useState(false)
     const [file, setFile] = useState<File | null>(null)
@@ -74,6 +75,9 @@ export function UploadDocumentDialog({ defaultType, targetStudentId }: UploadDoc
         formData.append("file", file)
         if (targetStudentId) {
             formData.append("targetStudentId", targetStudentId)
+        }
+        if (targetSupervisorId) {
+            formData.append("targetSupervisorId", targetSupervisorId)
         }
 
         // @ts-ignore

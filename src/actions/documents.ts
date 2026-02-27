@@ -52,6 +52,7 @@ export async function uploadDocument(prevState: UploadState, formData: FormData)
         let folder = "others"
 
         const targetStudentId = formData.get("targetStudentId") as string
+        const targetSupervisorId = formData.get("targetSupervisorId") as string
 
         if (role === "student") {
             const student = await prisma.student.findUnique({ where: { userId: session.user.id } })
@@ -67,6 +68,9 @@ export async function uploadDocument(prevState: UploadState, formData: FormData)
             if (targetStudentId) {
                 studentId = targetStudentId
                 folder = `students/${studentId}`
+            } else if (targetSupervisorId) {
+                supervisorId = targetSupervisorId
+                folder = `supervisors/${supervisorId}`
             } else {
                 folder = "admin"
             }
@@ -94,6 +98,7 @@ export async function uploadDocument(prevState: UploadState, formData: FormData)
         revalidatePath("/supervisor/documents") // If we have one
         if (role === "office" || role === "qa") {
             if (studentId) revalidatePath(`/office/students/${studentId}`)
+            if (supervisorId) revalidatePath(`/office/supervisors/${supervisorId}`)
         }
 
         return { success: true }
@@ -135,6 +140,7 @@ export async function deleteDocument(documentId: string) {
 
         revalidatePath("/student/documents")
         if (doc.studentId) revalidatePath(`/office/students/${doc.studentId}`)
+        if (doc.supervisorId) revalidatePath(`/office/supervisors/${doc.supervisorId}`)
         return { success: true }
 
     } catch (error) {

@@ -258,7 +258,7 @@ export default async function OfficeSupervisorDetailPage({ params }: { params: P
                     <TabsContent value="documents">
                         <div className="flex justify-between items-center mb-4">
                             <h3 className="font-semibold text-lg">Stored Documents</h3>
-                            {/* We can reuse UploadDocumentDialog here, but we pass nothing so it targets supervisor's profile if user is supervisor, wait office upload requires target logic. For now omit upload or pass supervisor ID logic. */}
+                            <UploadDocumentDialog targetSupervisorId={supervisorId} />
                         </div>
                         <div className="space-y-3">
                             {(supervisor.documents ?? []).length === 0 ? (
