@@ -8,6 +8,7 @@ import { prisma } from "@/lib/prisma"
 import { redirect } from "next/navigation"
 import { startOfMonth } from "date-fns"
 import Link from "next/link"
+import { OfficeStatsGrid } from "@/components/office/office-stats-grid"
 
 export default async function OfficeDashboard() {
     const session = await auth()
@@ -20,21 +21,27 @@ export default async function OfficeDashboard() {
         totalStudents: 0,
         totalSupervisors: 0,
         pendingPayments: 0,
-        monthlyRevenue: 0,
+        totalPaidOut: 0,
         activeStudents: 0,
         pendingDocuments: 0
     }
 
     try {
-        const [studentCount, supervisorCount, pendingInvoices] = await Promise.all([
+        const startOfCurrentMonth = startOfMonth(new Date())
+        const [studentCount, supervisorCount, pendingInvoices, paidInvoicesAgg] = await Promise.all([
             prisma.student.count(),
             prisma.supervisor.count(),
-            prisma.invoice.count({ where: { status: 'SENT' } })
+            prisma.invoice.count({ where: { status: 'SENT' } }),
+            prisma.invoice.aggregate({
+                where: { status: 'PAID', createdAt: { gte: startOfCurrentMonth } },
+                _sum: { amountPaid: true }
+            })
         ])
 
         stats.totalStudents = studentCount
         stats.totalSupervisors = supervisorCount
         stats.pendingPayments = pendingInvoices
+        stats.totalPaidOut = Number(paidInvoicesAgg._sum?.amountPaid || 0)
         stats.activeStudents = studentCount // For now, all are active
     } catch (error) {
         console.error("Error fetching stats:", error)
@@ -113,63 +120,7 @@ export default async function OfficeDashboard() {
                 </div>
 
                 {/* Stats Grid */}
-                <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-                    <Card className="animate-slide-up" style={{ animationDelay: '0ms' }}>
-                        <CardContent className="pt-6">
-                            <div className="flex items-center gap-4">
-                                <div className="h-12 w-12 rounded-xl bg-primary/10 flex items-center justify-center">
-                                    <GraduationCap className="h-6 w-6 text-primary" />
-                                </div>
-                                <div>
-                                    <p className="text-sm text-muted-foreground">Total Students</p>
-                                    <p className="text-2xl font-bold">{stats.totalStudents}</p>
-                                </div>
-                            </div>
-                        </CardContent>
-                    </Card>
-
-                    <Card className="animate-slide-up" style={{ animationDelay: '100ms' }}>
-                        <CardContent className="pt-6">
-                            <div className="flex items-center gap-4">
-                                <div className="h-12 w-12 rounded-xl bg-success/10 flex items-center justify-center">
-                                    <Users className="h-6 w-6 text-success" />
-                                </div>
-                                <div>
-                                    <p className="text-sm text-muted-foreground">Supervisors</p>
-                                    <p className="text-2xl font-bold">{stats.totalSupervisors}</p>
-                                </div>
-                            </div>
-                        </CardContent>
-                    </Card>
-
-                    <Card className="animate-slide-up" style={{ animationDelay: '200ms' }}>
-                        <CardContent className="pt-6">
-                            <div className="flex items-center gap-4">
-                                <div className="h-12 w-12 rounded-xl bg-warning/10 flex items-center justify-center">
-                                    <DollarSign className="h-6 w-6 text-warning" />
-                                </div>
-                                <div>
-                                    <p className="text-sm text-muted-foreground">Pending Payments</p>
-                                    <p className="text-2xl font-bold">{stats.pendingPayments}</p>
-                                </div>
-                            </div>
-                        </CardContent>
-                    </Card>
-
-                    <Card className="animate-slide-up" style={{ animationDelay: '300ms' }}>
-                        <CardContent className="pt-6">
-                            <div className="flex items-center gap-4">
-                                <div className="h-12 w-12 rounded-xl bg-accent/30 flex items-center justify-center">
-                                    <TrendingUp className="h-6 w-6 text-accent-foreground" />
-                                </div>
-                                <div>
-                                    <p className="text-sm text-muted-foreground">Monthly Revenue</p>
-                                    <p className="text-2xl font-bold">${stats.monthlyRevenue}</p>
-                                </div>
-                            </div>
-                        </CardContent>
-                    </Card>
-                </div>
+                <OfficeStatsGrid initialStats={stats} />
 
                 {/* Quick Links */}
                 <div className="grid gap-4 md:grid-cols-3">

@@ -1,3 +1,4 @@
+
 #!/usr/bin/env python3
 """
 Migration script: Supabase → Local PostgreSQL
