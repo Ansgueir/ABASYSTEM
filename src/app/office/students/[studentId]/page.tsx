@@ -3,7 +3,7 @@ import { prisma } from "@/lib/prisma"
 import { redirect } from "next/navigation"
 import DashboardLayout from "@/components/dashboard-layout"
 import { Button } from "@/components/ui/button"
-import { ArrowLeft, Mail, Phone, MapPin, GraduationCap } from "lucide-react"
+import { ArrowLeft, Mail, Phone, MapPin, GraduationCap, Eye } from "lucide-react"
 import Link from "next/link"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/custom-tabs"
@@ -13,6 +13,7 @@ import { EditStudentDialog } from "@/components/office/edit-student-dialog"
 import { EditableStudentBacbInfo } from "@/components/shared/editable-bacb-info"
 import { format } from "date-fns"
 import { Badge } from "@/components/ui/badge"
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
 
 export default async function OfficeStudentDetailPage({ params }: { params: Promise<{ studentId: string }> }) {
     const { studentId } = await params
@@ -205,6 +206,7 @@ export default async function OfficeStudentDetailPage({ params }: { params: Prom
                                             <th className="text-left font-medium p-3">Type</th>
                                             <th className="text-left font-medium p-3">Hours</th>
                                             <th className="text-left font-medium p-3">Status</th>
+                                            <th className="text-right font-medium p-3"></th>
                                         </tr>
                                     </thead>
                                     <tbody className="divide-y">
@@ -221,11 +223,71 @@ export default async function OfficeStudentDetailPage({ params }: { params: Prom
                                                             {hour.status}
                                                         </Badge>
                                                     </td>
+                                                    <td className="p-3 text-right">
+                                                        <Dialog>
+                                                            <DialogTrigger asChild>
+                                                                <Button variant="ghost" size="icon" className="h-8 w-8 rounded-full">
+                                                                    <Eye className="h-4 w-4 text-muted-foreground" />
+                                                                </Button>
+                                                            </DialogTrigger>
+                                                            <DialogContent className="sm:max-w-md">
+                                                                <DialogHeader>
+                                                                    <DialogTitle>Activity Details</DialogTitle>
+                                                                </DialogHeader>
+                                                                <div className="space-y-4 py-4 text-sm">
+                                                                    <div className="grid grid-cols-2 gap-4">
+                                                                        <div>
+                                                                            <p className="text-muted-foreground text-xs">Date</p>
+                                                                            <p className="font-medium">{format(new Date(hour.date), "MMMM d, yyyy")}</p>
+                                                                        </div>
+                                                                        <div>
+                                                                            <p className="text-muted-foreground text-xs">Duration</p>
+                                                                            <p className="font-medium">{Number(hour.hours).toFixed(1)} hrs</p>
+                                                                        </div>
+                                                                        <div>
+                                                                            <p className="text-muted-foreground text-xs">Type</p>
+                                                                            <p className="font-medium">{'activityType' in hour ? 'Supervised' : 'Independent'}</p>
+                                                                        </div>
+                                                                        <div>
+                                                                            <p className="text-muted-foreground text-xs">Status</p>
+                                                                            <Badge variant={hour.status === 'BILLED' ? 'default' : 'secondary'} className="mt-1">
+                                                                                {hour.status}
+                                                                            </Badge>
+                                                                        </div>
+                                                                        {'activityType' in hour && (
+                                                                            <>
+                                                                                <div className="col-span-2 border-t pt-4 mt-2">
+                                                                                    <p className="text-muted-foreground text-xs">Activity Type</p>
+                                                                                    <p className="font-medium">{hour.activityType?.replace(/_/g, ' ')}</p>
+                                                                                </div>
+                                                                                <div className="col-span-2">
+                                                                                    <p className="text-muted-foreground text-xs">Setting</p>
+                                                                                    <p className="font-medium">{hour.setting?.replace(/_/g, ' ')}</p>
+                                                                                </div>
+                                                                            </>
+                                                                        )}
+                                                                        {hour.notes && (
+                                                                            <div className="col-span-2 border-t pt-4 mt-2">
+                                                                                <p className="text-muted-foreground text-xs">Notes</p>
+                                                                                <p className="italic bg-muted/30 p-3 rounded-lg mt-1">{hour.notes}</p>
+                                                                            </div>
+                                                                        )}
+                                                                        {hour.groupTopic && (
+                                                                            <div className="col-span-2 border-t pt-4 mt-2">
+                                                                                <p className="text-muted-foreground text-xs">Group Topic</p>
+                                                                                <p className="font-medium">{hour.groupTopic}</p>
+                                                                            </div>
+                                                                        )}
+                                                                    </div>
+                                                                </div>
+                                                            </DialogContent>
+                                                        </Dialog>
+                                                    </td>
                                                 </tr>
                                             ))}
                                         {([...(student.supervisionHours || []), ...(student.independentHours || [])].filter((h: any) => h.status === "APPROVED" || h.status === "BILLED").length === 0) && (
                                             <tr>
-                                                <td colSpan={4} className="p-6 text-center text-muted-foreground">
+                                                <td colSpan={5} className="p-6 text-center text-muted-foreground">
                                                     No approved or billed activity found.
                                                 </td>
                                             </tr>
@@ -247,6 +309,7 @@ export default async function OfficeStudentDetailPage({ params }: { params: Prom
                                             <th className="text-right font-medium p-3">Amount Due</th>
                                             <th className="text-right font-medium p-3">Amount Paid</th>
                                             <th className="text-right font-medium p-3">Status</th>
+                                            <th className="text-right font-medium p-3"></th>
                                         </tr>
                                     </thead>
                                     <tbody className="divide-y">
@@ -260,11 +323,18 @@ export default async function OfficeStudentDetailPage({ params }: { params: Prom
                                                         {invoice.status}
                                                     </Badge>
                                                 </td>
+                                                <td className="p-3 text-right">
+                                                    <Button variant="ghost" size="icon" className="h-8 w-8 rounded-full" asChild>
+                                                        <a href={`/api/office/invoices/${invoice.id}/download`} target="_blank">
+                                                            <Eye className="h-4 w-4 text-muted-foreground" />
+                                                        </a>
+                                                    </Button>
+                                                </td>
                                             </tr>
                                         ))}
                                         {(!student.invoices || student.invoices.length === 0) && (
                                             <tr>
-                                                <td colSpan={4} className="p-6 text-center text-muted-foreground">
+                                                <td colSpan={5} className="p-6 text-center text-muted-foreground">
                                                     No billing history available.
                                                 </td>
                                             </tr>
