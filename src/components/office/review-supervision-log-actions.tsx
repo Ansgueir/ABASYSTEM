@@ -2,10 +2,12 @@
 
 import { useState, useTransition } from "react"
 import { Button } from "@/components/ui/button"
-import { Check, X, Loader2 } from "lucide-react"
+import { Check, X, Loader2, Eye, Shield, Users, Clock, Calendar, FileText } from "lucide-react"
+import { format } from "date-fns"
 import { toast } from "sonner"
 import { approveSupervisionHour, rejectSupervisionHour, revertSupervisionHourToPending } from "@/actions/log-hours"
 import { ArchiveRestore } from "lucide-react"
+import Link from "next/link"
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
 import { Label } from "@/components/ui/label"
 import { Input } from "@/components/ui/input"
@@ -62,9 +64,59 @@ export function ReviewSupervisionLogActions({ logId, status, officeRole }: Revie
         })
     }
 
+    // NEW: Dialog content for viewing details (shared logic)
+    const renderViewDetails = () => (
+        <Dialog>
+            <DialogTrigger asChild>
+                <Button variant="ghost" size="icon" className="h-8 w-8 rounded-full">
+                    <Eye className="h-4 w-4 text-muted-foreground hover:text-primary transition-colors" />
+                </Button>
+            </DialogTrigger>
+            <DialogContent className="max-w-md">
+                <DialogHeader>
+                    <DialogTitle className="flex items-center gap-2">
+                        <FileText className="h-5 w-5" />
+                        Log Details
+                    </DialogTitle>
+                    <DialogDescription>
+                        Full supervision activity details and history.
+                    </DialogDescription>
+                </DialogHeader>
+                <div className="space-y-4 py-4 max-h-[70vh] overflow-y-auto pr-2 custom-scrollbar">
+                    {/* Placeholder for details - in real app we might fetch more or use props */}
+                    <div className="p-4 rounded-xl bg-muted/30 border space-y-3">
+                        <div className="flex items-center gap-3">
+                            <Clock className="h-4 w-4 text-primary" />
+                            <div className="text-sm">
+                                <p className="text-muted-foreground text-xs uppercase font-semibold">Status</p>
+                                <p className="font-medium">{status}</p>
+                            </div>
+                        </div>
+                        <div className="flex items-center gap-3">
+                            <Shield className="h-4 w-4 text-primary" />
+                            <div className="text-sm">
+                                <p className="text-muted-foreground text-xs uppercase font-semibold">Log ID</p>
+                                <p className="font-mono text-[10px] break-all">{logId}</p>
+                            </div>
+                        </div>
+                    </div>
+                    <p className="text-xs text-muted-foreground bg-muted p-2 rounded text-center">
+                        For full history and specific session notes, please visit the student's activity profile.
+                    </p>
+                </div>
+                <DialogFooter>
+                    <Button variant="outline" asChild className="w-full">
+                        <Link href={`/office/supervision-logs`}>Close</Link>
+                    </Button>
+                </DialogFooter>
+            </DialogContent>
+        </Dialog>
+    )
+
     if (status === "REJECTED") {
         return (
-            <div className="flex justify-end gap-2">
+            <div className="flex justify-end items-center gap-2">
+                {renderViewDetails()}
                 {officeRole === "SUPER_ADMIN" && (
                     <Dialog open={revertDialogOpen} onOpenChange={setRevertDialogOpen}>
                         <DialogTrigger asChild>
@@ -130,7 +182,8 @@ export function ReviewSupervisionLogActions({ logId, status, officeRole }: Revie
 
     if (status === "APPROVED") {
         return (
-            <div className="flex justify-end gap-2">
+            <div className="flex justify-end items-center gap-2">
+                {renderViewDetails()}
                 <Dialog open={rejectDialogOpen} onOpenChange={setRejectDialogOpen}>
                     <DialogTrigger asChild>
                         <Button
@@ -173,11 +226,16 @@ export function ReviewSupervisionLogActions({ logId, status, officeRole }: Revie
     }
 
     if (status !== "PENDING") {
-        return null // Other statuses like BILLED don't have actions here currently
+        return (
+            <div className="flex justify-end items-center gap-2">
+                {renderViewDetails()}
+            </div>
+        )
     }
 
     return (
-        <div className="flex justify-end gap-2">
+        <div className="flex justify-end items-center gap-2">
+            {renderViewDetails()}
             <Dialog open={rejectDialogOpen} onOpenChange={setRejectDialogOpen}>
                 <DialogTrigger asChild>
                     <Button
