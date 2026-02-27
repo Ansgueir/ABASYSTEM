@@ -149,4 +149,23 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
             return session
         },
     },
+    events: {
+        async signIn({ user }) {
+            try {
+                if (!user.id) return;
+                await prisma.auditLog.create({
+                    data: {
+                        userId: user.id,
+                        userEmail: user.email || null,
+                        action: "LOGIN",
+                        entity: "System",
+                        entityId: user.id,
+                        details: `Successful login`
+                    }
+                })
+            } catch (error) {
+                console.error("Failed to log login event:", error)
+            }
+        }
+    }
 })
