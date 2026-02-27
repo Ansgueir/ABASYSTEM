@@ -14,6 +14,8 @@ import { EditableStudentBacbInfo } from "@/components/shared/editable-bacb-info"
 import { format } from "date-fns"
 import { Badge } from "@/components/ui/badge"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
+import { UploadDocumentDialog } from "@/components/upload-document-dialog"
+import { OfficeDocumentActions } from "@/components/office/office-document-actions"
 
 export default async function OfficeStudentDetailPage({ params }: { params: Promise<{ studentId: string }> }) {
     const { studentId } = await params
@@ -175,6 +177,10 @@ export default async function OfficeStudentDetailPage({ params }: { params: Prom
                     </TabsContent>
 
                     <TabsContent value="documents">
+                        <div className="flex justify-between items-center mb-4">
+                            <h3 className="font-semibold text-lg">Stored Documents</h3>
+                            <UploadDocumentDialog targetStudentId={studentId} />
+                        </div>
                         <div className="space-y-3">
                             {(student.documents ?? []).length === 0 ? (
                                 <div className="p-10 text-center border border-dashed rounded-xl text-muted-foreground">No documents uploaded.</div>
@@ -185,10 +191,18 @@ export default async function OfficeStudentDetailPage({ params }: { params: Prom
                                             <p className="font-medium text-sm">{doc.documentType.replace(/_/g, " ")}</p>
                                             <p className="text-xs text-muted-foreground">{doc.fileName}</p>
                                         </div>
-                                        <span className={`text-xs font-semibold px-2 py-1 rounded-full ${doc.status === "APPROVED" ? "bg-success/10 text-success" :
-                                            doc.status === "REJECTED" ? "bg-destructive/10 text-destructive" :
-                                                "bg-muted text-muted-foreground"
-                                            }`}>{doc.status}</span>
+                                        <div className="flex items-center gap-4">
+                                            <span className={`text-xs font-semibold px-2 py-1 rounded-full ${doc.status === "APPROVED" ? "bg-success/10 text-success" :
+                                                doc.status === "REJECTED" ? "bg-destructive/10 text-destructive" :
+                                                    "bg-muted text-muted-foreground"
+                                                }`}>{doc.status}</span>
+
+                                            <OfficeDocumentActions
+                                                documentId={doc.id}
+                                                fileUrl={doc.fileUrl}
+                                                fileName={doc.fileName}
+                                            />
+                                        </div>
                                     </div>
                                 ))
                             )}

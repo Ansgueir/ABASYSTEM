@@ -51,6 +51,8 @@ export async function uploadDocument(prevState: UploadState, formData: FormData)
         let supervisorId = null
         let folder = "others"
 
+        const targetStudentId = formData.get("targetStudentId") as string
+
         if (role === "student") {
             const student = await prisma.student.findUnique({ where: { userId: session.user.id } })
             if (!student) return { error: "Profile not found" }
@@ -61,8 +63,14 @@ export async function uploadDocument(prevState: UploadState, formData: FormData)
             if (!supervisor) return { error: "Profile not found" }
             supervisorId = supervisor.id
             folder = `supervisors/${supervisorId}`
+        } else if (role === "office" || role === "qa") {
+            if (targetStudentId) {
+                studentId = targetStudentId
+                folder = `students/${studentId}`
+            } else {
+                folder = "admin"
+            }
         } else {
-            // Maybe office/admin logic later
             folder = "admin"
         }
 
@@ -84,6 +92,9 @@ export async function uploadDocument(prevState: UploadState, formData: FormData)
 
         revalidatePath("/student/documents")
         revalidatePath("/supervisor/documents") // If we have one
+        if (role === "office" || role === "qa") {
+            if (studentId) revalidatePath(`/office/students/${studentId}`)
+        }
 
         return { success: true }
 
@@ -104,11 +115,12 @@ export async function deleteDocument(documentId: string) {
 
         if (!doc) return { error: "Document not found" }
 
+        const role = String((session.user as any).role).toLowerCase()
         // Check ownership
         // Ideally verify user owns the profile linked to the doc
         // For simplicity allow if logged in user uploaded it or owns profile
         // But uploadedById is safer
-        if (doc.uploadedById !== session.user.id) {
+        if (doc.uploadedById !== session.user.id && role !== "office" && role !== "qa") {
             // Check role based override (e.g. admin)
             return { error: "Unauthorized to delete this document" }
         }
@@ -122,6 +134,7 @@ export async function deleteDocument(documentId: string) {
         })
 
         revalidatePath("/student/documents")
+        if (doc.studentId) revalidatePath(`/office/students/${doc.studentId}`)
         return { success: true }
 
     } catch (error) {
