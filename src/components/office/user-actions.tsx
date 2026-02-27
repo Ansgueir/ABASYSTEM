@@ -90,33 +90,33 @@ export function UserActions({ id, userId, name, email, type, isActive, fullData,
                 <PopoverContent align="end" className="w-[200px] p-2 space-y-1">
                     <p className="px-2 py-1.5 text-xs font-semibold text-muted-foreground">Actions</p>
 
-                    {type === "student" ? (
+                    {(type === "student" || type === "supervisor") && (
                         <Button
                             variant="ghost"
                             size="sm"
                             asChild
                             className="w-full justify-start h-8 px-2"
                         >
-                            <Link href={`/office/students/${id}`}>
+                            <Link href={`/office/${type}s/${id}`}>
                                 <ExternalLink className="mr-2 h-4 w-4" />
                                 View Details
                             </Link>
                         </Button>
-                    ) : (
-                        isSuperAdmin && (
-                            <Button
-                                variant="ghost"
-                                size="sm"
-                                className="w-full justify-start h-8 px-2"
-                                onClick={() => {
-                                    setIsPopoverOpen(false)
-                                    setShowEditDialog(true)
-                                }}
-                            >
-                                <Edit className="mr-2 h-4 w-4" />
-                                Edit Details
-                            </Button>
-                        )
+                    )}
+
+                    {isSuperAdmin && type !== "student" && (
+                        <Button
+                            variant="ghost"
+                            size="sm"
+                            className="w-full justify-start h-8 px-2"
+                            onClick={() => {
+                                setIsPopoverOpen(false)
+                                setShowEditDialog(true)
+                            }}
+                        >
+                            <Edit className="mr-2 h-4 w-4" />
+                            Edit Details
+                        </Button>
                     )}
 
                     {type === "supervisor" && (

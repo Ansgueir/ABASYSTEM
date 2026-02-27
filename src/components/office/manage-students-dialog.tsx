@@ -8,6 +8,7 @@ import {
     DialogHeader,
     DialogTitle,
     DialogDescription,
+    DialogTrigger,
 } from "@/components/ui/dialog"
 import { Check, X, Users, Loader2 } from "lucide-react"
 import { toast } from "sonner"
@@ -16,11 +17,14 @@ import { getManageableStudents, assignStudentToSupervisor } from "@/actions/assi
 interface ManageStudentsDialogProps {
     supervisorId: string
     supervisorName: string
-    open: boolean
-    onOpenChange: (open: boolean) => void
+    open?: boolean
+    onOpenChange?: (open: boolean) => void
 }
 
-export function ManageStudentsDialog({ supervisorId, supervisorName, open, onOpenChange }: ManageStudentsDialogProps) {
+export function ManageStudentsDialog({ supervisorId, supervisorName, open: controlledOpen, onOpenChange: controlledOnOpenChange }: ManageStudentsDialogProps) {
+    const [internalOpen, setInternalOpen] = useState(false)
+    const open = controlledOpen !== undefined ? controlledOpen : internalOpen
+    const onOpenChange = controlledOnOpenChange || setInternalOpen
     const [isPending, startTransition] = useTransition()
     const [isLoading, setIsLoading] = useState(false)
     const [unassigned, setUnassigned] = useState<any[]>([])
@@ -60,6 +64,14 @@ export function ManageStudentsDialog({ supervisorId, supervisorName, open, onOpe
 
     return (
         <Dialog open={open} onOpenChange={onOpenChange}>
+            {controlledOpen === undefined && (
+                <DialogTrigger asChild>
+                    <Button variant="outline" size="sm" className="h-8 gap-2">
+                        <Users className="h-4 w-4" />
+                        Manage Students
+                    </Button>
+                </DialogTrigger>
+            )}
             <DialogContent className="sm:max-w-[600px] max-h-[80vh] flex flex-col">
                 <DialogHeader>
                     <DialogTitle className="flex items-center gap-2">

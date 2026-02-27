@@ -20,11 +20,14 @@ import { updateSupervisor } from "@/actions/users"
 
 interface EditSupervisorDialogProps {
     supervisor: any
-    open: boolean
-    onOpenChange: (open: boolean) => void
+    open?: boolean
+    onOpenChange?: (open: boolean) => void
 }
 
-export function EditSupervisorDialog({ supervisor, open, onOpenChange }: EditSupervisorDialogProps) {
+export function EditSupervisorDialog({ supervisor, open: controlledOpen, onOpenChange: controlledOnOpenChange }: EditSupervisorDialogProps) {
+    const [internalOpen, setInternalOpen] = useState(false)
+    const open = controlledOpen !== undefined ? controlledOpen : internalOpen
+    const onOpenChange = controlledOnOpenChange || setInternalOpen
     const [isPending, startTransition] = useTransition()
 
     async function onSubmit(event: React.FormEvent<HTMLFormElement>) {
@@ -56,6 +59,14 @@ export function EditSupervisorDialog({ supervisor, open, onOpenChange }: EditSup
 
     return (
         <Dialog open={open} onOpenChange={onOpenChange}>
+            {controlledOpen === undefined && (
+                <DialogTrigger asChild>
+                    <Button variant="outline" size="sm" className="h-8 gap-2">
+                        <Edit className="h-4 w-4" />
+                        Edit Profile
+                    </Button>
+                </DialogTrigger>
+            )}
             <DialogContent className="sm:max-w-[550px]">
                 <DialogHeader>
                     <DialogTitle>Edit Supervisor Profile</DialogTitle>
