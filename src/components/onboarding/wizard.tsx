@@ -79,7 +79,8 @@ export default function OnboardingWizard({ initialStep, initialData }: WizardPro
                 toast.success("Profile updated")
                 setStep(2)
             }
-        } catch (err) {
+        } catch (err: any) {
+            if (err?.message?.includes('NEXT_REDIRECT')) throw err;
             toast.error("An error occurred")
         } finally {
             setIsPending(false)
@@ -101,7 +102,8 @@ export default function OnboardingWizard({ initialStep, initialData }: WizardPro
                 toast.success("Terms accepted")
                 setStep(3)
             }
-        } catch (err) {
+        } catch (err: any) {
+            if (err?.message?.includes('NEXT_REDIRECT')) throw err;
             toast.error("An error occurred")
         } finally {
             setIsPending(false)
@@ -139,9 +141,10 @@ export default function OnboardingWizard({ initialStep, initialData }: WizardPro
                     router.push(dashboardPath)
                 }, 500)
             }
-        } catch (err) {
+        } catch (err: any) {
+            if (err?.message?.includes('NEXT_REDIRECT')) throw err;
+            console.error("Setup error:", err)
             toast.error("An error occurred")
-        } finally {
             setIsPending(false)
         }
     }
