@@ -16,6 +16,9 @@ export default async function OfficePaymentsPage() {
     const role = String((session.user as any).role).toLowerCase()
     if (role !== "office" && role !== "qa") redirect("/login")
 
+    const officeRole = (session.user as any).officeRole
+    if (officeRole !== "SUPER_ADMIN") redirect("/office")
+
     let invoices: any[] = []
     let stats = { pending: 0, paid: 0, total: 0 }
     let unbilledTotal = 0

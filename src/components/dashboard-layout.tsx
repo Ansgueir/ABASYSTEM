@@ -84,7 +84,7 @@ export default function DashboardLayout({
             { name: "Students", href: "/office/students", icon: GraduationCap },
             { name: "Supervisors", href: "/office/supervisors", icon: Users },
             { name: "Review Logs", href: "/office/supervision-logs", icon: FileText },
-            { name: "Payments", href: "/office/payments", icon: CreditCard },
+            ...(officeRole === "SUPER_ADMIN" ? [{ name: "Payments", href: "/office/payments", icon: CreditCard }] : []),
             { name: "Group Supervision", href: "/office/group-supervision", icon: Users },
             { name: "Team", href: "/office/team", icon: Users },
             ...(officeRole === "SUPER_ADMIN" ? [{ name: "Settings", href: "/office/settings", icon: Settings }] : []),

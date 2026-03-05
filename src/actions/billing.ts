@@ -15,6 +15,11 @@ export async function markInvoiceAsPaid(invoiceId: string, amountPaid: number, p
         return { error: "Unauthorized role" }
     }
 
+    const officeRole = (session.user as any).officeRole
+    if (officeRole !== "SUPER_ADMIN") {
+        return { error: "Forbidden: Only Super Admin can process payments" }
+    }
+
     try {
         const invoice = await prisma.invoice.findUnique({
             where: { id: invoiceId },
@@ -137,7 +142,10 @@ export async function generateInvoicesAction() {
         return { error: "Unauthorized role" }
     }
 
-    // All office users and qa can run invoicing.
+    const officeRole = String(user.officeRole || "")
+    if (officeRole !== "SUPER_ADMIN") {
+        return { error: "Forbidden: Only Super Admin can generate invoices" }
+    }
 
 
     // Dynamic import to avoid circular dependency if any? No, lib is fine.

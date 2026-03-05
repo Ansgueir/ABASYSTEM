@@ -16,6 +16,7 @@ export default async function OfficeDashboard() {
 
     const role = String((session.user as any).role).toLowerCase()
     if (role !== "office" && role !== "qa") redirect("/login")
+    const isSuperAdmin = (session.user as any).officeRole === "SUPER_ADMIN"
 
     let stats = {
         totalStudents: 0,
@@ -88,12 +89,14 @@ export default async function OfficeDashboard() {
                             Manage Students
                         </Link>
                     </Button>
-                    <Button variant="outline" className="w-full justify-start rounded-xl" asChild>
-                        <Link href="/office/payments">
-                            <DollarSign className="h-4 w-4 mr-2" />
-                            Process Payments
-                        </Link>
-                    </Button>
+                    {isSuperAdmin && (
+                        <Button variant="outline" className="w-full justify-start rounded-xl" asChild>
+                            <Link href="/office/payments">
+                                <DollarSign className="h-4 w-4 mr-2" />
+                                Process Payments
+                            </Link>
+                        </Button>
+                    )}
                 </CardContent>
             </Card>
         </div>
@@ -150,18 +153,20 @@ export default async function OfficeDashboard() {
                         </Card>
                     </Link>
 
-                    <Link href="/office/payments">
-                        <Card className="hover:shadow-elevated transition-all cursor-pointer">
-                            <CardContent className="pt-6">
-                                <DollarSign className="h-8 w-8 text-warning mb-4" />
-                                <h3 className="font-semibold">Payment Processing</h3>
-                                <p className="text-sm text-muted-foreground mt-1">Process invoices and track payments</p>
-                                <Button variant="ghost" size="sm" className="mt-4 p-0 h-auto text-warning">
-                                    Go to Payments <ArrowRight className="h-4 w-4 ml-1" />
-                                </Button>
-                            </CardContent>
-                        </Card>
-                    </Link>
+                    {isSuperAdmin && (
+                        <Link href="/office/payments">
+                            <Card className="hover:shadow-elevated transition-all cursor-pointer">
+                                <CardContent className="pt-6">
+                                    <DollarSign className="h-8 w-8 text-warning mb-4" />
+                                    <h3 className="font-semibold">Payment Processing</h3>
+                                    <p className="text-sm text-muted-foreground mt-1">Process invoices and track payments</p>
+                                    <Button variant="ghost" size="sm" className="mt-4 p-0 h-auto text-warning">
+                                        Go to Payments <ArrowRight className="h-4 w-4 ml-1" />
+                                    </Button>
+                                </CardContent>
+                            </Card>
+                        </Link>
+                    )}
                 </div>
             </div>
         </DashboardLayout>
