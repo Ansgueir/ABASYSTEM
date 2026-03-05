@@ -128,153 +128,156 @@ export function SupervisorList({ initialSupervisors, isSuperAdmin }: SupervisorL
 
     return (
         <div className="space-y-6">
-            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+            <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
                 <div>
                     <h1 className="text-2xl font-bold">Supervisors</h1>
                     <p className="text-muted-foreground">Manage all registered supervisors</p>
                 </div>
-                <div className="flex flex-wrap gap-2">
-                    <div className="relative w-full sm:w-64 md:w-80">
+                <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2 sm:gap-4">
+                    <div className="relative w-full sm:w-64 md:w-72">
                         <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                         <Input
                             placeholder="Search by name, email or BACB ID..."
-                            className="pl-10 rounded-xl"
+                            className="pl-10 rounded-xl w-full"
                             value={searchTerm}
                             onChange={(e) => setSearchTerm(e.target.value)}
                         />
                     </div>
 
-                    <Sheet>
-                        <SheetTrigger asChild>
-                            <Button variant="outline" className="rounded-xl gap-2 relative border-dashed border-2">
-                                <Filter className="h-4 w-4" />
-                                <span className="hidden sm:inline">Filters</span>
-                                {activeFiltersCount > 0 && (
-                                    <span className="absolute -top-2 -right-2 h-5 w-5 rounded-full bg-primary text-[10px] font-bold text-primary-foreground flex items-center justify-center">
-                                        {activeFiltersCount}
-                                    </span>
-                                )}
-                            </Button>
-                        </SheetTrigger>
-                        <SheetContent className="w-[400px] sm:w-[540px] overflow-y-auto">
-                            <div className="mb-6 flex flex-col space-y-2 text-center sm:text-left">
-                                <div className="flex justify-between items-center text-lg font-semibold text-foreground">
-                                    <span>Advanced Filters</span>
+                    <div className="flex flex-wrap items-center gap-2">
+
+                        <Sheet>
+                            <SheetTrigger asChild>
+                                <Button variant="outline" className="rounded-xl gap-2 relative border-dashed border-2">
+                                    <Filter className="h-4 w-4" />
+                                    <span className="hidden sm:inline">Filters</span>
                                     {activeFiltersCount > 0 && (
-                                        <Button variant="ghost" size="sm" onClick={clearFilters} className="text-muted-foreground hover:text-foreground">
-                                            Clear All
-                                        </Button>
+                                        <span className="absolute -top-2 -right-2 h-5 w-5 rounded-full bg-primary text-[10px] font-bold text-primary-foreground flex items-center justify-center">
+                                            {activeFiltersCount}
+                                        </span>
                                     )}
-                                </div>
-                            </div>
-
-                            <div className="space-y-8 pb-12">
-                                {/* Status */}
-                                <div className="space-y-3">
-                                    <h4 className="font-semibold text-sm">Status</h4>
-                                    <div className="flex flex-wrap gap-2">
-                                        {['ACTIVE', 'INACTIVE'].map(status => (
-                                            <Button
-                                                key={status}
-                                                variant={statusFilter.includes(status) ? "default" : "outline"}
-                                                size="sm"
-                                                onClick={() => toggleArrayFilter(statusFilter, setStatusFilter, status)}
-                                                className="rounded-full"
-                                            >
-                                                {status}
+                                </Button>
+                            </SheetTrigger>
+                            <SheetContent className="w-[400px] sm:w-[540px] overflow-y-auto">
+                                <div className="mb-6 flex flex-col space-y-2 text-center sm:text-left">
+                                    <div className="flex justify-between items-center text-lg font-semibold text-foreground">
+                                        <span>Advanced Filters</span>
+                                        {activeFiltersCount > 0 && (
+                                            <Button variant="ghost" size="sm" onClick={clearFilters} className="text-muted-foreground hover:text-foreground">
+                                                Clear All
                                             </Button>
-                                        ))}
+                                        )}
                                     </div>
                                 </div>
 
-                                {/* Credential */}
-                                <div className="space-y-3">
-                                    <h4 className="font-semibold text-sm">Professional Credential</h4>
-                                    <div className="flex flex-wrap gap-2">
-                                        {uniqueCredentials.map(cred => (
-                                            <Button
-                                                key={cred}
-                                                variant={credentialFilter.includes(cred) ? "default" : "outline"}
-                                                size="sm"
-                                                onClick={() => toggleArrayFilter(credentialFilter, setCredentialFilter, cred)}
-                                                className="rounded-full"
-                                            >
-                                                {cred}
-                                            </Button>
-                                        ))}
-                                    </div>
-                                </div>
-
-                                {/* Student Workload */}
-                                <div className="space-y-4 pt-4 border-t">
-                                    <h4 className="font-semibold text-sm">Workload (Assigned Students)</h4>
-                                    <div className="grid grid-cols-2 gap-4">
-                                        <div className="space-y-2">
-                                            <Label className="text-xs text-muted-foreground">Min Students</Label>
-                                            <Input type="number" min="0" placeholder="e.g. 0" value={studentCountRange.min || ''} onChange={e => setStudentCountRange({ ...studentCountRange, min: e.target.value })} />
-                                        </div>
-                                        <div className="space-y-2">
-                                            <Label className="text-xs text-muted-foreground">Max Students</Label>
-                                            <Input type="number" min="0" placeholder="e.g. 10" value={studentCountRange.max || ''} onChange={e => setStudentCountRange({ ...studentCountRange, max: e.target.value })} />
+                                <div className="space-y-8 pb-12">
+                                    {/* Status */}
+                                    <div className="space-y-3">
+                                        <h4 className="font-semibold text-sm">Status</h4>
+                                        <div className="flex flex-wrap gap-2">
+                                            {['ACTIVE', 'INACTIVE'].map(status => (
+                                                <Button
+                                                    key={status}
+                                                    variant={statusFilter.includes(status) ? "default" : "outline"}
+                                                    size="sm"
+                                                    onClick={() => toggleArrayFilter(statusFilter, setStatusFilter, status)}
+                                                    className="rounded-full"
+                                                >
+                                                    {status}
+                                                </Button>
+                                            ))}
                                         </div>
                                     </div>
-                                </div>
 
-                                {/* Finances */}
-                                <div className="space-y-3 pt-4 border-t">
-                                    <h4 className="font-semibold text-sm">Finances (Commission)</h4>
-                                    <div className="flex flex-wrap gap-2">
-                                        {uniqueCommissions.map(comm => (
-                                            <Button
-                                                key={comm}
-                                                variant={commissionFilter.includes(comm.toString()) ? "default" : "outline"}
-                                                size="sm"
-                                                onClick={() => toggleArrayFilter(commissionFilter, setCommissionFilter, comm.toString())}
-                                                className="rounded-full"
-                                            >
-                                                {comm * 100}%
-                                            </Button>
-                                        ))}
-                                    </div>
-                                </div>
-
-                                {/* Dates Ranges */}
-                                <div className="space-y-4 pt-4 border-t">
-                                    <h4 className="font-semibold text-sm text-primary">Enrollment Date</h4>
-
-                                    <div className="grid grid-cols-2 gap-4">
-                                        <div className="space-y-2">
-                                            <Label className="text-xs text-muted-foreground">From</Label>
-                                            <Input type="date" value={enrollmentDateRange.from || ''} onChange={e => setEnrollmentDateRange({ ...enrollmentDateRange, from: e.target.value })} />
-                                        </div>
-                                        <div className="space-y-2">
-                                            <Label className="text-xs text-muted-foreground">To</Label>
-                                            <Input type="date" value={enrollmentDateRange.to || ''} onChange={e => setEnrollmentDateRange({ ...enrollmentDateRange, to: e.target.value })} />
+                                    {/* Credential */}
+                                    <div className="space-y-3">
+                                        <h4 className="font-semibold text-sm">Professional Credential</h4>
+                                        <div className="flex flex-wrap gap-2">
+                                            {uniqueCredentials.map(cred => (
+                                                <Button
+                                                    key={cred}
+                                                    variant={credentialFilter.includes(cred) ? "default" : "outline"}
+                                                    size="sm"
+                                                    onClick={() => toggleArrayFilter(credentialFilter, setCredentialFilter, cred)}
+                                                    className="rounded-full"
+                                                >
+                                                    {cred}
+                                                </Button>
+                                            ))}
                                         </div>
                                     </div>
+
+                                    {/* Student Workload */}
+                                    <div className="space-y-4 pt-4 border-t">
+                                        <h4 className="font-semibold text-sm">Workload (Assigned Students)</h4>
+                                        <div className="grid grid-cols-2 gap-4">
+                                            <div className="space-y-2">
+                                                <Label className="text-xs text-muted-foreground">Min Students</Label>
+                                                <Input type="number" min="0" placeholder="e.g. 0" value={studentCountRange.min || ''} onChange={e => setStudentCountRange({ ...studentCountRange, min: e.target.value })} />
+                                            </div>
+                                            <div className="space-y-2">
+                                                <Label className="text-xs text-muted-foreground">Max Students</Label>
+                                                <Input type="number" min="0" placeholder="e.g. 10" value={studentCountRange.max || ''} onChange={e => setStudentCountRange({ ...studentCountRange, max: e.target.value })} />
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    {/* Finances */}
+                                    <div className="space-y-3 pt-4 border-t">
+                                        <h4 className="font-semibold text-sm">Finances (Commission)</h4>
+                                        <div className="flex flex-wrap gap-2">
+                                            {uniqueCommissions.map(comm => (
+                                                <Button
+                                                    key={comm}
+                                                    variant={commissionFilter.includes(comm.toString()) ? "default" : "outline"}
+                                                    size="sm"
+                                                    onClick={() => toggleArrayFilter(commissionFilter, setCommissionFilter, comm.toString())}
+                                                    className="rounded-full"
+                                                >
+                                                    {comm * 100}%
+                                                </Button>
+                                            ))}
+                                        </div>
+                                    </div>
+
+                                    {/* Dates Ranges */}
+                                    <div className="space-y-4 pt-4 border-t">
+                                        <h4 className="font-semibold text-sm text-primary">Enrollment Date</h4>
+
+                                        <div className="grid grid-cols-2 gap-4">
+                                            <div className="space-y-2">
+                                                <Label className="text-xs text-muted-foreground">From</Label>
+                                                <Input type="date" value={enrollmentDateRange.from || ''} onChange={e => setEnrollmentDateRange({ ...enrollmentDateRange, from: e.target.value })} />
+                                            </div>
+                                            <div className="space-y-2">
+                                                <Label className="text-xs text-muted-foreground">To</Label>
+                                                <Input type="date" value={enrollmentDateRange.to || ''} onChange={e => setEnrollmentDateRange({ ...enrollmentDateRange, to: e.target.value })} />
+                                            </div>
+                                        </div>
+                                    </div>
                                 </div>
-                            </div>
-                        </SheetContent>
-                    </Sheet>
+                            </SheetContent>
+                        </Sheet>
 
-                    <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                            <Button variant="default" className="rounded-xl gap-2 font-medium">
-                                <Download className="h-4 w-4" />
-                                <span className="hidden sm:inline">Export Results</span>
-                            </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end">
-                            <DropdownMenuItem onClick={() => handleExport("xlsx")}>
-                                Export as Excel (.xlsx)
-                            </DropdownMenuItem>
-                            <DropdownMenuItem onClick={() => handleExport("csv")}>
-                                Export as CSV (.csv)
-                            </DropdownMenuItem>
-                        </DropdownMenuContent>
-                    </DropdownMenu>
+                        <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                                <Button variant="default" className="rounded-xl gap-2 font-medium">
+                                    <Download className="h-4 w-4" />
+                                    <span className="hidden sm:inline">Export Results</span>
+                                </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end">
+                                <DropdownMenuItem onClick={() => handleExport("xlsx")}>
+                                    Export as Excel (.xlsx)
+                                </DropdownMenuItem>
+                                <DropdownMenuItem onClick={() => handleExport("csv")}>
+                                    Export as CSV (.csv)
+                                </DropdownMenuItem>
+                            </DropdownMenuContent>
+                        </DropdownMenu>
 
-                    <AddSupervisorDialog />
+                        <AddSupervisorDialog />
+                    </div>
                 </div>
             </div>
 
