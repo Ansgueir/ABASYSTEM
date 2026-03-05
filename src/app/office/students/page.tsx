@@ -21,6 +21,12 @@ export default async function OfficeStudentsPage() {
                 supervisor: true,
                 user: {
                     select: { isActive: true, email: true }
+                },
+                documents: { select: { documentType: true, status: true, fileName: true } },
+                invoices: { select: { status: true, invoiceDate: true, amountDue: true, amountPaid: true } },
+                supervisionHours: {
+                    select: { date: true, hours: true },
+                    orderBy: { date: 'desc' }
                 }
             }
         })
