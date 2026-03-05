@@ -9,8 +9,8 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/custom-tabs"
 import { OfficeContractsTab } from "@/components/office/contracts-tab"
 import { serialize } from "@/lib/serialize"
-import { EditStudentDialog } from "@/components/office/edit-student-dialog"
 import { EditableStudentBacbInfo } from "@/components/shared/editable-bacb-info"
+import { EditableStudentContactInfo } from "@/components/shared/editable-contact-info"
 import { format } from "date-fns"
 import { Badge } from "@/components/ui/badge"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
@@ -115,10 +115,7 @@ export default async function OfficeStudentDetailPage({ params }: { params: Prom
                                 <p className="text-2xl font-bold">{(student.documents ?? []).length}</p>
                             </div>
                         </div>
-
-                        <div className="flex items-center gap-2">
-                            <EditStudentDialog student={safeStudent} isSuperAdmin={isSuperAdmin} />
-                        </div>
+                        {/* Global edit profile button removed */}
                     </div>
                 </div>
 
@@ -126,7 +123,7 @@ export default async function OfficeStudentDetailPage({ params }: { params: Prom
                 <Tabs defaultValue="contracts">
                     <TabsList className="mb-6 bg-muted/50 p-1 border">
                         <TabsTrigger value="contracts" className="px-6">Contracts</TabsTrigger>
-                        <TabsTrigger value="contact" className="px-6">Contact Info</TabsTrigger>
+                        <TabsTrigger value="profile" className="px-6">Profile</TabsTrigger>
                         <TabsTrigger value="documents" className="px-6">Documents</TabsTrigger>
                         <TabsTrigger value="activity" className="px-6">Activity</TabsTrigger>
                         <TabsTrigger value="billing" className="px-6">Billing</TabsTrigger>
@@ -140,34 +137,9 @@ export default async function OfficeStudentDetailPage({ params }: { params: Prom
                         />
                     </TabsContent>
 
-                    <TabsContent value="contact">
+                    <TabsContent value="profile">
                         <div className="grid gap-6 md:grid-cols-2">
-                            <div className="rounded-xl border bg-card p-6 space-y-4">
-                                <h3 className="font-semibold text-lg">Contact Information</h3>
-                                <div className="grid gap-3 text-sm">
-                                    <div className="flex items-center gap-3 p-3 rounded-lg bg-muted/30">
-                                        <Mail className="h-5 w-5 text-primary/70" />
-                                        <div>
-                                            <p className="text-xs text-muted-foreground">Email</p>
-                                            <p className="font-medium">{student.email}</p>
-                                        </div>
-                                    </div>
-                                    <div className="flex items-center gap-3 p-3 rounded-lg bg-muted/30">
-                                        <Phone className="h-5 w-5 text-primary/70" />
-                                        <div>
-                                            <p className="text-xs text-muted-foreground">Phone</p>
-                                            <p className="font-medium">{student.phone}</p>
-                                        </div>
-                                    </div>
-                                    <div className="flex items-center gap-3 p-3 rounded-lg bg-muted/30">
-                                        <MapPin className="h-5 w-5 text-primary/70" />
-                                        <div>
-                                            <p className="text-xs text-muted-foreground">Location</p>
-                                            <p className="font-medium">{student.city}, {student.state}</p>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
+                            <EditableStudentContactInfo student={student} />
                             <EditableStudentBacbInfo
                                 studentId={student.id}
                                 initialBacbId={student.bacbId || ""}

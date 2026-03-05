@@ -8,8 +8,8 @@ import Link from "next/link"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/custom-tabs"
 import { serialize } from "@/lib/serialize"
-import { EditSupervisorDialog } from "@/components/office/edit-supervisor-dialog"
 import { ManageStudentsDialog } from "@/components/office/manage-students-dialog"
+import { EditableSupervisorContactInfo } from "@/components/shared/editable-contact-info"
 import { format } from "date-fns"
 import { Badge } from "@/components/ui/badge"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
@@ -112,74 +112,22 @@ export default async function OfficeSupervisorDetailPage({ params }: { params: P
 
                         <div className="flex flex-wrap items-center gap-2">
                             <ManageStudentsDialog supervisorId={supervisor.id} supervisorName={supervisor.fullName} />
-                            {isSuperAdmin && <EditSupervisorDialog supervisor={safeSupervisor} />}
                         </div>
                     </div>
                 </div>
 
                 {/* Tabs */}
-                <Tabs defaultValue="contact">
+                <Tabs defaultValue="profile">
                     <TabsList className="mb-6 bg-muted/50 p-1 border">
-                        <TabsTrigger value="contact" className="px-6">Details & Banking</TabsTrigger>
+                        <TabsTrigger value="profile" className="px-6">Profile</TabsTrigger>
                         <TabsTrigger value="students" className="px-6">Students</TabsTrigger>
                         <TabsTrigger value="documents" className="px-6">Documents</TabsTrigger>
                         <TabsTrigger value="activity" className="px-6">Activity Log</TabsTrigger>
                     </TabsList>
 
-                    <TabsContent value="contact">
+                    <TabsContent value="profile">
                         <div className="grid gap-6 md:grid-cols-2">
-                            <div className="rounded-xl border bg-card p-6 space-y-4">
-                                <h3 className="font-semibold text-lg flex items-center gap-2">
-                                    <FileText className="h-5 w-5 text-muted-foreground" />
-                                    Contact & Certification Information
-                                </h3>
-                                <div className="grid gap-3 text-sm">
-                                    <div className="flex items-center gap-3 p-3 rounded-lg bg-muted/30">
-                                        <Mail className="h-5 w-5 text-primary/70" />
-                                        <div>
-                                            <p className="text-xs text-muted-foreground mb-0.5">Email Address</p>
-                                            <p className="font-medium">{supervisor.email}</p>
-                                        </div>
-                                    </div>
-                                    <div className="flex items-center gap-3 p-3 rounded-lg bg-muted/30">
-                                        <Phone className="h-5 w-5 text-primary/70" />
-                                        <div>
-                                            <p className="text-xs text-muted-foreground mb-0.5">Phone Number</p>
-                                            <p className="font-medium">{supervisor.phone}</p>
-                                        </div>
-                                    </div>
-                                    <div className="flex items-center gap-3 p-3 rounded-lg bg-muted/30">
-                                        <MapPin className="h-5 w-5 text-primary/70" />
-                                        <div>
-                                            <p className="text-xs text-muted-foreground mb-0.5">Address</p>
-                                            <p className="font-medium">{supervisor.address}</p>
-                                        </div>
-                                    </div>
-                                    <div className="flex items-center gap-3 p-3 rounded-lg bg-muted/30">
-                                        <Award className="h-5 w-5 text-primary/70" />
-                                        <div>
-                                            <p className="text-xs text-muted-foreground mb-0.5">BACB & Certification ID</p>
-                                            <p className="font-medium">BACB: {supervisor.bacbId} • Cert: {supervisor.certificantNumber}</p>
-                                        </div>
-                                    </div>
-                                    <div className="grid grid-cols-2 gap-3">
-                                        <div className="flex items-center gap-3 p-3 rounded-lg bg-muted/30">
-                                            <Calendar className="h-5 w-5 text-primary/70" />
-                                            <div>
-                                                <p className="text-xs text-muted-foreground mb-0.5">Exam Date</p>
-                                                <p className="font-medium text-xs">{supervisor.examDate ? format(new Date(supervisor.examDate), "MMM d, yyyy") : "-"}</p>
-                                            </div>
-                                        </div>
-                                        <div className="flex items-center gap-3 p-3 rounded-lg bg-muted/30">
-                                            <Calendar className="h-5 w-5 text-primary/70" />
-                                            <div>
-                                                <p className="text-xs text-muted-foreground mb-0.5">8Hr Training</p>
-                                                <p className="font-medium text-xs">{supervisor.training8hrDate ? format(new Date(supervisor.training8hrDate), "MMM d, yyyy") : "-"}</p>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
+                            <EditableSupervisorContactInfo supervisor={supervisor} />
 
                             <div className="rounded-xl border bg-card p-6 space-y-4">
                                 <h3 className="font-semibold text-lg flex items-center gap-2">
