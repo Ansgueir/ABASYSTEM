@@ -4,7 +4,7 @@ import { useState, useMemo } from "react"
 import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { Users, Search, Download, Eye } from "lucide-react"
+import { Users, Search, Download, Eye, Filter, X } from "lucide-react"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import { AddSupervisorDialog } from "@/components/office/add-supervisor-dialog"
 import { UserActions } from "@/components/office/user-actions"
@@ -15,6 +15,9 @@ import {
     DropdownMenuItem,
     DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { Label } from "@/components/ui/label"
 import * as XLSX from "xlsx"
 
 interface SupervisorListProps {
@@ -24,6 +27,13 @@ interface SupervisorListProps {
 
 export function SupervisorList({ initialSupervisors, isSuperAdmin }: SupervisorListProps) {
     const [searchTerm, setSearchTerm] = useState("")
+    const [statusFilter, setStatusFilter] = useState("all")
+    const [credentialFilter, setCredentialFilter] = useState("all")
+
+    const uniqueCredentials = useMemo(() => {
+        const set = new Set(initialSupervisors.map(s => s.credentialType || 'BCBA'))
+        return Array.from(set)
+    }, [initialSupervisors])
 
     // Filter supervisors
     const filteredSupervisors = useMemo(() => {
@@ -32,9 +42,16 @@ export function SupervisorList({ initialSupervisors, isSuperAdmin }: SupervisorL
                 supervisor.fullName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
                 supervisor.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
                 supervisor.bacbId?.toLowerCase().includes(searchTerm.toLowerCase())
-            return matchesSearch
+
+            const derivedStatus = !supervisor.user?.isActive ? 'INACTIVE' : (supervisor.status || 'ACTIVE')
+            const matchesStatus = statusFilter === "all" || derivedStatus.toLowerCase() === statusFilter.toLowerCase()
+
+            const credential = supervisor.credentialType || 'BCBA'
+            const matchesCredential = credentialFilter === "all" || credential === credentialFilter
+
+            return matchesSearch && matchesStatus && matchesCredential
         })
-    }, [initialSupervisors, searchTerm])
+    }, [initialSupervisors, searchTerm, statusFilter, credentialFilter])
 
     // Export logic
     const handleExport = (format: "xlsx" | "csv") => {
@@ -88,6 +105,67 @@ export function SupervisorList({ initialSupervisors, isSuperAdmin }: SupervisorL
                             onChange={(e) => setSearchTerm(e.target.value)}
                         />
                     </div>
+
+                    <Popover>
+                        <PopoverTrigger asChild>
+                            <Button variant="outline" className="rounded-xl gap-2 relative">
+                                <Filter className="h-4 w-4" />
+                                <span className="hidden sm:inline">Filter</span>
+                                {(statusFilter !== "all" || credentialFilter !== "all") && (
+                                    <span className="absolute -top-1 -right-1 h-3 w-3 rounded-full bg-primary" />
+                                )}
+                            </Button>
+                        </PopoverTrigger>
+                        <PopoverContent align="end" className="w-80">
+                            <div className="space-y-4">
+                                <div className="flex items-center justify-between font-medium">
+                                    <h4>Filters</h4>
+                                    {(statusFilter !== "all" || credentialFilter !== "all") && (
+                                        <Button
+                                            variant="ghost"
+                                            size="sm"
+                                            className="h-auto p-0 text-muted-foreground hover:text-foreground"
+                                            onClick={() => {
+                                                setStatusFilter("all")
+                                                setCredentialFilter("all")
+                                            }}
+                                        >
+                                            Reset
+                                        </Button>
+                                    )}
+                                </div>
+
+                                <div className="space-y-2">
+                                    <Label>Status</Label>
+                                    <Select value={statusFilter} onValueChange={setStatusFilter}>
+                                        <SelectTrigger>
+                                            <SelectValue placeholder="All Statuses" />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            <SelectItem value="all">All Statuses</SelectItem>
+                                            <SelectItem value="active">Active</SelectItem>
+                                            <SelectItem value="inactive">Inactive</SelectItem>
+                                        </SelectContent>
+                                    </Select>
+                                </div>
+
+                                <div className="space-y-2">
+                                    <Label>Credential</Label>
+                                    <Select value={credentialFilter} onValueChange={setCredentialFilter}>
+                                        <SelectTrigger>
+                                            <SelectValue placeholder="All Credentials" />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            <SelectItem value="all">All Credentials</SelectItem>
+                                            {uniqueCredentials.map(cred => (
+                                                <SelectItem key={cred as string} value={cred as string}>{cred as string}</SelectItem>
+                                            ))}
+                                        </SelectContent>
+                                    </Select>
+                                </div>
+                            </div>
+                        </PopoverContent>
+                    </Popover>
 
                     <DropdownMenu>
                         <DropdownMenuTrigger asChild>

@@ -4,7 +4,7 @@ import { useState, useMemo } from "react"
 import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { GraduationCap, Search, Download, Eye } from "lucide-react"
+import { GraduationCap, Search, Download, Eye, Filter, X } from "lucide-react"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import { AddStudentDialog } from "@/components/office/add-student-dialog"
 import { UserActions } from "@/components/office/user-actions"
@@ -15,6 +15,9 @@ import {
     DropdownMenuItem,
     DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { Label } from "@/components/ui/label"
 import * as XLSX from "xlsx"
 
 interface StudentListProps {
@@ -24,6 +27,18 @@ interface StudentListProps {
 
 export function StudentList({ initialStudents, isSuperAdmin }: StudentListProps) {
     const [searchTerm, setSearchTerm] = useState("")
+    const [statusFilter, setStatusFilter] = useState("all")
+    const [supervisorFilter, setSupervisorFilter] = useState("all")
+
+    const uniqueSupervisors = useMemo(() => {
+        const map = new Map()
+        initialStudents.forEach(s => {
+            if (s.supervisor) {
+                map.set(s.supervisor.id, s.supervisor.fullName)
+            }
+        })
+        return Array.from(map.entries()).map(([id, name]) => ({ id, name }))
+    }, [initialStudents])
 
     // Filter students
     const filteredStudents = useMemo(() => {
@@ -32,9 +47,18 @@ export function StudentList({ initialStudents, isSuperAdmin }: StudentListProps)
                 student.fullName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
                 student.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
                 student.supervisor?.fullName?.toLowerCase().includes(searchTerm.toLowerCase())
-            return matchesSearch
+
+            const derivedStatus = !student.user?.isActive ? 'INACTIVE' : (student.status || 'PENDING')
+            const matchesStatus = statusFilter === "all" || derivedStatus.toLowerCase() === statusFilter.toLowerCase()
+
+            const supervisorId = student.supervisor?.id || "unassigned"
+            const matchesSupervisor = supervisorFilter === "all" ||
+                (supervisorFilter === "unassigned" && !student.supervisor) ||
+                supervisorId === supervisorFilter
+
+            return matchesSearch && matchesStatus && matchesSupervisor
         })
-    }, [initialStudents, searchTerm])
+    }, [initialStudents, searchTerm, statusFilter, supervisorFilter])
 
     // Export logic
     const handleExport = (format: "xlsx" | "csv") => {
@@ -91,6 +115,69 @@ export function StudentList({ initialStudents, isSuperAdmin }: StudentListProps)
                             onChange={(e) => setSearchTerm(e.target.value)}
                         />
                     </div>
+
+                    <Popover>
+                        <PopoverTrigger asChild>
+                            <Button variant="outline" className="rounded-xl gap-2 relative">
+                                <Filter className="h-4 w-4" />
+                                <span className="hidden sm:inline">Filter</span>
+                                {(statusFilter !== "all" || supervisorFilter !== "all") && (
+                                    <span className="absolute -top-1 -right-1 h-3 w-3 rounded-full bg-primary" />
+                                )}
+                            </Button>
+                        </PopoverTrigger>
+                        <PopoverContent align="end" className="w-80">
+                            <div className="space-y-4">
+                                <div className="flex items-center justify-between font-medium">
+                                    <h4>Filters</h4>
+                                    {(statusFilter !== "all" || supervisorFilter !== "all") && (
+                                        <Button
+                                            variant="ghost"
+                                            size="sm"
+                                            className="h-auto p-0 text-muted-foreground hover:text-foreground"
+                                            onClick={() => {
+                                                setStatusFilter("all")
+                                                setSupervisorFilter("all")
+                                            }}
+                                        >
+                                            Reset
+                                        </Button>
+                                    )}
+                                </div>
+
+                                <div className="space-y-2">
+                                    <Label>Status</Label>
+                                    <Select value={statusFilter} onValueChange={setStatusFilter}>
+                                        <SelectTrigger>
+                                            <SelectValue placeholder="All Statuses" />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            <SelectItem value="all">All Statuses</SelectItem>
+                                            <SelectItem value="active">Active</SelectItem>
+                                            <SelectItem value="pending">Pending</SelectItem>
+                                            <SelectItem value="inactive">Inactive</SelectItem>
+                                        </SelectContent>
+                                    </Select>
+                                </div>
+
+                                <div className="space-y-2">
+                                    <Label>Assigned Supervisor</Label>
+                                    <Select value={supervisorFilter} onValueChange={setSupervisorFilter}>
+                                        <SelectTrigger>
+                                            <SelectValue placeholder="All Supervisors" />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            <SelectItem value="all">All Supervisors</SelectItem>
+                                            <SelectItem value="unassigned">Not Assigned</SelectItem>
+                                            {uniqueSupervisors.map(sv => (
+                                                <SelectItem key={sv.id} value={sv.id}>{sv.name}</SelectItem>
+                                            ))}
+                                        </SelectContent>
+                                    </Select>
+                                </div>
+                            </div>
+                        </PopoverContent>
+                    </Popover>
 
                     <DropdownMenu>
                         <DropdownMenuTrigger asChild>
