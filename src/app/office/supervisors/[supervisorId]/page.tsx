@@ -127,7 +127,7 @@ export default async function OfficeSupervisorDetailPage({ params }: { params: P
 
                     <TabsContent value="profile">
                         <div className="grid gap-6 md:grid-cols-2">
-                            <EditableSupervisorContactInfo supervisor={supervisor} />
+                            <EditableSupervisorContactInfo supervisor={safeSupervisor} />
 
                             <div className="rounded-xl border bg-card p-6 space-y-4">
                                 <h3 className="font-semibold text-lg flex items-center gap-2">

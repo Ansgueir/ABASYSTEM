@@ -4,10 +4,14 @@ import { useState, useTransition } from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { toast } from "sonner"
-import { Edit2, Save, X, Loader2, Mail, Phone, MapPin, Award, Calendar } from "lucide-react"
+import { Edit2, Save, X, Loader2, Mail, Phone, MapPin, Award, Calendar, Clock, DollarSign, GraduationCap, Users, Percent } from "lucide-react"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { updateStudent, updateSupervisor } from "@/actions/users"
 import { useSession } from "next-auth/react"
 
+/* ───────────────────────────────────────────
+   STUDENT – Contact Information (Card 1)
+   ─────────────────────────────────────────── */
 export function EditableStudentContactInfo({ student }: { student: any }) {
     const [isEditing, setIsEditing] = useState(false)
     const [isPending, startTransition] = useTransition()
@@ -35,112 +39,12 @@ export function EditableStudentContactInfo({ student }: { student: any }) {
         })
     }
 
-    return (
-        <div className="rounded-xl border bg-card p-6 space-y-4">
-            <div className="flex justify-between items-center">
-                <h3 className="font-semibold text-lg">Contact Information</h3>
-                {!isEditing ? (
-                    canEdit && (
-                        <Button variant="ghost" size="sm" onClick={() => setIsEditing(true)}>
-                            <Edit2 className="h-4 w-4 mr-2" /> Edit
-                        </Button>
-                    )
-                ) : (
-                    <div className="flex gap-2">
-                        <Button variant="outline" size="sm" onClick={() => setIsEditing(false)} disabled={isPending}>
-                            <X className="h-4 w-4 mr-1" /> Cancel
-                        </Button>
-                        <Button variant="default" size="sm" onClick={handleSave} disabled={isPending}>
-                            {isPending ? <Loader2 className="h-4 w-4 animate-spin mr-1" /> : <Save className="h-4 w-4 mr-1" />} Save
-                        </Button>
-                    </div>
-                )}
-            </div>
-
-            <div className="grid gap-3 text-sm mt-4">
-                <div className="flex items-center gap-3 p-3 rounded-lg bg-muted/30">
-                    <Edit2 className="h-5 w-5 text-primary/70" />
-                    <div className="flex-1">
-                        <p className="text-xs text-muted-foreground mb-0.5">Full Name</p>
-                        {isEditing ? (
-                            <Input value={fullName} onChange={(e) => setFullName(e.target.value)} className="w-full h-8 mt-1" />
-                        ) : (
-                            <p className="font-medium">{fullName}</p>
-                        )}
-                    </div>
-                </div>
-
-                <div className="flex items-center gap-3 p-3 rounded-lg bg-muted/30">
-                    <Mail className="h-5 w-5 text-primary/70" />
-                    <div className="flex-1">
-                        <p className="text-xs text-muted-foreground mb-0.5">Email Address</p>
-                        <p className="font-medium">{student.email}</p>
-                    </div>
-                </div>
-
-                <div className="flex items-center gap-3 p-3 rounded-lg bg-muted/30">
-                    <Phone className="h-5 w-5 text-primary/70" />
-                    <div className="flex-1">
-                        <p className="text-xs text-muted-foreground mb-0.5">Phone Number</p>
-                        {isEditing ? (
-                            <Input value={phone} onChange={(e) => setPhone(e.target.value)} className="w-full h-8 mt-1" />
-                        ) : (
-                            <p className="font-medium">{phone}</p>
-                        )}
-                    </div>
-                </div>
-
-                <div className="flex items-center gap-3 p-3 rounded-lg bg-muted/30">
-                    <MapPin className="h-5 w-5 text-primary/70" />
-                    <div className="flex-1">
-                        <p className="text-xs text-muted-foreground mb-0.5">Location</p>
-                        {isEditing ? (
-                            <div className="flex gap-2 mt-1">
-                                <Input value={city} onChange={(e) => setCity(e.target.value)} placeholder="City" className="w-1/2 h-8" />
-                                <Input value={state} onChange={(e) => setState(e.target.value)} placeholder="State" className="w-1/2 h-8" />
-                            </div>
-                        ) : (
-                            <p className="font-medium">{city}, {state}</p>
-                        )}
-                    </div>
-                </div>
-            </div>
-        </div>
-    )
-}
-
-export function EditableSupervisorContactInfo({ supervisor }: { supervisor: any }) {
-    const [isEditing, setIsEditing] = useState(false)
-    const [isPending, startTransition] = useTransition()
-
-    const [fullName, setFullName] = useState(supervisor.fullName || "")
-    const [phone, setPhone] = useState(supervisor.phone || "")
-    const [address, setAddress] = useState(supervisor.address || "")
-    const [bacbId, setBacbId] = useState(supervisor.bacbId || "")
-    const [certificantNumber, setCertificantNumber] = useState(supervisor.certificantNumber || "")
-    const [examDate, setExamDate] = useState(supervisor.examDate ? new Date(supervisor.examDate).toISOString().split('T')[0] : "")
-    const [training8hrDate, setTraining8hrDate] = useState(supervisor.training8hrDate ? new Date(supervisor.training8hrDate).toISOString().split('T')[0] : "")
-
-    const { data: session } = useSession()
-    const role = String((session?.user as any)?.role || "").toUpperCase()
-    const canEdit = role === "OFFICE" || role === "QA"
-
-    const handleSave = () => {
-        startTransition(async () => {
-            const dataToUpdate: any = {
-                fullName, phone, address, bacbId, certificantNumber
-            }
-            if (examDate) dataToUpdate.examDate = new Date(examDate)
-            if (training8hrDate) dataToUpdate.training8hrDate = new Date(training8hrDate)
-
-            const res = await updateSupervisor(supervisor.id, dataToUpdate)
-            if (res.error) {
-                toast.error(res.error)
-            } else {
-                toast.success("Contact info updated successfully")
-                setIsEditing(false)
-            }
-        })
+    const handleCancel = () => {
+        setFullName(student.fullName || "")
+        setPhone(student.phone || "")
+        setCity(student.city || "")
+        setState(student.state || "")
+        setIsEditing(false)
     }
 
     return (
@@ -155,7 +59,7 @@ export function EditableSupervisorContactInfo({ supervisor }: { supervisor: any 
                     )
                 ) : (
                     <div className="flex gap-2">
-                        <Button variant="outline" size="sm" onClick={() => setIsEditing(false)} disabled={isPending}>
+                        <Button variant="outline" size="sm" onClick={handleCancel} disabled={isPending}>
                             <X className="h-4 w-4 mr-1" /> Cancel
                         </Button>
                         <Button variant="default" size="sm" onClick={handleSave} disabled={isPending}>
@@ -167,7 +71,7 @@ export function EditableSupervisorContactInfo({ supervisor }: { supervisor: any 
 
             <div className="grid gap-3 text-sm mt-4">
                 <div className="flex items-center gap-3 p-3 rounded-lg bg-muted/30">
-                    <Edit2 className="h-5 w-5 text-primary/70" />
+                    <Edit2 className="h-5 w-5 text-primary/70 shrink-0" />
                     <div className="flex-1">
                         <p className="text-xs text-muted-foreground mb-0.5">Full Name</p>
                         {isEditing ? (
@@ -179,39 +83,392 @@ export function EditableSupervisorContactInfo({ supervisor }: { supervisor: any 
                 </div>
 
                 <div className="flex items-center gap-3 p-3 rounded-lg bg-muted/30">
-                    <Mail className="h-5 w-5 text-primary/70" />
+                    <Mail className="h-5 w-5 text-primary/70 shrink-0" />
+                    <div className="flex-1">
+                        <p className="text-xs text-muted-foreground mb-0.5">Email Address</p>
+                        <p className="font-medium">{student.email}</p>
+                    </div>
+                </div>
+
+                <div className="flex items-center gap-3 p-3 rounded-lg bg-muted/30">
+                    <Phone className="h-5 w-5 text-primary/70 shrink-0" />
+                    <div className="flex-1">
+                        <p className="text-xs text-muted-foreground mb-0.5">Phone Number</p>
+                        {isEditing ? (
+                            <Input value={phone} onChange={(e) => setPhone(e.target.value)} className="w-full h-8 mt-1" />
+                        ) : (
+                            <p className="font-medium">{phone || "—"}</p>
+                        )}
+                    </div>
+                </div>
+
+                <div className="flex items-center gap-3 p-3 rounded-lg bg-muted/30">
+                    <MapPin className="h-5 w-5 text-primary/70 shrink-0" />
+                    <div className="flex-1">
+                        <p className="text-xs text-muted-foreground mb-0.5">Location</p>
+                        {isEditing ? (
+                            <div className="flex gap-2 mt-1">
+                                <Input value={city} onChange={(e) => setCity(e.target.value)} placeholder="City" className="w-1/2 h-8" />
+                                <Input value={state} onChange={(e) => setState(e.target.value)} placeholder="State" className="w-1/2 h-8" />
+                            </div>
+                        ) : (
+                            <p className="font-medium">{city && state ? `${city}, ${state}` : city || state || "—"}</p>
+                        )}
+                    </div>
+                </div>
+            </div>
+        </div>
+    )
+}
+
+/* ─────────────────────────────────────────────────
+   STUDENT – BACB & Fieldwork Info (Card 2)
+   Includes fields from old EditStudentDialog:
+   bacbId, startDate, credential, level,
+   hoursPerMonth, supervisionPercentage, hourlyRate
+   ───────────────────────────────────────────────── */
+export function EditableStudentBacbFieldwork({ student, isSuperAdmin }: { student: any; isSuperAdmin?: boolean }) {
+    const [isEditing, setIsEditing] = useState(false)
+    const [isPending, startTransition] = useTransition()
+
+    const [bacbId, setBacbId] = useState(student.bacbId || "")
+    const [credential, setCredential] = useState(student.credential || "RBT")
+    const [level, setLevel] = useState(student.level || "BCBA")
+    const [fieldworkType, setFieldworkType] = useState(student.fieldworkType || "REGULAR")
+    const [startDate, setStartDate] = useState(student.startDate ? new Date(student.startDate).toISOString().split('T')[0] : "")
+    const [hoursPerMonth, setHoursPerMonth] = useState(String(Number(student.hoursPerMonth) || 130))
+    const [supervisionPercentage, setSupervisionPercentage] = useState(String(Number(student.supervisionPercentage) || 5))
+    const [hourlyRate, setHourlyRate] = useState(String(Number(student.hourlyRate || 0).toFixed(2)))
+
+    const { data: session } = useSession()
+    const role = String((session?.user as any)?.role || "").toUpperCase()
+    const canEdit = role === "OFFICE" || role === "QA"
+
+    const handleSave = () => {
+        startTransition(async () => {
+            const dataToUpdate: any = {
+                bacbId,
+                credential,
+                level,
+                fieldworkType,
+                hoursPerMonth: parseInt(hoursPerMonth) || 130,
+                supervisionPercentage: parseFloat(supervisionPercentage) || 5,
+            }
+            if (startDate) dataToUpdate.startDate = new Date(startDate)
+            if (isSuperAdmin) {
+                dataToUpdate.hourlyRate = parseFloat(hourlyRate) || 0
+            }
+
+            const res = await updateStudent(student.id, dataToUpdate)
+            if (res.error) {
+                toast.error(res.error)
+            } else {
+                toast.success("BACB & fieldwork info updated successfully")
+                setIsEditing(false)
+            }
+        })
+    }
+
+    const handleCancel = () => {
+        setBacbId(student.bacbId || "")
+        setCredential(student.credential || "RBT")
+        setLevel(student.level || "BCBA")
+        setFieldworkType(student.fieldworkType || "REGULAR")
+        setStartDate(student.startDate ? new Date(student.startDate).toISOString().split('T')[0] : "")
+        setHoursPerMonth(String(Number(student.hoursPerMonth) || 130))
+        setSupervisionPercentage(String(Number(student.supervisionPercentage) || 5))
+        setHourlyRate(String(Number(student.hourlyRate || 0).toFixed(2)))
+        setIsEditing(false)
+    }
+
+    return (
+        <div className="rounded-xl border bg-card p-6 space-y-4">
+            <div className="flex justify-between items-center">
+                <h3 className="font-semibold text-lg">BACB & Fieldwork Info</h3>
+                {!isEditing ? (
+                    canEdit && (
+                        <Button variant="ghost" size="sm" onClick={() => setIsEditing(true)}>
+                            <Edit2 className="h-4 w-4 mr-2" /> Edit
+                        </Button>
+                    )
+                ) : (
+                    <div className="flex gap-2">
+                        <Button variant="outline" size="sm" onClick={handleCancel} disabled={isPending}>
+                            <X className="h-4 w-4 mr-1" /> Cancel
+                        </Button>
+                        <Button variant="default" size="sm" onClick={handleSave} disabled={isPending}>
+                            {isPending ? <Loader2 className="h-4 w-4 animate-spin mr-1" /> : <Save className="h-4 w-4 mr-1" />} Save
+                        </Button>
+                    </div>
+                )}
+            </div>
+
+            <div className="grid gap-3 text-sm mt-4">
+                {/* BACB ID */}
+                <div className="flex items-center gap-3 p-3 rounded-lg bg-muted/30">
+                    <Award className="h-5 w-5 text-primary/70 shrink-0" />
+                    <div className="flex-1">
+                        <p className="text-xs text-muted-foreground mb-0.5">BACB ID #</p>
+                        {isEditing ? (
+                            <Input value={bacbId} onChange={(e) => setBacbId(e.target.value)} placeholder="Enter BACB ID..." className="w-full h-8 mt-1" />
+                        ) : (
+                            <p className="font-mono font-bold text-lg">{bacbId || "—"}</p>
+                        )}
+                    </div>
+                </div>
+
+                {/* Credential + Goal Level */}
+                <div className="grid grid-cols-2 gap-3">
+                    <div className="flex items-center gap-3 p-3 rounded-lg bg-muted/30">
+                        <GraduationCap className="h-5 w-5 text-primary/70 shrink-0" />
+                        <div className="flex-1">
+                            <p className="text-xs text-muted-foreground mb-0.5">Credential</p>
+                            {isEditing ? (
+                                <Select value={credential} onValueChange={setCredential}>
+                                    <SelectTrigger className="w-full h-8 mt-1"><SelectValue /></SelectTrigger>
+                                    <SelectContent>
+                                        <SelectItem value="RBT">RBT</SelectItem>
+                                        <SelectItem value="BCaBA">BCaBA</SelectItem>
+                                        <SelectItem value="Trainee">Trainee</SelectItem>
+                                    </SelectContent>
+                                </Select>
+                            ) : (
+                                <p className="font-semibold uppercase text-primary">{credential}</p>
+                            )}
+                        </div>
+                    </div>
+                    <div className="flex items-center gap-3 p-3 rounded-lg bg-muted/30">
+                        <GraduationCap className="h-5 w-5 text-primary/70 shrink-0" />
+                        <div className="flex-1">
+                            <p className="text-xs text-muted-foreground mb-0.5">Goal Level</p>
+                            {isEditing ? (
+                                <Select value={level} onValueChange={setLevel}>
+                                    <SelectTrigger className="w-full h-8 mt-1"><SelectValue /></SelectTrigger>
+                                    <SelectContent>
+                                        <SelectItem value="BCBA">BCBA</SelectItem>
+                                        <SelectItem value="BCaBA">BCaBA</SelectItem>
+                                    </SelectContent>
+                                </Select>
+                            ) : (
+                                <p className="font-semibold uppercase text-primary">{level}</p>
+                            )}
+                        </div>
+                    </div>
+                </div>
+
+                {/* Fieldwork Type */}
+                <div className="flex items-center gap-3 p-3 rounded-lg bg-muted/30">
+                    <Award className="h-5 w-5 text-primary/70 shrink-0" />
+                    <div className="flex-1">
+                        <p className="text-xs text-muted-foreground mb-0.5">Fieldwork Type (PDF Checkbox)</p>
+                        {isEditing ? (
+                            <Select value={fieldworkType} onValueChange={setFieldworkType}>
+                                <SelectTrigger className="w-full sm:w-[220px] h-8 mt-1"><SelectValue placeholder="Select type" /></SelectTrigger>
+                                <SelectContent>
+                                    <SelectItem value="REGULAR">Supervised (Regular)</SelectItem>
+                                    <SelectItem value="CONCENTRATED">Concentrated</SelectItem>
+                                </SelectContent>
+                            </Select>
+                        ) : (
+                            <p className="font-semibold uppercase text-primary">
+                                {fieldworkType === "CONCENTRATED" ? "Concentrated" : "Supervised (Regular)"}
+                            </p>
+                        )}
+                    </div>
+                </div>
+
+                {/* Start Date */}
+                <div className="flex items-center gap-3 p-3 rounded-lg bg-muted/30">
+                    <Calendar className="h-5 w-5 text-primary/70 shrink-0" />
+                    <div className="flex-1">
+                        <p className="text-xs text-muted-foreground mb-0.5">Start Date</p>
+                        {isEditing ? (
+                            <Input type="date" value={startDate} onChange={(e) => setStartDate(e.target.value)} className="w-full sm:w-[200px] h-8 mt-1" />
+                        ) : (
+                            <p className="font-medium">{startDate ? new Date(startDate).toLocaleDateString() : "—"}</p>
+                        )}
+                    </div>
+                </div>
+
+                {/* Hours/Month + Min % Supervised */}
+                <div className="grid grid-cols-2 gap-3">
+                    <div className="flex items-center gap-3 p-3 rounded-lg bg-muted/30">
+                        <Clock className="h-5 w-5 text-primary/70 shrink-0" />
+                        <div className="flex-1">
+                            <p className="text-xs text-muted-foreground mb-0.5">Max Hours/Month</p>
+                            {isEditing ? (
+                                <Input type="number" value={hoursPerMonth} onChange={(e) => setHoursPerMonth(e.target.value)} className="w-full h-8 mt-1" />
+                            ) : (
+                                <p className="font-bold text-lg">{hoursPerMonth}</p>
+                            )}
+                        </div>
+                    </div>
+                    <div className="flex items-center gap-3 p-3 rounded-lg bg-muted/30">
+                        <Percent className="h-5 w-5 text-primary/70 shrink-0" />
+                        <div className="flex-1">
+                            <p className="text-xs text-muted-foreground mb-0.5">Min % Supervised</p>
+                            {isEditing ? (
+                                <Input type="number" value={supervisionPercentage} onChange={(e) => setSupervisionPercentage(e.target.value)} className="w-full h-8 mt-1" />
+                            ) : (
+                                <p className="font-bold text-lg">{supervisionPercentage}%</p>
+                            )}
+                        </div>
+                    </div>
+                </div>
+
+                {/* Hourly Rate – Super Admin only */}
+                {isSuperAdmin && (
+                    <div className="flex items-center gap-3 p-3 rounded-lg bg-amber-500/10 border border-amber-500/20">
+                        <DollarSign className="h-5 w-5 text-amber-600 shrink-0" />
+                        <div className="flex-1">
+                            <p className="text-xs text-amber-700 dark:text-amber-400 mb-0.5 font-semibold">Hourly Rate (Super Admin)</p>
+                            {isEditing ? (
+                                <Input type="number" step="0.01" value={hourlyRate} onChange={(e) => setHourlyRate(e.target.value)} className="w-full sm:w-[160px] h-8 mt-1" />
+                            ) : (
+                                <p className="font-bold text-lg">${hourlyRate}</p>
+                            )}
+                        </div>
+                    </div>
+                )}
+            </div>
+        </div>
+    )
+}
+
+/* ─────────────────────────────────────────────────
+   SUPERVISOR – Contact & Certification (Card 1)
+   Includes ALL fields from old EditSupervisorDialog:
+   fullName, phone, address, bacbId, certificantNumber,
+   credentialType, maxStudents, paymentPercentage,
+   + examDate, training8hrDate from previous tab
+   ───────────────────────────────────────────────── */
+export function EditableSupervisorContactInfo({ supervisor }: { supervisor: any }) {
+    const [isEditing, setIsEditing] = useState(false)
+    const [isPending, startTransition] = useTransition()
+
+    const [fullName, setFullName] = useState(supervisor.fullName || "")
+    const [phone, setPhone] = useState(supervisor.phone || "")
+    const [address, setAddress] = useState(supervisor.address || "")
+    const [bacbId, setBacbId] = useState(supervisor.bacbId || "")
+    const [certificantNumber, setCertificantNumber] = useState(supervisor.certificantNumber || "")
+    const [credentialType, setCredentialType] = useState(supervisor.credentialType || "BCBA")
+    const [maxStudents, setMaxStudents] = useState(String(Number(supervisor.maxStudents) || 10))
+    const [paymentPercentage, setPaymentPercentage] = useState(String(Number(supervisor.paymentPercentage) || 0.60))
+    const [examDate, setExamDate] = useState(supervisor.examDate ? new Date(supervisor.examDate).toISOString().split('T')[0] : "")
+    const [training8hrDate, setTraining8hrDate] = useState(supervisor.training8hrDate ? new Date(supervisor.training8hrDate).toISOString().split('T')[0] : "")
+
+    const { data: session } = useSession()
+    const role = String((session?.user as any)?.role || "").toUpperCase()
+    const canEdit = role === "OFFICE" || role === "QA"
+
+    const handleSave = () => {
+        startTransition(async () => {
+            const dataToUpdate: any = {
+                fullName, phone, address, bacbId, certificantNumber, credentialType,
+                maxStudents: Number(maxStudents) || 10,
+                paymentPercentage: Number(paymentPercentage) || 0.60,
+            }
+            if (examDate) dataToUpdate.examDate = new Date(examDate)
+            if (training8hrDate) dataToUpdate.training8hrDate = new Date(training8hrDate)
+
+            const res = await updateSupervisor(supervisor.id, dataToUpdate)
+            if (res.error) {
+                toast.error(res.error)
+            } else {
+                toast.success("Supervisor info updated successfully")
+                setIsEditing(false)
+            }
+        })
+    }
+
+    const handleCancel = () => {
+        setFullName(supervisor.fullName || "")
+        setPhone(supervisor.phone || "")
+        setAddress(supervisor.address || "")
+        setBacbId(supervisor.bacbId || "")
+        setCertificantNumber(supervisor.certificantNumber || "")
+        setCredentialType(supervisor.credentialType || "BCBA")
+        setMaxStudents(String(Number(supervisor.maxStudents) || 10))
+        setPaymentPercentage(String(Number(supervisor.paymentPercentage) || 0.60))
+        setExamDate(supervisor.examDate ? new Date(supervisor.examDate).toISOString().split('T')[0] : "")
+        setTraining8hrDate(supervisor.training8hrDate ? new Date(supervisor.training8hrDate).toISOString().split('T')[0] : "")
+        setIsEditing(false)
+    }
+
+    return (
+        <div className="rounded-xl border bg-card p-6 space-y-4">
+            <div className="flex justify-between items-center">
+                <h3 className="font-semibold text-lg">Contact & Certification</h3>
+                {!isEditing ? (
+                    canEdit && (
+                        <Button variant="ghost" size="sm" onClick={() => setIsEditing(true)}>
+                            <Edit2 className="h-4 w-4 mr-2" /> Edit
+                        </Button>
+                    )
+                ) : (
+                    <div className="flex gap-2">
+                        <Button variant="outline" size="sm" onClick={handleCancel} disabled={isPending}>
+                            <X className="h-4 w-4 mr-1" /> Cancel
+                        </Button>
+                        <Button variant="default" size="sm" onClick={handleSave} disabled={isPending}>
+                            {isPending ? <Loader2 className="h-4 w-4 animate-spin mr-1" /> : <Save className="h-4 w-4 mr-1" />} Save
+                        </Button>
+                    </div>
+                )}
+            </div>
+
+            <div className="grid gap-3 text-sm mt-4">
+                {/* Full Name */}
+                <div className="flex items-center gap-3 p-3 rounded-lg bg-muted/30">
+                    <Edit2 className="h-5 w-5 text-primary/70 shrink-0" />
+                    <div className="flex-1">
+                        <p className="text-xs text-muted-foreground mb-0.5">Full Name</p>
+                        {isEditing ? (
+                            <Input value={fullName} onChange={(e) => setFullName(e.target.value)} className="w-full h-8 mt-1" />
+                        ) : (
+                            <p className="font-medium">{fullName}</p>
+                        )}
+                    </div>
+                </div>
+
+                {/* Email (read-only) */}
+                <div className="flex items-center gap-3 p-3 rounded-lg bg-muted/30">
+                    <Mail className="h-5 w-5 text-primary/70 shrink-0" />
                     <div className="flex-1">
                         <p className="text-xs text-muted-foreground mb-0.5">Email Address</p>
                         <p className="font-medium">{supervisor.email}</p>
                     </div>
                 </div>
 
+                {/* Phone */}
                 <div className="flex items-center gap-3 p-3 rounded-lg bg-muted/30">
-                    <Phone className="h-5 w-5 text-primary/70" />
+                    <Phone className="h-5 w-5 text-primary/70 shrink-0" />
                     <div className="flex-1">
                         <p className="text-xs text-muted-foreground mb-0.5">Phone Number</p>
                         {isEditing ? (
                             <Input value={phone} onChange={(e) => setPhone(e.target.value)} className="w-full h-8 mt-1" />
                         ) : (
-                            <p className="font-medium">{phone}</p>
+                            <p className="font-medium">{phone || "—"}</p>
                         )}
                     </div>
                 </div>
 
+                {/* Address */}
                 <div className="flex items-center gap-3 p-3 rounded-lg bg-muted/30">
-                    <MapPin className="h-5 w-5 text-primary/70" />
+                    <MapPin className="h-5 w-5 text-primary/70 shrink-0" />
                     <div className="flex-1">
                         <p className="text-xs text-muted-foreground mb-0.5">Address</p>
                         {isEditing ? (
                             <Input value={address} onChange={(e) => setAddress(e.target.value)} className="w-full h-8 mt-1" />
                         ) : (
-                            <p className="font-medium">{address}</p>
+                            <p className="font-medium">{address || "—"}</p>
                         )}
                     </div>
                 </div>
 
+                {/* BACB ID + Certificant # */}
                 <div className="flex items-center gap-3 p-3 rounded-lg bg-muted/30">
-                    <Award className="h-5 w-5 text-primary/70" />
+                    <Award className="h-5 w-5 text-primary/70 shrink-0" />
                     <div className="flex-1">
                         <p className="text-xs text-muted-foreground mb-0.5">BACB & Certification ID</p>
                         {isEditing ? (
@@ -225,26 +482,71 @@ export function EditableSupervisorContactInfo({ supervisor }: { supervisor: any 
                     </div>
                 </div>
 
+                {/* Credential Type + Max Students + Payment % */}
+                <div className="grid grid-cols-3 gap-3">
+                    <div className="flex items-center gap-2 p-3 rounded-lg bg-muted/30">
+                        <GraduationCap className="h-5 w-5 text-primary/70 shrink-0" />
+                        <div className="flex-1">
+                            <p className="text-xs text-muted-foreground mb-0.5">Type</p>
+                            {isEditing ? (
+                                <Select value={credentialType} onValueChange={setCredentialType}>
+                                    <SelectTrigger className="w-full h-8 mt-1"><SelectValue /></SelectTrigger>
+                                    <SelectContent>
+                                        <SelectItem value="BCBA">BCBA</SelectItem>
+                                        <SelectItem value="BCaBA">BCaBA</SelectItem>
+                                        <SelectItem value="BCBA-D">BCBA-D</SelectItem>
+                                    </SelectContent>
+                                </Select>
+                            ) : (
+                                <p className="font-semibold uppercase text-primary">{credentialType}</p>
+                            )}
+                        </div>
+                    </div>
+                    <div className="flex items-center gap-2 p-3 rounded-lg bg-muted/30">
+                        <Users className="h-5 w-5 text-primary/70 shrink-0" />
+                        <div className="flex-1">
+                            <p className="text-xs text-muted-foreground mb-0.5">Max Students</p>
+                            {isEditing ? (
+                                <Input type="number" value={maxStudents} onChange={(e) => setMaxStudents(e.target.value)} className="w-full h-8 mt-1" />
+                            ) : (
+                                <p className="font-bold text-lg">{maxStudents}</p>
+                            )}
+                        </div>
+                    </div>
+                    <div className="flex items-center gap-2 p-3 rounded-lg bg-muted/30">
+                        <Percent className="h-5 w-5 text-primary/70 shrink-0" />
+                        <div className="flex-1">
+                            <p className="text-xs text-muted-foreground mb-0.5">Pay %</p>
+                            {isEditing ? (
+                                <Input type="number" step="0.01" value={paymentPercentage} onChange={(e) => setPaymentPercentage(e.target.value)} className="w-full h-8 mt-1" />
+                            ) : (
+                                <p className="font-bold text-lg">{(Number(paymentPercentage) * 100).toFixed(0)}%</p>
+                            )}
+                        </div>
+                    </div>
+                </div>
+
+                {/* Exam Date + 8Hr Training */}
                 <div className="grid grid-cols-2 gap-3">
                     <div className="flex items-center gap-3 p-3 rounded-lg bg-muted/30">
-                        <Calendar className="h-5 w-5 text-primary/70" />
+                        <Calendar className="h-5 w-5 text-primary/70 shrink-0" />
                         <div className="flex-1">
                             <p className="text-xs text-muted-foreground mb-0.5">Exam Date</p>
                             {isEditing ? (
                                 <Input type="date" value={examDate} onChange={(e) => setExamDate(e.target.value)} className="w-full h-8 mt-1" />
                             ) : (
-                                <p className="font-medium text-xs">{examDate ? new Date(examDate).toLocaleDateString() : "-"}</p>
+                                <p className="font-medium text-xs">{examDate ? new Date(examDate).toLocaleDateString() : "—"}</p>
                             )}
                         </div>
                     </div>
                     <div className="flex items-center gap-3 p-3 rounded-lg bg-muted/30">
-                        <Calendar className="h-5 w-5 text-primary/70" />
+                        <Calendar className="h-5 w-5 text-primary/70 shrink-0" />
                         <div className="flex-1">
                             <p className="text-xs text-muted-foreground mb-0.5">8Hr Training</p>
                             {isEditing ? (
                                 <Input type="date" value={training8hrDate} onChange={(e) => setTraining8hrDate(e.target.value)} className="w-full h-8 mt-1" />
                             ) : (
-                                <p className="font-medium text-xs">{training8hrDate ? new Date(training8hrDate).toLocaleDateString() : "-"}</p>
+                                <p className="font-medium text-xs">{training8hrDate ? new Date(training8hrDate).toLocaleDateString() : "—"}</p>
                             )}
                         </div>
                     </div>

@@ -9,8 +9,7 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/custom-tabs"
 import { OfficeContractsTab } from "@/components/office/contracts-tab"
 import { serialize } from "@/lib/serialize"
-import { EditableStudentBacbInfo } from "@/components/shared/editable-bacb-info"
-import { EditableStudentContactInfo } from "@/components/shared/editable-contact-info"
+import { EditableStudentContactInfo, EditableStudentBacbFieldwork } from "@/components/shared/editable-contact-info"
 import { format } from "date-fns"
 import { Badge } from "@/components/ui/badge"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
@@ -139,12 +138,8 @@ export default async function OfficeStudentDetailPage({ params }: { params: Prom
 
                     <TabsContent value="profile">
                         <div className="grid gap-6 md:grid-cols-2">
-                            <EditableStudentContactInfo student={student} />
-                            <EditableStudentBacbInfo
-                                studentId={student.id}
-                                initialBacbId={student.bacbId || ""}
-                                initialFieldworkType={student.fieldworkType || "REGULAR"}
-                            />
+                            <EditableStudentContactInfo student={safeStudent} />
+                            <EditableStudentBacbFieldwork student={safeStudent} isSuperAdmin={isSuperAdmin} />
                         </div>
                     </TabsContent>
 
