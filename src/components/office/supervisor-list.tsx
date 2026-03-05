@@ -133,8 +133,8 @@ export function SupervisorList({ initialSupervisors, isSuperAdmin }: SupervisorL
                     <h1 className="text-2xl font-bold">Supervisors</h1>
                     <p className="text-muted-foreground">Manage all registered supervisors</p>
                 </div>
-                <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2 sm:gap-4">
-                    <div className="relative w-full sm:w-64 md:w-72">
+                <div className="flex flex-col md:flex-row items-start md:items-center gap-3">
+                    <div className="relative w-full md:w-72">
                         <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                         <Input
                             placeholder="Search by name, email or BACB ID..."
@@ -144,7 +144,7 @@ export function SupervisorList({ initialSupervisors, isSuperAdmin }: SupervisorL
                         />
                     </div>
 
-                    <div className="flex flex-wrap items-center gap-2">
+                    <div className="flex items-center gap-2">
 
                         <Sheet>
                             <SheetTrigger asChild>
