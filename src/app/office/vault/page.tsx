@@ -3,7 +3,8 @@ import { auth } from "@/auth"
 import { prisma } from "@/lib/prisma"
 import { redirect, notFound } from "next/navigation"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { ShieldAlert, RotateCcw } from "lucide-react"
+import { Button } from "@/components/ui/button"
+import { ShieldAlert, RotateCcw, Eye } from "lucide-react"
 import { RecoverActionBtn } from "./recover-btn"
 
 export default async function VaultPage() {
@@ -81,7 +82,15 @@ export default async function VaultPage() {
                                                     <span>Archived Account</span>
                                                 </div>
                                             </div>
-                                            <div className="flex items-center">
+                                            <div className="flex items-center gap-3">
+                                                {type !== "office" && (
+                                                    <a href={`/office/${type}s/${id}`}>
+                                                        <Button variant="outline" size="sm" className="hover:bg-blue-50 hover:text-blue-700 hover:border-blue-300 transition-colors">
+                                                            <Eye className="h-4 w-4 mr-2" />
+                                                            View Profile
+                                                        </Button>
+                                                    </a>
+                                                )}
                                                 <RecoverActionBtn id={id} type={type} name={name} />
                                             </div>
                                         </div>

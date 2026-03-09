@@ -89,7 +89,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
             }
 
             // Continuous session validation: Check if user is still active
-            if (token.id) {
+            if (token.id && process.env.NEXT_RUNTIME === "nodejs") {
                 try {
                     const dbUser = await prisma.user.findUnique({
                         where: { id: token.id as string },
