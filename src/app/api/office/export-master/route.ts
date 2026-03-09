@@ -4,6 +4,9 @@ import { NextResponse } from "next/server"
 import ExcelJS from 'exceljs'
 import { format } from "date-fns"
 
+export const dynamic = "force-dynamic"
+export const maxDuration = 60
+
 export async function GET(request: Request) {
     try {
         const session = await auth()
@@ -321,8 +324,11 @@ export async function GET(request: Request) {
         return new NextResponse(buffer, {
             status: 200,
             headers: {
-                'Content-Disposition': `attachment; filename="Export_Master_Report_${format(new Date(), 'yyyyMMdd')}.xlsx"`,
+                'Content-Disposition': `attachment; filename="Export_Master_Report_${format(new Date(), 'yyyyMMdd_HHmmss')}.xlsx"`,
                 'Content-Type': 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+                'Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate',
+                'Pragma': 'no-cache',
+                'Expires': '0',
             }
         })
 

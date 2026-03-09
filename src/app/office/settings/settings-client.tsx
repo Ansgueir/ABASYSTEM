@@ -278,7 +278,7 @@ export function SettingsClient({ settings }: SettingsClientProps) {
                             <DialogFooter>
                                 <Button variant="outline" onClick={() => setExportOpen(false)}>Cancel</Button>
                                 <Button asChild onClick={() => setExportOpen(false)}>
-                                    <a href={`/api/office/export-master?startPeriod=${startPeriod}&endPeriod=${endPeriod}`}>
+                                    <a href={`/api/office/export-master?startPeriod=${startPeriod}&endPeriod=${endPeriod}&t=${Date.now()}`}>
                                         <Download className="h-4 w-4 mr-2" />
                                         Generate & Download
                                     </a>
