@@ -18,6 +18,10 @@ export async function GET(request: Request) {
             return new NextResponse("Forbidden", { status: 403 })
         }
 
+        const { searchParams } = new URL(request.url)
+        const startPeriod = parseInt(searchParams.get('startPeriod') || '1')
+        const endPeriod = parseInt(searchParams.get('endPeriod') || '48')
+
         const workbook = new ExcelJS.Workbook()
         workbook.creator = 'ABA Supervision System'
         workbook.created = new Date()
@@ -199,29 +203,31 @@ export async function GET(request: Request) {
                 dueToAnalystAcum += dueToAnalyst;
                 paidToAnalystAcum = paidToAnalystAcumReal;
 
-                const row = sheetFinancial.addRow({
-                    studentName: student.fullName,
-                    supervisorName: student.supervisor?.fullName || null,
-                    periodNum: i,
-                    month: p ? p.monthYearLabel : `Period ${i}`,
-                    dueToOffice,
-                    dueToOfficeAcum,
-                    paidToOffice,
-                    paidToOfficeAcum,
-                    dueToAnalyst,
-                    dueToAnalystAcum,
-                    paidToAnalyst,
-                    paidToAnalystAcum
-                })
+                if (i >= startPeriod && i <= endPeriod) {
+                    const row = sheetFinancial.addRow({
+                        studentName: student.fullName,
+                        supervisorName: student.supervisor?.fullName || null,
+                        periodNum: i,
+                        month: p ? p.monthYearLabel : `Period ${i}`,
+                        dueToOffice,
+                        dueToOfficeAcum,
+                        paidToOffice,
+                        paidToOfficeAcum,
+                        dueToAnalyst,
+                        dueToAnalystAcum,
+                        paidToAnalyst,
+                        paidToAnalystAcum
+                    })
 
-                row.getCell('dueToOffice').numFmt = '"$"#,##0.00'
-                row.getCell('dueToOfficeAcum').numFmt = '"$"#,##0.00'
-                row.getCell('paidToOffice').numFmt = '"$"#,##0.00'
-                row.getCell('paidToOfficeAcum').numFmt = '"$"#,##0.00'
-                row.getCell('dueToAnalyst').numFmt = '"$"#,##0.00'
-                row.getCell('dueToAnalystAcum').numFmt = '"$"#,##0.00'
-                row.getCell('paidToAnalyst').numFmt = '"$"#,##0.00'
-                row.getCell('paidToAnalystAcum').numFmt = '"$"#,##0.00'
+                    row.getCell('dueToOffice').numFmt = '"$"#,##0.00'
+                    row.getCell('dueToOfficeAcum').numFmt = '"$"#,##0.00'
+                    row.getCell('paidToOffice').numFmt = '"$"#,##0.00'
+                    row.getCell('paidToOfficeAcum').numFmt = '"$"#,##0.00'
+                    row.getCell('dueToAnalyst').numFmt = '"$"#,##0.00'
+                    row.getCell('dueToAnalystAcum').numFmt = '"$"#,##0.00'
+                    row.getCell('paidToAnalyst').numFmt = '"$"#,##0.00'
+                    row.getCell('paidToAnalystAcum').numFmt = '"$"#,##0.00'
+                }
             }
         }
 
