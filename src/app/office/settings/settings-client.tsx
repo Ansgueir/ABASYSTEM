@@ -229,19 +229,19 @@ export function SettingsClient({ settings }: SettingsClientProps) {
                 <CardHeader>
                     <CardTitle className="text-lg flex items-center gap-2 text-primary">
                         <TableIcon className="h-5 w-5" />
-                        Master Spreadsheet Export
+                        Master Report Download
                     </CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-4">
                     <p className="text-sm text-muted-foreground">
-                        Export the complete foundation database to an Excel (.xlsx) file, including all students, financial periods, dynamic calculations, payments, and system options.
+                        Download the complete foundation database to an Excel (.xlsx) file, including all students, financial periods, dynamic calculations, payments, and system options.
                     </p>
 
                     <Dialog open={exportOpen} onOpenChange={setExportOpen}>
                         <DialogTrigger asChild>
                             <Button variant="default" className="w-full sm:w-auto mt-2">
                                 <Download className="h-4 w-4 mr-2" />
-                                Export Master Spreadsheet
+                                Download Master Report
                             </Button>
                         </DialogTrigger>
                         <DialogContent>
