@@ -18,7 +18,7 @@ import {
 import { MoreHorizontal, Power, RotateCcw, Trash2, Edit, ExternalLink } from "lucide-react"
 import { useState, useTransition } from "react"
 import { toast } from "sonner"
-import { toggleUserStatus, resetUserPassword, deleteStudent, deleteSupervisor, deleteOfficeMember } from "@/actions/users"
+import { resetUserPassword, deleteStudent, deleteSupervisor, deleteOfficeMember, toggleStudentStatus, toggleSupervisorStatus, toggleOfficeMemberStatus } from "@/actions/users"
 import Link from "next/link"
 import { EditSupervisorDialog } from "./edit-supervisor-dialog"
 import { EditOfficeMemberDialog } from "./edit-office-member-dialog"
@@ -47,9 +47,13 @@ export function UserActions({ id, userId, name, email, type, isActive, fullData,
     const handleToggleStatus = () => {
         setIsPopoverOpen(false)
         startTransition(async () => {
-            const result = await toggleUserStatus(userId, isActive, type === "office" ? "OFFICE" : "USER")
-            if (result.error) toast.error(result.error)
-            else toast.success(isActive ? "User disabled" : "User enabled")
+            let result
+            if (type === "student") result = await toggleStudentStatus(id, isActive)
+            else if (type === "supervisor") result = await toggleSupervisorStatus(id, isActive)
+            else result = await toggleOfficeMemberStatus(id, isActive)
+
+            if (result?.error) toast.error(result.error)
+            else toast.success(isActive ? "Account disabled" : "Account enabled")
         })
     }
 
@@ -141,7 +145,7 @@ export function UserActions({ id, userId, name, email, type, isActive, fullData,
                         onClick={handleToggleStatus}
                     >
                         <Power className={`mr-2 h-4 w-4 ${isActive ? "text-destructive" : "text-green-500"}`} />
-                        {isActive ? "Disable Access" : "Enable Access"}
+                        {isActive ? "Disable Account" : "Enable Account"}
                     </Button>
                     <Button
                         variant="ghost"
@@ -166,7 +170,7 @@ export function UserActions({ id, userId, name, email, type, isActive, fullData,
                         }}
                     >
                         <Trash2 className="mr-2 h-4 w-4" />
-                        Delete {type}
+                        Delete Account
                     </Button>
                 </PopoverContent>
             </Popover>

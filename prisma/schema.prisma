@@ -13,6 +13,7 @@ model User {
   passwordHash       String
   role               UserRole
   isActive           Boolean             @default(true)
+  isHidden           Boolean             @default(false)
   isFirstLogin       Boolean             @default(true)
   onboardingCompleted Boolean            @default(false)
   onboardingStep     Int                 @default(0)
@@ -397,11 +398,13 @@ enum StudentStatus {
   PENDING
   COMPLETED
   WITHDRAWN
+  DISABLED
 }
 
 enum SupervisorStatus {
   ACTIVE
   WITHDRAWN
+  DISABLED
 }
 
 enum SettingType {

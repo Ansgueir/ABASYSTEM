@@ -21,6 +21,7 @@ const getSessionUser = async () => {
     if (!session?.user) return null
     return {
         id: session.user.id,
+        email: session.user.email,
         role: (session.user as any).role,
         officeRole: (session.user as any).officeRole
     }
@@ -370,8 +371,14 @@ export async function deleteStudent(studentId: string) {
         if (!student) return { error: "Student not found" }
 
         await prisma.$transaction(async (tx) => {
-            await tx.student.delete({ where: { id: studentId } })
-            await tx.user.delete({ where: { id: student.userId } })
+            await tx.student.update({
+                where: { id: studentId },
+                data: { status: "DISABLED" }
+            })
+            await tx.user.update({
+                where: { id: student.userId },
+                data: { isHidden: true, isActive: false }
+            })
         })
 
         revalidatePath("/office/students")
@@ -392,8 +399,14 @@ export async function deleteSupervisor(supervisorId: string) {
         if (!supervisor) return { error: "Supervisor not found" }
 
         await prisma.$transaction(async (tx) => {
-            await tx.supervisor.delete({ where: { id: supervisorId } })
-            await tx.user.delete({ where: { id: supervisor.userId } })
+            await tx.supervisor.update({
+                where: { id: supervisorId },
+                data: { status: "DISABLED" }
+            })
+            await tx.user.update({
+                where: { id: supervisor.userId },
+                data: { isHidden: true, isActive: false }
+            })
         })
 
         revalidatePath("/office/supervisors")
@@ -495,8 +508,10 @@ export async function deleteOfficeMember(memberId: string) {
         }
 
         await prisma.$transaction(async (tx) => {
-            await tx.officeMember.delete({ where: { id: memberId } })
-            await tx.user.delete({ where: { id: member.userId } })
+            await tx.user.update({
+                where: { id: member.userId },
+                data: { isHidden: true, isActive: false }
+            })
         })
 
         revalidatePath("/office/team")
@@ -569,5 +584,127 @@ export async function updateOfficeMember(memberId: string, data: any) {
     } catch (error) {
         console.error("Update office member error:", error)
         return { error: "Failed to update office member" }
+    }
+}
+
+export async function toggleStudentStatus(studentId: string, disable: boolean) {
+    const currentUser = await getSessionUser()
+    if (!currentUser || (currentUser.role !== "OFFICE" && currentUser.role !== "QA")) {
+        return { error: "Unauthorized" }
+    }
+
+    try {
+        const student = await prisma.student.findUnique({ where: { id: studentId }, select: { userId: true } })
+        if (!student) return { error: "Student not found" }
+
+        await prisma.$transaction(async (tx) => {
+            await tx.student.update({
+                where: { id: studentId },
+                data: { status: disable ? "DISABLED" : "ACTIVE" }
+            })
+            await tx.user.update({
+                where: { id: student.userId },
+                data: { isActive: !disable }
+            })
+        })
+
+        revalidatePath("/office/students")
+        return { success: true }
+    } catch (error) {
+        return { error: "Failed to update student status" }
+    }
+}
+
+export async function toggleSupervisorStatus(supervisorId: string, disable: boolean) {
+    const currentUser = await getSessionUser()
+    if (!currentUser || (currentUser.role !== "OFFICE" && currentUser.role !== "QA")) {
+        return { error: "Unauthorized" }
+    }
+
+    try {
+        const supervisor = await prisma.supervisor.findUnique({ where: { id: supervisorId }, select: { userId: true } })
+        if (!supervisor) return { error: "Supervisor not found" }
+
+        await prisma.$transaction(async (tx) => {
+            await tx.supervisor.update({
+                where: { id: supervisorId },
+                data: { status: disable ? "DISABLED" : "ACTIVE" }
+            })
+            await tx.user.update({
+                where: { id: supervisor.userId },
+                data: { isActive: !disable }
+            })
+        })
+
+        revalidatePath("/office/supervisors")
+        return { success: true }
+    } catch (error) {
+        return { error: "Failed to update supervisor status" }
+    }
+}
+
+export async function toggleOfficeMemberStatus(memberId: string, disable: boolean) {
+    const currentUser = await getSessionUser()
+    if (!currentUser || currentUser.role !== "OFFICE" || currentUser.officeRole !== "SUPER_ADMIN") {
+        return { error: "Unauthorized: Only Super Admin can modify office members" }
+    }
+
+    try {
+        const member = await prisma.officeMember.findUnique({ where: { id: memberId }, select: { userId: true } })
+        if (!member) return { error: "Member not found" }
+
+        if (member.userId === currentUser.id) {
+            return { error: "Cannot disable your own account" }
+        }
+
+        await prisma.$transaction(async (tx) => {
+            await tx.user.update({
+                where: { id: member.userId },
+                data: { isActive: !disable }
+            })
+        })
+
+        revalidatePath("/office/team")
+        return { success: true }
+    } catch (error) {
+        return { error: "Failed to update office member status" }
+    }
+}
+// (append mode block starts here)
+
+export async function recoverAccount(id: string, type: "student" | "supervisor" | "office") {
+    const currentUser = await getSessionUser()
+    if (!currentUser || currentUser.email !== "qa-super@abasystem.com") {
+        return { error: "Unauthorized. Vault access only." }
+    }
+
+    try {
+        await prisma.$transaction(async (tx) => {
+            if (type === "student") {
+                const student = await tx.student.findUnique({ where: { id } })
+                if (student) {
+                    await tx.student.update({ where: { id }, data: { status: "ACTIVE" } })
+                    await tx.user.update({ where: { id: student.userId }, data: { isHidden: false, isActive: true } })
+                }
+            } else if (type === "supervisor") {
+                const supervisor = await tx.supervisor.findUnique({ where: { id } })
+                if (supervisor) {
+                    await tx.supervisor.update({ where: { id }, data: { status: "ACTIVE" } })
+                    await tx.user.update({ where: { id: supervisor.userId }, data: { isHidden: false, isActive: true } })
+                }
+            } else {
+                const member = await tx.officeMember.findUnique({ where: { id } })
+                if (member) {
+                    await tx.user.update({ where: { id: member.userId }, data: { isHidden: false, isActive: true } })
+                }
+            }
+        })
+        revalidatePath("/office/vault")
+        revalidatePath("/office/students")
+        revalidatePath("/office/supervisors")
+        revalidatePath("/office/team")
+        return { success: true }
+    } catch (error) {
+        return { error: "Failed to recover account" }
     }
 }

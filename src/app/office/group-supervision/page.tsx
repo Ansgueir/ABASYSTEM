@@ -18,12 +18,13 @@ export default async function GroupSupervisionPage() {
     if (role !== "office" && role !== "qa") redirect("/login")
 
     const supervisors = await prisma.supervisor.findMany({
+        where: { user: { isHidden: false } },
         select: { id: true, fullName: true },
         orderBy: { fullName: 'asc' }
     })
 
     const students = await prisma.student.findMany({
-        where: { status: 'ACTIVE' },
+        where: { status: 'ACTIVE', user: { isHidden: false } },
         select: { id: true, fullName: true },
         orderBy: { fullName: 'asc' }
     })

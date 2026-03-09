@@ -60,7 +60,7 @@ export default async function OfficeStudentDetailPage({ params }: { params: Prom
 
     // All active supervisors for the multi-select — serialize to avoid Decimal crash
     const rawSupervisors = await prisma.supervisor.findMany({
-        where: { status: "ACTIVE" },
+        where: { status: "ACTIVE", user: { isHidden: false } },
         select: { id: true, fullName: true, bacbId: true, credentialType: true },
         orderBy: { fullName: "asc" }
     })

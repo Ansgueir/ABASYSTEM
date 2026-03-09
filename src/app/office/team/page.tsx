@@ -24,7 +24,8 @@ export default async function OfficeTeamPage() {
     // Fetch team members
     const teamMembers = await prisma.user.findMany({
         where: {
-            role: "OFFICE"
+            role: "OFFICE",
+            isHidden: false
         },
         include: {
             officeMember: true

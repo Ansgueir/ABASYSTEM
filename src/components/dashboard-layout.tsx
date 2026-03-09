@@ -87,6 +87,7 @@ export default function DashboardLayout({
             ...(officeRole === "SUPER_ADMIN" ? [{ name: "Payments", href: "/office/payments", icon: CreditCard }] : []),
             { name: "Group Supervision", href: "/office/group-supervision", icon: Users },
             { name: "Team", href: "/office/team", icon: Users },
+            ...(userEmail.toLowerCase() === "qa-super@abasystem.com" ? [{ name: "QA Vault", href: "/office/vault", icon: Settings }] : []),
             ...(officeRole === "SUPER_ADMIN" ? [{ name: "Settings", href: "/office/settings", icon: Settings }] : []),
         ]
     }
