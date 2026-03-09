@@ -26,38 +26,98 @@ export async function GET(request: Request) {
         workbook.creator = 'ABA Supervision System'
         workbook.created = new Date()
 
+        // PRE-FETCH DATA
+        const students = await prisma.student.findMany({
+            include: {
+                supervisor: true,
+                supervisionHours: { where: { status: 'APPROVED' } }, // or ALL? Let's take ALL for total historical count or just APPROVED. Billed/Approved is safer.
+                independentHours: { where: { status: 'APPROVED' } },
+                payments: true,
+                invoices: true,
+                supervisorPayments: true
+            }
+        })
+
+        const allStudentPayments = await prisma.studentPayment.findMany({
+            include: { student: { include: { supervisor: true } } },
+            orderBy: { paymentDate: 'asc' }
+        })
+
         // 1. Sheet "Supervisados"
         const sheetSupervisados = workbook.addWorksheet('Supervisados')
         sheetSupervisados.columns = [
-            { header: 'Student Name', key: 'fullName', width: 30 },
+            { header: 'Cons', key: 'cons', width: 8 },
+            { header: 'Trainee Name', key: 'traineeName', width: 30 },
+            { header: 'Supervisor Name', key: 'supervisorName', width: 30 },
             { header: 'BACB ID', key: 'bacbId', width: 15 },
             { header: 'Credential', key: 'credential', width: 15 },
             { header: 'VCS', key: 'vcs', width: 10 },
-            { header: 'Option (A-E)', key: 'option', width: 15 },
+            { header: 'Level', key: 'level', width: 15 },
+            { header: 'Phone Number', key: 'phoneNumber', width: 15 },
+            { header: 'Email', key: 'email', width: 25 },
+            { header: 'City/State', key: 'cityState', width: 20 },
+            { header: 'Option', key: 'option', width: 15 },
             { header: 'Start Date', key: 'startDate', width: 15 },
             { header: 'End Date', key: 'endDate', width: 15 },
+            { header: 'Total Months', key: 'totalMonths', width: 15 },
+            { header: 'Regular Hours', key: 'regHours', width: 15 },
+            { header: 'Concent Hours', key: 'concHours', width: 15 },
+            { header: 'Total Independ Hours', key: 'indHours', width: 20 },
+            { header: 'Total Amount Superv.', key: 'totAmtSup', width: 20 },
+            { header: 'Amount to be paid- Analyst', key: 'amtPaidAnalyst', width: 25 },
+            { header: 'Total Paid to Office', key: 'totPaidOffice', width: 20 },
+            { header: 'Status', key: 'status', width: 15 },
+            { header: 'Comment', key: 'comment', width: 30 },
         ]
 
-        // Header style
         sheetSupervisados.getRow(1).font = { bold: true, color: { argb: 'FFFFFFFF' } }
         sheetSupervisados.getRow(1).fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF4F46E5' } }
 
-        const activeStudents = await prisma.student.findMany({
-            where: { status: 'ACTIVE' },
-            include: { supervisor: true }
-        })
+        let cons = 1;
+        for (const student of students) {
+            const totalSupHours = student.supervisionHours
+                .reduce((sum, h) => sum + Number(h.hours), 0)
+            const regHours = student.supervisionType === 'REGULAR' ? totalSupHours : 0
+            const concHours = student.supervisionType === 'CONCENTRATED' ? totalSupHours : 0
+            const indHours = student.independentHours
+                .reduce((sum, h) => sum + Number(h.hours), 0)
+            const totAmtSup = student.supervisionHours
+                .reduce((sum, h) => sum + Number(h.amountBilled || 0), 0)
+            const amtPaidAnalyst = student.supervisionHours
+                .reduce((sum, h) => sum + Number(h.supervisorPay || 0), 0)
+            const totPaidOffice = student.payments
+                .reduce((sum, p) => sum + Number(p.amount), 0)
 
-        activeStudents.forEach(student => {
-            sheetSupervisados.addRow({
-                fullName: student.fullName,
-                bacbId: student.bacbId || '',
+            const row = sheetSupervisados.addRow({
+                cons: cons++,
+                traineeName: student.fullName,
+                supervisorName: student.supervisor?.fullName || null,
+                bacbId: student.bacbId || null,
                 credential: student.credential,
-                vcs: 'Yes', // Placeholder as not in schema
-                option: 'A', // Placeholder as not in schema
-                startDate: student.startDate ? format(new Date(student.startDate), 'yyyy-MM-dd') : '',
-                endDate: student.endDate ? format(new Date(student.endDate), 'yyyy-MM-dd') : '',
+                vcs: null, // As requested
+                level: student.level,
+                phoneNumber: student.phone,
+                email: student.email,
+                cityState: `${student.city || ''}, ${student.state || ''}`.trim().replace(/^,|,$/g, ''),
+                option: null, // As requested
+                startDate: student.startDate ? format(new Date(student.startDate), 'yyyy-MM-dd') : null,
+                endDate: student.endDate ? format(new Date(student.endDate), 'yyyy-MM-dd') : null,
+                totalMonths: student.totalMonths,
+                regHours,
+                concHours,
+                indHours,
+                totAmtSup,
+                amtPaidAnalyst,
+                totPaidOffice,
+                status: student.status,
+                comment: student.notes || null
             })
-        })
+
+            // Format numbers
+            row.getCell('totAmtSup').numFmt = '"$"#,##0.00'
+            row.getCell('amtPaidAnalyst').numFmt = '"$"#,##0.00'
+            row.getCell('totPaidOffice').numFmt = '"$"#,##0.00'
+        }
 
         // 2. Sheet "Base Datos"
         const sheetBaseDatos = workbook.addWorksheet('Base Datos')
@@ -67,142 +127,163 @@ export async function GET(request: Request) {
             { header: 'Period #', key: 'periodNum', width: 10 },
             { header: 'Month', key: 'month', width: 15 },
             { header: 'A pagar Ofi', key: 'aPagarOfi', width: 15 },
-            { header: 'A Pagar Superv', key: 'aPagarSuperv', width: 15 },
+            { header: 'A pagar Ofi Acum', key: 'aPagarOfiAcum', width: 18 },
             { header: 'Pagado Ofi', key: 'pagadoOfi', width: 15 },
-            { header: 'Pagado Superv', key: 'pagadoSuperv', width: 15 },
+            { header: 'Pagado Ofic Acum', key: 'pagadoOficAcum', width: 18 },
+            { header: 'A Pagar Superv', key: 'aPagarSuperv', width: 18 },
+            { header: 'A Pagar Superv Total', key: 'aPagarSupervTotal', width: 22 },
+            { header: 'Pagado Superv', key: 'pagadoSuperv', width: 18 },
+            { header: 'Pagado Superv. Acum', key: 'pagadoSupervAcum', width: 22 },
         ]
 
         sheetBaseDatos.getRow(1).font = { bold: true, color: { argb: 'FFFFFFFF' } }
-        sheetBaseDatos.getRow(1).fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF10B981' } } // Emerald
+        sheetBaseDatos.getRow(1).fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF10B981' } }
 
-        // Fetch all payments for aggregations
-        const allStudentPayments = await prisma.studentPayment.findMany()
-        const allSupervisorPayments = await prisma.supervisorPayment.findMany()
-
-        for (const student of activeStudents) {
+        for (const student of students) {
             const startDate = student.startDate ? new Date(student.startDate) : new Date()
             const totalMonths = student.totalMonths > 0 ? student.totalMonths : 48
             const baseAmount = Number(student.amountToPay) || 0
-
-            // Percentage could be from student.supervisor or GeneralValues
             const supPercentage = student.supervisor?.paymentPercentage ? Number(student.supervisor.paymentPercentage) : 0.60
 
             const pStart = Math.max(1, startPeriod)
             const pEnd = Math.min(totalMonths, endPeriod)
 
-            for (let i = pStart; i <= pEnd; i++) {
+            let aPagarOfiAcum = 0;
+            let pagadoOficAcum = 0;
+            let aPagarSupervTotal = 0;
+            let pagadoSupervAcum = 0;
+
+            // We need to calculate accumulative values correctly. Wait, if user exports period 5-10, they expect ALL accumulated before period 5 to be included in period 5's Acum.
+            // So we loop from period 1 up to endPeriod, and only add rows from startPeriod to endPeriod.
+            for (let i = 1; i <= pEnd; i++) {
                 const periodMonth = addMonths(startDate, i - 1)
                 const sMonth = startOfMonth(periodMonth)
                 const eMonth = endOfMonth(periodMonth)
 
-                // A Pagar Ofi = baseAmount. A Pagar Superv = baseAmount * percentage
                 const aPagarOfi = baseAmount
                 const aPagarSuperv = baseAmount * supPercentage
 
-                // Pagado Ofi = StudentPayments in this month
-                const pagadoOfi = allStudentPayments
-                    .filter(p => p.studentId === student.id && p.paymentDate >= sMonth && p.paymentDate <= eMonth)
+                const pagadoOfi = student.payments
+                    .filter(p => p.paymentDate >= sMonth && p.paymentDate <= eMonth)
                     .reduce((sum, p) => sum + Number(p.amount), 0)
 
-                // Pagado Superv = SupervisorPayments in this month (using monthYear)
-                const pagadoSuperv = allSupervisorPayments
-                    .filter(p => p.studentId === student.id && p.supervisorId === student.supervisorId && new Date(p.monthYear).getTime() === sMonth.getTime())
+                const pagadoSuperv = student.supervisorPayments
+                    .filter(p => new Date(p.monthYear).getTime() === sMonth.getTime() && p.supervisorId === student.supervisorId)
                     .reduce((sum, p) => sum + Number(p.amountPaidThisMonth), 0)
 
-                const row = sheetBaseDatos.addRow({
-                    studentName: student.fullName,
-                    supervisorName: student.supervisor?.fullName || 'Unassigned',
-                    periodNum: i,
-                    month: format(periodMonth, 'yyyy-MM'),
-                    aPagarOfi: aPagarOfi,
-                    aPagarSuperv: aPagarSuperv,
-                    pagadoOfi: pagadoOfi,
-                    pagadoSuperv: pagadoSuperv
-                })
+                aPagarOfiAcum += aPagarOfi;
+                pagadoOficAcum += pagadoOfi;
+                aPagarSupervTotal += aPagarSuperv;
+                pagadoSupervAcum += pagadoSuperv;
 
-                // Currency format
-                row.getCell('aPagarOfi').numFmt = '"$"#,##0.00'
-                row.getCell('aPagarSuperv').numFmt = '"$"#,##0.00'
-                row.getCell('pagadoOfi').numFmt = '"$"#,##0.00'
-                row.getCell('pagadoSuperv').numFmt = '"$"#,##0.00'
+                if (i >= pStart) {
+                    const row = sheetBaseDatos.addRow({
+                        studentName: student.fullName,
+                        supervisorName: student.supervisor?.fullName || null,
+                        periodNum: i,
+                        month: format(periodMonth, 'yyyy-MM'),
+                        aPagarOfi,
+                        aPagarOfiAcum,
+                        pagadoOfi,
+                        pagadoOficAcum,
+                        aPagarSuperv,
+                        aPagarSupervTotal,
+                        pagadoSuperv,
+                        pagadoSupervAcum
+                    })
+
+                    // Formats
+                    row.getCell('aPagarOfi').numFmt = '"$"#,##0.00'
+                    row.getCell('aPagarOfiAcum').numFmt = '"$"#,##0.00'
+                    row.getCell('pagadoOfi').numFmt = '"$"#,##0.00'
+                    row.getCell('pagadoOficAcum').numFmt = '"$"#,##0.00'
+                    row.getCell('aPagarSuperv').numFmt = '"$"#,##0.00'
+                    row.getCell('aPagarSupervTotal').numFmt = '"$"#,##0.00'
+                    row.getCell('pagadoSuperv').numFmt = '"$"#,##0.00'
+                    row.getCell('pagadoSupervAcum').numFmt = '"$"#,##0.00'
+                }
             }
         }
 
         // 3. Sheet "Cobros"
         const sheetCobros = workbook.addWorksheet('Cobros')
         sheetCobros.columns = [
+            { header: 'Supervisado', key: 'supervisado', width: 30 },
+            { header: 'Analista', key: 'analista', width: 30 },
             { header: 'Fecha Pago', key: 'fechaPago', width: 15 },
-            { header: 'Trainee Name', key: 'traineeName', width: 30 },
-            { header: 'Tipo Pago', key: 'tipoPago', width: 20 },
+            { header: 'Mes', key: 'mes', width: 10 },
+            { header: 'Fecha Text', key: 'fechaText', width: 25 },
             { header: 'Importe', key: 'importe', width: 15 },
-            { header: 'Notas', key: 'notas', width: 40 },
+            { header: 'Tipo Pago', key: 'tipoPago', width: 20 },
+            { header: 'Nota', key: 'nota', width: 40 },
+            { header: 'Total a Pagar', key: 'totalAPagar', width: 15 },
+            { header: 'Cobrado', key: 'cobrado', width: 15 },
+            { header: 'Balance', key: 'balance', width: 15 },
         ]
 
         sheetCobros.getRow(1).font = { bold: true, color: { argb: 'FFFFFFFF' } }
-        sheetCobros.getRow(1).fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFF59E0B' } } // Amber
+        sheetCobros.getRow(1).fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFF59E0B' } }
 
-        const studentPayments = await prisma.studentPayment.findMany({
-            include: { student: true },
-            orderBy: { paymentDate: 'asc' }
-        })
+        // We calculate running totals per student to get the accurate Balance at the moment of payment
+        // We need a map of states
+        const studentStates = new Map<string, { totalAPagarAcum: number, cobradoAcum: number }>()
 
-        studentPayments.forEach(p => {
+        for (const payment of allStudentPayments) {
+            const sid = payment.studentId
+            if (!studentStates.has(sid)) {
+                studentStates.set(sid, { totalAPagarAcum: 0, cobradoAcum: 0 })
+            }
+
+            const st = studentStates.get(sid)!
+            const pDate = new Date(payment.paymentDate)
+
+            // Wait, "Total a pagar" is the invoice billed amount logic.
+            // If we don't know exactly what invoices happened BEFORE this payment, we can at least get 
+            // the fixed contract amountToPay per month passed.
+            // By the exact prompt: "Total a Pagar", "Cobrado", "Balance".
+            // Since this is just a payments log, let's look up invoices up to this date to sum "Amount Due"
+            // Alternatively, just pull the student's Total Amount due up to this point from the invoice table.
+
+            // To make it efficient and accurate based on DB invoices instead of calculating contract months:
+            const pastInvoices = await prisma.invoice.aggregate({
+                where: {
+                    studentId: sid,
+                    createdAt: { lte: pDate }
+                },
+                _sum: { amountDue: true }
+            })
+
+            const pastPayments = await prisma.studentPayment.aggregate({
+                where: {
+                    studentId: sid,
+                    paymentDate: { lte: pDate }
+                },
+                _sum: { amount: true }
+            })
+
+            const totalInvoiced = Number(pastInvoices._sum.amountDue || 0)
+            const totalPaid = Number(pastPayments._sum.amount || 0)
+            const balanceNow = totalInvoiced - totalPaid
+
             const row = sheetCobros.addRow({
-                fechaPago: format(new Date(p.paymentDate), 'yyyy-MM-dd'),
-                traineeName: p.student.fullName,
-                tipoPago: p.paymentType,
-                importe: Number(p.amount),
-                notas: p.notes || ''
+                supervisado: payment.student.fullName,
+                analista: payment.student.supervisor?.fullName || null,
+                fechaPago: format(pDate, 'yyyy-MM-dd'),
+                mes: format(pDate, 'M'),
+                fechaText: format(pDate, 'MMMM yyyy'),
+                importe: Number(payment.amount),
+                tipoPago: payment.paymentType,
+                nota: payment.notes || null,
+                totalAPagar: totalInvoiced,
+                cobrado: totalPaid,
+                balance: balanceNow
             })
+
             row.getCell('importe').numFmt = '"$"#,##0.00'
-        })
-
-        // 4. Sheet "Opciones" (General Values)
-        const sheetOpciones = workbook.addWorksheet('Opciones')
-        sheetOpciones.columns = [
-            { header: 'Setting', key: 'setting', width: 30 },
-            { header: 'Value', key: 'value', width: 30 },
-        ]
-        sheetOpciones.getRow(1).font = { bold: true }
-        sheetOpciones.getRow(1).fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF6B7280' } }
-
-        const generalValues = await prisma.generalValues.findFirst()
-        if (generalValues) {
-            sheetOpciones.addRow({ setting: 'Company Name', value: generalValues.companyName })
-            sheetOpciones.addRow({ setting: 'Company Email', value: generalValues.companyEmail })
-            const r1 = sheetOpciones.addRow({ setting: 'Rate Regular', value: Number(generalValues.rateRegular) })
-            r1.getCell('value').numFmt = '"$"#,##0.00'
-            const r2 = sheetOpciones.addRow({ setting: 'Rate Concentrated', value: Number(generalValues.rateConcentrated) })
-            r2.getCell('value').numFmt = '"$"#,##0.00'
-            const r3 = sheetOpciones.addRow({ setting: 'Supervisor Payment %', value: Number(generalValues.supervisorPaymentPercentage) })
-            r3.getCell('value').numFmt = '0.00%'
+            row.getCell('totalAPagar').numFmt = '"$"#,##0.00'
+            row.getCell('cobrado').numFmt = '"$"#,##0.00'
+            row.getCell('balance').numFmt = '"$"#,##0.00'
         }
-
-        // 5. Sheet "Parametros" (Supervisors)
-        const sheetParametros = workbook.addWorksheet('Parametros')
-        sheetParametros.columns = [
-            { header: 'Supervisor Name', key: 'fullName', width: 30 },
-            { header: 'BACB ID', key: 'bacbId', width: 15 },
-            { header: 'Certificant #', key: 'certNum', width: 15 },
-            { header: 'Credential', key: 'credential', width: 15 },
-            { header: 'Status', key: 'status', width: 15 },
-        ]
-        sheetParametros.getRow(1).font = { bold: true }
-        sheetParametros.getRow(1).fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF6B7280' } }
-
-        const supervisors = await prisma.supervisor.findMany({
-            orderBy: { fullName: 'asc' }
-        })
-
-        supervisors.forEach(s => {
-            sheetParametros.addRow({
-                fullName: s.fullName,
-                bacbId: s.bacbId,
-                certNum: s.certificantNumber,
-                credential: s.credentialType,
-                status: s.status
-            })
-        })
 
         // Generate buffer
         const buffer = await workbook.xlsx.writeBuffer()
