@@ -15,6 +15,7 @@ import dynamic from "next/dynamic"
 import { useSession } from "next-auth/react"
 import { useEffect } from "react"
 import { getGeneralSettings } from "@/actions/settings"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 
 import type SignaturePad from "react-signature-canvas"
 
@@ -46,6 +47,19 @@ export default function OnboardingWizard({ initialStep, initialData }: WizardPro
     // Step 1 State
     const [phone, setPhone] = useState(initialData.phone || "")
     const [address, setAddress] = useState(initialData.address || "")
+    const [city, setCity] = useState("")
+    const [stateLocation, setStateLocation] = useState("")
+
+    // Student specific
+    const [bacbId, setBacbId] = useState("")
+    const [credential, setCredential] = useState("")
+    const [vcsSequence, setVcsSequence] = useState("")
+
+    // Supervisor specific
+    const [certificantNumber, setCertificantNumber] = useState("")
+    const [qualificationLevel, setQualificationLevel] = useState("")
+    const [dateQualified, setDateQualified] = useState("")
+    const [examDate, setExamDate] = useState("")
 
     // Step 2 State
     const [termsAccepted, setTermsAccepted] = useState(false)
@@ -69,6 +83,15 @@ export default function OnboardingWizard({ initialStep, initialData }: WizardPro
         const formData = new FormData()
         formData.append("phone", phone)
         formData.append("address", address)
+        formData.append("city", city)
+        formData.append("state", stateLocation)
+        formData.append("bacbId", bacbId)
+        formData.append("credential", credential)
+        formData.append("vcsSequence", vcsSequence)
+        formData.append("certificantNumber", certificantNumber)
+        formData.append("qualificationLevel", qualificationLevel)
+        formData.append("dateQualified", dateQualified)
+        formData.append("examDate", examDate)
 
         try {
             const result = await submitContactInfo(null, formData)
@@ -193,15 +216,126 @@ export default function OnboardingWizard({ initialStep, initialData }: WizardPro
                                 />
                             </div>
                             <div className="space-y-2">
-                                <Label htmlFor="address">Full Address <span className="text-red-500">*</span></Label>
+                                <Label htmlFor="address">Address <span className="text-red-500">*</span></Label>
                                 <Input
                                     id="address"
                                     value={address}
                                     onChange={(e) => setAddress(e.target.value)}
-                                    placeholder="123 Main St, City, State, Zip"
+                                    placeholder="123 Main St"
                                     required
                                 />
                             </div>
+
+                            <div className="grid grid-cols-2 gap-4">
+                                <div className="space-y-2">
+                                    <Label htmlFor="city">City <span className="text-red-500">*</span></Label>
+                                    <Input
+                                        id="city"
+                                        value={city}
+                                        onChange={(e) => setCity(e.target.value)}
+                                        placeholder="City"
+                                        required
+                                    />
+                                </div>
+                                <div className="space-y-2">
+                                    <Label htmlFor="state">State <span className="text-red-500">*</span></Label>
+                                    <Input
+                                        id="state"
+                                        value={stateLocation}
+                                        onChange={(e) => setStateLocation(e.target.value)}
+                                        placeholder="State"
+                                        required
+                                    />
+                                </div>
+                            </div>
+
+                            {/* CONDITIONAL RENDER BY ROLE */}
+                            {initialData.role.toUpperCase() === "STUDENT" && (
+                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-4 border-t pt-4">
+                                    <div className="space-y-2">
+                                        <Label htmlFor="bacbId">BACB ID # <span className="text-red-500">*</span></Label>
+                                        <Input
+                                            id="bacbId"
+                                            value={bacbId}
+                                            onChange={(e) => setBacbId(e.target.value)}
+                                            placeholder="BACB ID"
+                                            required
+                                        />
+                                    </div>
+                                    <div className="space-y-2">
+                                        <Label htmlFor="credential">Credential <span className="text-red-500">*</span></Label>
+                                        <Select onValueChange={setCredential} value={credential} required>
+                                            <SelectTrigger>
+                                                <SelectValue placeholder="Select credential" />
+                                            </SelectTrigger>
+                                            <SelectContent>
+                                                <SelectItem value="RBT">RBT</SelectItem>
+                                                <SelectItem value="BCaBA">BCaBA</SelectItem>
+                                                <SelectItem value="BCBA">BCBA</SelectItem>
+                                                <SelectItem value="STUDENT">STUDENT</SelectItem>
+                                            </SelectContent>
+                                        </Select>
+                                    </div>
+                                    <div className="space-y-2">
+                                        <Label htmlFor="vcsSequence">VCS Sequence <span className="text-red-500">*</span></Label>
+                                        <Input
+                                            id="vcsSequence"
+                                            value={vcsSequence}
+                                            onChange={(e) => setVcsSequence(e.target.value)}
+                                            placeholder="VCS"
+                                            required
+                                        />
+                                    </div>
+                                </div>
+                            )}
+
+                            {initialData.role.toUpperCase() === "SUPERVISOR" && (
+                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-4 border-t pt-4">
+                                    <div className="space-y-2">
+                                        <Label htmlFor="certificantNumber">Certification Number (Cert #) <span className="text-red-500">*</span></Label>
+                                        <Input
+                                            id="certificantNumber"
+                                            value={certificantNumber}
+                                            onChange={(e) => setCertificantNumber(e.target.value)}
+                                            placeholder="Cert #"
+                                            required
+                                        />
+                                    </div>
+                                    <div className="space-y-2">
+                                        <Label htmlFor="qualificationLevel">Qualification Level <span className="text-red-500">*</span></Label>
+                                        <Select onValueChange={setQualificationLevel} value={qualificationLevel} required>
+                                            <SelectTrigger>
+                                                <SelectValue placeholder="Select level" />
+                                            </SelectTrigger>
+                                            <SelectContent>
+                                                <SelectItem value="BCBA">BCBA</SelectItem>
+                                                <SelectItem value="BCBA_D">BCBA-D</SelectItem>
+                                                <SelectItem value="BCaBA">BCaBA</SelectItem>
+                                            </SelectContent>
+                                        </Select>
+                                    </div>
+                                    <div className="space-y-2">
+                                        <Label htmlFor="dateQualified">Date Qualified <span className="text-red-500">*</span></Label>
+                                        <Input
+                                            id="dateQualified"
+                                            type="date"
+                                            value={dateQualified}
+                                            onChange={(e) => setDateQualified(e.target.value)}
+                                            required
+                                        />
+                                    </div>
+                                    <div className="space-y-2">
+                                        <Label htmlFor="examDate">Exam Date <span className="text-red-500">*</span></Label>
+                                        <Input
+                                            id="examDate"
+                                            type="date"
+                                            value={examDate}
+                                            onChange={(e) => setExamDate(e.target.value)}
+                                            required
+                                        />
+                                    </div>
+                                </div>
+                            )}
                         </div>
                     </form>
                 )}

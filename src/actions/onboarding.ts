@@ -4,11 +4,24 @@ import { z } from "zod"
 import { auth } from "@/auth"
 import { prisma } from "@/lib/prisma"
 import { revalidatePath } from "next/cache"
-import { redirect } from "next/navigation"
+import { CredentialType } from "@prisma/client"
 
 const contactSchema = z.object({
     phone: z.string().min(10, "Phone number must be valid"),
-    address: z.string().min(5, "Address must be valid")
+    address: z.string().min(5, "Address must be valid"),
+    city: z.string().optional(),
+    state: z.string().optional(),
+
+    // Student specific
+    bacbId: z.string().optional(),
+    credential: z.string().optional(),
+    vcsSequence: z.string().optional(),
+
+    // Supervisor specific
+    certificantNumber: z.string().optional(),
+    qualificationLevel: z.string().optional(),
+    dateQualified: z.string().optional(),
+    examDate: z.string().optional()
 })
 
 const signatureSchema = z.object({
@@ -60,7 +73,18 @@ export async function submitContactInfo(prevState: any, formData: FormData) {
 
     const rawData = {
         phone: formData.get("phone") as string,
-        address: formData.get("address") as string
+        address: formData.get("address") as string,
+        city: formData.get("city") as string,
+        state: formData.get("state") as string,
+
+        bacbId: formData.get("bacbId") as string,
+        credential: formData.get("credential") as string,
+        vcsSequence: formData.get("vcsSequence") as string,
+
+        certificantNumber: formData.get("certificantNumber") as string,
+        qualificationLevel: formData.get("qualificationLevel") as string,
+        dateQualified: formData.get("dateQualified") as string,
+        examDate: formData.get("examDate") as string,
     }
 
     const validate = contactSchema.safeParse(rawData)
@@ -68,22 +92,43 @@ export async function submitContactInfo(prevState: any, formData: FormData) {
         return { error: "Validation failed", fieldErrors: validate.error.flatten().fieldErrors }
     }
 
+    const d = validate.data
+
     try {
         const userRole = (session.user as any).role?.toUpperCase()
         if (userRole === "STUDENT") {
+            if (!d.bacbId || !d.credential || !d.city || !d.state) {
+                return { error: "Missing required fields for student registration: BACB ID, Credential, City or State" }
+            }
+
             await prisma.student.update({
                 where: { userId: session.user.id },
                 data: {
-                    phone: validate.data.phone,
-                    address: validate.data.address
+                    phone: d.phone,
+                    address: d.address,
+                    city: d.city,
+                    state: d.state,
+                    bacbId: d.bacbId,
+                    credential: d.credential as CredentialType,
+                    vcsSequence: d.vcsSequence || null,
                 }
             })
         } else if (userRole === "SUPERVISOR") {
+            if (!d.certificantNumber || !d.qualificationLevel || !d.dateQualified || !d.examDate) {
+                return { error: "Missing required fields for supervisor registration: Cert#, Qualification Level, or passing Dates" }
+            }
+
+            const fullAddress = d.city && d.state ? `${d.address}, ${d.city}, ${d.state}` : d.address
+
             await prisma.supervisor.update({
                 where: { userId: session.user.id },
                 data: {
-                    phone: validate.data.phone,
-                    address: validate.data.address
+                    phone: d.phone,
+                    address: fullAddress,
+                    certificantNumber: d.certificantNumber,
+                    credentialType: d.qualificationLevel as CredentialType,
+                    dateQualified: new Date(d.dateQualified),
+                    examDate: new Date(d.examDate),
                 }
             })
         }

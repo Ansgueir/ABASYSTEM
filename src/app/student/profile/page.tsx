@@ -24,6 +24,12 @@ export default function ProfilePage() {
         hoursPerMonth: "",
         supervisorName: "",
         startDate: "",
+        bacbId: "",
+        credential: "",
+        vcsSequence: "",
+        contractAmount: "",
+        officeRate: "",
+        analystRate: ""
     })
 
     const role = (session?.user as any)?.role?.toLowerCase() || "student"
@@ -45,6 +51,12 @@ export default function ProfilePage() {
                         hoursPerMonth: data.hoursPerMonth?.toString() || "130",
                         supervisorName: data.supervisor?.fullName || "Not assigned",
                         startDate: data.contractStartDate ? new Date(data.contractStartDate).toLocaleDateString() : "N/A",
+                        bacbId: data.bacbId || "N/A",
+                        credential: data.credential || "N/A",
+                        vcsSequence: data.vcsSequence || "N/A",
+                        contractAmount: data.totalAmountContract ? `$${data.totalAmountContract}` : "N/A",
+                        officeRate: data.officePaymentRate ? `${Number(data.officePaymentRate) * 100}%` : "N/A",
+                        analystRate: data.analystPaymentRate ? `${Number(data.analystPaymentRate) * 100}%` : "N/A",
                     })
 
                     // Proactively refresh session name if it's currently 'User'
@@ -204,6 +216,44 @@ export default function ProfilePage() {
                                     disabled
                                     className="bg-muted"
                                 />
+                            </div>
+                        </div>
+                    </CardContent>
+                </Card>
+
+                {/* Technical & Financial Information (Read-Only) */}
+                <Card>
+                    <CardHeader>
+                        <CardTitle className="text-lg flex items-center gap-2 text-indigo-700">
+                            <Save className="h-5 w-5" />
+                            Technical & Financial Information
+                        </CardTitle>
+                    </CardHeader>
+                    <CardContent className="space-y-4">
+                        <div className="grid gap-4 sm:grid-cols-2">
+                            <div className="space-y-2">
+                                <Label>BACB ID (Read Only)</Label>
+                                <Input value={formData.bacbId} disabled className="bg-muted text-muted-foreground" />
+                            </div>
+                            <div className="space-y-2">
+                                <Label>Credential (Read Only)</Label>
+                                <Input value={formData.credential} disabled className="bg-muted text-muted-foreground" />
+                            </div>
+                            <div className="space-y-2">
+                                <Label>VCS Sequence (Read Only)</Label>
+                                <Input value={formData.vcsSequence} disabled className="bg-muted text-muted-foreground" />
+                            </div>
+                            <div className="space-y-2">
+                                <Label>Contract Amount (Read Only)</Label>
+                                <Input value={formData.contractAmount} disabled className="bg-muted text-muted-foreground" />
+                            </div>
+                            <div className="space-y-2">
+                                <Label>Office Split Rate (Read Only)</Label>
+                                <Input value={formData.officeRate} disabled className="bg-muted text-muted-foreground" />
+                            </div>
+                            <div className="space-y-2">
+                                <Label>Analyst Split Rate (Read Only)</Label>
+                                <Input value={formData.analystRate} disabled className="bg-muted text-muted-foreground" />
                             </div>
                         </div>
                     </CardContent>
