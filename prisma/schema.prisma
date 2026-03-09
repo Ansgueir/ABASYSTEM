@@ -83,8 +83,19 @@ model Student {
   user                  User                         @relation(fields: [userId], references: [id])
   evaluations           StudentEvaluation[]
   payments              StudentPayment[]
+  vcsSequence           String?
+  assignedOptionPlan    OptionPlanType?
+  totalAmountContract   Decimal?                     @db.Decimal(10, 2)
+  analystPaymentRate    Decimal?                     @db.Decimal(5, 4)
+  officePaymentRate     Decimal?                     @db.Decimal(5, 4)
+  internalComments      String?
+  regularHoursTarget    Int?
+  concentratedHoursTarget Int?
+  independentHoursTarget  Int?
+  
   supervisionHours      SupervisionHour[]
   supervisorPayments    SupervisorPayment[]
+  financialPeriods      FinancialPeriod[]
   @@index([fullName])
   @@index([email])
 }
@@ -102,6 +113,8 @@ model Supervisor {
   training8hrDate    DateTime?
   availableDaysGroup String[]
   monthStarted       DateTime?
+  internalIdNumber   String?
+  dateQualified      DateTime?
   status             SupervisorStatus          @default(ACTIVE)
   companyName        String?
   taxId              String?
@@ -327,6 +340,24 @@ model GeneralValues {
   updatedAt                   DateTime @updatedAt
 }
 
+model FinancialPeriod {
+  id                      String   @id @default(uuid())
+  studentId               String
+  periodNumber            Int
+  monthYearLabel          String
+  amountDueOffice         Decimal  @db.Decimal(10, 2)
+  amountDueAnalyst        Decimal  @db.Decimal(10, 2)
+  accumulatedDueOffice    Decimal  @db.Decimal(10, 2)
+  accumulatedPaidOffice   Decimal  @db.Decimal(10, 2)
+  accumulatedPaidAnalyst  Decimal  @db.Decimal(10, 2)
+  createdAt               DateTime @default(now())
+  updatedAt               DateTime @updatedAt
+  
+  student                 Student  @relation(fields: [studentId], references: [id], onDelete: Cascade)
+
+  @@unique([studentId, periodNumber])
+}
+
 enum UserRole {
   STUDENT
   SUPERVISOR
@@ -346,6 +377,14 @@ enum CredentialType {
 enum LevelType {
   BCaBA
   BCBA
+}
+
+enum OptionPlanType {
+  A
+  B
+  C
+  D
+  E
 }
 
 enum SupervisionType {

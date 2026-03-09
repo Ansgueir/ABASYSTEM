@@ -43,6 +43,16 @@ export async function createStudent(formData: FormData) {
     const startDate = new Date(formData.get("startDate") as string)
     const endDate = new Date(formData.get("endDate") as string)
 
+    const vcsSequence = formData.get("vcsSequence") as string
+    const assignedOptionPlan = formData.get("assignedOptionPlan") as any || null
+    const totalAmountContract = Number(formData.get("totalAmountContract")) || null
+    const analystPaymentRate = Number(formData.get("analystPaymentRate")) || null
+    const officePaymentRate = Number(formData.get("officePaymentRate")) || null
+    const regularHoursTarget = Number(formData.get("regularHoursTarget")) || null
+    const concentratedHoursTarget = Number(formData.get("concentratedHoursTarget")) || null
+    const independentHoursTarget = Number(formData.get("independentHoursTarget")) || null
+    const internalComments = formData.get("internalComments") as string
+
     // Additional mandatory fields
     const hoursPerMonth = Number(formData.get("hoursPerMonth")) || 130
     const totalMonths = Number(formData.get("totalMonths")) || 12
@@ -101,7 +111,16 @@ export async function createStudent(formData: FormData) {
                     amountToPay,
                     hourlyRate,
                     availableDaysGroup: [],
-                    paymentAlias: []
+                    paymentAlias: [],
+                    vcsSequence: vcsSequence || null,
+                    assignedOptionPlan: assignedOptionPlan || null,
+                    totalAmountContract,
+                    analystPaymentRate,
+                    officePaymentRate,
+                    regularHoursTarget,
+                    concentratedHoursTarget,
+                    independentHoursTarget,
+                    internalComments: internalComments || null
                 }
             })
         })
@@ -160,6 +179,10 @@ export async function createSupervisor(formData: FormData) {
     const phone = formData.get("phone") as string
     const bacbId = formData.get("bacbId") as string
     const certificantNumber = formData.get("certificantNumber") as string
+    const internalIdNumber = formData.get("internalIdNumber") as string
+    const credentialType = formData.get("qualificationLevel") as any || "BCBA"
+    const dateQualifiedStr = formData.get("dateQualified") as string
+    const examDateStr = formData.get("examDate") as string
     const address = formData.get("address") as string
     const maxStudents = Number(formData.get("maxStudents")) || 10
     const paymentPercentage = Number(formData.get("paymentPercentage")) || 0.54
@@ -194,6 +217,10 @@ export async function createSupervisor(formData: FormData) {
                     address: address || "Unknown",
                     bacbId: bacbId || "PENDING",
                     certificantNumber: certificantNumber || "PENDING",
+                    internalIdNumber: internalIdNumber || null,
+                    credentialType,
+                    dateQualified: dateQualifiedStr ? new Date(dateQualifiedStr) : null,
+                    examDate: examDateStr ? new Date(examDateStr) : null,
                     maxStudents,
                     paymentPercentage,
                     availableDaysGroup: []

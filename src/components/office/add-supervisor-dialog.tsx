@@ -52,7 +52,7 @@ export function AddSupervisorDialog() {
                     </DialogDescription>
                 </DialogHeader>
                 <form onSubmit={onSubmit}>
-                    <div className="grid gap-4 py-4">
+                    <div className="grid gap-4 py-4 max-h-[60vh] overflow-y-auto px-2">
                         <div className="grid grid-cols-4 items-center gap-4">
                             <Label htmlFor="fullName" className="text-right">
                                 Full Name
@@ -72,14 +72,35 @@ export function AddSupervisorDialog() {
                             <Input id="phone" name="phone" className="col-span-3" required />
                         </div>
                         <div className="grid grid-cols-4 items-center gap-4">
-                            <Label htmlFor="bacbId" className="text-right">
-                                BACB ID
-                            </Label>
+                            <Label htmlFor="bacbId" className="text-right">BACB ID</Label>
                             <Input id="bacbId" name="bacbId" className="col-span-3" placeholder="Optional" />
                         </div>
-                        {/* Defaults */}
+                        <div className="grid grid-cols-4 items-center gap-4">
+                            <Label htmlFor="internalIdNumber" className="text-right">Internal ID</Label>
+                            <Input id="internalIdNumber" name="internalIdNumber" className="col-span-3" placeholder="Optional" />
+                        </div>
+                        <div className="grid grid-cols-4 items-center gap-4">
+                            <Label htmlFor="certificantNumber" className="text-right">Certificant #</Label>
+                            <Input id="certificantNumber" name="certificantNumber" className="col-span-3" placeholder="Optional" />
+                        </div>
+                        <div className="grid grid-cols-4 items-center gap-4">
+                            <Label htmlFor="qualificationLevel" className="text-right">Qualification Level</Label>
+                            <select id="qualificationLevel" name="qualificationLevel" className="col-span-3 flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring">
+                                <option value="BCBA">BCBA</option>
+                                <option value="BCaBA">BCaBA</option>
+                                <option value="RBT">RBT</option>
+                                <option value="LMHC">LMHC</option>
+                            </select>
+                        </div>
+                        <div className="grid grid-cols-4 items-center gap-4">
+                            <Label htmlFor="dateQualified" className="text-right">Date Qualified</Label>
+                            <Input id="dateQualified" name="dateQualified" type="date" className="col-span-3" />
+                        </div>
+                        <div className="grid grid-cols-4 items-center gap-4">
+                            <Label htmlFor="examDate" className="text-right">Exam Date</Label>
+                            <Input id="examDate" name="examDate" type="date" className="col-span-3" />
+                        </div>
                         <input type="hidden" name="address" value="Unknown" />
-                        <input type="hidden" name="certificantNumber" value="PENDING" />
                     </div>
                     <DialogFooter>
                         <Button type="submit" disabled={isPending}>

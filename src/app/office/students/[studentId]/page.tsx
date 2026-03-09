@@ -15,6 +15,7 @@ import { Badge } from "@/components/ui/badge"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
 import { UploadDocumentDialog } from "@/components/upload-document-dialog"
 import { OfficeDocumentActions } from "@/components/office/office-document-actions"
+import { FinancialPeriodsTab } from "@/components/office/financial-periods-tab"
 
 export default async function OfficeStudentDetailPage({ params }: { params: Promise<{ studentId: string }> }) {
     const { studentId } = await params
@@ -42,6 +43,7 @@ export default async function OfficeStudentDetailPage({ params }: { params: Prom
             independentHours: { orderBy: { date: "desc" } },
             supervisionHours: { orderBy: { date: "desc" } },
             invoices: { orderBy: { createdAt: "desc" } },
+            financialPeriods: { orderBy: { periodNumber: "asc" } }
         }
     })
 
@@ -126,6 +128,7 @@ export default async function OfficeStudentDetailPage({ params }: { params: Prom
                         <TabsTrigger value="documents" className="px-6">Documents</TabsTrigger>
                         <TabsTrigger value="activity" className="px-6">Activity</TabsTrigger>
                         <TabsTrigger value="billing" className="px-6">Billing</TabsTrigger>
+                        {isSuperAdmin && <TabsTrigger value="periods" className="px-6">Periods</TabsTrigger>}
                     </TabsList>
 
                     <TabsContent value="contracts">
@@ -142,6 +145,12 @@ export default async function OfficeStudentDetailPage({ params }: { params: Prom
                             <EditableStudentBacbFieldwork student={safeStudent} isSuperAdmin={isSuperAdmin} />
                         </div>
                     </TabsContent>
+
+                    {isSuperAdmin && (
+                        <TabsContent value="periods">
+                            <FinancialPeriodsTab studentId={studentId} periods={safeStudent.financialPeriods ?? []} />
+                        </TabsContent>
+                    )}
 
                     <TabsContent value="documents">
                         <div className="flex justify-between items-center mb-4">

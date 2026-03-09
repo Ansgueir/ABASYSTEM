@@ -139,6 +139,15 @@ export function EditableStudentBacbFieldwork({ student, isSuperAdmin }: { studen
     const [hoursPerMonth, setHoursPerMonth] = useState(String(Number(student.hoursPerMonth) || 130))
     const [supervisionPercentage, setSupervisionPercentage] = useState(String(Number(student.supervisionPercentage) || 5))
     const [hourlyRate, setHourlyRate] = useState(String(Number(student.hourlyRate || 0).toFixed(2)))
+    const [vcsSequence, setVcsSequence] = useState(student.vcsSequence || "")
+    const [assignedOptionPlan, setAssignedOptionPlan] = useState(student.assignedOptionPlan || "")
+    const [totalAmountContract, setTotalAmountContract] = useState(String(Number(student.totalAmountContract || 0)))
+    const [analystPaymentRate, setAnalystPaymentRate] = useState(String(Number(student.analystPaymentRate || 0)))
+    const [officePaymentRate, setOfficePaymentRate] = useState(String(Number(student.officePaymentRate || 0)))
+    const [internalComments, setInternalComments] = useState(student.internalComments || "")
+    const [regularHoursTarget, setRegularHoursTarget] = useState(String(Number(student.regularHoursTarget || 0)))
+    const [concentratedHoursTarget, setConcentratedHoursTarget] = useState(String(Number(student.concentratedHoursTarget || 0)))
+    const [independentHoursTarget, setIndependentHoursTarget] = useState(String(Number(student.independentHoursTarget || 0)))
 
     const { data: session } = useSession()
     const role = String((session?.user as any)?.role || "").toUpperCase()
@@ -153,6 +162,15 @@ export function EditableStudentBacbFieldwork({ student, isSuperAdmin }: { studen
                 fieldworkType,
                 hoursPerMonth: parseInt(hoursPerMonth) || 130,
                 supervisionPercentage: parseFloat(supervisionPercentage) || 5,
+                vcsSequence: vcsSequence || null,
+                assignedOptionPlan: assignedOptionPlan || null,
+                totalAmountContract: parseFloat(totalAmountContract) || null,
+                analystPaymentRate: parseFloat(analystPaymentRate) || null,
+                officePaymentRate: parseFloat(officePaymentRate) || null,
+                regularHoursTarget: parseInt(regularHoursTarget) || null,
+                concentratedHoursTarget: parseInt(concentratedHoursTarget) || null,
+                independentHoursTarget: parseInt(independentHoursTarget) || null,
+                internalComments: internalComments || null
             }
             if (startDate) dataToUpdate.startDate = new Date(startDate)
             if (isSuperAdmin) {
@@ -178,6 +196,15 @@ export function EditableStudentBacbFieldwork({ student, isSuperAdmin }: { studen
         setHoursPerMonth(String(Number(student.hoursPerMonth) || 130))
         setSupervisionPercentage(String(Number(student.supervisionPercentage) || 5))
         setHourlyRate(String(Number(student.hourlyRate || 0).toFixed(2)))
+        setVcsSequence(student.vcsSequence || "")
+        setAssignedOptionPlan(student.assignedOptionPlan || "")
+        setTotalAmountContract(String(Number(student.totalAmountContract || 0)))
+        setAnalystPaymentRate(String(Number(student.analystPaymentRate || 0)))
+        setOfficePaymentRate(String(Number(student.officePaymentRate || 0)))
+        setInternalComments(student.internalComments || "")
+        setRegularHoursTarget(String(Number(student.regularHoursTarget || 0)))
+        setConcentratedHoursTarget(String(Number(student.concentratedHoursTarget || 0)))
+        setIndependentHoursTarget(String(Number(student.independentHoursTarget || 0)))
         setIsEditing(false)
     }
 
@@ -253,6 +280,120 @@ export function EditableStudentBacbFieldwork({ student, isSuperAdmin }: { studen
                                 <p className="font-semibold uppercase text-primary">{level}</p>
                             )}
                         </div>
+                    </div>
+                </div>
+
+                {/* Additional Foundation Fields */}
+                <div className="flex items-center gap-3 p-3 rounded-lg bg-muted/30">
+                    <Award className="h-5 w-5 text-primary/70 shrink-0" />
+                    <div className="flex-1">
+                        <p className="text-xs text-muted-foreground mb-0.5">VCS Sequence</p>
+                        {isEditing ? (
+                            <Input value={vcsSequence} onChange={(e) => setVcsSequence(e.target.value)} placeholder="VCS Sequence" className="w-full h-8 mt-1" />
+                        ) : (
+                            <p className="font-semibold text-primary">{vcsSequence || "—"}</p>
+                        )}
+                    </div>
+                </div>
+
+                <div className="flex items-center gap-3 p-3 rounded-lg bg-muted/30">
+                    <GraduationCap className="h-5 w-5 text-primary/70 shrink-0" />
+                    <div className="flex-1">
+                        <p className="text-xs text-muted-foreground mb-0.5">Option Plan</p>
+                        {isEditing ? (
+                            <Select value={assignedOptionPlan} onValueChange={setAssignedOptionPlan}>
+                                <SelectTrigger className="w-full sm:w-[220px] h-8 mt-1"><SelectValue placeholder="Plan (A-E)" /></SelectTrigger>
+                                <SelectContent>
+                                    <SelectItem value="A">Plan A</SelectItem>
+                                    <SelectItem value="B">Plan B</SelectItem>
+                                    <SelectItem value="C">Plan C</SelectItem>
+                                    <SelectItem value="D">Plan D</SelectItem>
+                                    <SelectItem value="E">Plan E</SelectItem>
+                                </SelectContent>
+                            </Select>
+                        ) : (
+                            <p className="font-semibold text-primary">{assignedOptionPlan || "—"}</p>
+                        )}
+                    </div>
+                </div>
+
+                <div className="grid grid-cols-3 gap-3">
+                    <div className="flex items-center gap-3 p-3 rounded-lg bg-muted/30">
+                        <div className="flex-1">
+                            <p className="text-xs text-muted-foreground mb-0.5">Reg. Hours Target</p>
+                            {isEditing ? (
+                                <Input type="number" value={regularHoursTarget} onChange={(e) => setRegularHoursTarget(e.target.value)} className="w-full h-8 mt-1" />
+                            ) : (
+                                <p className="font-bold">{regularHoursTarget}</p>
+                            )}
+                        </div>
+                    </div>
+                    <div className="flex items-center gap-3 p-3 rounded-lg bg-muted/30">
+                        <div className="flex-1">
+                            <p className="text-xs text-muted-foreground mb-0.5">Conc. Hours Target</p>
+                            {isEditing ? (
+                                <Input type="number" value={concentratedHoursTarget} onChange={(e) => setConcentratedHoursTarget(e.target.value)} className="w-full h-8 mt-1" />
+                            ) : (
+                                <p className="font-bold">{concentratedHoursTarget}</p>
+                            )}
+                        </div>
+                    </div>
+                    <div className="flex items-center gap-3 p-3 rounded-lg bg-muted/30">
+                        <div className="flex-1">
+                            <p className="text-xs text-muted-foreground mb-0.5">Ind. Hours Target</p>
+                            {isEditing ? (
+                                <Input type="number" value={independentHoursTarget} onChange={(e) => setIndependentHoursTarget(e.target.value)} className="w-full h-8 mt-1" />
+                            ) : (
+                                <p className="font-bold">{independentHoursTarget}</p>
+                            )}
+                        </div>
+                    </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-3">
+                    <div className="flex items-center gap-3 p-3 rounded-lg bg-muted/30">
+                        <DollarSign className="h-5 w-5 text-primary/70 shrink-0" />
+                        <div className="flex-1">
+                            <p className="text-xs text-muted-foreground mb-0.5">Analyst Rate (%)</p>
+                            {isEditing ? (
+                                <Input type="number" step="0.0001" value={analystPaymentRate} onChange={(e) => setAnalystPaymentRate(e.target.value)} className="w-full h-8 mt-1" />
+                            ) : (
+                                <p className="font-bold">{analystPaymentRate}</p>
+                            )}
+                        </div>
+                    </div>
+                    <div className="flex items-center gap-3 p-3 rounded-lg bg-muted/30">
+                        <DollarSign className="h-5 w-5 text-primary/70 shrink-0" />
+                        <div className="flex-1">
+                            <p className="text-xs text-muted-foreground mb-0.5">Office Rate (%)</p>
+                            {isEditing ? (
+                                <Input type="number" step="0.0001" value={officePaymentRate} onChange={(e) => setOfficePaymentRate(e.target.value)} className="w-full h-8 mt-1" />
+                            ) : (
+                                <p className="font-bold">{officePaymentRate}</p>
+                            )}
+                        </div>
+                    </div>
+                </div>
+
+                <div className="flex items-center gap-3 p-3 rounded-lg bg-muted/30">
+                    <div className="flex-1">
+                        <p className="text-xs text-muted-foreground mb-0.5">Total Amount Contract ($)</p>
+                        {isEditing ? (
+                            <Input type="number" step="0.01" value={totalAmountContract} onChange={(e) => setTotalAmountContract(e.target.value)} className="w-full sm:w-[220px] h-8 mt-1" />
+                        ) : (
+                            <p className="font-bold">${totalAmountContract}</p>
+                        )}
+                    </div>
+                </div>
+
+                <div className="flex items-center gap-3 p-3 rounded-lg bg-muted/30">
+                    <div className="flex-1">
+                        <p className="text-xs text-muted-foreground mb-0.5">Internal Comments</p>
+                        {isEditing ? (
+                            <Input value={internalComments} onChange={(e) => setInternalComments(e.target.value)} className="w-full h-8 mt-1" />
+                        ) : (
+                            <p className="font-medium text-muted-foreground">{internalComments || "—"}</p>
+                        )}
                     </div>
                 </div>
 
@@ -356,6 +497,8 @@ export function EditableSupervisorContactInfo({ supervisor }: { supervisor: any 
     const [paymentPercentage, setPaymentPercentage] = useState(String(Number(supervisor.paymentPercentage) || 0.60))
     const [examDate, setExamDate] = useState(supervisor.examDate ? new Date(supervisor.examDate).toISOString().split('T')[0] : "")
     const [training8hrDate, setTraining8hrDate] = useState(supervisor.training8hrDate ? new Date(supervisor.training8hrDate).toISOString().split('T')[0] : "")
+    const [internalIdNumber, setInternalIdNumber] = useState(supervisor.internalIdNumber || "")
+    const [dateQualified, setDateQualified] = useState(supervisor.dateQualified ? new Date(supervisor.dateQualified).toISOString().split('T')[0] : "")
 
     const { data: session } = useSession()
     const role = String((session?.user as any)?.role || "").toUpperCase()
@@ -367,9 +510,11 @@ export function EditableSupervisorContactInfo({ supervisor }: { supervisor: any 
                 fullName, phone, address, bacbId, certificantNumber, credentialType,
                 maxStudents: Number(maxStudents) || 10,
                 paymentPercentage: Number(paymentPercentage) || 0.60,
+                internalIdNumber: internalIdNumber || null,
             }
             if (examDate) dataToUpdate.examDate = new Date(examDate)
             if (training8hrDate) dataToUpdate.training8hrDate = new Date(training8hrDate)
+            if (dateQualified) dataToUpdate.dateQualified = new Date(dateQualified)
 
             const res = await updateSupervisor(supervisor.id, dataToUpdate)
             if (res.error) {
@@ -392,6 +537,8 @@ export function EditableSupervisorContactInfo({ supervisor }: { supervisor: any 
         setPaymentPercentage(String(Number(supervisor.paymentPercentage) || 0.60))
         setExamDate(supervisor.examDate ? new Date(supervisor.examDate).toISOString().split('T')[0] : "")
         setTraining8hrDate(supervisor.training8hrDate ? new Date(supervisor.training8hrDate).toISOString().split('T')[0] : "")
+        setInternalIdNumber(supervisor.internalIdNumber || "")
+        setDateQualified(supervisor.dateQualified ? new Date(supervisor.dateQualified).toISOString().split('T')[0] : "")
         setIsEditing(false)
     }
 
@@ -466,18 +613,19 @@ export function EditableSupervisorContactInfo({ supervisor }: { supervisor: any 
                     </div>
                 </div>
 
-                {/* BACB ID + Certificant # */}
+                {/* BACB ID + Certificant # & Internal ID */}
                 <div className="flex items-center gap-3 p-3 rounded-lg bg-muted/30">
                     <Award className="h-5 w-5 text-primary/70 shrink-0" />
                     <div className="flex-1">
-                        <p className="text-xs text-muted-foreground mb-0.5">BACB & Certification ID</p>
+                        <p className="text-xs text-muted-foreground mb-0.5">BACB / Cert # / Internal ID</p>
                         {isEditing ? (
                             <div className="flex gap-2 mt-1">
-                                <Input value={bacbId} onChange={(e) => setBacbId(e.target.value)} placeholder="BACB ID" className="w-1/2 h-8" />
-                                <Input value={certificantNumber} onChange={(e) => setCertificantNumber(e.target.value)} placeholder="Cert #" className="w-1/2 h-8" />
+                                <Input value={bacbId} onChange={(e) => setBacbId(e.target.value)} placeholder="BACB ID" className="w-1/3 h-8" />
+                                <Input value={certificantNumber} onChange={(e) => setCertificantNumber(e.target.value)} placeholder="Cert #" className="w-1/3 h-8" />
+                                <Input value={internalIdNumber} onChange={(e) => setInternalIdNumber(e.target.value)} placeholder="Int ID" className="w-1/3 h-8" />
                             </div>
                         ) : (
-                            <p className="font-medium">BACB: {bacbId || "PENDING"} • Cert: {certificantNumber || "PENDING"}</p>
+                            <p className="font-medium">BACB: {bacbId || "PENDING"} • Cert: {certificantNumber || "PENDING"} • Int: {internalIdNumber || "—"}</p>
                         )}
                     </div>
                 </div>
@@ -526,10 +674,9 @@ export function EditableSupervisorContactInfo({ supervisor }: { supervisor: any 
                     </div>
                 </div>
 
-                {/* Exam Date + 8Hr Training */}
-                <div className="grid grid-cols-2 gap-3">
+                {/* Exam Date + 8Hr Training + Date Qualified */}
+                <div className="grid grid-cols-3 gap-3">
                     <div className="flex items-center gap-3 p-3 rounded-lg bg-muted/30">
-                        <Calendar className="h-5 w-5 text-primary/70 shrink-0" />
                         <div className="flex-1">
                             <p className="text-xs text-muted-foreground mb-0.5">Exam Date</p>
                             {isEditing ? (
@@ -540,13 +687,22 @@ export function EditableSupervisorContactInfo({ supervisor }: { supervisor: any 
                         </div>
                     </div>
                     <div className="flex items-center gap-3 p-3 rounded-lg bg-muted/30">
-                        <Calendar className="h-5 w-5 text-primary/70 shrink-0" />
                         <div className="flex-1">
                             <p className="text-xs text-muted-foreground mb-0.5">8Hr Training</p>
                             {isEditing ? (
                                 <Input type="date" value={training8hrDate} onChange={(e) => setTraining8hrDate(e.target.value)} className="w-full h-8 mt-1" />
                             ) : (
                                 <p className="font-medium text-xs">{training8hrDate ? new Date(training8hrDate).toLocaleDateString() : "—"}</p>
+                            )}
+                        </div>
+                    </div>
+                    <div className="flex items-center gap-3 p-3 rounded-lg bg-muted/30">
+                        <div className="flex-1">
+                            <p className="text-xs text-muted-foreground mb-0.5">Date Qualified</p>
+                            {isEditing ? (
+                                <Input type="date" value={dateQualified} onChange={(e) => setDateQualified(e.target.value)} className="w-full h-8 mt-1" />
+                            ) : (
+                                <p className="font-medium text-xs">{dateQualified ? new Date(dateQualified).toLocaleDateString() : "—"}</p>
                             )}
                         </div>
                     </div>
