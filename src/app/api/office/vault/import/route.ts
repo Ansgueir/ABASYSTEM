@@ -30,11 +30,23 @@ export async function POST(request: Request) {
             const workbook = new ExcelJS.Workbook()
             await workbook.xlsx.load(await file.arrayBuffer() as any)
 
-            const sheetStudents = workbook.getWorksheet("Students")
-            const sheetFinancial = workbook.getWorksheet("Financial History (48 Periods)")
+            const studentAliases = ['supervisados', 'students']
+            const financialAliases = ['base datos', 'cobros', 'financial history (48 periods)']
+
+            let sheetStudents: ExcelJS.Worksheet | undefined
+            let sheetFinancial: ExcelJS.Worksheet | undefined
+
+            workbook.eachSheet((sheet) => {
+                const sheetName = sheet.name.toLowerCase().trim()
+                if (studentAliases.includes(sheetName)) {
+                    sheetStudents = sheet
+                } else if (financialAliases.includes(sheetName)) {
+                    sheetFinancial = sheet
+                }
+            })
 
             if (!sheetStudents || !sheetFinancial) {
-                return NextResponse.json({ error: "Missing required sheets ('Students' or 'Financial History (48 Periods)')" }, { status: 400 })
+                return NextResponse.json({ error: "Error: No se encontró la pestaña de datos. Asegúrese de que el archivo contenga una hoja llamada 'Supervisados' o 'Students'" }, { status: 400 })
             }
 
             const existingStudents = await prisma.student.findMany({
