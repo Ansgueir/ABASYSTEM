@@ -22,6 +22,7 @@ model User {
   createdAt           DateTime            @default(now())
   updatedAt           DateTime            @updatedAt
   requiresWizard      Boolean             @default(false)
+  inviteSent          Boolean             @default(false)
   uploadedDocuments   Document[]
   officeMember        OfficeMember?
   repeatingSchedules  RepeatingSchedule[]

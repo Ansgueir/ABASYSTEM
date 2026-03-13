@@ -17,7 +17,10 @@ interface HeadlessUser { name: string; rowNumber: number; email: string; collisi
 interface StagingResult {
     ignoredRows: IgnoredRow[]
     skippedRowsCount: number
+    studentsDetected: number
+    supervisorsDetected: number
     newUsers: any[]
+    newSupervisors: any[]
     conflicts: any[]
     headlessUsers: HeadlessUser[]
     mergedRecords: any[]
@@ -96,6 +99,7 @@ export function ImportStaging() {
                 action: "commit",
                 data: stagingResult!.validData,
                 newUsers: stagingResult!.newUsers,
+                newSupervisors: stagingResult!.newSupervisors,
                 supervisorUpdates: stagingResult!.supervisorUpdates,
                 resolutions: stagingResult!.resolutions,
                 conflicts: stagingResult!.conflicts,
@@ -189,36 +193,56 @@ export function ImportStaging() {
                 <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
 
                     {/* ── Stats Row ─────────────────────────────────────────── */}
-                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                    <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
                         <Card className="bg-blue-50/50 border-blue-200 cursor-pointer hover:bg-blue-100/50 transition-colors"
                               onClick={() => setShowIgnored(v => !v)}>
                             <CardContent className="p-4 flex flex-col items-center justify-center text-center">
                                 <span className="text-3xl font-bold text-blue-700">{stagingResult.skippedRowsCount || 0}</span>
                                 <span className="text-sm font-medium text-blue-600">Rows Ignored</span>
                                 <span className="text-xs text-blue-400 mt-1 flex items-center gap-1">
-                                    {showIgnored ? <ChevronUp className="h-3 w-3" /> : <ChevronDown className="h-3 w-3" />} Ver detalle
+                                    {showIgnored ? <ChevronUp className="h-3 w-3" /> : <ChevronDown className="h-3 w-3" />} Detail
                                 </span>
                             </CardContent>
                         </Card>
-                        <Card className="bg-green-50/50 border-green-200">
+
+                        <Card className="bg-emerald-50/50 border-emerald-200 shadow-sm border-2">
                             <CardContent className="p-4 flex flex-col items-center justify-center text-center">
-                                <span className="text-3xl font-bold text-green-700">{stagingResult.newUsers?.length || 0}</span>
-                                <span className="text-sm font-medium text-green-600">New Users to create</span>
+                                <span className="text-3xl font-bold text-emerald-700">{stagingResult.studentsDetected || 0}</span>
+                                <span className="text-sm font-medium text-emerald-600">Estudiantes Nuevos (Pestaña Supervisados)</span>
                             </CardContent>
                         </Card>
+
+                        <Card className="bg-purple-50/50 border-purple-200 shadow-sm border-2">
+                            <CardContent className="p-4 flex flex-col items-center justify-center text-center">
+                                <div className="flex items-baseline gap-1">
+                                    <span className="text-3xl font-bold text-purple-700">{stagingResult.supervisorsDetected || 0}</span>
+                                </div>
+                                <span className="text-sm font-medium text-purple-600">Supervisores Nuevos (Pestaña Parametros)</span>
+                                <span className="text-[10px] text-purple-400 font-mono mt-1">Fila 19+ Detected</span>
+                            </CardContent>
+                        </Card>
+
                         <Card className="bg-amber-50/50 border-amber-200">
                             <CardContent className="p-4 flex flex-col items-center justify-center text-center">
-                                <span className="text-3xl font-bold text-amber-700">{stagingResult.conflicts?.length || 0}</span>
-                                <span className="text-sm font-medium text-amber-600">Financial Conflicts</span>
+                                <span className="text-3xl font-bold text-amber-700">{stagingResult.newFinancialPeriods?.length || 0}</span>
+                                <span className="text-sm font-medium text-amber-600">Financial Records</span>
                             </CardContent>
                         </Card>
+
+                        <Card className="bg-orange-50/50 border-orange-200">
+                            <CardContent className="p-4 flex flex-col items-center justify-center text-center">
+                                <span className="text-3xl font-bold text-orange-700">{stagingResult.conflicts?.length || 0}</span>
+                                <span className="text-sm font-medium text-orange-600">Financial Conflicts</span>
+                            </CardContent>
+                        </Card>
+
                         <Card className="bg-rose-50/50 border-rose-200 cursor-pointer hover:bg-rose-100/50 transition-colors"
                               onClick={() => setShowHeadless(v => !v)}>
                             <CardContent className="p-4 flex flex-col items-center justify-center text-center">
                                 <span className="text-3xl font-bold text-rose-700">{stagingResult.headlessUsers?.length || 0}</span>
                                 <span className="text-sm font-medium text-rose-600">Headless (Email Collision)</span>
                                 <span className="text-xs text-rose-400 mt-1 flex items-center gap-1">
-                                    {showHeadless ? <ChevronUp className="h-3 w-3" /> : <ChevronDown className="h-3 w-3" />} Ver detalle
+                                    {showHeadless ? <ChevronUp className="h-3 w-3" /> : <ChevronDown className="h-3 w-3" />} Detail
                                 </span>
                             </CardContent>
                         </Card>
@@ -327,36 +351,66 @@ export function ImportStaging() {
                                         <Button size="sm" variant="outline" onClick={() => setGlobalResolution("ignore")}>[Ignorar] Todos</Button>
                                     </div>
                                 </div>
-                                <div className="divide-y max-h-[400px] overflow-y-auto bg-white">
-                                    {stagingResult.conflicts.map((conflict: any) => (
-                                        <div key={conflict.id} className="p-4 flex flex-col xl:flex-row xl:items-center justify-between gap-4">
-                                            <div>
-                                                <p className="font-semibold text-sm">{conflict.studentName} <span className="text-muted-foreground font-normal">({conflict.type})</span></p>
-                                                <p className="text-xs text-muted-foreground">Period {conflict.periodNumber} • {conflict.month}</p>
-                                                <div className="flex gap-6 mt-2">
-                                                    <div>
-                                                        <span className="text-xs uppercase tracking-wider text-muted-foreground font-semibold">Current DB Amount</span>
-                                                        <p className="font-mono text-sm">${conflict.dbAmount}</p>
-                                                    </div>
-                                                    <div>
-                                                        <span className="text-xs uppercase tracking-wider text-muted-foreground font-semibold">Excel Amount</span>
-                                                        <p className="font-mono text-sm">${conflict.excelAmount}</p>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                            <div className="flex gap-2 bg-slate-50 p-2 rounded-lg border">
-                                                <Button size="sm" variant={stagingResult.resolutions[conflict.id] === "sum" ? "default" : "ghost"} onClick={() => setResolution(conflict.id, "sum")}>
-                                                    Sumar <span className="ml-1 opacity-70">(${Number(conflict.dbAmount || 0) + Number(conflict.excelAmount || 0)})</span>
-                                                </Button>
-                                                <Button size="sm" variant={stagingResult.resolutions[conflict.id] === "replace" ? "default" : "ghost"} onClick={() => setResolution(conflict.id, "replace")}>
-                                                    Reemplazar
-                                                </Button>
-                                                <Button size="sm" variant={stagingResult.resolutions[conflict.id] === "ignore" ? "default" : "ghost"} onClick={() => setResolution(conflict.id, "ignore")}>
-                                                    Ignorar (DB)
-                                                </Button>
-                                            </div>
-                                        </div>
-                                    ))}
+                                <div className="overflow-x-auto bg-white">
+                                    <table className="w-full text-sm">
+                                        <thead>
+                                            <tr className="bg-slate-50 border-b text-muted-foreground font-medium uppercase text-[10px] tracking-wider">
+                                                <th className="px-4 py-3 text-left">Estudiante</th>
+                                                <th className="px-4 py-3 text-left">Periodo</th>
+                                                <th className="px-4 py-3 text-right">Monto Actual (DB)</th>
+                                                <th className="px-4 py-3 text-right">Monto Nuevo (Excel)</th>
+                                                <th className="px-4 py-3 text-center">Acción Manual</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody className="divide-y max-h-[400px]">
+                                            {stagingResult.conflicts.map((conflict: any) => (
+                                                <tr key={conflict.id} className="hover:bg-amber-50/30 transition-colors">
+                                                    <td className="px-4 py-3">
+                                                        <div className="font-semibold">{conflict.studentName}</div>
+                                                        <div className="text-[10px] text-muted-foreground uppercase">{conflict.type}</div>
+                                                    </td>
+                                                    <td className="px-4 py-3 text-muted-foreground">
+                                                        {conflict.month} (P#{conflict.periodNumber})
+                                                    </td>
+                                                    <td className="px-4 py-3 text-right font-mono font-medium">
+                                                        ${conflict.dbAmount}
+                                                    </td>
+                                                    <td className="px-4 py-3 text-right font-mono text-amber-700 font-bold">
+                                                        ${conflict.excelAmount}
+                                                    </td>
+                                                    <td className="px-4 py-3">
+                                                        <div className="flex gap-1 justify-center">
+                                                            <Button 
+                                                                size="sm" 
+                                                                variant={stagingResult.resolutions[conflict.id] === "sum" ? "default" : "outline"} 
+                                                                className="h-7 text-[10px] rounded-full"
+                                                                onClick={() => setResolution(conflict.id, "sum")}
+                                                                title={`Sumar: $${Number(conflict.dbAmount || 0) + Number(conflict.excelAmount || 0)}`}
+                                                            >
+                                                                Sumar
+                                                            </Button>
+                                                            <Button 
+                                                                size="sm" 
+                                                                variant={stagingResult.resolutions[conflict.id] === "replace" ? "default" : "outline"} 
+                                                                className="h-7 text-[10px] rounded-full"
+                                                                onClick={() => setResolution(conflict.id, "replace")}
+                                                            >
+                                                                Reemplazar
+                                                            </Button>
+                                                            <Button 
+                                                                size="sm" 
+                                                                variant={stagingResult.resolutions[conflict.id] === "ignore" ? "default" : "outline"} 
+                                                                className="h-7 text-[10px] rounded-full"
+                                                                onClick={() => setResolution(conflict.id, "ignore")}
+                                                            >
+                                                                Ignorar
+                                                            </Button>
+                                                        </div>
+                                                    </td>
+                                                </tr>
+                                            ))}
+                                        </tbody>
+                                    </table>
                                 </div>
                             </CardContent>
                         </Card>
@@ -372,7 +426,12 @@ export function ImportStaging() {
                             <Download className="h-4 w-4 mr-2" />
                             Download Error Log (CSV)
                         </Button>
-                        <Button variant="default" className="bg-amber-600 hover:bg-amber-700 text-white" onClick={handleCommit} disabled={isCommitting}>
+                        <Button 
+                            variant="default" 
+                            className="bg-amber-600 hover:bg-amber-700 text-white" 
+                            onClick={handleCommit} 
+                            disabled={isCommitting || stagingResult.supervisorsDetected === 0}
+                        >
                             {isCommitting ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <Check className="h-4 w-4 mr-2" />}
                             Confirm Atomic Injection (Commit)
                         </Button>

@@ -80,6 +80,8 @@ export async function POST(request: Request) {
                             concentratedHoursTarget: oldData.concentratedHoursTarget,
                             independentHoursTarget: oldData.independentHoursTarget,
                             totalAmountContract:    oldData.totalAmountContract,
+                            analystPaymentRate:     oldData.analystPaymentRate,
+                            officePaymentRate:      oldData.officePaymentRate,
                             endDate:                oldData.endDate ? new Date(oldData.endDate) : undefined,
                             importBatchId:          null
                         }

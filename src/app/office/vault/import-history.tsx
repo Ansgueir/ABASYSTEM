@@ -100,6 +100,30 @@ export function ImportHistory() {
                                         {undoingMap[batch.id] ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <Undo className="h-4 w-4 mr-2" />}
                                         Undo Import
                                     </Button>
+
+                                    <Button 
+                                        variant="ghost"
+                                        className="text-muted-foreground hover:text-destructive hover:bg-destructive/5 transition-colors"
+                                        size="sm"
+                                        onClick={async () => {
+                                            if (!confirm("§7 HARD DELETE POLICY: ¿Estás seguro de eliminar permanentemente este lote de la memoria? Esto destruirá la capacidad de revertirlo. No se eliminarán los datos ya inyectados, solo el log de auditoría.")) return
+                                            try {
+                                                const res = await fetch("/api/office/vault/import/delete-batch", {
+                                                    method: "POST",
+                                                    headers: { "Content-Type": "application/json" },
+                                                    body: JSON.stringify({ batchId: batch.id })
+                                                })
+                                                if (res.ok) {
+                                                    alert("Batch log deleted forever.")
+                                                    await fetchHistory()
+                                                }
+                                            } catch (e) {
+                                                console.error(e)
+                                            }
+                                        }}
+                                    >
+                                        Delete Batch Log
+                                    </Button>
                                 </div>
                             </div>
                         ))}

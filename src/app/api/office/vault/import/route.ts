@@ -87,34 +87,28 @@ export async function POST(request: Request) {
             const workbook = new ExcelJS.Workbook()
             await workbook.xlsx.load(await file.arrayBuffer() as any)
 
-            // §2 Multi-sheet aliases
-            const studentAliases    = ["supervisados", "students"]
-            const supervisorAliases = ["supervisors", "parametros", "supervisores"]
-            const financialAliases  = ["base datos", "cobros", "financial history (48 periods)"]
+            // §2 Multi-sheet strict names (Supervisees Info spec)
+            const sheetStudents    = workbook.getWorksheet("Supervisados")
+            const sheetSupervisors = workbook.getWorksheet("Parametros")
+            const sheetFinancial   = workbook.getWorksheet("Cobros")
 
-            let sheetStudents: ExcelJS.Worksheet | undefined
-            let sheetSupervisors: ExcelJS.Worksheet | undefined
-            let sheetFinancial: ExcelJS.Worksheet | undefined
+            const detectedSheets = workbook.worksheets.map(s => s.name)
+            console.log("Pestañas encontradas:", detectedSheets)
 
-            const detectedSheets: string[] = []
-            workbook.eachSheet((sheet) => {
-                const name = sheet.name.toLowerCase().trim()
-                detectedSheets.push(sheet.name)
-                if (studentAliases.includes(name))    sheetStudents    = sheet
-                else if (supervisorAliases.includes(name)) sheetSupervisors = sheet
-                else if (financialAliases.includes(name))  sheetFinancial   = sheet
-            })
-
-            console.log("[IMPORT] Detected sheets:", detectedSheets)
-            console.log("[IMPORT] Students sheet:", sheetStudents?.name || "NOT FOUND")
-            console.log("[IMPORT] Supervisors sheet:", sheetSupervisors?.name || "NOT FOUND")
-            console.log("[IMPORT] Financial sheet:", sheetFinancial?.name || "NOT FOUND")
-
-            if (!sheetStudents || !sheetFinancial) {
+            if (!sheetStudents || !sheetSupervisors || !sheetFinancial) {
+                const missing = []
+                if (!sheetStudents) missing.push("'Supervisados'")
+                if (!sheetSupervisors) missing.push("'Parametros'")
+                if (!sheetFinancial) missing.push("'Cobros'")
                 return NextResponse.json({
-                    error: `Error: No se encontró la pestaña requerida. Hojas detectadas: [${detectedSheets.join(", ")}]. Se necesita una hoja llamada 'Supervisados' o 'Students' y 'Cobros', 'Base Datos' o 'Financial History (48 Periods)'.`
-                }, { status: 400 })
+                    error: `RECHAZADO (422): Faltan pestañas obligatorias: [${missing.join(", ")}].`
+                }, { status: 422 })
             }
+
+            // Debug de Lectura: Console Logs (REQUIRED BY SPEC)
+            console.log("Headers detectados en Parametros (Fila 18):", sheetSupervisors.getRow(18).values)
+            console.log("Headers detectados en Supervisados (Fila 1):", sheetStudents.getRow(1).values)
+            console.log("Headers detectados en Cobros (Fila 27):", sheetFinancial.getRow(27).values)
 
             // §2 Pre-load existing records
             const existingStudents = await prisma.student.findMany({
@@ -132,33 +126,76 @@ export async function POST(request: Request) {
             const claimedEmailsInBatch = new Map<string, { rowNumber: number; sheetName: string }>()
 
             const newUsers: any[] = []
+            const newSupervisors: any[] = []
             const supervisorUpdates: any[] = []
             const conflicts: any[] = []
             const newFinancialPeriods: any[] = []
-            // Verbose log arrays
             const ignoredRows: { rowNumber: number; name: string; reason: string }[] = []
             const headlessUsers: { name: string; rowNumber: number; email: string; collisionType: string; collisionDetail: string }[] = []
             const validData: any = { studentsToUpdate: [], financialPeriodsToUpdate: [] }
+            
+            const financialDataByStudent = new Map<string, any[]>()
 
-            // ── §2 Parse Students sheet (Data Dictionary) ──────────────────
+            // ── §3 Parse Parametros (Supervisors) ───────────────────────────
+            // SPEC: Starts at Row 19 (Header 18)
+            sheetSupervisors.eachRow((row, rowNumber) => {
+                if (rowNumber <= 18) return
+                const supName  = cellStr(row, "A") // Names of Supervisors
+                if (!supName) return
+
+                const rawEmail = cellStr(row, "B").toLowerCase() // Email
+                const bacbId   = cellStr(row, "C") // BACB #
+                // We use defaults for others if not in the 3-col spec provided
+                const status   = "ACTIVE"
+
+                const existingSup = existingSupervisors.find(
+                    s => s.fullName.toLowerCase().trim() === supName.toLowerCase().trim() || (bacbId && s.bacbId === bacbId)
+                )
+
+                if (existingSup) {
+                    const updates: any = {}
+                    // Sync only if empty or different
+                    if (bacbId && existingSup.bacbId !== bacbId) updates.bacbId = bacbId
+                    if (Object.keys(updates).length > 0) {
+                        supervisorUpdates.push({ id: existingSup.id, ...updates })
+                    }
+                } else {
+                    let finalSupEmail = rawEmail
+                    if (!finalSupEmail || existingEmails.has(finalSupEmail) || claimedEmailsInBatch.has(finalSupEmail)) {
+                        finalSupEmail = `${supName.toLowerCase().replace(/\s+/g, ".")}@pending.import`
+                    }
+                    claimedEmailsInBatch.set(finalSupEmail, { rowNumber, sheetName: "Parametros" })
+
+                    newSupervisors.push({
+                        fullName: supName,
+                        bacbId,
+                        email: finalSupEmail,
+                        status,
+                        qualificationLevel: "BCBA" // Default
+                    })
+                }
+            })
+
+            // ── §4 Parse Supervisados (Students) ────────────────────────────
+            // SPEC: Header Row 1
             const studentLatestRows = new Map<string, any>()
 
             sheetStudents.eachRow((row, rowNumber) => {
-                if (rowNumber === 1) return // skip header
+                if (rowNumber === 1) return
                 const traineeName = cellStr(row, "B").toLowerCase()
+                const startDateStr = cellDate(row, "L") ?? new Date(0)
                 const bacbId      = cellStr(row, "D")
+                
+                if (startDateStr.getFullYear() > 0 && startDateStr.getFullYear() < 2026) {
+                    ignoredRows.push({ rowNumber, name: cellStr(row, "B"), reason: `Date before 2026 filter (${startDateStr.getFullYear()})` })
+                    return
+                }
                 if (!traineeName) {
-                    ignoredRows.push({
-                        rowNumber,
-                        name: cellStr(row, "B") || "(empty)",
-                        reason: "Empty Trainee Name"
-                    })
+                    ignoredRows.push({ rowNumber, name: cellStr(row, "B") || "(empty)", reason: "Empty Trainee Name" })
                     return
                 }
 
-                const startDateStr = cellDate(row, "L") ?? new Date(0)
                 const identityKey  = `${bacbId}_${traineeName}`
-
                 const existing = studentLatestRows.get(identityKey)
                 if (!existing) {
                     studentLatestRows.set(identityKey, { rowNumber, row, startDateStr, traineeName, bacbId, allRowNumbers: [rowNumber] })
@@ -183,7 +220,7 @@ export async function POST(request: Request) {
                     s => s.bacbId === bacbId && s.fullName.toLowerCase().trim() === traineeName
                 )
 
-                // §2 Extended field extraction
+                const supervisorName        = cellStr(row, "C") // SPEC: Relational
                 const vcsSequence           = cellStr(row, "F") || null
                 const level                 = cellStr(row, "G") || null
                 const phone                 = cellStr(row, "H") || null
@@ -194,39 +231,30 @@ export async function POST(request: Request) {
                 const concHoursTarget       = cellNum(row, "P") || null
                 const indHoursTarget        = cellNum(row, "Q") || null
                 const totalAmountContract   = cellNum(row, "R") || null
+                const analystRate           = cellNum(row, "S") || null
+                const officeRate            = cellNum(row, "T") || null
                 const credential            = cellStr(row, "E") || null
                 const status                = cellStr(row, "U") || null
 
                 if (!existingStudent) {
-                    // First-In email policy
                     const rawEmail = cellStr(row, "I").toLowerCase()
                     let assignedEmail: string | null = null
                     if (rawEmail && !existingEmails.has(rawEmail) && !claimedEmailsInBatch.has(rawEmail)) {
                         assignedEmail = rawEmail
-                        claimedEmailsInBatch.set(rawEmail, { rowNumber, sheetName: sheetStudents!.name })
+                        claimedEmailsInBatch.set(rawEmail, { rowNumber, sheetName: "Supervisados" })
                     } else {
-                        // Determine exact collision type
                         let collisionType: string
                         let collisionDetail: string
                         if (!rawEmail) {
-                            collisionType = "EMAIL_EMPTY"
-                            collisionDetail = "Email Vacío"
+                            collisionType = "EMAIL_EMPTY"; collisionDetail = "Email Vacío"
                         } else if (existingEmails.has(rawEmail)) {
-                            collisionType = "EMAIL_IN_DB"
-                            collisionDetail = "Email ya existe en Base de Datos"
+                            collisionType = "EMAIL_IN_DB"; collisionDetail = "Email ya existe en BD"
                         } else {
-                            // Claimed by an earlier row in this file — report exact origin
                             const origin = claimedEmailsInBatch.get(rawEmail)
                             collisionType = "EMAIL_DUPLICATE_IN_FILE"
-                            collisionDetail = `Duplicado con Fila ${origin?.rowNumber ?? "anterior"} (${origin?.sheetName ?? "Supervisados"})`
+                            collisionDetail = `Duplicado con Fila ${origin?.rowNumber} (${origin?.sheetName})`
                         }
-                        headlessUsers.push({
-                            name:            cellStr(row, "B"),
-                            rowNumber,
-                            email:           rawEmail || "(none)",
-                            collisionType,
-                            collisionDetail
-                        })
+                        headlessUsers.push({ name: cellStr(row, "B"), rowNumber, email: rawEmail || "(none)", collisionType, collisionDetail })
                     }
 
                     newUsers.push({
@@ -234,6 +262,7 @@ export async function POST(request: Request) {
                         fullName:             cellStr(row, "B"),
                         bacbId,
                         email:                assignedEmail,
+                        supervisorName, // Pass for relational commit
                         _rowNumber:           rowNumber,
                         phone,
                         startDate:            startDateStr.getTime() === 0 ? null : startDateStr,
@@ -247,11 +276,12 @@ export async function POST(request: Request) {
                         concHoursTarget,
                         indHoursTarget,
                         totalAmountContract,
+                        analystPaymentRate: analystRate,
+                        officePaymentRate: officeRate,
                         status
                     })
                 } else {
-                    // Fill-Only sync — only write fields that are currently empty in DB
-                    const updates: any = {}
+                    const updates: any = { supervisorName } // Always try to sync supervisor if possible
                     if (phone          && !existingStudent.phone)          updates.phone          = phone
                     if (vcsSequence    && !existingStudent.vcsSequence)    updates.vcsSequence    = vcsSequence
                     if (totalMonths    && !existingStudent.totalMonths)    updates.totalMonths    = totalMonths
@@ -259,100 +289,72 @@ export async function POST(request: Request) {
                     if (concHoursTarget && !existingStudent.concentratedHoursTarget) updates.concentratedHoursTarget = concHoursTarget
                     if (indHoursTarget && !existingStudent.independentHoursTarget) updates.independentHoursTarget = indHoursTarget
                     if (totalAmountContract && !existingStudent.totalAmountContract) updates.totalAmountContract = totalAmountContract
+                    if (analystRate && !existingStudent.analystPaymentRate) updates.analystPaymentRate = analystRate
+                    if (officeRate  && !existingStudent.officePaymentRate)  updates.officePaymentRate  = officeRate
                     if (endDate && !existingStudent.endDate) updates.endDate = endDate
 
-                    if (Object.keys(updates).length > 0) {
-                        validData.studentsToUpdate.push({ id: existingStudent.id, ...updates })
-                    }
+                    validData.studentsToUpdate.push({ id: existingStudent.id, ...updates })
                 }
             }
 
-            // ── §2 Parse Supervisors sheet ──────────────────────────────────
-            if (sheetSupervisors) {
-                sheetSupervisors.eachRow((row, rowNumber) => {
-                    if (rowNumber === 1) return
-                    const supName  = cellStr(row, "A").toLowerCase()
-                    const bacbId   = cellStr(row, "C")
-                    const certNum  = cellStr(row, "D") || null
-                    const qualLevel = cellStr(row, "E") || null
-                    const dateQual = cellDate(row, "F")
-                    const examDate = cellDate(row, "G")
-
-                    if (!supName) return
-
-                    const existingSup = existingSupervisors.find(
-                        s => s.fullName.toLowerCase().trim() === supName || (bacbId && s.bacbId === bacbId)
-                    )
-
-                    if (existingSup) {
-                        const updates: any = {}
-                        if (certNum  && !existingSup.certificantNumber) updates.certificantNumber = certNum
-                        if (dateQual && !existingSup.dateQualified)     updates.dateQualified     = dateQual
-                        if (examDate && !existingSup.examDate)          updates.examDate          = examDate
-
-                        if (Object.keys(updates).length > 0) {
-                            supervisorUpdates.push({ id: existingSup.id, ...updates })
-                        }
-                    }
-                })
-            }
-
-            // ── §2 Parse Financial History sheet ────────────────────────────
+            // ── §5 Parse Cobros (Payments) ──────────────────────────────────
+            // SPEC: Header Row 27. Horizontal Periods from Column G (7) onwards.
             sheetFinancial.eachRow((row, rowNumber) => {
-                if (rowNumber === 1) return
-                const studentName    = cellStr(row, "A").toLowerCase()
-                const periodNum      = cellNum(row, "C")
-                const monthLabel     = cellStr(row, "D") || `Period ${periodNum}`
-                const excelDueOffice = cellNum(row, "E")
-                const excelDueAnalyst = cellNum(row, "I")
-                const excelPaidOfficeAcum   = cellNum(row, "H")
-                const excelPaidAnalystAcum  = cellNum(row, "L")
-                const excelDueOfficeAcum    = cellNum(row, "F")
-
-                if (!studentName || !periodNum) return
+                if (rowNumber <= 27) return
+                const traineeName = cellStr(row, "A").toLowerCase()
+                if (!traineeName) return
 
                 const existingStudent = existingStudents.find(
-                    s => s.fullName.toLowerCase().trim() === studentName
+                    s => s.fullName.toLowerCase().trim() === traineeName
                 )
 
-                if (!existingStudent) return
+                // Period identification from Col G (7) to roughly AV (48 periods)
+                for (let col = 7; col <= 60; col++) {
+                    const amount = cellNum(row, col)
+                    if (amount === 0) continue
 
-                const existingPeriod = existingStudent.financialPeriods.find(p => p.periodNumber === periodNum)
+                    const periodNum = col - 6 // Col 7 = Period 1
+                    const periodLabel = `Periodo ${periodNum}`
 
-                if (existingPeriod) {
-                    const dbDueOffice = Number(existingPeriod.amountDueOffice || 0)
-                    if (dbDueOffice !== excelDueOffice) {
-                        conflicts.push({
-                            id:            `CFL-${existingPeriod.id}`,
-                            periodId:      existingPeriod.id,
-                            studentName:   existingStudent.fullName,
-                            type:          "Student",
-                            periodNumber:  periodNum,
-                            month:         existingPeriod.monthYearLabel,
-                            dbAmount:      dbDueOffice,
-                            excelAmount:   excelDueOffice,
-                            field:         "amountDueOffice"
-                        })
+                    const rowData = {
+                        periodNumber: periodNum,
+                        monthYearLabel: periodLabel,
+                        amountDueOffice: amount,
+                        amountDueAnalyst: 0, // Not horizontal in provided spec
+                        accumulatedDueOffice: 0,
+                        accumulatedPaidOffice: 0,
+                        accumulatedPaidAnalyst: 0
                     }
-                } else if (excelDueOffice > 0 || excelDueAnalyst > 0) {
-                    // §2 Create missing financial periods
-                    newFinancialPeriods.push({
-                        studentId:             existingStudent.id,
-                        periodNumber:          periodNum,
-                        monthYearLabel:        monthLabel,
-                        amountDueOffice:       excelDueOffice,
-                        amountDueAnalyst:      excelDueAnalyst,
-                        accumulatedDueOffice:  excelDueOfficeAcum,
-                        accumulatedPaidOffice: excelPaidOfficeAcum,
-                        accumulatedPaidAnalyst: excelPaidAnalystAcum
-                    })
+
+                    if (!financialDataByStudent.has(traineeName)) financialDataByStudent.set(traineeName, [])
+                    financialDataByStudent.get(traineeName)!.push(rowData)
+
+                    if (existingStudent) {
+                        const existingPeriod = existingStudent.financialPeriods.find(p => p.periodNumber === periodNum)
+                        if (existingPeriod) {
+                            if (Number(existingPeriod.amountDueOffice || 0) !== amount) {
+                                conflicts.push({
+                                    id: `CFL-${existingPeriod.id}`, periodId: existingPeriod.id, studentName: existingStudent.fullName,
+                                    type: "Injected", periodNumber: periodNum, month: periodLabel,
+                                    dbAmount: Number(existingPeriod.amountDueOffice), excelAmount: amount, field: "amountDueOffice"
+                                })
+                            }
+                        } else {
+                            newFinancialPeriods.push({ studentName: traineeName, studentId: existingStudent.id, ...rowData })
+                        }
+                    } else {
+                        newFinancialPeriods.push({ studentName: traineeName, ...rowData })
+                    }
                 }
             })
 
             return NextResponse.json({
                 ignoredRows,
                 skippedRowsCount: ignoredRows.length,
+                studentsDetected: newUsers.length,
+                supervisorsDetected: newSupervisors.length + supervisorUpdates.length,
                 newUsers,
+                newSupervisors,
                 supervisorUpdates,
                 conflicts,
                 newFinancialPeriods,
@@ -366,7 +368,7 @@ export async function POST(request: Request) {
         // ══════════════════════════════════════════
         } else if (contentType.includes("application/json")) {
             const body = await request.json()
-            const { newUsers, supervisorUpdates, resolutions, conflicts, newFinancialPeriods, validData } = body
+            const { newUsers, newSupervisors, supervisorUpdates, resolutions, conflicts, newFinancialPeriods, validData } = body
 
             const batchString = `IMP_${new Date().toISOString().replace(/[:.]/g, "").slice(0, 15)}`
 
@@ -376,7 +378,180 @@ export async function POST(request: Request) {
                     data: { batchString, status: "COMPLETED" }
                 })
 
-                // 2. Resolve financial conflicts
+                const supervisorMap = new Map<string, string>() // normalized name -> id
+                const studentMap = new Map<string, string>() // normalized name -> id
+
+                // 2. Paso A: Create/Update Supervisors
+                for (const sup of (newSupervisors ?? [])) {
+                    const hash = await bcrypt.hash("Aba12345*", 10)
+                    const user = await tx.user.create({
+                        data: {
+                            email: sup.email,
+                            passwordHash: hash,
+                            role: "SUPERVISOR",
+                            isActive: true,
+                            requiresWizard: true,
+                            isFirstLogin: true,
+                            inviteSent: false,
+                            onboardingCompleted: false,
+                            supervisor: {
+                                create: {
+                                    fullName: sup.fullName,
+                                    phone: "PENDING",
+                                    address: "Imported",
+                                    email: sup.email,
+                                    bacbId: sup.bacbId || "N/A",
+                                    certificantNumber: sup.certificantNumber || "N/A",
+                                    dateQualified: sup.dateQualified ? new Date(sup.dateQualified) : null,
+                                    examDate: sup.examDate ? new Date(sup.examDate) : null,
+                                    status: (sup.status || "ACTIVE") as any,
+                                    credentialType: (sup.qualificationLevel || "BCBA") as any,
+                                    // @ts-ignore
+                                    importBatchId: batch.id
+                                }
+                            }
+                        },
+                        include: { supervisor: true }
+                    })
+                    const s = (user as any).supervisor
+                    if (s) supervisorMap.set(s.fullName.toLowerCase().trim(), s.id)
+                    
+                    await (tx as any).importLog.create({
+                        data: {
+                            batchId: batch.id,
+                            tableName: "User",
+                            recordId: user.id,
+                            action: "CREATE",
+                            oldData: {},
+                            newData: { id: user.id, fullName: sup.fullName } as any
+                        }
+                    })
+                }
+
+                for (const supUpd of (supervisorUpdates ?? [])) {
+                    const { id, ...fields } = supUpd
+                    const old = await tx.supervisor.findUnique({ where: { id } })
+                    await tx.supervisor.update({ where: { id }, data: fields })
+                    await (tx as any).importLog.create({
+                        data: {
+                            batchId: batch.id,
+                            tableName: "Supervisor",
+                            recordId: id,
+                            action: "UPDATE",
+                            oldData: old as any,
+                            newData: fields as any
+                        }
+                    })
+                }
+
+                // Fill map with all existing supervisors
+                const currentSups = await tx.supervisor.findMany()
+                currentSups.forEach(s => supervisorMap.set(s.fullName.toLowerCase().trim(), s.id))
+
+                // 3. Paso B: Create/Update Students
+                // Update existing
+                for (const update of (validData?.studentsToUpdate ?? [])) {
+                    const { id, supervisorName, ...fields } = update
+                    const old = await tx.student.findUnique({ where: { id } })
+                    
+                    const supervisorId = supervisorName ? supervisorMap.get(supervisorName.toLowerCase().trim()) : undefined
+                    
+                    await tx.student.update({ 
+                        where: { id }, 
+                        data: { ...fields, supervisorId } 
+                    })
+                    
+                    if (old) studentMap.set(old.fullName.toLowerCase().trim(), id)
+                    
+                    await (tx as any).importLog.create({
+                        data: {
+                            batchId: batch.id,
+                            tableName: "Student",
+                            recordId: id,
+                            action: "UPDATE",
+                            oldData: old as any,
+                            newData: { ...fields, supervisorId } as any
+                        }
+                    })
+                }
+
+                // Create new
+                const usedEmailsInTx = new Set<string>()
+                for (const newUser of (newUsers ?? [])) {
+                    const hash = await bcrypt.hash("Aba12345*", 10)
+                    let finalEmail = newUser.email ? newUser.email.trim().toLowerCase() : null
+                    if (!finalEmail || usedEmailsInTx.has(finalEmail)) {
+                        const safeName = String(newUser.fullName || "user").toLowerCase().replace(/[^a-z0-9]/g, "").slice(0, 20)
+                        finalEmail = `${safeName}_${Date.now()}_${Math.floor(Math.random() * 9999)}@pending.import`
+                    }
+                    usedEmailsInTx.add(finalEmail)
+
+                    const user = await tx.user.create({
+                        data: {
+                            email: finalEmail,
+                            passwordHash: hash,
+                            role: "STUDENT",
+                            isActive: true,
+                            requiresWizard: true,
+                            inviteSent: false, // Ensure false during import
+                            isFirstLogin: true,
+                            onboardingCompleted: false,
+                            student: {
+                                create: {
+                                    fullName: newUser.fullName,
+                                    bacbId: newUser.bacbId ?? "",
+                                    phone: newUser.phone ?? "",
+                                    email: finalEmail,
+                                    startDate: new Date(newUser.startDate || new Date()),
+                                    endDate: newUser.endDate ? new Date(newUser.endDate) : new Date(),
+                                    credential: (newUser.credential || "NO_CREDENTIAL") as any,
+                                    level: (newUser.level || "BCBA") as any,
+                                    school: "Imported",
+                                    city: "N/A",
+                                    state: "FL",
+                                    supervisionType: "REGULAR",
+                                    supervisionPercentage: 0,
+                                    hoursToDo: 0,
+                                    hoursToPay: 0,
+                                    amountToPay: 0,
+                                    hoursPerMonth: 0,
+                                    totalMonths: newUser.totalMonths ?? 0,
+                                    vcsSequence: newUser.vcsSequence ?? null,
+                                    assignedOptionPlan: (newUser.optionPlan || "A") as any,
+                                    regularHoursTarget: newUser.regHoursTarget ?? null,
+                                    concentratedHoursTarget: newUser.concHoursTarget ?? null,
+                                    independentHoursTarget: newUser.indHoursTarget ?? null,
+                                    totalAmountContract: newUser.totalAmountContract ?? null,
+                                    analystPaymentRate: newUser.analystPaymentRate ?? null,
+                                    officePaymentRate: newUser.officePaymentRate ?? null,
+                                    supervisorId: newUser.supervisorName ? supervisorMap.get(newUser.supervisorName.toLowerCase().trim()) : null,
+                                    // @ts-ignore
+                                    importBatchId: batch.id
+                                }
+                            }
+                        },
+                        include: { student: true }
+                    })
+                    const s = (user as any).student
+                    if (s) studentMap.set(s.fullName.toLowerCase().trim(), s.id)
+
+                    await (tx as any).importLog.create({
+                        data: {
+                            batchId: batch.id,
+                            tableName: "User",
+                            recordId: user.id,
+                            action: "CREATE",
+                            oldData: {},
+                            newData: { id: user.id, email: finalEmail } as any
+                        }
+                    })
+                }
+
+                // Fill map with all existing students
+                const currentStuds = await tx.student.findMany()
+                currentStuds.forEach(s => studentMap.set(s.fullName.toLowerCase().trim(), s.id))
+
+                // 4. Paso C: Financial Periods (match student by ID or Name)
                 for (const conflict of (conflicts ?? [])) {
                     const resolution = resolutions?.[conflict.id]
                     if (resolution === "ignore" || !resolution) continue
@@ -390,146 +565,55 @@ export async function POST(request: Request) {
 
                     await (tx as any).importLog.create({
                         data: {
-                            batchId:   batch.id,
+                            batchId: batch.id,
                             tableName: "FinancialPeriod",
-                            recordId:  conflict.periodId,
-                            action:    "UPDATE",
-                            oldData:   oldPeriod as any,
-                            newData:   { ...oldPeriod, amountDueOffice: newAmount } as any
+                            recordId: conflict.periodId,
+                            action: "UPDATE",
+                            oldData: oldPeriod as any,
+                            newData: { ...oldPeriod, amountDueOffice: newAmount } as any
                         }
                     })
 
-                    await (tx as any).financialPeriod.update({
+                    await tx.financialPeriod.update({
                         where: { id: conflict.periodId },
-                        data:  { amountDueOffice: newAmount, importBatchId: batch.id }
+                        data: { amountDueOffice: newAmount, importBatchId: batch.id }
                     })
                 }
 
-                // 3. Create new financial periods (missing ones from Excel)
                 for (const fp of (newFinancialPeriods ?? [])) {
+                    const studentId = fp.studentId || studentMap.get(fp.studentName?.toLowerCase().trim())
+                    if (!studentId) continue
+
                     const created = await (tx as any).financialPeriod.upsert({
-                        where:  { studentId_periodNumber: { studentId: fp.studentId, periodNumber: fp.periodNumber } },
+                        where: { studentId_periodNumber: { studentId, periodNumber: fp.periodNumber } },
                         update: {},
                         create: {
-                            studentId:              fp.studentId,
-                            periodNumber:           fp.periodNumber,
-                            monthYearLabel:         fp.monthYearLabel,
-                            amountDueOffice:        fp.amountDueOffice,
-                            amountDueAnalyst:       fp.amountDueAnalyst,
-                            accumulatedDueOffice:   fp.accumulatedDueOffice,
-                            accumulatedPaidOffice:  fp.accumulatedPaidOffice,
+                            studentId: studentId,
+                            periodNumber: fp.periodNumber,
+                            monthYearLabel: fp.monthYearLabel,
+                            amountDueOffice: fp.amountDueOffice,
+                            amountDueAnalyst: fp.amountDueAnalyst,
+                            accumulatedDueOffice: fp.accumulatedDueOffice,
+                            accumulatedPaidOffice: fp.accumulatedPaidOffice,
                             accumulatedPaidAnalyst: fp.accumulatedPaidAnalyst,
-                            importBatchId:          batch.id
+                            importBatchId: batch.id
                         }
                     })
 
                     await (tx as any).importLog.create({
                         data: {
-                            batchId:   batch.id,
+                            batchId: batch.id,
                             tableName: "FinancialPeriod",
-                            recordId:  created.id,
-                            action:    "CREATE",
-                            oldData:   {},
-                            newData:   created as any
-                        }
-                    })
-                }
-
-                // 4. Update existing students (fill-only)
-                for (const update of (validData?.studentsToUpdate ?? [])) {
-                    const { id, ...fields } = update
-                    await tx.student.update({ where: { id }, data: fields })
-                }
-
-                // 5. Update supervisors (fill-only)
-                for (const update of (supervisorUpdates ?? [])) {
-                    const { id, ...fields } = update
-                    await tx.supervisor.update({ where: { id }, data: fields })
-                }
-
-                // 6. Create new users
-                const usedEmailsInTx = new Set<string>()
-                for (const newUser of (newUsers ?? [])) {
-                    const hash = await bcrypt.hash("Aba12345*", 10)
-
-                    let finalEmail = newUser.email ? newUser.email.trim().toLowerCase() : null
-                    if (!finalEmail || usedEmailsInTx.has(finalEmail)) {
-                        const safeName = String(newUser.fullName || "user").toLowerCase().replace(/[^a-z0-9]/g, "").slice(0, 20)
-                        finalEmail = `${safeName}_${Date.now()}_${Math.floor(Math.random() * 9999)}@pending.import`
-                    }
-                    usedEmailsInTx.add(finalEmail)
-
-                    // Map optionPlan to enum
-                    const optionPlanMap: Record<string, string> = { A: "A", B: "B", C: "C", D: "D", E: "E" }
-                    const normalizedPlan = newUser.optionPlan ? optionPlanMap[String(newUser.optionPlan).toUpperCase()] ?? null : null
-
-                    // Map credential to enum
-                    const credentialMap: Record<string, string> = {
-                        "RBT": "RBT", "BCBA": "BCBA", "BCaBA": "BCaBA", "LMHC": "LMHC",
-                        "RBT_NOT_WORKING": "RBT_NOT_WORKING", "NO_CREDENTIAL": "NO_CREDENTIAL"
-                    }
-                    const normalizedCred = newUser.credential ? credentialMap[String(newUser.credential).trim()] ?? "NO_CREDENTIAL" : "NO_CREDENTIAL"
-
-                    // Map level to enum
-                    const levelMap: Record<string, string> = { "BCBA": "BCBA", "BCaBA": "BCaBA" }
-                    const normalizedLevel = newUser.level ? levelMap[String(newUser.level).trim()] ?? "BCBA" : "BCBA"
-
-                    const user = await tx.user.create({
-                        data: {
-                            email:              finalEmail,
-                            passwordHash:       hash,
-                            role:               "STUDENT",
-                            isActive:           true,
-                            requiresWizard:     true,
-                            isFirstLogin:       true,
-                            onboardingCompleted: false,
-                            student: {
-                                create: {
-                                    fullName:               newUser.fullName,
-                                    bacbId:                 newUser.bacbId ?? "",
-                                    phone:                  newUser.phone ?? "",
-                                    email:                  finalEmail,
-                                    startDate:              new Date(newUser.startDate || new Date()),
-                                    endDate:                newUser.endDate ? new Date(newUser.endDate) : new Date(),
-                                    credential:             normalizedCred as any,
-                                    level:                  normalizedLevel as any,
-                                    school:                 "Unknown",
-                                    city:                   "Unknown",
-                                    state:                  "FL",
-                                    supervisionType:        "REGULAR",
-                                    supervisionPercentage:  0,
-                                    hoursToDo:              0,
-                                    hoursToPay:             0,
-                                    amountToPay:            0,
-                                    hoursPerMonth:          0,
-                                    totalMonths:            newUser.totalMonths ?? 0,
-                                    vcsSequence:            newUser.vcsSequence ?? null,
-                                    assignedOptionPlan:     normalizedPlan as any,
-                                    regularHoursTarget:     newUser.regHoursTarget ?? null,
-                                    concentratedHoursTarget: newUser.concHoursTarget ?? null,
-                                    independentHoursTarget: newUser.indHoursTarget ?? null,
-                                    totalAmountContract:    newUser.totalAmountContract ?? null,
-                                    // @ts-ignore
-                                    importBatchId:          batch.id
-                                }
-                            }
-                        }
-                    })
-
-                    await (tx as any).importLog.create({
-                        data: {
-                            batchId:   batch.id,
-                            tableName: "User",
-                            recordId:  user.id,
-                            action:    "CREATE",
-                            oldData:   {},
-                            newData:   { id: user.id, email: finalEmail } as any
+                            recordId: created.id,
+                            action: "CREATE",
+                            oldData: {},
+                            newData: created as any
                         }
                     })
                 }
             }, {
-                maxWait: 15000,
-                timeout: 120000
+                maxWait: 20000,
+                timeout: 180000
             })
 
             return NextResponse.json({ success: true })
