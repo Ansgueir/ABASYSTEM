@@ -3,7 +3,7 @@ set -e
 
 # Credentials
 SUPABASE_DB="postgresql://postgres.svvxhmhkghauhnvqcgbi:Pr0s1s.2026@aws-0-us-west-2.pooler.supabase.com:5432/postgres?sslmode=require&connect_timeout=30"
-LOCAL_DB="postgresql://postgres:Pr0s1s.2026@localhost:5432/aba_supervision"
+LOCAL_DB="postgresql://aba_admin:Pr0s1s.2026@localhost:5432/aba_supervision"
 
 echo "=== Starting Data Migration ==="
 echo "Source: Supabase"

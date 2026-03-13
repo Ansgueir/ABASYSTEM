@@ -9,8 +9,8 @@ const log = (msg: string) => {
 }
 
 // USE 127.0.0.1 instead of localhost for stability on Linux
-const LOCAL_DB_URL = "postgresql://postgres:Pr0s1s.2026@127.0.0.1:5432/aba_supervision?schema=public"
-const SUPABASE_DB_URL = "postgresql://postgres.svvxhmhkghauhnvqcgbi:Pr0s1s.2026@aws-0-us-west-2.pooler.supabase.com:5432/postgres?sslmode=require&connect_timeout=60"
+const LOCAL_DB_URL = "postgresql://aba_admin:Pr0s1s.2026@127.0.0.1:5432/aba_supervision?schema=public"
+const SUPABASE_DB_URL = "postgresql://postgres.svvxhmhkghauhnvqcgbi:Pr0s1s.2026@aws-0-us-west-2.pooler.supabase.com:6543/postgres?sslmode=require&connect_timeout=60"
 
 async function main() {
     if (fs.existsSync(LOG_FILE)) fs.unlinkSync(LOG_FILE)

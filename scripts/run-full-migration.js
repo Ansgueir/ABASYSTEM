@@ -47,12 +47,12 @@ async function main() {
 
         // 1. Upload script
         console.log('\n--- Step 1: Uploading script ---');
-        await runSshOrScp('scp', ['-P', PORT, SCRIPT, `${USER}@${HOST}:/home/administrador/`]);
+        await runSshOrScp('scp', ['-P', PORT, SCRIPT, `${USER}@${HOST}:/home/administrador/aba-supervision-system/`]);
 
         // 2. Execute script
         console.log('\n--- Step 2: Executing script ---');
         // Note: use 'administrador' as per scripts/deploy-remote.js
-        const remoteCmd = `chmod +x /home/administrador/${SCRIPT} && /home/administrador/${SCRIPT}`;
+        const remoteCmd = `chmod +x /home/administrador/aba-supervision-system/${SCRIPT} && /home/administrador/aba-supervision-system/${SCRIPT}`;
         await runSshOrScp('ssh', ['-p', PORT, `${USER}@${HOST}`, `"${remoteCmd}"`]);
 
         console.log('\n=== Migration Success! ===');

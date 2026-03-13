@@ -43,9 +43,12 @@ export function ImportStaging() {
     const [isCommitting, setIsCommitting] = useState(false)
     const [stagingResult, setStagingResult] = useState<StagingResult | null>(null)
 
-    const [showIgnored, setShowIgnored] = useState(false)
-    const [showHeadless, setShowHeadless] = useState(true)
-    const [showMerged,   setShowMerged]   = useState(false)
+    const [showIgnored,     setShowIgnored]     = useState(false)
+    const [showHeadless,    setShowHeadless]    = useState(false)
+    const [showStudents,    setShowStudents]    = useState(false)
+    const [showSupervisors, setShowSupervisors] = useState(false)
+    const [showFinancial,   setShowFinancial]   = useState(false)
+    const [showConflicts,   setShowConflicts]   = useState(false)
 
     const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         if (e.target.files?.[0]) {
@@ -176,67 +179,74 @@ export function ImportStaging() {
             {stagingResult && (
                 <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
                     {/* ── Stats Summary Cards ─────────────────────────────── */}
+                    {/* ── 6-Card Audit Grid ────────────────────────────────── */}
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                        <Card className="bg-emerald-50 border-emerald-200 border-2">
+                        {/* 1. Rows Ignored (Blue) */}
+                        <Card className="bg-blue-50 border-blue-200 border-2 cursor-pointer hover:bg-blue-100/50 transition-colors" onClick={() => setShowIgnored(!showIgnored)}>
                             <CardContent className="p-4 text-center">
-                                <div className="text-3xl font-bold text-emerald-700">{stagingResult.studentsStats.new + stagingResult.studentsStats.updated}</div>
-                                <div className="text-sm font-semibold text-emerald-600 uppercase tracking-wider">Estudiantes</div>
-                                <div className="mt-2 flex justify-center gap-3 text-[10px] items-center">
-                                    <span className="px-2 py-0.5 bg-emerald-100 rounded-full border border-emerald-300">{stagingResult.studentsStats.new} Nuevos</span>
-                                    <span className="px-2 py-0.5 bg-white rounded-full border border-emerald-200">{stagingResult.studentsStats.updated} Actualizados</span>
+                                <div className="text-3xl font-bold text-blue-700">{stagingResult.ignoredRows.length}</div>
+                                <div className="text-sm font-semibold text-blue-600 uppercase tracking-wider">Rows Ignored</div>
+                                <div className="mt-2 flex items-center justify-center gap-1 text-[10px] text-blue-500">
+                                    {showIgnored ? <ChevronUp className="h-3 w-3" /> : <ChevronDown className="h-3 w-3" />} Detail
                                 </div>
                             </CardContent>
                         </Card>
 
-                        <Card className="bg-purple-50 border-purple-200 border-2">
+                        {/* 2. Students New (Green) */}
+                        <Card className="bg-emerald-50 border-emerald-200 border-2 cursor-pointer hover:bg-emerald-100/50 transition-colors" onClick={() => setShowStudents(!showStudents)}>
                             <CardContent className="p-4 text-center">
-                                <div className="text-3xl font-bold text-purple-700">{stagingResult.supervisorsStats.new + stagingResult.supervisorsStats.updated}</div>
-                                <div className="text-sm font-semibold text-purple-600 uppercase tracking-wider">Supervisores</div>
-                                <div className="mt-2 flex justify-center gap-3 text-[10px] items-center">
-                                    <span className="px-2 py-0.5 bg-purple-100 rounded-full border border-purple-300">{stagingResult.supervisorsStats.new} Nuevos</span>
-                                    <span className="px-2 py-0.5 bg-white rounded-full border border-purple-200">{stagingResult.supervisorsStats.updated} Actualizados</span>
+                                <div className="text-3xl font-bold text-emerald-700">{stagingResult.studentsStats.new}</div>
+                                <div className="text-sm font-semibold text-emerald-600 uppercase tracking-wider">Estudiantes Nuevos (Pestaña Supervisados)</div>
+                                <div className="mt-2 flex items-center justify-center gap-1 text-[10px] text-emerald-500">
+                                    {showStudents ? <ChevronUp className="h-3 w-3" /> : <ChevronDown className="h-3 w-3" />} Detail
                                 </div>
                             </CardContent>
                         </Card>
 
-                        <Card className="bg-amber-50 border-amber-200 border-2">
+                        {/* 3. Supervisors New (Purple) */}
+                        <Card className="bg-purple-50 border-purple-200 border-2 cursor-pointer hover:bg-purple-100/50 transition-colors" onClick={() => setShowSupervisors(!showSupervisors)}>
                             <CardContent className="p-4 text-center">
-                                <div className="text-3xl font-bold text-amber-700">{stagingResult.financialStats.clean + stagingResult.financialStats.conflicts}</div>
-                                <div className="text-sm font-semibold text-amber-600 uppercase tracking-wider">Registros Cobros</div>
-                                <div className="mt-2 flex justify-center gap-3 text-[10px] items-center">
-                                    <span className="px-2 py-0.5 bg-amber-100 rounded-full border border-amber-300">{stagingResult.financialStats.clean} Limpios</span>
-                                    <span className={`px-2 py-0.5 rounded-full border ${stagingResult.financialStats.conflicts > 0 ? 'bg-orange-500 text-white border-orange-600 animate-pulse' : 'bg-white border-amber-200'}`}>
-                                        {stagingResult.financialStats.conflicts} Conflictos
-                                    </span>
+                                <div className="text-3xl font-bold text-purple-700">{stagingResult.supervisorsStats.new}</div>
+                                <div className="text-sm font-semibold text-purple-600 uppercase tracking-wider">Supervisores Nuevos (Pestaña Parametros)</div>
+                                <div className="text-[10px] text-purple-400 mt-1">Fila 19+ Detected</div>
+                                <div className="mt-1 flex items-center justify-center gap-1 text-[10px] text-purple-500">
+                                    {showSupervisors ? <ChevronUp className="h-3 w-3" /> : <ChevronDown className="h-3 w-3" />} Detail
                                 </div>
                             </CardContent>
                         </Card>
-                    </div>
 
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                         <Card className="bg-rose-50 border-rose-200 border cursor-pointer hover:bg-rose-100/50 transition-colors" onClick={() => setShowHeadless(!showHeadless)}>
-                            <CardContent className="p-3 flex items-center justify-between">
-                                <div className="flex items-center gap-3">
-                                    <div className="h-10 w-10 rounded-full bg-rose-100 flex items-center justify-center text-rose-600 font-bold">{stagingResult.headlessUsers.length}</div>
-                                    <div>
-                                        <div className="text-xs font-bold text-rose-700 uppercase">Headless Collisions</div>
-                                        <div className="text-[10px] text-rose-500">Emails duplicados o faltantes</div>
-                                    </div>
+                        {/* 4. Financial Records (Amber) */}
+                        <Card className="bg-amber-50 border-amber-200 border-2 cursor-pointer hover:bg-amber-100/50 transition-colors" onClick={() => setShowFinancial(!showFinancial)}>
+                            <CardContent className="p-4 text-center">
+                                <div className="text-3xl font-bold text-amber-500">{stagingResult.financialStats.clean}</div>
+                                <div className="text-sm font-semibold text-amber-600 uppercase tracking-wider">Financial Records</div>
+                                <div className="mt-2 flex items-center justify-center gap-1 text-[10px] text-amber-500">
+                                    {showFinancial ? <ChevronUp className="h-3 w-3" /> : <ChevronDown className="h-3 w-3" />} Detail
                                 </div>
-                                {showHeadless ? <ChevronUp className="h-4 w-4 text-rose-400" /> : <ChevronDown className="h-4 w-4 text-rose-400" />}
                             </CardContent>
                         </Card>
 
-                        <Card className="bg-blue-50 border-blue-200 border cursor-pointer hover:bg-blue-100/50 transition-colors" onClick={() => setShowIgnored(!showIgnored)}>
-                            <CardContent className="p-3 flex items-center justify-between">
-                                <div className="flex items-center gap-3">
-                                    <div className="h-10 w-10 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 font-bold">{stagingResult.ignoredRows.length}</div>
-                                    <div>
-                                        <div className="text-xs font-bold text-blue-700 uppercase">Rows Ignored</div>
-                                        <div className="text-[10px] text-blue-500">Datos incompletos detectados</div>
-                                    </div>
+                        {/* 5. Financial Conflicts (Orange) */}
+                        <Card className={`border-2 cursor-pointer transition-colors ${stagingResult.financialStats.conflicts > 0 ? 'bg-orange-50 border-orange-200 hover:bg-orange-100/50' : 'bg-slate-50 border-slate-200 opacity-60'}`} onClick={() => setShowConflicts(!showConflicts)}>
+                            <CardContent className="p-4 text-center">
+                                <div className={`text-3xl font-bold ${stagingResult.financialStats.conflicts > 0 ? 'text-orange-600 animate-pulse' : 'text-slate-400'}`}>
+                                    {stagingResult.financialStats.conflicts}
                                 </div>
-                                {showIgnored ? <ChevronUp className="h-4 w-4 text-blue-400" /> : <ChevronDown className="h-4 w-4 text-blue-400" />}
+                                <div className="text-sm font-semibold text-orange-600 uppercase tracking-wider">Financial Conflicts</div>
+                                <div className="mt-2 flex items-center justify-center gap-1 text-[10px] text-orange-500">
+                                    {showConflicts ? <ChevronUp className="h-3 w-3" /> : <ChevronDown className="h-3 w-3" />} Detail
+                                </div>
+                            </CardContent>
+                        </Card>
+
+                        {/* 6. Headless Users (Red) */}
+                        <Card className={`border-2 cursor-pointer transition-colors ${stagingResult.headlessUsers.length > 0 ? 'bg-rose-50 border-rose-200 hover:bg-rose-100/50' : 'bg-slate-50 border-slate-200 opacity-60'}`} onClick={() => setShowHeadless(!showHeadless)}>
+                            <CardContent className="p-4 text-center">
+                                <div className="text-3xl font-bold text-rose-700">{stagingResult.headlessUsers.length}</div>
+                                <div className="text-sm font-semibold text-rose-600 uppercase tracking-wider">Headless (Email Collision)</div>
+                                <div className="mt-2 flex items-center justify-center gap-1 text-[10px] text-rose-500">
+                                    {showHeadless ? <ChevronUp className="h-3 w-3" /> : <ChevronDown className="h-3 w-3" />} Detail
+                                </div>
                             </CardContent>
                         </Card>
                     </div>
@@ -303,8 +313,116 @@ export function ImportStaging() {
                         </Card>
                     )}
 
+                    {/* ── New Students Detail ─────────────────────────────── */}
+                    {showStudents && stagingResult.newUsers.length > 0 && (
+                        <Card className="border-emerald-200 shadow-lg border-2 overflow-hidden">
+                            <CardHeader className="bg-emerald-600 py-3 px-4">
+                                <CardTitle className="text-white text-sm flex items-center gap-2">
+                                    <Check className="h-4 w-4" />
+                                    Nuevos Estudiantes Detectados ({stagingResult.newUsers.length})
+                                </CardTitle>
+                            </CardHeader>
+                            <CardContent className="p-0">
+                                <div className="max-h-[300px] overflow-auto">
+                                    <table className="w-full text-[11px] text-left">
+                                        <thead className="bg-emerald-50 text-emerald-700 sticky top-0">
+                                            <tr>
+                                                <th className="p-2">Row</th>
+                                                <th className="p-2">Full Name</th>
+                                                <th className="p-2">Email</th>
+                                                <th className="p-2">BACB ID</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            {stagingResult.newUsers.map((u, i) => (
+                                                <tr key={i} className="border-t border-emerald-100 bg-white hover:bg-emerald-50/30">
+                                                    <td className="p-2 font-mono text-emerald-600">#{u.rowNumber}</td>
+                                                    <td className="p-2 font-bold">{u.fullName}</td>
+                                                    <td className="p-2">{u.email}</td>
+                                                    <td className="p-2">{u.bacbId}</td>
+                                                </tr>
+                                            ))}
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </CardContent>
+                        </Card>
+                    )}
+
+                    {/* ── New Supervisors Detail ──────────────────────────── */}
+                    {showSupervisors && stagingResult.newSupervisors.length > 0 && (
+                        <Card className="border-purple-200 shadow-lg border-2 overflow-hidden">
+                            <CardHeader className="bg-purple-600 py-3 px-4">
+                                <CardTitle className="text-white text-sm flex items-center gap-2">
+                                    <Check className="h-4 w-4" />
+                                    Nuevos Supervisores Detectados ({stagingResult.newSupervisors.length})
+                                </CardTitle>
+                            </CardHeader>
+                            <CardContent className="p-0">
+                                <div className="max-h-[300px] overflow-auto">
+                                    <table className="w-full text-[11px] text-left">
+                                        <thead className="bg-purple-50 text-purple-700 sticky top-0">
+                                            <tr>
+                                                <th className="p-2">Row</th>
+                                                <th className="p-2">Full Name</th>
+                                                <th className="p-2">Email</th>
+                                                <th className="p-2">BACB ID</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            {stagingResult.newSupervisors.map((u, i) => (
+                                                <tr key={i} className="border-t border-purple-100 bg-white hover:bg-purple-50/30">
+                                                    <td className="p-2 font-mono text-purple-600">#{u.rowNumber}</td>
+                                                    <td className="p-2 font-bold">{u.fullName}</td>
+                                                    <td className="p-2">{u.email}</td>
+                                                    <td className="p-2">{u.bacbId}</td>
+                                                </tr>
+                                            ))}
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </CardContent>
+                        </Card>
+                    )}
+
+                    {/* ── Financial Records Detail ──────────────────────────── */}
+                    {showFinancial && stagingResult.newFinancialPeriods.length > 0 && (
+                        <Card className="border-amber-200 shadow-lg border-2 overflow-hidden">
+                            <CardHeader className="bg-amber-600 py-3 px-4">
+                                <CardTitle className="text-white text-sm flex items-center gap-2">
+                                    <FileSpreadsheet className="h-4 w-4" />
+                                    Registros de Cobros Limpios ({stagingResult.newFinancialPeriods.length})
+                                </CardTitle>
+                            </CardHeader>
+                            <CardContent className="p-0">
+                                <div className="max-h-[300px] overflow-auto">
+                                    <table className="w-full text-[11px] text-left">
+                                        <thead className="bg-amber-50 text-amber-700 sticky top-0">
+                                            <tr>
+                                                <th className="p-2">Row</th>
+                                                <th className="p-2">Trainee</th>
+                                                <th className="p-2">Periodo</th>
+                                                <th className="p-2">Amount</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            {stagingResult.newFinancialPeriods.map((f, i) => (
+                                                <tr key={i} className="border-t border-amber-100 bg-white hover:bg-amber-50/30">
+                                                    <td className="p-2 font-mono text-amber-600">#{f.rowNumber}</td>
+                                                    <td className="p-2 font-bold">{f.traineeName}</td>
+                                                    <td className="p-2">{f.monthYearLabel}</td>
+                                                    <td className="p-2 text-emerald-600 font-bold">${f.amount}</td>
+                                                </tr>
+                                            ))}
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </CardContent>
+                        </Card>
+                    )}
+
                     {/* ── Financial Resolution UI ───────────────────────────── */}
-                    {stagingResult.conflicts.length > 0 && (
+                    {showConflicts && stagingResult.conflicts.length > 0 && (
                         <Card className="border-orange-200 border-2 shadow-xl overflow-hidden">
                             <CardHeader className="bg-orange-600 py-3 px-4 text-white">
                                 <CardTitle className="text-sm flex items-center gap-2">
