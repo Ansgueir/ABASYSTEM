@@ -27,109 +27,84 @@ export async function POST(request: Request) {
 
         await prisma.$transaction(async (tx) => {
             // §7 DUAL DELETION POLICY
-            // Separate logs into CREATE (hard-delete) vs UPDATE (revert to oldData)
             const createLogs = batch.logs.filter((l: any) => l.action === "CREATE")
             const updateLogs = batch.logs.filter((l: any) => l.action === "UPDATE")
 
-            // ── §7 HARD DELETE: obliterate records created by this import ──
-            // Process in dependency order: FinancialPeriods first, then Students→Users
-            const fpToDelete: string[] = []
-            const userToDelete: string[] = []
+            // ── §7 HARD DELETE ──
+            const fpIdsToDelete = createLogs.filter((l: any) => l.tableName === "FinancialPeriod").map((l: any) => l.recordId)
+            const userIdsToDelete = createLogs.filter((l: any) => l.tableName === "User").map((l: any) => l.recordId)
 
-            for (const log of createLogs) {
-                if (log.tableName === "FinancialPeriod") {
-                    fpToDelete.push(log.recordId)
-                } else if (log.tableName === "User") {
-                    userToDelete.push(log.recordId)
-                }
-            }
-
-            if (fpToDelete.length > 0) {
+            // 1. Borrar FinancialPeriods creados
+            if (fpIdsToDelete.length > 0) {
                 await tx.financialPeriod.deleteMany({
-                    where: { id: { in: fpToDelete } }
+                    where: { id: { in: fpIdsToDelete } }
                 })
             }
 
-            // Deleting User cascades to Student (onDelete: Cascade via userId relation)
-            for (const userId of userToDelete) {
-                try {
-                    await tx.user.delete({ where: { id: userId } })
-                } catch {
-                    // Already deleted or constraint — skip silently
-                }
+            // 2. Borrar Students y Users creados
+            // Importante: Borrar Student antes que User para evitar conflictos de FK si el cascade no está activo
+            if (userIdsToDelete.length > 0) {
+                await tx.student.deleteMany({
+                    where: { userId: { in: userIdsToDelete } }
+                })
+                await tx.user.deleteMany({
+                    where: { id: { in: userIdsToDelete } }
+                })
             }
 
-            // ── §7 REVERT (OVERWRITE): restore oldData for previously existing records ──
+            // ── §7 REVERT (UPDATE) ──
             for (const log of updateLogs) {
+                const oldData: any = log.oldData
+                if (!oldData) continue
+
                 if (log.tableName === "FinancialPeriod") {
-                    const oldData: any = log.oldData
-                    if (oldData?.id) {
-                        try {
-                            await tx.financialPeriod.update({
-                                where: { id: log.recordId },
-                                data: {
-                                    amountDueOffice:        oldData.amountDueOffice,
-                                    amountDueAnalyst:       oldData.amountDueAnalyst,
-                                    accumulatedDueOffice:   oldData.accumulatedDueOffice,
-                                    accumulatedPaidOffice:  oldData.accumulatedPaidOffice,
-                                    accumulatedPaidAnalyst: oldData.accumulatedPaidAnalyst,
-                                    importBatchId:          null
-                                }
-                            })
-                        } catch {
-                            // Record might have been altered or deleted, skip
+                    await tx.financialPeriod.update({
+                        where: { id: log.recordId },
+                        data: {
+                            amountDueOffice:        oldData.amountDueOffice,
+                            amountDueAnalyst:       oldData.amountDueAnalyst,
+                            accumulatedDueOffice:   oldData.accumulatedDueOffice,
+                            accumulatedPaidOffice:  oldData.accumulatedPaidOffice,
+                            accumulatedPaidAnalyst: oldData.accumulatedPaidAnalyst,
+                            importBatchId:          null
                         }
-                    }
+                    }).catch(() => console.log(`Rollback: Record ${log.recordId} in ${log.tableName} missing, skipping.`))
                 } else if (log.tableName === "Student") {
-                    const oldData: any = log.oldData
-                    if (oldData?.id) {
-                        try {
-                            await tx.student.update({
-                                where: { id: log.recordId },
-                                data: {
-                                    phone:                  oldData.phone,
-                                    vcsSequence:            oldData.vcsSequence,
-                                    totalMonths:            oldData.totalMonths,
-                                    regularHoursTarget:     oldData.regularHoursTarget,
-                                    concentratedHoursTarget: oldData.concentratedHoursTarget,
-                                    independentHoursTarget: oldData.independentHoursTarget,
-                                    totalAmountContract:    oldData.totalAmountContract,
-                                    endDate:                oldData.endDate ? new Date(oldData.endDate) : undefined,
-                                    importBatchId:          null
-                                }
-                            })
-                        } catch {
-                            // skip
+                    await tx.student.update({
+                        where: { id: log.recordId },
+                        data: {
+                            phone:                  oldData.phone,
+                            vcsSequence:            oldData.vcsSequence,
+                            totalMonths:            oldData.totalMonths,
+                            regularHoursTarget:     oldData.regularHoursTarget,
+                            concentratedHoursTarget: oldData.concentratedHoursTarget,
+                            independentHoursTarget: oldData.independentHoursTarget,
+                            totalAmountContract:    oldData.totalAmountContract,
+                            endDate:                oldData.endDate ? new Date(oldData.endDate) : undefined,
+                            importBatchId:          null
                         }
-                    }
+                    }).catch(() => {})
                 } else if (log.tableName === "Supervisor") {
-                    const oldData: any = log.oldData
-                    if (oldData?.id) {
-                        try {
-                            await tx.supervisor.update({
-                                where: { id: log.recordId },
-                                data: {
-                                    certificantNumber: oldData.certificantNumber,
-                                    dateQualified:     oldData.dateQualified ? new Date(oldData.dateQualified) : undefined,
-                                    examDate:          oldData.examDate ? new Date(oldData.examDate) : undefined,
-                                    importBatchId:     null
-                                }
-                            })
-                        } catch {
-                            // skip
+                    await tx.supervisor.update({
+                        where: { id: log.recordId },
+                        data: {
+                            certificantNumber: oldData.certificantNumber,
+                            dateQualified:     oldData.dateQualified ? new Date(oldData.dateQualified) : undefined,
+                            examDate:          oldData.examDate ? new Date(oldData.examDate) : undefined,
+                            importBatchId:     null
                         }
-                    }
+                    }).catch(() => {})
                 }
             }
 
-            // Mark batch as reverted
+            // Finalizar transacción marcando el lote como revertido
             await (tx as any).importBatch.update({
                 where: { id: batchId },
-                data:  { revertedAt: new Date(), status: "REVERTED" }
+                data: { revertedAt: new Date(), status: "REVERTED" }
             })
         }, {
-            maxWait: 10000,
-            timeout: 60000
+            maxWait: 20000,
+            timeout: 90000
         })
 
         return NextResponse.json({ success: true })
