@@ -392,8 +392,6 @@ export async function POST(request: Request) {
                             isActive: true,
                             requiresWizard: true,
                             isFirstLogin: true,
-                            inviteSent: false,
-                            onboardingCompleted: false,
                             supervisor: {
                                 create: {
                                     fullName: sup.fullName,
@@ -493,9 +491,7 @@ export async function POST(request: Request) {
                             role: "STUDENT",
                             isActive: true,
                             requiresWizard: true,
-                            inviteSent: false, // Ensure false during import
                             isFirstLogin: true,
-                            onboardingCompleted: false,
                             student: {
                                 create: {
                                     fullName: newUser.fullName,
