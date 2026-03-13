@@ -170,6 +170,29 @@ export function ImportStaging() {
                         </Card>
                     </div>
 
+                    {stagingResult.mergedRecords?.length > 0 && (
+                        <Card className="border-blue-200 shadow-sm border-2">
+                            <CardHeader className="bg-blue-50">
+                                <CardTitle className="text-blue-800 flex items-center gap-2">
+                                    <AlertTriangle className="h-5 w-5" />
+                                    Review Merged Records
+                                </CardTitle>
+                                <CardDescription className="text-blue-700/80">
+                                    El sistema detectó las siguientes filas como duplicados del mismo estudiante y procedió a unificarlas preservando el perfil más reciente.
+                                </CardDescription>
+                            </CardHeader>
+                            <CardContent className="p-0">
+                                <div className="divide-y max-h-[200px] overflow-y-auto bg-white">
+                                    {stagingResult.mergedRecords.map((record: any, idx: number) => (
+                                        <div key={idx} className="p-4 flex items-center justify-between">
+                                            <span className="text-sm font-medium">El sistema detectó que las filas {record.allRowNumbers.join(", ")} pertenecen al mismo estudiante <span className="text-blue-700">{record.traineeName}</span> (BACB_ID: {record.bacbId}) y han sido unificadas.</span>
+                                        </div>
+                                    ))}
+                                </div>
+                            </CardContent>
+                        </Card>
+                    )}
+
                     {stagingResult.conflicts?.length > 0 && (
                         <Card className="border-amber-200 shadow-sm border-2">
                             <CardHeader className="bg-amber-50">

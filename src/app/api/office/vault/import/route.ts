@@ -78,20 +78,40 @@ export async function POST(request: Request) {
                 const identityKey = `${bacbId}_${traineeName}`
 
                 const existingData = studentLatestRows.get(identityKey)
-                if (!existingData || startDateStr > existingData.startDateStr) {
+                if (!existingData) {
                     studentLatestRows.set(identityKey, {
                         rowNumber,
                         row,
                         startDateStr,
                         traineeName,
-                        bacbId
+                        bacbId,
+                        allRowNumbers: [rowNumber]
                     })
+                } else {
+                    existingData.allRowNumbers.push(rowNumber)
+                    if (startDateStr > existingData.startDateStr) {
+                         existingData.rowNumber = rowNumber
+                         existingData.row = row
+                         existingData.startDateStr = startDateStr
+                         existingData.traineeName = traineeName
+                         existingData.bacbId = bacbId
+                    }
                 }
             })
 
+            const mergedRecords: any[] = []
+
             // Process unique students with their latest rows
             for (const [key, data] of studentLatestRows.entries()) {
-                const { row, startDateStr, traineeName, bacbId, rowNumber } = data
+                const { row, startDateStr, traineeName, bacbId, rowNumber, allRowNumbers } = data
+
+                if (allRowNumbers.length > 1) {
+                    mergedRecords.push({
+                        bacbId,
+                        traineeName,
+                        allRowNumbers
+                    })
+                }
 
                 const existingStudent = existingStudents.find(
                     s => s.bacbId === bacbId && s.fullName.toLowerCase().trim() === traineeName
@@ -162,7 +182,8 @@ export async function POST(request: Request) {
                 skippedRowsCount,
                 newUsers,
                 conflicts,
-                validData
+                validData,
+                mergedRecords
             })
 
         } else if (contentType.includes("application/json")) {
@@ -269,6 +290,9 @@ export async function POST(request: Request) {
                         }
                     })
                 }
+            }, {
+                maxWait: 15000,
+                timeout: 120000
             })
 
             return NextResponse.json({ success: true })
