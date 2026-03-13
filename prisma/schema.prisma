@@ -544,6 +544,7 @@ model ImportLog {
   batchId   String
   tableName String
   recordId  String
+  action    String      @default("UPDATE")
   oldData   Json?
   newData   Json?
   batch     ImportBatch @relation(fields: [batchId], references: [id], onDelete: Cascade)
