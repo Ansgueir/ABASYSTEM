@@ -27,7 +27,31 @@ export const maxDuration = 60
 // ─────────────────────────────────────────────────────────────────────────────
 
 function cellStr(row: ExcelJS.Row, col: string | number): string {
-    return String(row.getCell(col).value || "").trim()
+    const cell = row.getCell(col)
+    const v = cell.value
+    if (v === null || v === undefined) return ""
+
+    // ExcelJS rich-text object: { richText: [{text: "..."}] }
+    if (typeof v === "object" && !Array.isArray(v) && "richText" in (v as any)) {
+        return ((v as any).richText as any[]).map((r: any) => r.text ?? "").join("").trim()
+    }
+
+    // ExcelJS hyperlink object: { text: "label", hyperlink: "url" }
+    if (typeof v === "object" && !Array.isArray(v) && "text" in (v as any)) {
+        return String((v as any).text ?? "").trim()
+    }
+
+    // ExcelJS formula result: { formula: "=", result: "value" }
+    if (typeof v === "object" && !Array.isArray(v) && "result" in (v as any)) {
+        return String((v as any).result ?? "").trim()
+    }
+
+    // Shared string that somehow became an array (edge case)
+    if (Array.isArray(v)) {
+        return v.map((r: any) => r?.text ?? r).join("").trim()
+    }
+
+    return String(v).trim()
 }
 function cellNum(row: ExcelJS.Row, col: string | number): number {
     const v = row.getCell(col).value
@@ -104,7 +128,8 @@ export async function POST(request: Request) {
             const existingEmails = new Set(
                 (await prisma.user.findMany({ select: { email: true } })).map(u => u.email.toLowerCase().trim())
             )
-            const claimedEmailsInBatch = new Set<string>()
+            // Track emails already claimed in THIS batch: email -> {rowNumber, sheetName}
+            const claimedEmailsInBatch = new Map<string, { rowNumber: number; sheetName: string }>()
 
             const newUsers: any[] = []
             const supervisorUpdates: any[] = []
@@ -178,7 +203,7 @@ export async function POST(request: Request) {
                     let assignedEmail: string | null = null
                     if (rawEmail && !existingEmails.has(rawEmail) && !claimedEmailsInBatch.has(rawEmail)) {
                         assignedEmail = rawEmail
-                        claimedEmailsInBatch.add(rawEmail)
+                        claimedEmailsInBatch.set(rawEmail, { rowNumber, sheetName: sheetStudents!.name })
                     } else {
                         // Determine exact collision type
                         let collisionType: string
@@ -190,11 +215,10 @@ export async function POST(request: Request) {
                             collisionType = "EMAIL_IN_DB"
                             collisionDetail = "Email ya existe en Base de Datos"
                         } else {
-                            // Must already be claimed by an earlier row in this batch
-                            const claimedByRow = newUsers.find(u => u.email === rawEmail)
-                            const claimedRow = claimedByRow ? ` (fila ${claimedByRow._rowNumber ?? "anterior"})` : ""
+                            // Claimed by an earlier row in this file — report exact origin
+                            const origin = claimedEmailsInBatch.get(rawEmail)
                             collisionType = "EMAIL_DUPLICATE_IN_FILE"
-                            collisionDetail = `Email duplicado en Excel${claimedRow}`
+                            collisionDetail = `Duplicado con Fila ${origin?.rowNumber ?? "anterior"} (${origin?.sheetName ?? "Supervisados"})`
                         }
                         headlessUsers.push({
                             name:            cellStr(row, "B"),
