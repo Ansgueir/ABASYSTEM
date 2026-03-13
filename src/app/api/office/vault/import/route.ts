@@ -62,22 +62,36 @@ export async function POST(request: Request) {
             const validData: any = { studentsToUpdate: [], financialPeriodsToUpdate: [] }
 
             // Parse Students
+            const studentLatestRows = new Map<string, any>()
+
             sheetStudents.eachRow((row, rowNumber) => {
                 if (rowNumber === 1) return // header
-                const startDateCell = row.getCell("L").value // 'Start Date' is L or 12th assuming match
-                const startDateStr = startDateCell ? new Date(startDateCell as string | Date) : null
                 
-                // Hard-Filter: Ignorar filas cuya fecha sea < 2026
-                if (startDateStr && startDateStr.getFullYear() < 2026) {
-                    skippedRowsCount++
-                    return
-                }
-
-                // Identidad Compuesta: BACB_ID + Full_Name
                 const traineeName = String(row.getCell("B").value || "").toLowerCase().trim()
                 const bacbId = String(row.getCell("D").value || "").trim()
                 
                 if (!traineeName) return
+
+                const startDateCell = row.getCell("L").value // 'Start Date' is L or 12th assuming match
+                const startDateStr = startDateCell ? new Date(startDateCell as string | Date) : new Date(0)
+
+                const identityKey = `${bacbId}_${traineeName}`
+
+                const existingData = studentLatestRows.get(identityKey)
+                if (!existingData || startDateStr > existingData.startDateStr) {
+                    studentLatestRows.set(identityKey, {
+                        rowNumber,
+                        row,
+                        startDateStr,
+                        traineeName,
+                        bacbId
+                    })
+                }
+            })
+
+            // Process unique students with their latest rows
+            for (const [key, data] of studentLatestRows.entries()) {
+                const { row, startDateStr, traineeName, bacbId, rowNumber } = data
 
                 const existingStudent = existingStudents.find(
                     s => s.bacbId === bacbId && s.fullName.toLowerCase().trim() === traineeName
@@ -91,13 +105,12 @@ export async function POST(request: Request) {
                         bacbId,
                         email: String(row.getCell("I").value || "").trim().toLowerCase() || `student${rowNumber}@pending.com`,
                         phone: String(row.getCell("H").value || ""),
-                        startDate: startDateStr
+                        startDate: startDateStr.getTime() === 0 ? null : startDateStr
                     })
                 } else {
                     // Incremental Sync
                     // Si una celda viene vacía, no sobrescribir la DB
                     const updates: any = {}
-                    // Just as an example of fill-only:
                     const newPhone = String(row.getCell("H").value || "")
                     if (newPhone && !existingStudent.phone) updates.phone = newPhone
                     
@@ -105,7 +118,7 @@ export async function POST(request: Request) {
                         validData.studentsToUpdate.push({ id: existingStudent.id, ...updates })
                     }
                 }
-            })
+            }
 
             // Parse Financial History
             sheetFinancial.eachRow((row, rowNumber) => {
