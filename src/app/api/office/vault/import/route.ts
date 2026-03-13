@@ -106,12 +106,13 @@ export async function POST(request: Request) {
             )
             const claimedEmailsInBatch = new Set<string>()
 
-            let skippedRowsCount = 0
             const newUsers: any[] = []
             const supervisorUpdates: any[] = []
             const conflicts: any[] = []
             const newFinancialPeriods: any[] = []
-            const headlessUsers: string[] = []
+            // Verbose log arrays
+            const ignoredRows: { rowNumber: number; name: string; reason: string }[] = []
+            const headlessUsers: { name: string; rowNumber: number; email: string; collisionType: string; collisionDetail: string }[] = []
             const validData: any = { studentsToUpdate: [], financialPeriodsToUpdate: [] }
 
             // ── §2 Parse Students sheet (Data Dictionary) ──────────────────
@@ -121,7 +122,14 @@ export async function POST(request: Request) {
                 if (rowNumber === 1) return // skip header
                 const traineeName = cellStr(row, "B").toLowerCase()
                 const bacbId      = cellStr(row, "D")
-                if (!traineeName) { skippedRowsCount++; return }
+                if (!traineeName) {
+                    ignoredRows.push({
+                        rowNumber,
+                        name: cellStr(row, "B") || "(empty)",
+                        reason: "Empty Trainee Name"
+                    })
+                    return
+                }
 
                 const startDateStr = cellDate(row, "L") ?? new Date(0)
                 const identityKey  = `${bacbId}_${traineeName}`
@@ -172,7 +180,29 @@ export async function POST(request: Request) {
                         assignedEmail = rawEmail
                         claimedEmailsInBatch.add(rawEmail)
                     } else {
-                        headlessUsers.push(`${cellStr(row, "B")} (row ${rowNumber})`)
+                        // Determine exact collision type
+                        let collisionType: string
+                        let collisionDetail: string
+                        if (!rawEmail) {
+                            collisionType = "EMAIL_EMPTY"
+                            collisionDetail = "Email Vacío"
+                        } else if (existingEmails.has(rawEmail)) {
+                            collisionType = "EMAIL_IN_DB"
+                            collisionDetail = "Email ya existe en Base de Datos"
+                        } else {
+                            // Must already be claimed by an earlier row in this batch
+                            const claimedByRow = newUsers.find(u => u.email === rawEmail)
+                            const claimedRow = claimedByRow ? ` (fila ${claimedByRow._rowNumber ?? "anterior"})` : ""
+                            collisionType = "EMAIL_DUPLICATE_IN_FILE"
+                            collisionDetail = `Email duplicado en Excel${claimedRow}`
+                        }
+                        headlessUsers.push({
+                            name:            cellStr(row, "B"),
+                            rowNumber,
+                            email:           rawEmail || "(none)",
+                            collisionType,
+                            collisionDetail
+                        })
                     }
 
                     newUsers.push({
@@ -180,6 +210,7 @@ export async function POST(request: Request) {
                         fullName:             cellStr(row, "B"),
                         bacbId,
                         email:                assignedEmail,
+                        _rowNumber:           rowNumber,
                         phone,
                         startDate:            startDateStr.getTime() === 0 ? null : startDateStr,
                         endDate,
@@ -295,7 +326,8 @@ export async function POST(request: Request) {
             })
 
             return NextResponse.json({
-                skippedRowsCount,
+                ignoredRows,
+                skippedRowsCount: ignoredRows.length,
                 newUsers,
                 supervisorUpdates,
                 conflicts,
