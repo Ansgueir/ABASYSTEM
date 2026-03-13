@@ -153,7 +153,7 @@ export function ImportStaging() {
                         <Card className="bg-blue-50/50 border-blue-200">
                             <CardContent className="p-4 flex flex-col items-center justify-center text-center">
                                 <span className="text-3xl font-bold text-blue-700">{stagingResult.skippedRowsCount || 0}</span>
-                                <span className="text-sm font-medium text-blue-600">Rows Ignored (Pre-2026)</span>
+                                <span className="text-sm font-medium text-blue-600">Rows Ignored</span>
                             </CardContent>
                         </Card>
                         <Card className="bg-green-50/50 border-green-200">
@@ -168,7 +168,37 @@ export function ImportStaging() {
                                 <span className="text-sm font-medium text-amber-600">Financial Conflicts Detected</span>
                             </CardContent>
                         </Card>
+                        <Card className="bg-rose-50/50 border-rose-200">
+                            <CardContent className="p-4 flex flex-col items-center justify-center text-center">
+                                <span className="text-3xl font-bold text-rose-700">{stagingResult.headlessUsers?.length || 0}</span>
+                                <span className="text-sm font-medium text-rose-600">Headless (Email Collision)</span>
+                            </CardContent>
+                        </Card>
                     </div>
+
+                    {stagingResult.headlessUsers?.length > 0 && (
+                        <Card className="border-rose-200 shadow-sm border-2">
+                            <CardHeader className="bg-rose-50">
+                                <CardTitle className="text-rose-800 flex items-center gap-2">
+                                    <X className="h-5 w-5" />
+                                    Headless Users (Email Collision)
+                                </CardTitle>
+                                <CardDescription className="text-rose-700/80">
+                                    Los siguientes registros no tienen email único disponible. Se les asignará un email temporal <code>@pending.import</code> para preservar el registro. Corrígelos luego desde la Bóveda.
+                                </CardDescription>
+                            </CardHeader>
+                            <CardContent className="p-0">
+                                <div className="divide-y max-h-[200px] overflow-y-auto bg-white">
+                                    {stagingResult.headlessUsers.map((name: string, idx: number) => (
+                                        <div key={idx} className="p-3 flex items-center gap-2">
+                                            <X className="h-4 w-4 text-rose-500 shrink-0" />
+                                            <span className="text-sm">{name}</span>
+                                        </div>
+                                    ))}
+                                </div>
+                            </CardContent>
+                        </Card>
+                    )}
 
                     {stagingResult.mergedRecords?.length > 0 && (
                         <Card className="border-blue-200 shadow-sm border-2">

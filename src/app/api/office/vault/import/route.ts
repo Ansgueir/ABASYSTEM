@@ -60,6 +60,14 @@ export async function POST(request: Request) {
             const newUsers: any[] = []
             const conflicts: any[] = []
             const validData: any = { studentsToUpdate: [], financialPeriodsToUpdate: [] }
+            const headlessUsers: string[] = [] // Users without a valid unique email
+
+            // Pre-fetch all existing emails to detect collisions
+            const existingEmails = new Set(
+                (await prisma.user.findMany({ select: { email: true } })).map(u => u.email.toLowerCase().trim())
+            )
+            // Track emails already claimed in THIS batch
+            const claimedEmailsInBatch = new Set<string>()
 
             // Parse Students
             const studentLatestRows = new Map<string, any>()
@@ -119,11 +127,23 @@ export async function POST(request: Request) {
 
                 if (!existingStudent) {
                     // New user candidate
+                    const rawEmail = String(row.getCell("I").value || "").trim().toLowerCase()
+
+                    // First-In policy: first row to claim an email wins
+                    let assignedEmail: string | null = null
+                    if (rawEmail && !existingEmails.has(rawEmail) && !claimedEmailsInBatch.has(rawEmail)) {
+                        assignedEmail = rawEmail
+                        claimedEmailsInBatch.add(rawEmail)
+                    } else {
+                        // Email is empty, duplicate in DB, or duplicate in batch -> headless
+                        headlessUsers.push(String(row.getCell("B").value || "") + ` (row ${rowNumber})`)
+                    }
+
                     newUsers.push({
                         role: "STUDENT",
                         fullName: String(row.getCell("B").value || ""),
                         bacbId,
-                        email: String(row.getCell("I").value || "").trim().toLowerCase() || `student${rowNumber}@pending.com`,
+                        email: assignedEmail,
                         phone: String(row.getCell("H").value || ""),
                         startDate: startDateStr.getTime() === 0 ? null : startDateStr
                     })
@@ -183,7 +203,8 @@ export async function POST(request: Request) {
                 newUsers,
                 conflicts,
                 validData,
-                mergedRecords
+                mergedRecords,
+                headlessUsers
             })
 
         } else if (contentType.includes("application/json")) {
@@ -241,11 +262,22 @@ export async function POST(request: Request) {
                 }
 
                 // 3. Create new users
+                // Pre-fetch existing emails inside tx to avoid races
+                const usedEmailsInTx = new Set<string>()
                 for (const newUser of newUsers) {
                     const hash = await bcrypt.hash("Aba12345*", 10)
+
+                    // Determine final email: use provided or generate a safe fallback
+                    let finalEmail = newUser.email ? newUser.email.trim().toLowerCase() : null
+                    if (!finalEmail || usedEmailsInTx.has(finalEmail)) {
+                        // Generate a unique fallback - use sanitized name + timestamp
+                        const safeName = String(newUser.fullName || "user").toLowerCase().replace(/[^a-z0-9]/g, "").slice(0, 20)
+                        finalEmail = `${safeName}_${Date.now()}_${Math.floor(Math.random() * 999)}@pending.import`
+                    }
+                    usedEmailsInTx.add(finalEmail)
                     const user = await tx.user.create({
                         data: {
-                            email: newUser.email,
+                            email: finalEmail,
                             passwordHash: hash,
                             role: "STUDENT",
                             isActive: true,
@@ -257,10 +289,10 @@ export async function POST(request: Request) {
                                     fullName: newUser.fullName,
                                     bacbId: newUser.bacbId,
                                     phone: newUser.phone,
-                                    email: newUser.email,
+                                    email: finalEmail,
                                     startDate: new Date(newUser.startDate || new Date()),
-                                    credential: "NO_CREDENTIAL", // placeholders
-                                    level: "BCBA", // placeholder
+                                    credential: "NO_CREDENTIAL",
+                                    level: "BCBA",
                                     school: "Unknown",
                                     city: "Unknown",
                                     state: "FL",
