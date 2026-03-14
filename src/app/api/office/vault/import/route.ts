@@ -117,22 +117,23 @@ export async function POST(request: Request) {
             // ── §3 Parse Parametros (Supervisors) ───────────────────────────
             sheetSupervisors.eachRow((row, rowNumber) => {
                 if (rowNumber <= 18) return
-                if (isRowEmpty(row, 1, 10)) return
+                if (isRowEmpty(row, 1, 20)) return
 
-                const supName  = cellStr(row, "A")
-                const rawEmail = cellStr(row, "B").toLowerCase()
-                const bacbId   = cellStr(row, "C")
+                const colA = cellStr(row, "A").toLowerCase()
+                const colB = cellStr(row, "B").toLowerCase()
+                
+                // Ignorar filas con "Venmo", "Zelle", etc. (según requerimiento §1)
+                if (
+                    colA.includes("venmo") || colA.includes("zelle") || colA.includes("cashapp") ||
+                    colB.includes("venmo") || colB.includes("zelle") || colB.includes("cashapp")
+                ) return
 
-                if (!supName) {
-                    ignoredRows.push({ 
-                        sheet: "Parametros", 
-                        sourceSheet: "Parametros",
-                        rowNumber, 
-                        data: `Email: ${rawEmail}`, 
-                        reason: "Falta Nombre de Supervisor" 
-                    })
-                    return
-                }
+                const supName  = cellStr(row, "C") // Nombre
+                const bacbId   = cellStr(row, "D") // BACB ID
+                const certNum  = cellStr(row, "E") // Cert #
+                const qual     = cellStr(row, "F") // Qualification
+
+                if (!supName || supName.toLowerCase() === "supervisores" || supName.toLowerCase() === "supervisor") return
 
                 const existingSup = existingSupervisors.find(
                     s => s.fullName.toLowerCase().trim() === supName.toLowerCase().trim() || (bacbId && s.bacbId === bacbId)
@@ -141,11 +142,20 @@ export async function POST(request: Request) {
                 if (existingSup) {
                     const updates: any = { sourceSheet: "Parametros", rowNumber }
                     if (bacbId && existingSup.bacbId !== bacbId) updates.bacbId = bacbId
-                    if (Object.keys(updates).length > 2) { // 2 because of sourceSheet and rowNumber
+                    if (certNum && existingSup.certificantNumber !== certNum) updates.certificantNumber = certNum
+                    if (qual && existingSup.credentialType !== qual) updates.qualificationLevel = qual
+                    
+                    if (Object.keys(updates).length > 2) { 
                         supervisorUpdates.push({ id: existingSup.id, ...updates })
                     }
                 } else {
-                    let finalSupEmail = rawEmail
+                    // Try to find email in Col B if it looks like an email, otherwise generate shadow email
+                    let finalSupEmail = ""
+                    const potentialEmail = cellStr(row, "B")
+                    if (potentialEmail.includes("@")) {
+                        finalSupEmail = potentialEmail.toLowerCase()
+                    }
+
                     if (!finalSupEmail || existingEmails.has(finalSupEmail) || claimedEmailsInBatch.has(finalSupEmail)) {
                         finalSupEmail = `${supName.toLowerCase().replace(/\s+/g, ".")}@pending.import`
                     }
@@ -154,9 +164,10 @@ export async function POST(request: Request) {
                     newSupervisors.push({
                         fullName: supName,
                         bacbId,
+                        certificantNumber: certNum,
+                        qualificationLevel: qual || "BCBA",
                         email: finalSupEmail,
                         status: "ACTIVE",
-                        qualificationLevel: "BCBA",
                         sourceSheet: "Parametros",
                         rowNumber
                     })
@@ -213,12 +224,12 @@ export async function POST(request: Request) {
                     optionPlan:            cellStr(row, "K") || null,
                     endDate:               cellDate(row, "M"),
                     totalMonths:           cellNum(row, "N") || null,
-                    regularHoursTarget:    cellNum(row, "O") || null,
-                    concentratedHoursTarget: cellNum(row, "P") || null,
-                    independentHoursTarget: cellNum(row, "Q") || null,
-                    totalAmountContract:   cellNum(row, "R") || null,
-                    analystPaymentRate:    cellNum(row, "S") || null,
-                    officePaymentRate:     cellNum(row, "T") || null,
+                    regularHoursTarget:    cellNum(row, "O") || null, // Horas Regulares
+                    concentratedHoursTarget: cellNum(row, "P") || null, // Horas Concentradas
+                    independentHoursTarget: cellNum(row, "Q") || null, // Horas Independientes
+                    totalAmountContract:   cellNum(row, "R") || null, // Monto Total Supervisión
+                    analystPaymentRate:    cellNum(row, "S") || null, // Monto a Pagar Analista
+                    officePaymentRate:     cellNum(row, "T") || null, // Total Pagado Oficina
                     credential:            cellStr(row, "E") || null,
                     status:                cellStr(row, "U") || null
                 }
@@ -275,19 +286,22 @@ export async function POST(request: Request) {
                 }
             }
 
-            // ── §5 Parse Cobros (Payments) ──────────────────────────────────
+            // ── §5 Parse Cobros (Payments History) ──────────────────────────
             sheetFinancial.eachRow((row, rowNumber) => {
-                if (rowNumber <= 27) return
-                if (isRowEmpty(row, 1, 60)) return
-                const traineeName = cellStr(row, "A").toLowerCase()
-                if (!traineeName) return
+                if (rowNumber <= 26) return // Cabecera real en fila 26
+                if (isRowEmpty(row, 1, 100)) return
+                
+                const traineeName = cellStr(row, "L").toLowerCase()
+                if (!traineeName || traineeName === "supervisado") return
 
                 const existingStudent = existingStudents.find(s => s.fullName.toLowerCase().trim() === traineeName)
 
-                for (let col = 7; col <= 60; col++) {
+                // Iteración horizontal M (13) hasta BJ (62)
+                for (let col = 13; col <= 62; col++) {
                     const amount = cellNum(row, col)
                     if (amount === 0) continue
-                    const periodNum = col - 6 
+                    const periodNum = col - 12 // M = Periodo 1
+                    
                     const rowData = {
                         periodNumber: periodNum,
                         monthYearLabel: `Periodo ${periodNum}`,
@@ -325,17 +339,47 @@ export async function POST(request: Request) {
                 }
             })
 
+            // ── §6 Parse Base Datos / Tesoreria (Transactions) ──────────────
+            const sheetTesoreria = workbook.getWorksheet("Base Datos") || workbook.getWorksheet("Tesoreria")
+            const newPayments: any[] = []
+            if (sheetTesoreria) {
+                sheetTesoreria.eachRow((row, rowNumber) => {
+                    if (rowNumber <= 1) return // Asumir cabecera
+                    if (isRowEmpty(row, 1, 10)) return
+
+                    const dateStr = cellStr(row, "A")
+                    const traineeName = cellStr(row, "B").toLowerCase()
+                    const amount = cellNum(row, "C")
+                    const method = cellStr(row, "D")
+                    const notes = cellStr(row, "E")
+
+                    if (!traineeName || amount === 0) return
+
+                    newPayments.push({
+                        studentName: traineeName,
+                        amount,
+                        paymentDate: cellDate(row, "A") || new Date(),
+                        paymentType: method.toUpperCase().replace(/\s+/g, "_"),
+                        notes: notes || `Importado desde ${sheetTesoreria.name}`,
+                        sourceSheet: sheetTesoreria.name,
+                        rowNumber
+                    })
+                })
+            }
+
             return NextResponse.json({
                 ignoredRows,
                 skippedRowsCount: ignoredRows.length,
                 studentsStats: { new: newUsers.length, updated: validData.studentsToUpdate.length },
                 supervisorsStats: { new: newSupervisors.length, updated: supervisorUpdates.length },
                 financialStats: { clean: newFinancialPeriods.length, conflicts: conflicts.length },
+                transactionStats: { new: newPayments.length },
                 newUsers,
                 newSupervisors,
                 supervisorUpdates,
                 conflicts,
                 newFinancialPeriods,
+                newPayments,
                 validData,
                 mergedRecords,
                 headlessUsers

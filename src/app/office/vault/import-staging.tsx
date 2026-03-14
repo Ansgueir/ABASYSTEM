@@ -8,7 +8,8 @@ import { Label } from "@/components/ui/label"
 import { Input } from "@/components/ui/input"
 import {
     UploadCloud, Loader2, AlertTriangle, FileSpreadsheet,
-    Check, X, ChevronDown, ChevronUp, Download, Info
+    Check, X, ChevronDown, ChevronUp, Download, Info,
+    Receipt, Users
 } from "lucide-react"
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -20,14 +21,16 @@ interface StagingResult {
     studentsStats: { new: number; updated: number }
     supervisorsStats: { new: number; updated: number }
     financialStats: { clean: number; conflicts: number }
+    transactionStats?: { new: number }
     newUsers: any[]
     newSupervisors: any[]
     conflicts: any[]
     headlessUsers: HeadlessUser[]
     mergedRecords: any[]
     newFinancialPeriods: any[]
+    newPayments?: any[]
     supervisorUpdates: any[]
-    validData: any
+    validData: { studentsToUpdate: any[] }
     resolutions: Record<string, "sum" | "replace" | "ignore">
 }
 
@@ -48,7 +51,9 @@ export function ImportStaging() {
     const [showStudents,    setShowStudents]    = useState(false)
     const [showSupervisors, setShowSupervisors] = useState(false)
     const [showFinancial,   setShowFinancial]   = useState(false)
+    const [showRawPayments, setShowRawPayments] = useState(false)
     const [showConflicts,   setShowConflicts]   = useState(false)
+    const [showUsers,       setShowUsers]       = useState(false) // Added for Perfiles Staff
 
     const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         if (e.target.files?.[0]) {
@@ -104,6 +109,7 @@ export function ImportStaging() {
                 resolutions: stagingResult.resolutions,
                 conflicts: stagingResult.conflicts,
                 newFinancialPeriods: stagingResult.newFinancialPeriods,
+                newPayments: stagingResult.newPayments,
                 validData: stagingResult.validData
             }
 
@@ -138,6 +144,11 @@ export function ImportStaging() {
         }
         for (const c of stagingResult.conflicts) {
             rows.push(["FINANCIAL_CONFLICT", c.sourceSheet || "Cobros", String(c.rowNumber), c.studentName, `DB: $${c.dbAmount} | Excel: $${c.excelAmount}`])
+        }
+        if (stagingResult.newPayments) {
+            for (const p of stagingResult.newPayments) {
+                rows.push(["RAW_PAYMENT", p.sourceSheet, String(p.rowNumber), p.studentName, `Amount: $${p.amount} | Method: ${p.paymentType}`])
+            }
         }
 
         const csv = rows.map(r => r.map(v => `"${String(v).replace(/"/g, '""')}"`).join(",")).join("\n")
@@ -199,6 +210,46 @@ export function ImportStaging() {
                                 <div className="text-sm font-semibold text-emerald-600 uppercase tracking-wider">Estudiantes Nuevos (Pestaña Supervisados)</div>
                                 <div className="mt-2 flex items-center justify-center gap-1 text-[10px] text-emerald-500">
                                     {showStudents ? <ChevronUp className="h-3 w-3" /> : <ChevronDown className="h-3 w-3" />} Detail
+                                </div>
+                            </CardContent>
+                        </Card>
+
+                        {/* ── Perfiles Card ────────────────────────────────── */}
+                        <Card className="bg-emerald-50 border-emerald-100 shadow-sm overflow-hidden group hover:border-emerald-300 transition-all cursor-pointer" onClick={() => setShowUsers(!showUsers)}>
+                            <div className="h-1 bg-emerald-400"></div>
+                            <CardContent className="p-4 flex items-center h-full">
+                                <div className="bg-emerald-100 p-2.5 rounded-lg mr-4 group-hover:bg-emerald-200 transition-colors">
+                                    <Users className="h-6 w-6 text-emerald-600" />
+                                </div>
+                                <div className="flex-1">
+                                    <p className="text-[10px] uppercase font-bold text-emerald-600/70 tracking-wider">Perfiles Staff</p>
+                                    <h3 className="text-xl font-black text-emerald-900 leading-tight">
+                                        {stagingResult.newUsers.length + stagingResult.newSupervisors.length}
+                                        <span className="text-[10px] font-normal text-emerald-600 ml-1">nuevos</span>
+                                    </h3>
+                                </div>
+                                <div className="bg-white/50 px-2 py-1 rounded text-[10px] font-bold text-emerald-700 border border-emerald-100 uppercase">
+                                    {showUsers ? 'Hide' : 'Show'}
+                                </div>
+                            </CardContent>
+                        </Card>
+
+                        {/* ── Raw Transactions Card ─────────────────────────── */}
+                        <Card className="bg-indigo-50 border-indigo-100 shadow-sm overflow-hidden group hover:border-indigo-300 transition-all cursor-pointer" onClick={() => setShowRawPayments(!showRawPayments)}>
+                            <div className="h-1 bg-indigo-400"></div>
+                            <CardContent className="p-4 flex items-center h-full">
+                                <div className="bg-indigo-100 p-2.5 rounded-lg mr-4 group-hover:bg-indigo-200 transition-colors">
+                                    <Receipt className="h-6 w-6 text-indigo-600" />
+                                </div>
+                                <div className="flex-1">
+                                    <p className="text-[10px] uppercase font-bold text-indigo-600/70 tracking-wider">Transacciones Raw</p>
+                                    <h3 className="text-xl font-black text-indigo-900 leading-tight">
+                                        {stagingResult.transactionStats?.new || 0}
+                                        <span className="text-[10px] font-normal text-indigo-600 ml-1">registros</span>
+                                    </h3>
+                                </div>
+                                <div className="bg-white/50 px-2 py-1 rounded text-[10px] font-bold text-indigo-700 border border-indigo-100 uppercase">
+                                    {showRawPayments ? 'Hide' : 'Show'}
                                 </div>
                             </CardContent>
                         </Card>
@@ -330,9 +381,10 @@ export function ImportStaging() {
                                             <tr>
                                                 <th className="p-2">Pestaña</th>
                                                 <th className="p-2">Fila</th>
-                                                <th className="p-2">Full Name</th>
-                                                <th className="p-2">Email</th>
-                                                <th className="p-2">BACB ID</th>
+                                                <th className="p-2">Name</th>
+                                                <th className="p-2">Supervisor</th>
+                                                <th className="p-2">Hours (Reg/Conc/Ind)</th>
+                                                <th className="p-2">Balances ($ T/A/O)</th>
                                             </tr>
                                         </thead>
                                         <tbody>
@@ -340,9 +392,17 @@ export function ImportStaging() {
                                                 <tr key={i} className="border-t border-emerald-100 bg-white hover:bg-emerald-50/30">
                                                     <td className="p-2 font-bold text-emerald-800 bg-emerald-100/20">{u.sourceSheet || "Supervisados"}</td>
                                                     <td className="p-2 font-mono text-emerald-600">#{u.rowNumber}</td>
-                                                    <td className="p-2 font-bold">{u.fullName}</td>
-                                                    <td className="p-2">{u.email}</td>
-                                                    <td className="p-2">{u.bacbId}</td>
+                                                    <td className="p-2">
+                                                        <div className="font-bold">{u.fullName}</div>
+                                                        <div className="text-[10px] text-slate-400">{u.email}</div>
+                                                    </td>
+                                                    <td className="p-2">{u.fields?.supervisorName || "-"}</td>
+                                                    <td className="p-2 font-mono">
+                                                        {u.fields?.regularHoursTarget || 0}/{u.fields?.concentratedHoursTarget || 0}/{u.fields?.independentHoursTarget || 0}
+                                                    </td>
+                                                    <td className="p-2 font-bold text-emerald-700">
+                                                        ${u.fields?.totalAmountContract || 0} / ${u.fields?.analystPaymentRate || 0} / ${u.fields?.officePaymentRate || 0}
+                                                    </td>
                                                 </tr>
                                             ))}
                                         </tbody>
@@ -419,6 +479,46 @@ export function ImportStaging() {
                                                     <td className="p-2 font-bold">{f.studentName || f.traineeName}</td>
                                                     <td className="p-2">{f.monthYearLabel}</td>
                                                     <td className="p-2 text-emerald-600 font-bold">${f.amountDueOffice}</td>
+                                                </tr>
+                                            ))}
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </CardContent>
+                        </Card>
+                    )}
+
+                     {/* ── Raw Transactions Detail ──────────────────────────── */}
+                     {showRawPayments && stagingResult.newPayments && stagingResult.newPayments.length > 0 && (
+                        <Card className="border-indigo-200 shadow-lg border-2 overflow-hidden">
+                            <CardHeader className="bg-indigo-600 py-3 px-4">
+                                <CardTitle className="text-white text-sm flex items-center gap-2">
+                                    <Receipt className="h-4 w-4" />
+                                    Transacciones Detectadas (Base Datos/Tesoreria)
+                                </CardTitle>
+                            </CardHeader>
+                            <CardContent className="p-0">
+                                <div className="max-h-[300px] overflow-auto">
+                                    <table className="w-full text-[11px] text-left">
+                                        <thead className="bg-indigo-50 text-indigo-700 sticky top-0">
+                                            <tr>
+                                                <th className="p-2">Pestaña</th>
+                                                <th className="p-2">Fila</th>
+                                                <th className="p-2">Fecha</th>
+                                                <th className="p-2">Estudiante</th>
+                                                <th className="p-2">Monto</th>
+                                                <th className="p-2">Metodo</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            {stagingResult.newPayments.map((p, i) => (
+                                                <tr key={i} className="border-t border-indigo-100 bg-white hover:bg-indigo-50/30">
+                                                    <td className="p-2 font-bold text-indigo-800 bg-indigo-100/20">{p.sourceSheet}</td>
+                                                    <td className="p-2 font-mono text-indigo-600">#{p.rowNumber}</td>
+                                                    <td className="p-2">{new Date(p.paymentDate).toLocaleDateString()}</td>
+                                                    <td className="p-2 font-bold">{p.studentName}</td>
+                                                    <td className="p-2 font-black text-indigo-700">${p.amount}</td>
+                                                    <td className="p-2 uppercase text-[9px]"><span className="bg-indigo-100 px-1.5 py-0.5 rounded">{p.paymentType}</span></td>
                                                 </tr>
                                             ))}
                                         </tbody>
