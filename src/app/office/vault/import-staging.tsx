@@ -416,7 +416,7 @@ export function ImportStaging() {
                                                 <tr key={i} className="border-t border-amber-100 bg-white hover:bg-amber-50/30">
                                                     <td className="p-2 font-bold text-amber-800 bg-amber-100/30">{f.sourceSheet || "Cobros"}</td>
                                                     <td className="p-2 font-mono text-amber-600">#{f.rowNumber}</td>
-                                                    <td className="p-2 font-bold">{f.traineeName}</td>
+                                                    <td className="p-2 font-bold">{f.studentName || f.traineeName}</td>
                                                     <td className="p-2">{f.monthYearLabel}</td>
                                                     <td className="p-2 text-emerald-600 font-bold">${f.amountDueOffice}</td>
                                                 </tr>

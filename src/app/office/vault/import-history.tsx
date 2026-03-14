@@ -86,7 +86,13 @@ export function ImportHistory() {
                                 <div>
                                     <h4 className="font-bold text-sm tracking-tight">{batch.batchString}</h4>
                                     <p className="text-xs text-muted-foreground">
-                                        {format(new Date(batch.createdAt), "PPP p")} • {batch.logs.length} affected records
+                                        {(() => {
+                                            try {
+                                                return format(new Date(batch.createdAt), "PPP p")
+                                            } catch (e) {
+                                                return "Invalid Date"
+                                            }
+                                        })()} • {batch.logs?.length || 0} affected records
                                     </p>
                                 </div>
                                 <div className="mt-4 sm:mt-0 flex gap-2">
