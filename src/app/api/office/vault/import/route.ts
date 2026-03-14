@@ -115,32 +115,35 @@ export async function POST(request: Request) {
             const validData: any = { studentsToUpdate: [], financialPeriodsToUpdate: [] }
             
             // ── §3 Parse Parametros (Supervisors) ───────────────────────────
-            sheetSupervisors.eachRow((row, rowNumber) => {
-                if (rowNumber <= 18) return
-                if (isRowEmpty(row, 1, 20)) return
+            // Hard boundary: Start row 19, continue until Col C is empty
+            for (let i = 19; i <= sheetSupervisors.rowCount; i++) {
+                const row = sheetSupervisors.getRow(i)
+                const supName = cellStr(row, "C")
+
+                // END BOUNDARY: If primary cell (Name) is empty, stop reading this table
+                if (!supName || supName.trim() === "") break
 
                 const colA = cellStr(row, "A").toLowerCase()
                 const colB = cellStr(row, "B").toLowerCase()
                 
-                // Ignorar filas con "Venmo", "Zelle", etc. (según requerimiento §1)
+                // Ignorar filas con "Venmo", "Zelle", etc.
                 if (
                     colA.includes("venmo") || colA.includes("zelle") || colA.includes("cashapp") ||
                     colB.includes("venmo") || colB.includes("zelle") || colB.includes("cashapp")
-                ) return
+                ) continue
 
-                const supName  = cellStr(row, "C") // Nombre
                 const bacbId   = cellStr(row, "D") // BACB ID
                 const certNum  = cellStr(row, "E") // Cert #
                 const qual     = cellStr(row, "F") // Qualification
 
-                if (!supName || supName.toLowerCase() === "supervisores" || supName.toLowerCase() === "supervisor") return
+                if (supName.toLowerCase() === "supervisores" || supName.toLowerCase() === "supervisor") continue
 
                 const existingSup = existingSupervisors.find(
                     s => s.fullName.toLowerCase().trim() === supName.toLowerCase().trim() || (bacbId && s.bacbId === bacbId)
                 )
 
                 if (existingSup) {
-                    const updates: any = { sourceSheet: "Parametros", rowNumber }
+                    const updates: any = { sourceSheet: "Parametros", rowNumber: i }
                     if (bacbId && existingSup.bacbId !== bacbId) updates.bacbId = bacbId
                     if (certNum && existingSup.certificantNumber !== certNum) updates.certificantNumber = certNum
                     if (qual && existingSup.credentialType !== qual) updates.qualificationLevel = qual
@@ -149,7 +152,6 @@ export async function POST(request: Request) {
                         supervisorUpdates.push({ id: existingSup.id, ...updates })
                     }
                 } else {
-                    // Try to find email in Col B if it looks like an email, otherwise generate shadow email
                     let finalSupEmail = ""
                     const potentialEmail = cellStr(row, "B")
                     if (potentialEmail.includes("@")) {
@@ -159,7 +161,7 @@ export async function POST(request: Request) {
                     if (!finalSupEmail || existingEmails.has(finalSupEmail) || claimedEmailsInBatch.has(finalSupEmail)) {
                         finalSupEmail = `${supName.toLowerCase().replace(/\s+/g, ".")}@pending.import`
                     }
-                    claimedEmailsInBatch.set(finalSupEmail, { rowNumber, sheetName: "Parametros" })
+                    claimedEmailsInBatch.set(finalSupEmail, { rowNumber: i, sheetName: "Parametros" })
 
                     newSupervisors.push({
                         fullName: supName,
@@ -169,43 +171,35 @@ export async function POST(request: Request) {
                         email: finalSupEmail,
                         status: "ACTIVE",
                         sourceSheet: "Parametros",
-                        rowNumber
+                        rowNumber: i
                     })
                 }
-            })
+            }
 
             // ── §4 Parse Supervisados (Students) ────────────────────────────
             const studentLatestRows = new Map<string, any>()
-            sheetStudents.eachRow((row, rowNumber) => {
-                if (rowNumber === 1) return
-                if (isRowEmpty(row, 1, 15)) return
-
-                const traineeName = cellStr(row, "B").toLowerCase()
+            for (let i = 2; i <= sheetStudents.rowCount; i++) {
+                const row = sheetStudents.getRow(i)
+                const traineeNameRaw = cellStr(row, "B")
+                
+                // END BOUNDARY: Stop if name is empty
+                if (!traineeNameRaw || traineeNameRaw.trim() === "") break
+                
+                const traineeName = traineeNameRaw.toLowerCase().trim()
                 const bacbId      = cellStr(row, "D")
                 const startDateStr = cellDate(row, "L") ?? new Date(0)
                 
-                if (!traineeName) {
-                    ignoredRows.push({ 
-                        sheet: "Supervisados", 
-                        sourceSheet: "Supervisados",
-                        rowNumber, 
-                        data: `BACB ID: ${bacbId}`, 
-                        reason: "Falta Trainee Name" 
-                    })
-                    return
-                }
-
                 const identityKey  = `${bacbId}_${traineeName}`
                 const existing = studentLatestRows.get(identityKey)
                 if (!existing) {
-                    studentLatestRows.set(identityKey, { rowNumber, row, startDateStr, traineeName, bacbId, allRowNumbers: [rowNumber] })
+                    studentLatestRows.set(identityKey, { rowNumber: i, row, startDateStr, traineeName, bacbId, allRowNumbers: [i] })
                 } else {
-                    existing.allRowNumbers.push(rowNumber)
+                    existing.allRowNumbers.push(i)
                     if (startDateStr > existing.startDateStr) {
-                        Object.assign(existing, { rowNumber, row, startDateStr, traineeName, bacbId })
+                        Object.assign(existing, { rowNumber: i, row, startDateStr, traineeName, bacbId })
                     }
                 }
-            })
+            }
 
             const mergedRecords: any[] = []
             for (const [, data] of studentLatestRows.entries()) {
@@ -287,20 +281,22 @@ export async function POST(request: Request) {
             }
 
             // ── §5 Parse Cobros (Payments History) ──────────────────────────
-            sheetFinancial.eachRow((row, rowNumber) => {
-                if (rowNumber <= 26) return // Cabecera real en fila 26
-                if (isRowEmpty(row, 1, 100)) return
-                
-                const traineeName = cellStr(row, "L").toLowerCase()
-                if (!traineeName || traineeName === "supervisado") return
+            // Hard boundary: Start row 27, continue until Col L is empty
+            for (let i = 27; i <= sheetFinancial.rowCount; i++) {
+                const row = sheetFinancial.getRow(i)
+                const traineeNameRaw = cellStr(row, "L").toLowerCase()
 
+                // END BOUNDARY: If primary student name col is empty, stop
+                if (!traineeNameRaw || traineeNameRaw.trim() === "" || traineeNameRaw === "supervisado") break
+
+                const traineeName = traineeNameRaw.trim()
                 const existingStudent = existingStudents.find(s => s.fullName.toLowerCase().trim() === traineeName)
 
                 // Iteración horizontal M (13) hasta BJ (62)
                 for (let col = 13; col <= 62; col++) {
                     const amount = cellNum(row, col)
                     if (amount === 0) continue
-                    const periodNum = col - 12 // M = Periodo 1
+                    const periodNum = col - 12
                     
                     const rowData = {
                         periodNumber: periodNum,
@@ -311,7 +307,7 @@ export async function POST(request: Request) {
                         accumulatedPaidOffice: 0,
                         accumulatedPaidAnalyst: 0,
                         sourceSheet: "Cobros",
-                        rowNumber
+                        rowNumber: i
                     }
 
                     if (existingStudent) {
@@ -328,7 +324,7 @@ export async function POST(request: Request) {
                                 excelAmount: amount, 
                                 field: "amountDueOffice",
                                 sourceSheet: "Cobros",
-                                rowNumber
+                                rowNumber: i
                             })
                         } else if (!existingPeriod) {
                             newFinancialPeriods.push({ studentName: traineeName, studentId: existingStudent.id, ...rowData })
@@ -337,23 +333,25 @@ export async function POST(request: Request) {
                         newFinancialPeriods.push({ studentName: traineeName, ...rowData })
                     }
                 }
-            })
+            }
 
             // ── §6 Parse Base Datos / Tesoreria (Transactions) ──────────────
             const sheetTesoreria = workbook.getWorksheet("Base Datos") || workbook.getWorksheet("Tesoreria")
             const newPayments: any[] = []
             if (sheetTesoreria) {
-                sheetTesoreria.eachRow((row, rowNumber) => {
-                    if (rowNumber <= 1) return // Asumir cabecera
-                    if (isRowEmpty(row, 1, 10)) return
+                // Hard boundary: Start row 2, stop when Col B is empty
+                for (let i = 2; i <= sheetTesoreria.rowCount; i++) {
+                    const row = sheetTesoreria.getRow(i)
+                    const traineeNameRaw = cellStr(row, "B").toLowerCase()
 
-                    const dateStr = cellStr(row, "A")
-                    const traineeName = cellStr(row, "B").toLowerCase()
+                    if (!traineeNameRaw || traineeNameRaw.trim() === "") break
+
+                    const traineeName = traineeNameRaw.trim()
                     const amount = cellNum(row, "C")
                     const method = cellStr(row, "D")
                     const notes = cellStr(row, "E")
 
-                    if (!traineeName || amount === 0) return
+                    if (amount === 0) continue
 
                     newPayments.push({
                         studentName: traineeName,
@@ -362,9 +360,9 @@ export async function POST(request: Request) {
                         paymentType: method.toUpperCase().replace(/\s+/g, "_"),
                         notes: notes || `Importado desde ${sheetTesoreria.name}`,
                         sourceSheet: sheetTesoreria.name,
-                        rowNumber
+                        rowNumber: i
                     })
-                })
+                }
             }
 
             return NextResponse.json({
