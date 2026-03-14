@@ -465,6 +465,12 @@ export async function POST(request: Request) {
                 for (const supUpd of (supervisorUpdates ?? [])) {
                     const { id, ...fields } = supUpd
                     const old = await tx.supervisor.findUnique({ where: { id } })
+
+                    // Fail-safe: Normalize paymentPercentage if present
+                    if (fields.paymentPercentage !== undefined) {
+                        fields.paymentPercentage = normalizeRate(Number(fields.paymentPercentage))
+                    }
+
                     await tx.supervisor.update({ where: { id }, data: { ...fields, importBatchId: batch.id } })
                     await (tx as any).importLog.create({
                         data: { batchId: batch.id, tableName: "Supervisor", recordId: id, action: "UPDATE", oldData: old, newData: fields }
@@ -478,6 +484,11 @@ export async function POST(request: Request) {
                     const { id, supervisorName, ...fields } = update
                     const old = await tx.student.findUnique({ where: { id } })
                     const supervisorId = supervisorName ? supervisorMap.get(supervisorName.toLowerCase().trim()) : undefined
+
+                    // Fail-safe: Normalize rates in fields if present
+                    if (fields.analystPaymentRate !== undefined) fields.analystPaymentRate = normalizeRate(Number(fields.analystPaymentRate))
+                    if (fields.officePaymentRate !== undefined) fields.officePaymentRate = normalizeRate(Number(fields.officePaymentRate))
+
                     await tx.student.update({ where: { id }, data: { ...fields, supervisorId, importBatchId: batch.id } })
                     await (tx as any).importLog.create({
                         data: { batchId: batch.id, tableName: "Student", recordId: id, action: "UPDATE", oldData: old, newData: { ...fields, supervisorId } }
@@ -523,8 +534,8 @@ export async function POST(request: Request) {
                                     concentratedHoursTarget: newUser.concentratedHoursTarget ?? null,
                                     independentHoursTarget: newUser.independentHoursTarget ?? null, 
                                     totalAmountContract: newUser.totalAmountContract ?? null,
-                                    analystPaymentRate: newUser.analystPaymentRate ?? null, 
-                                    officePaymentRate: newUser.officePaymentRate ?? null,
+                                    analystPaymentRate: newUser.analystPaymentRate !== null ? normalizeRate(Number(newUser.analystPaymentRate)) : null, 
+                                    officePaymentRate: newUser.officePaymentRate !== null ? normalizeRate(Number(newUser.officePaymentRate)) : null,
                                     supervisorId: newUser.supervisorName ? supervisorMap.get(newUser.supervisorName.toLowerCase().trim()) : null,
                                     importBatchId: batch.id
                                 }
