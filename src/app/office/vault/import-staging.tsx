@@ -214,42 +214,24 @@ export function ImportStaging() {
                             </CardContent>
                         </Card>
 
-                        {/* ── Perfiles Card ────────────────────────────────── */}
-                        <Card className="bg-emerald-50 border-emerald-100 shadow-sm overflow-hidden group hover:border-emerald-300 transition-all cursor-pointer" onClick={() => setShowUsers(!showUsers)}>
-                            <div className="h-1 bg-emerald-400"></div>
-                            <CardContent className="p-4 flex items-center h-full">
-                                <div className="bg-emerald-100 p-2.5 rounded-lg mr-4 group-hover:bg-emerald-200 transition-colors">
-                                    <Users className="h-6 w-6 text-emerald-600" />
-                                </div>
-                                <div className="flex-1">
-                                    <p className="text-[10px] uppercase font-bold text-emerald-600/70 tracking-wider">Perfiles Staff</p>
-                                    <h3 className="text-xl font-black text-emerald-900 leading-tight">
-                                        {stagingResult.newUsers.length + stagingResult.newSupervisors.length}
-                                        <span className="text-[10px] font-normal text-emerald-600 ml-1">nuevos</span>
-                                    </h3>
-                                </div>
-                                <div className="bg-white/50 px-2 py-1 rounded text-[10px] font-bold text-emerald-700 border border-emerald-100 uppercase">
-                                    {showUsers ? 'Hide' : 'Show'}
+                        {/* ── Perfiles Staff Card ────────────────────────────────── */}
+                        <Card className="bg-emerald-50 border-emerald-200 border-2 cursor-pointer hover:bg-emerald-100/50 transition-colors" onClick={() => setShowUsers(!showUsers)}>
+                            <CardContent className="p-4 text-center">
+                                <div className="text-3xl font-bold text-emerald-700">{stagingResult.newUsers.length + stagingResult.newSupervisors.length}</div>
+                                <div className="text-sm font-semibold text-emerald-600 uppercase tracking-wider">Perfiles Staff (Nuevos)</div>
+                                <div className="mt-2 flex items-center justify-center gap-1 text-[10px] text-emerald-500">
+                                    {showUsers ? <ChevronUp className="h-3 w-3" /> : <ChevronDown className="h-3 w-3" />} Detail
                                 </div>
                             </CardContent>
                         </Card>
 
                         {/* ── Raw Transactions Card ─────────────────────────── */}
-                        <Card className="bg-indigo-50 border-indigo-100 shadow-sm overflow-hidden group hover:border-indigo-300 transition-all cursor-pointer" onClick={() => setShowRawPayments(!showRawPayments)}>
-                            <div className="h-1 bg-indigo-400"></div>
-                            <CardContent className="p-4 flex items-center h-full">
-                                <div className="bg-indigo-100 p-2.5 rounded-lg mr-4 group-hover:bg-indigo-200 transition-colors">
-                                    <Receipt className="h-6 w-6 text-indigo-600" />
-                                </div>
-                                <div className="flex-1">
-                                    <p className="text-[10px] uppercase font-bold text-indigo-600/70 tracking-wider">Transacciones Raw</p>
-                                    <h3 className="text-xl font-black text-indigo-900 leading-tight">
-                                        {stagingResult.transactionStats?.new || 0}
-                                        <span className="text-[10px] font-normal text-indigo-600 ml-1">registros</span>
-                                    </h3>
-                                </div>
-                                <div className="bg-white/50 px-2 py-1 rounded text-[10px] font-bold text-indigo-700 border border-indigo-100 uppercase">
-                                    {showRawPayments ? 'Hide' : 'Show'}
+                        <Card className="bg-indigo-50 border-indigo-200 border-2 cursor-pointer hover:bg-indigo-100/50 transition-colors" onClick={() => setShowRawPayments(!showRawPayments)}>
+                            <CardContent className="p-4 text-center">
+                                <div className="text-3xl font-bold text-indigo-700">{stagingResult.transactionStats?.new || 0}</div>
+                                <div className="text-sm font-semibold text-indigo-600 uppercase tracking-wider">Transacciones Raw (Tesoreria)</div>
+                                <div className="mt-2 flex items-center justify-center gap-1 text-[10px] text-indigo-500">
+                                    {showRawPayments ? <ChevronUp className="h-3 w-3" /> : <ChevronDown className="h-3 w-3" />} Detail
                                 </div>
                             </CardContent>
                         </Card>
@@ -366,7 +348,7 @@ export function ImportStaging() {
                     )}
 
                     {/* ── New Students Detail ─────────────────────────────── */}
-                    {showStudents && stagingResult.newUsers.length > 0 && (
+                    {(showStudents || showUsers) && stagingResult.newUsers.length > 0 && (
                         <Card className="border-emerald-200 shadow-lg border-2 overflow-hidden">
                             <CardHeader className="bg-emerald-600 py-3 px-4">
                                 <CardTitle className="text-white text-sm flex items-center gap-2">
@@ -413,7 +395,7 @@ export function ImportStaging() {
                     )}
 
                     {/* ── New Supervisors Detail ──────────────────────────── */}
-                    {showSupervisors && stagingResult.newSupervisors.length > 0 && (
+                    {(showSupervisors || showUsers) && stagingResult.newSupervisors.length > 0 && (
                         <Card className="border-purple-200 shadow-lg border-2 overflow-hidden">
                             <CardHeader className="bg-purple-600 py-3 px-4">
                                 <CardTitle className="text-white text-sm flex items-center gap-2">
