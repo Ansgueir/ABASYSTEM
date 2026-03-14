@@ -81,6 +81,13 @@ function normalizeOptionPlan(val: string): string {
     return "A"
 }
 
+function normalizeRate(val: number): number {
+    // If value is > 1 (e.g. 54), assume it is a percentage and convert to fraction (0.54)
+    // to fit into Decimal(5, 4) which allows max 9.9999
+    if (val > 1) return val / 100
+    return val
+}
+
 export async function POST(request: Request) {
     try {
         const session = await auth()
@@ -257,8 +264,8 @@ export async function POST(request: Request) {
                     concentratedHoursTarget: cellNum(row, "P") || null, // Horas Concentradas
                     independentHoursTarget: cellNum(row, "Q") || null, // Horas Independientes
                     totalAmountContract:   cellNum(row, "R") || null, // Monto Total Supervisión
-                    analystPaymentRate:    cellNum(row, "S") || null, // Monto a Pagar Analista
-                    officePaymentRate:     cellNum(row, "T") || null, // Total Pagado Oficina
+                    analystPaymentRate:    normalizeRate(cellNum(row, "S")) || null, // Monto a Pagar Analista
+                    officePaymentRate:     normalizeRate(cellNum(row, "T")) || null, // Total Pagado Oficina
                     credential:            normalizeCredentialType(cellStr(row, "E")),
                     status:                cellStr(row, "U") || null
                 }
