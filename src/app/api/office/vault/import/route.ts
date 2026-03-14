@@ -110,8 +110,8 @@ export async function POST(request: Request) {
             const supervisorUpdates: any[] = []
             const conflicts: any[] = []
             const newFinancialPeriods: any[] = []
-            const ignoredRows: { sheet: string; rowNumber: number; data: string; reason: string }[] = []
-            const headlessUsers: { name: string; rowNumber: number; email: string; collisionType: string; collisionDetail: string }[] = []
+            const ignoredRows: { sheet: string; sourceSheet: string; rowNumber: number | string; data: string; reason: string }[] = []
+            const headlessUsers: { name: string; sourceSheet: string; rowNumber: number | string; email: string; collisionType: string; collisionDetail: string }[] = []
             const validData: any = { studentsToUpdate: [], financialPeriodsToUpdate: [] }
             
             // ── §3 Parse Parametros (Supervisors) ───────────────────────────
@@ -124,7 +124,13 @@ export async function POST(request: Request) {
                 const bacbId   = cellStr(row, "C")
 
                 if (!supName) {
-                    ignoredRows.push({ sheet: "Parametros", rowNumber, data: `Email: ${rawEmail}`, reason: "Falta Nombre de Supervisor" })
+                    ignoredRows.push({ 
+                        sheet: "Parametros", 
+                        sourceSheet: "Parametros",
+                        rowNumber, 
+                        data: `Email: ${rawEmail}`, 
+                        reason: "Falta Nombre de Supervisor" 
+                    })
                     return
                 }
 
@@ -133,9 +139,9 @@ export async function POST(request: Request) {
                 )
 
                 if (existingSup) {
-                    const updates: any = {}
+                    const updates: any = { sourceSheet: "Parametros", rowNumber }
                     if (bacbId && existingSup.bacbId !== bacbId) updates.bacbId = bacbId
-                    if (Object.keys(updates).length > 0) {
+                    if (Object.keys(updates).length > 2) { // 2 because of sourceSheet and rowNumber
                         supervisorUpdates.push({ id: existingSup.id, ...updates })
                     }
                 } else {
@@ -150,7 +156,9 @@ export async function POST(request: Request) {
                         bacbId,
                         email: finalSupEmail,
                         status: "ACTIVE",
-                        qualificationLevel: "BCBA" 
+                        qualificationLevel: "BCBA",
+                        sourceSheet: "Parametros",
+                        rowNumber
                     })
                 }
             })
@@ -166,7 +174,13 @@ export async function POST(request: Request) {
                 const startDateStr = cellDate(row, "L") ?? new Date(0)
                 
                 if (!traineeName) {
-                    ignoredRows.push({ sheet: "Supervisados", rowNumber, data: `BACB ID: ${bacbId}`, reason: "Falta Trainee Name" })
+                    ignoredRows.push({ 
+                        sheet: "Supervisados", 
+                        sourceSheet: "Supervisados",
+                        rowNumber, 
+                        data: `BACB ID: ${bacbId}`, 
+                        reason: "Falta Trainee Name" 
+                    })
                     return
                 }
 
@@ -209,6 +223,10 @@ export async function POST(request: Request) {
                     status:                cellStr(row, "U") || null
                 }
 
+                const displayRow = allRowNumbers.length > 1 
+                    ? `Filas ${allRowNumbers.join(", ")}` 
+                    : rowNumber
+
                 if (!existingStudent) {
                     const rawEmail = cellStr(row, "I").toLowerCase()
                     let assignedEmail: string | null = null
@@ -226,7 +244,14 @@ export async function POST(request: Request) {
                                 collisionDetail = `Duplicado con Fila ${origin?.rowNumber} (${origin?.sheetName})`
                             }
                         }
-                        headlessUsers.push({ name: cellStr(row, "B"), rowNumber, email: rawEmail || "(none)", collisionType, collisionDetail })
+                        headlessUsers.push({ 
+                            name: cellStr(row, "B"), 
+                            rowNumber: displayRow, 
+                            sourceSheet: "Supervisados",
+                            email: rawEmail || "(none)", 
+                            collisionType, 
+                            collisionDetail 
+                        })
                     }
 
                     newUsers.push({
@@ -235,12 +260,14 @@ export async function POST(request: Request) {
                         bacbId,
                         email: assignedEmail,
                         supervisorName,
-                        _rowNumber: rowNumber,
+                        _rowNumber: displayRow,
+                        rowNumber: displayRow,
+                        sourceSheet: "Supervisados",
                         startDate: startDateStr.getTime() === 0 ? null : startDateStr,
                         ...fields
                     })
                 } else {
-                    const updates: any = { supervisorName } 
+                    const updates: any = { supervisorName, sourceSheet: "Supervisados", rowNumber: displayRow } 
                     Object.entries(fields).forEach(([k, v]) => {
                         if (v !== null && (existingStudent as any)[k] === null) updates[k] = v
                     })
@@ -268,16 +295,26 @@ export async function POST(request: Request) {
                         amountDueAnalyst: 0,
                         accumulatedDueOffice: 0,
                         accumulatedPaidOffice: 0,
-                        accumulatedPaidAnalyst: 0
+                        accumulatedPaidAnalyst: 0,
+                        sourceSheet: "Cobros",
+                        rowNumber
                     }
 
                     if (existingStudent) {
                         const existingPeriod = existingStudent.financialPeriods.find(p => p.periodNumber === periodNum)
                         if (existingPeriod && Number(existingPeriod.amountDueOffice || 0) !== amount) {
                             conflicts.push({
-                                id: `CFL-${existingPeriod.id}`, periodId: existingPeriod.id, studentName: existingStudent.fullName,
-                                type: "Injected", periodNumber: periodNum, month: `Periodo ${periodNum}`,
-                                dbAmount: Number(existingPeriod.amountDueOffice), excelAmount: amount, field: "amountDueOffice"
+                                id: `CFL-${existingPeriod.id}`, 
+                                periodId: existingPeriod.id, 
+                                studentName: existingStudent.fullName,
+                                type: "Injected", 
+                                periodNumber: periodNum, 
+                                month: `Periodo ${periodNum}`,
+                                dbAmount: Number(existingPeriod.amountDueOffice), 
+                                excelAmount: amount, 
+                                field: "amountDueOffice",
+                                sourceSheet: "Cobros",
+                                rowNumber
                             })
                         } else if (!existingPeriod) {
                             newFinancialPeriods.push({ studentName: traineeName, studentId: existingStudent.id, ...rowData })

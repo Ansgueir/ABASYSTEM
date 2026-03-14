@@ -12,8 +12,8 @@ import {
 } from "lucide-react"
 
 // ─── Types ────────────────────────────────────────────────────────────────────
-interface IgnoredRow { sheet: string; rowNumber: number; data: string; reason: string }
-interface HeadlessUser { name: string; rowNumber: number; email: string; collisionType: string; collisionDetail: string }
+interface IgnoredRow { sheet: string; sourceSheet: string; rowNumber: number | string; data: string; reason: string }
+interface HeadlessUser { name: string; sourceSheet: string; rowNumber: number | string; email: string; collisionType: string; collisionDetail: string }
 interface StagingResult {
     ignoredRows: IgnoredRow[]
     skippedRowsCount: number
@@ -131,13 +131,13 @@ export function ImportStaging() {
         const rows: string[][] = [["Type", "Sheet", "Row #", "Name / Data", "Detail / Reason"]]
         
         for (const r of stagingResult.ignoredRows) {
-            rows.push(["IGNORED_ROW", r.sheet, String(r.rowNumber), r.data, r.reason])
+            rows.push(["IGNORED_ROW", r.sourceSheet || r.sheet, String(r.rowNumber), r.data, r.reason])
         }
         for (const h of stagingResult.headlessUsers) {
-            rows.push(["HEADLESS_COLLISION", "Supervisados", String(h.rowNumber), h.name, `${h.collisionDetail} (${h.email})`])
+            rows.push(["HEADLESS_COLLISION", h.sourceSheet || "Supervisados", String(h.rowNumber), h.name, `${h.collisionDetail} (${h.email})`])
         }
         for (const c of stagingResult.conflicts) {
-            rows.push(["FINANCIAL_CONFLICT", "Cobros", "", c.studentName, `DB: $${c.dbAmount} | Excel: $${c.excelAmount}`])
+            rows.push(["FINANCIAL_CONFLICT", c.sourceSheet || "Cobros", String(c.rowNumber), c.studentName, `DB: $${c.dbAmount} | Excel: $${c.excelAmount}`])
         }
 
         const csv = rows.map(r => r.map(v => `"${String(v).replace(/"/g, '""')}"`).join(",")).join("\n")
@@ -274,8 +274,8 @@ export function ImportStaging() {
                                         <tbody className="divide-y max-h-[300px]">
                                             {stagingResult.ignoredRows.map((r, i) => (
                                                 <tr key={i} className="hover:bg-blue-50/50 font-medium">
-                                                    <td className="px-4 py-2">{r.sheet}</td>
-                                                    <td className="px-4 py-2">#{r.rowNumber}</td>
+                                                    <td className="px-4 py-2 text-blue-700 bg-blue-100/30">{r.sourceSheet || r.sheet}</td>
+                                                    <td className="px-4 py-2 font-mono text-blue-600">#{r.rowNumber}</td>
                                                     <td className="px-4 py-2 text-slate-400 max-w-[200px] truncate">{r.data}</td>
                                                     <td className="px-4 py-2"><span className="text-blue-600 bg-blue-50 px-2 py-0.5 rounded border border-blue-100">{r.reason}</span></td>
                                                 </tr>
@@ -300,7 +300,8 @@ export function ImportStaging() {
                                 <div className="divide-y max-h-[250px] overflow-y-auto bg-white">
                                     {stagingResult.headlessUsers.map((h, i) => (
                                         <div key={i} className="px-4 py-2.5 flex items-center gap-4 text-xs">
-                                            <span className="font-bold text-rose-500 w-12 shrink-0">#{h.rowNumber}</span>
+                                            <span className="text-rose-700 bg-rose-100/40 px-2 py-1 rounded font-bold w-24 truncate">{h.sourceSheet || "Supervisados"}</span>
+                                            <span className="font-bold text-rose-500 w-24 shrink-0">#{h.rowNumber}</span>
                                             <span className="font-semibold text-slate-800 flex-1">{h.name}</span>
                                             <span className="text-slate-400 italic truncate max-w-[150px]">{h.email}</span>
                                             <span className={`px-2 py-0.5 rounded-full border text-[10px] font-bold ${collisionBadge[h.collisionType]?.className}`}>
@@ -327,7 +328,8 @@ export function ImportStaging() {
                                     <table className="w-full text-[11px] text-left">
                                         <thead className="bg-emerald-50 text-emerald-700 sticky top-0">
                                             <tr>
-                                                <th className="p-2">Row</th>
+                                                <th className="p-2">Pestaña</th>
+                                                <th className="p-2">Fila</th>
                                                 <th className="p-2">Full Name</th>
                                                 <th className="p-2">Email</th>
                                                 <th className="p-2">BACB ID</th>
@@ -336,6 +338,7 @@ export function ImportStaging() {
                                         <tbody>
                                             {stagingResult.newUsers.map((u, i) => (
                                                 <tr key={i} className="border-t border-emerald-100 bg-white hover:bg-emerald-50/30">
+                                                    <td className="p-2 font-bold text-emerald-800 bg-emerald-100/20">{u.sourceSheet || "Supervisados"}</td>
                                                     <td className="p-2 font-mono text-emerald-600">#{u.rowNumber}</td>
                                                     <td className="p-2 font-bold">{u.fullName}</td>
                                                     <td className="p-2">{u.email}</td>
@@ -363,7 +366,8 @@ export function ImportStaging() {
                                     <table className="w-full text-[11px] text-left">
                                         <thead className="bg-purple-50 text-purple-700 sticky top-0">
                                             <tr>
-                                                <th className="p-2">Row</th>
+                                                <th className="p-2">Pestaña</th>
+                                                <th className="p-2">Fila</th>
                                                 <th className="p-2">Full Name</th>
                                                 <th className="p-2">Email</th>
                                                 <th className="p-2">BACB ID</th>
@@ -372,6 +376,7 @@ export function ImportStaging() {
                                         <tbody>
                                             {stagingResult.newSupervisors.map((u, i) => (
                                                 <tr key={i} className="border-t border-purple-100 bg-white hover:bg-purple-50/30">
+                                                    <td className="p-2 font-bold text-purple-800 bg-purple-100/20">{u.sourceSheet || "Parametros"}</td>
                                                     <td className="p-2 font-mono text-purple-600">#{u.rowNumber}</td>
                                                     <td className="p-2 font-bold">{u.fullName}</td>
                                                     <td className="p-2">{u.email}</td>
@@ -399,7 +404,8 @@ export function ImportStaging() {
                                     <table className="w-full text-[11px] text-left">
                                         <thead className="bg-amber-50 text-amber-700 sticky top-0">
                                             <tr>
-                                                <th className="p-2">Row</th>
+                                                <th className="p-2">Pestaña</th>
+                                                <th className="p-2">Fila</th>
                                                 <th className="p-2">Trainee</th>
                                                 <th className="p-2">Periodo</th>
                                                 <th className="p-2">Amount</th>
@@ -408,10 +414,11 @@ export function ImportStaging() {
                                         <tbody>
                                             {stagingResult.newFinancialPeriods.map((f, i) => (
                                                 <tr key={i} className="border-t border-amber-100 bg-white hover:bg-amber-50/30">
+                                                    <td className="p-2 font-bold text-amber-800 bg-amber-100/30">{f.sourceSheet || "Cobros"}</td>
                                                     <td className="p-2 font-mono text-amber-600">#{f.rowNumber}</td>
                                                     <td className="p-2 font-bold">{f.traineeName}</td>
                                                     <td className="p-2">{f.monthYearLabel}</td>
-                                                    <td className="p-2 text-emerald-600 font-bold">${f.amount}</td>
+                                                    <td className="p-2 text-emerald-600 font-bold">${f.amountDueOffice}</td>
                                                 </tr>
                                             ))}
                                         </tbody>
@@ -446,6 +453,8 @@ export function ImportStaging() {
                                     <table className="w-full text-xs text-left">
                                         <thead className="bg-slate-50 border-b text-slate-400 font-bold uppercase">
                                             <tr>
+                                                <th className="px-4 py-3">Pestaña</th>
+                                                <th className="px-4 py-3">Fila</th>
                                                 <th className="px-4 py-3">Estudiante</th>
                                                 <th className="px-4 py-3">Periodo</th>
                                                 <th className="px-4 py-3 text-right">Monto DB</th>
@@ -456,6 +465,8 @@ export function ImportStaging() {
                                         <tbody className="divide-y max-h-[400px]">
                                             {stagingResult.conflicts.map((c) => (
                                                 <tr key={c.id} className="hover:bg-amber-50">
+                                                    <td className="px-4 py-3 text-orange-800 font-bold bg-orange-100/20">{c.sourceSheet || "Cobros"}</td>
+                                                    <td className="px-4 py-3 font-mono text-orange-600">#{c.rowNumber}</td>
                                                     <td className="px-4 py-3 font-bold text-slate-700">{c.studentName}</td>
                                                     <td className="px-4 py-3 text-slate-500 lowercase">{c.month}</td>
                                                     <td className="px-4 py-3 text-right font-mono text-slate-400">${c.dbAmount}</td>
