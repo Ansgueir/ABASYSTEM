@@ -311,33 +311,47 @@ export async function POST(request: Request) {
                         rowNumber: displayRow,
                         sourceSheet: "Supervisados",
                         startDate: startDateStr.getTime() === 0 ? null : startDateStr,
-                        ...fields
+                        fields // Wrapped for frontend access
                     })
                 } else {
                     const updates: any = { supervisorName, sourceSheet: "Supervisados", rowNumber: displayRow } 
                     Object.entries(fields).forEach(([k, v]) => {
-                        if (v !== null && (existingStudent as any)[k] === null) updates[k] = v
+                        // Priority: If Excel has data, use it (Overwrites if current is null or different)
+                        if (v !== null && v !== 0) updates[k] = v
                     })
                     validData.studentsToUpdate.push({ id: existingStudent.id, ...updates })
                 }
             }
 
             // ── §5 Parse Cobros (Payments History) ──────────────────────────
-            // Hard boundary: Start row 27, continue until Col L is empty
-            for (let i = 27; i <= sheetFinancial.rowCount; i++) {
-                const row = sheetFinancial.getRow(i)
-                const traineeNameRaw = cellStr(row, "L").toLowerCase()
+            let financialStartRow = -1
+            for (let i = 1; i <= 50; i++) {
+                const cellVal = cellStr(sheetFinancial.getRow(i), "L").toLowerCase()
+                if (cellVal.includes("supervisado")) {
+                    financialStartRow = i + 1
+                    break
+                }
+            }
 
-                // END BOUNDARY: If primary student name col is empty, stop
-                if (!traineeNameRaw || traineeNameRaw.trim() === "" || traineeNameRaw === "supervisado") break
+            if (financialStartRow !== -1) {
+                for (let i = financialStartRow; i <= sheetFinancial.rowCount; i++) {
+                    const row = sheetFinancial.getRow(i)
+                    const traineeNameRaw = cellStr(row, "L").toLowerCase()
+
+                    // END BOUNDARY: If primary student name col is empty, stop
+                    if (!traineeNameRaw || traineeNameRaw.trim() === "") break
 
                 const traineeName = traineeNameRaw.trim()
                 const existingStudent = existingStudents.find(s => s.fullName.toLowerCase().trim() === traineeName)
 
-                // Iteración horizontal M (13) hasta BJ (62)
+                // Iteración horizontal M (13) hasta BJ (62) - Periodos 1 al 50
                 for (let col = 13; col <= 62; col++) {
-                    const amount = cellNum(row, col)
-                    if (amount === 0) continue
+                    const cell = row.getCell(col)
+                    if (cell.value === null || cell.value === undefined) continue
+                    
+                    const amount = Number(cell.value)
+                    if (isNaN(amount) || amount < 0) continue
+
                     const periodNum = col - 12
                     
                     const rowData = {
@@ -376,6 +390,7 @@ export async function POST(request: Request) {
                     }
                 }
             }
+        }
 
             // ── §6 Parse Base Datos / Tesoreria (Transactions) ──────────────
             const sheetTesoreria = workbook.getWorksheet("Base Datos") || workbook.getWorksheet("Tesoreria")
@@ -528,14 +543,14 @@ export async function POST(request: Request) {
                                     hoursToPay: 0,
                                     amountToPay: 0,
                                     hoursPerMonth: 130,
-                                    vcsSequence: newUser.vcsSequence ?? null, 
-                                    assignedOptionPlan: (newUser.optionPlan || "A") as any,
-                                    regularHoursTarget: newUser.regularHoursTarget ?? null, 
-                                    concentratedHoursTarget: newUser.concentratedHoursTarget ?? null,
-                                    independentHoursTarget: newUser.independentHoursTarget ?? null, 
-                                    totalAmountContract: newUser.totalAmountContract ?? null,
-                                    analystPaymentRate: newUser.analystPaymentRate !== null ? normalizeRate(Number(newUser.analystPaymentRate)) : null, 
-                                    officePaymentRate: newUser.officePaymentRate !== null ? normalizeRate(Number(newUser.officePaymentRate)) : null,
+                                    vcsSequence: newUser.fields?.vcsSequence ?? null, 
+                                    assignedOptionPlan: (newUser.fields?.optionPlan || "A") as any,
+                                    regularHoursTarget: newUser.fields?.regularHoursTarget ?? null, 
+                                    concentratedHoursTarget: newUser.fields?.concentratedHoursTarget ?? null,
+                                    independentHoursTarget: newUser.fields?.independentHoursTarget ?? null, 
+                                    totalAmountContract: newUser.fields?.totalAmountContract ?? null,
+                                    analystPaymentRate: newUser.fields?.analystPaymentRate !== null ? normalizeRate(Number(newUser.fields?.analystPaymentRate)) : null, 
+                                    officePaymentRate: newUser.fields?.officePaymentRate !== null ? normalizeRate(Number(newUser.fields?.officePaymentRate)) : null,
                                     supervisorId: newUser.supervisorName ? supervisorMap.get(newUser.supervisorName.toLowerCase().trim()) : null,
                                     importBatchId: batch.id
                                 }
