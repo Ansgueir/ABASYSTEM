@@ -98,6 +98,13 @@ export async function POST(request: Request) {
             return new NextResponse("Forbidden", { status: 403 })
         }
 
+        if (request.method === "GET") {
+            const users = await prisma.user.findMany({
+                include: { student: true, supervisor: true }
+            })
+            return NextResponse.json(users)
+        }
+
         const contentType = request.headers.get("content-type") || ""
 
         // ══════════════════════════════════════════
