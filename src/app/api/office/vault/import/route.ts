@@ -57,6 +57,30 @@ function isRowEmpty(row: ExcelJS.Row, startCol: number, endCol: number): boolean
     return true
 }
 
+function normalizeCredentialType(val: string): string {
+    const v = val.toUpperCase().trim()
+    if (v.includes("BCABA")) return "BCaBA"
+    if (v.includes("BCBA")) return "BCBA"
+    if (v.includes("RBT")) {
+        if (v.includes("NOT") || v.includes("WORKING")) return "RBT_NOT_WORKING"
+        return "RBT"
+    }
+    if (v.includes("LMHC")) return "LMHC"
+    return "NO_CREDENTIAL"
+}
+
+function normalizeLevelType(val: string): string {
+    const v = val.toUpperCase().trim()
+    if (v.includes("BCABA")) return "BCaBA"
+    return "BCBA"
+}
+
+function normalizeOptionPlan(val: string): string {
+    const v = val.toUpperCase().trim()
+    if (["A", "B", "C", "D", "E"].includes(v)) return v
+    return "A"
+}
+
 export async function POST(request: Request) {
     try {
         const session = await auth()
@@ -155,7 +179,8 @@ export async function POST(request: Request) {
                         const updates: any = { sourceSheet: "Parametros", rowNumber: i }
                         if (bacbId && existingSup.bacbId !== bacbId) updates.bacbId = bacbId
                         if (certNum && existingSup.certificantNumber !== certNum) updates.certificantNumber = certNum
-                        if (qual && existingSup.credentialType !== qual) updates.qualificationLevel = qual
+                        const normQual = normalizeCredentialType(qual || "BCBA")
+                        if (qual && (existingSup as any).credentialType !== normQual) updates.credentialType = normQual
                         
                         if (Object.keys(updates).length > 2) { 
                             supervisorUpdates.push({ id: existingSup.id, ...updates })
@@ -176,7 +201,7 @@ export async function POST(request: Request) {
                             fullName: supName,
                             bacbId,
                             certificantNumber: certNum,
-                            qualificationLevel: qual || "BCBA",
+                            credentialType: normalizeCredentialType(qual || "BCBA"),
                             email: finalSupEmail,
                             status: "ACTIVE",
                             sourceSheet: "Parametros",
@@ -223,9 +248,9 @@ export async function POST(request: Request) {
                 const supervisorName        = cellStr(row, "C")
                 const fields = {
                     vcsSequence:           cellStr(row, "F") || null,
-                    level:                 cellStr(row, "G") || null,
+                    level:                 normalizeLevelType(cellStr(row, "G")),
                     phone:                 cellStr(row, "H") || null,
-                    optionPlan:            cellStr(row, "K") || null,
+                    optionPlan:            normalizeOptionPlan(cellStr(row, "K")),
                     endDate:               cellDate(row, "M"),
                     totalMonths:           cellNum(row, "N") || null,
                     regularHoursTarget:    cellNum(row, "O") || null, // Horas Regulares
@@ -234,7 +259,7 @@ export async function POST(request: Request) {
                     totalAmountContract:   cellNum(row, "R") || null, // Monto Total Supervisión
                     analystPaymentRate:    cellNum(row, "S") || null, // Monto a Pagar Analista
                     officePaymentRate:     cellNum(row, "T") || null, // Total Pagado Oficina
-                    credential:            cellStr(row, "E") || null,
+                    credential:            normalizeCredentialType(cellStr(row, "E")),
                     status:                cellStr(row, "U") || null
                 }
 
@@ -416,7 +441,7 @@ export async function POST(request: Request) {
                                 create: {
                                     fullName: sup.fullName, phone: "PENDING", address: "Imported", email: sup.email,
                                     bacbId: sup.bacbId || "N/A", certificantNumber: sup.certificantNumber || "N/A",
-                                    status: (sup.status || "ACTIVE") as any, credentialType: (sup.qualificationLevel || "BCBA") as any,
+                                    status: (sup.status || "ACTIVE") as any, credentialType: (sup.credentialType || "BCBA") as any,
                                     importBatchId: batch.id
                                 }
                             }
