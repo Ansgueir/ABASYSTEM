@@ -583,10 +583,14 @@ export async function POST(request: Request) {
                 for (const fp of (newFinancialPeriods ?? [])) {
                     const studentId = fp.studentId || studentMap.get(fp.studentName?.toLowerCase().trim())
                     if (!studentId) continue
+
+                    // Clean data: exclude non-Prisma fields like studentName, sourceSheet, etc.
+                    const { studentName, sourceSheet, rowNumber, ...cleanFp } = fp
+
                     const created = await (tx as any).financialPeriod.upsert({
-                        where: { studentId_periodNumber: { studentId, periodNumber: fp.periodNumber } },
-                        update: { amountDueOffice: fp.amountDueOffice, importBatchId: batch.id },
-                        create: { ...fp, studentId, importBatchId: batch.id }
+                        where: { studentId_periodNumber: { studentId, periodNumber: cleanFp.periodNumber } },
+                        update: { amountDueOffice: cleanFp.amountDueOffice, importBatchId: batch.id },
+                        create: { ...cleanFp, studentId, importBatchId: batch.id }
                     })
                     await (tx as any).importLog.create({
                         data: { batchId: batch.id, tableName: "FinancialPeriod", recordId: created.id, action: "CREATE", oldData: {}, newData: created }
