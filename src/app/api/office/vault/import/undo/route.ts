@@ -41,10 +41,13 @@ export async function POST(request: Request) {
                 })
             }
 
-            // 2. Borrar Students y Users creados
-            // Importante: Borrar Student antes que User para evitar conflictos de FK si el cascade no está activo
+            // 2. Borrar Students, Supervisors y Users creados
+            // Importante: Borrar entidades relacionadas antes que User
             if (userIdsToDelete.length > 0) {
                 await tx.student.deleteMany({
+                    where: { userId: { in: userIdsToDelete } }
+                })
+                await tx.supervisor.deleteMany({
                     where: { userId: { in: userIdsToDelete } }
                 })
                 await tx.user.deleteMany({
