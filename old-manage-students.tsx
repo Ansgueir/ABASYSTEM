@@ -31,6 +31,10 @@ export function ManageStudentsDialog({ supervisorId, supervisorName, open: contr
     const [unassigned, setUnassigned] = useState<any[]>([])
     const [assigned, setAssigned] = useState<any[]>([])
 
+    useEffect(() => {
+        setMounted(true)
+    }, [])
+
     const fetchStudents = async () => {
         setIsLoading(true)
         const res = await getManageableStudents(supervisorId)
@@ -63,11 +67,12 @@ export function ManageStudentsDialog({ supervisorId, supervisorName, open: contr
         })
     }
 
-    useEffect(() => {
-        setMounted(true)
-    }, [])
-
-    if (!mounted) return null
+    if (!mounted) return (
+        <Button variant="outline" size="sm" className="h-8 gap-2">
+            <Users className="h-4 w-4" />
+            Manage Students
+        </Button>
+    )
 
     return (
         <Dialog open={open} onOpenChange={onOpenChange}>
