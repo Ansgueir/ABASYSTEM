@@ -22,7 +22,6 @@ interface ManageStudentsDialogProps {
 }
 
 export function ManageStudentsDialog({ supervisorId, supervisorName, open: controlledOpen, onOpenChange: controlledOnOpenChange }: ManageStudentsDialogProps) {
-    const [mounted, setMounted] = useState(false)
     const [internalOpen, setInternalOpen] = useState(false)
     const open = controlledOpen !== undefined ? controlledOpen : internalOpen
     const onOpenChange = controlledOnOpenChange || setInternalOpen
@@ -30,10 +29,6 @@ export function ManageStudentsDialog({ supervisorId, supervisorName, open: contr
     const [isLoading, setIsLoading] = useState(false)
     const [unassigned, setUnassigned] = useState<any[]>([])
     const [assigned, setAssigned] = useState<any[]>([])
-
-    useEffect(() => {
-        setMounted(true)
-    }, [])
 
     const fetchStudents = async () => {
         setIsLoading(true)
@@ -66,13 +61,6 @@ export function ManageStudentsDialog({ supervisorId, supervisorName, open: contr
             }
         })
     }
-
-    if (!mounted) return (
-        <Button variant="outline" size="sm" className="h-8 gap-2">
-            <Users className="h-4 w-4" />
-            Manage Students
-        </Button>
-    )
 
     return (
         <Dialog open={open} onOpenChange={onOpenChange}>
