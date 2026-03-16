@@ -13,18 +13,16 @@ export default async function OfficeTeamPage() {
     const session = await auth()
     if (!session?.user) redirect("/login")
 
-    // Verify role
-    // @ts-ignore
-    if (session.user.role !== "OFFICE") redirect("/login")
+    const role = String((session.user as any).role).toUpperCase()
+    if (role !== "OFFICE" && role !== "QA") redirect("/login")
 
     // Check if user is Super Admin for write permissions
-    // @ts-ignore
-    const isSuperAdmin = session.user.officeRole === "SUPER_ADMIN"
+    const isSuperAdmin = (session.user as any).officeRole === "SUPER_ADMIN" || role === "QA"
 
     // Fetch team members
     const teamMembers = await prisma.user.findMany({
         where: {
-            role: "OFFICE",
+            role: { in: ["OFFICE", "QA"] as any },
             isHidden: false
         },
         include: {

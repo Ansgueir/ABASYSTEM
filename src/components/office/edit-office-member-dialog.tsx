@@ -31,9 +31,12 @@ export function EditOfficeMemberDialog({ member, open, onOpenChange }: EditOffic
         const formData = new FormData(event.currentTarget)
         const fullName = formData.get("fullName") as string
         const officeRole = formData.get("officeRole") as string
+        const email = formData.get("email") as string // Ensure email is captured
 
         startTransition(async () => {
-            const result = await updateOfficeMember(member.id, { fullName, officeRole })
+            const idToUse = member.isUserId ? member.userId : member.id
+            // Include email in the update payload
+            const result = await updateOfficeMember(idToUse, { fullName, officeRole, email }, !!member.isUserId)
             if (result?.error) {
                 toast.error(result.error)
             } else {
@@ -56,6 +59,10 @@ export function EditOfficeMemberDialog({ member, open, onOpenChange }: EditOffic
                     <div className="space-y-2">
                         <Label htmlFor="fullName">Full Name</Label>
                         <Input id="fullName" name="fullName" defaultValue={member.fullName} required />
+                    </div>
+                    <div className="space-y-2">
+                        <Label htmlFor="email">Email</Label>
+                        <Input id="email" name="email" type="email" defaultValue={member.email} required placeholder="email@example.com" />
                     </div>
                     <div className="space-y-2">
                         <Label htmlFor="officeRole">Role</Label>

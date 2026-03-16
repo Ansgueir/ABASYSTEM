@@ -20,11 +20,20 @@ import { updateStudent } from "@/actions/users"
 
 interface EditStudentDialogProps {
     student: any
+    open?: boolean
+    onOpenChange?: (open: boolean) => void
     isSuperAdmin?: boolean
 }
 
-export function EditStudentDialog({ student, isSuperAdmin }: EditStudentDialogProps) {
-    const [open, setOpen] = useState(false)
+export function EditStudentDialog({ 
+    student, 
+    open: controlledOpen, 
+    onOpenChange: controlledOnOpenChange,
+    isSuperAdmin = false 
+}: EditStudentDialogProps) {
+    const [internalOpen, setInternalOpen] = useState(false)
+    const open = controlledOpen !== undefined ? controlledOpen : internalOpen
+    const onOpenChange = controlledOnOpenChange || setInternalOpen
     const [isPending, startTransition] = useTransition()
 
     async function onSubmit(event: React.FormEvent<HTMLFormElement>) {
@@ -45,6 +54,7 @@ export function EditStudentDialog({ student, isSuperAdmin }: EditStudentDialogPr
             hoursPerMonth: parseInt(data.hoursPerMonth as string) || 130,
             supervisionPercentage: parseFloat(data.supervisionPercentage as string) || 5,
             hourlyRate: parseFloat(data.hourlyRate as string) || 0,
+            email: data.email,
         }
 
         startTransition(async () => {
@@ -53,19 +63,21 @@ export function EditStudentDialog({ student, isSuperAdmin }: EditStudentDialogPr
                 toast.error(result.error)
             } else {
                 toast.success("Student updated successfully")
-                setOpen(false)
+                onOpenChange(false)
             }
         })
     }
 
     return (
-        <Dialog open={open} onOpenChange={setOpen}>
-            <DialogTrigger asChild>
-                <Button variant="outline" size="sm" className="h-8 gap-2">
-                    <Edit className="h-4 w-4" />
-                    Edit Profile
-                </Button>
-            </DialogTrigger>
+        <Dialog open={open} onOpenChange={onOpenChange}>
+            {controlledOpen === undefined && (
+                <DialogTrigger asChild>
+                    <Button variant="outline" size="sm" className="h-8 gap-2">
+                        <Edit className="h-4 w-4" />
+                        Edit Profile
+                    </Button>
+                </DialogTrigger>
+            )}
             <DialogContent className="sm:max-w-[550px] max-h-[90vh] overflow-y-auto">
                 <DialogHeader>
                     <DialogTitle>Edit Student Profile</DialogTitle>
@@ -79,6 +91,12 @@ export function EditStudentDialog({ student, isSuperAdmin }: EditStudentDialogPr
                             <Label htmlFor="fullName">Full Name</Label>
                             <Input id="fullName" name="fullName" defaultValue={student.fullName} required />
                         </div>
+                        <div className="space-y-2">
+                            <Label htmlFor="email">Email {isSuperAdmin && <span className="text-amber-600 font-bold ml-1">(Editable)</span>}</Label>
+                            <Input id="email" name="email" type="email" defaultValue={student.email} required disabled={!isSuperAdmin} />
+                        </div>
+                    </div>
+                    <div className="grid grid-cols-1 gap-4">
                         <div className="space-y-2">
                             <Label htmlFor="phone">Phone</Label>
                             <Input id="phone" name="phone" defaultValue={student.phone || ""} />
@@ -161,7 +179,7 @@ export function EditStudentDialog({ student, isSuperAdmin }: EditStudentDialogPr
                     )}
 
                     <DialogFooter className="pt-4">
-                        <Button type="button" variant="outline" onClick={() => setOpen(false)}>Cancel</Button>
+                        <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>Cancel</Button>
                         <Button type="submit" disabled={isPending}>
                             {isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                             Save Changes

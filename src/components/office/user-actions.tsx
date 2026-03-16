@@ -21,6 +21,7 @@ import { toast } from "sonner"
 import { resetUserPassword, deleteStudent, deleteSupervisor, deleteOfficeMember, toggleStudentStatus, toggleSupervisorStatus, toggleOfficeMemberStatus } from "@/actions/users"
 import Link from "next/link"
 import { EditSupervisorDialog } from "./edit-supervisor-dialog"
+import { EditStudentDialog } from "./edit-student-dialog"
 import { EditOfficeMemberDialog } from "./edit-office-member-dialog"
 import { ManageStudentsDialog } from "./manage-students-dialog"
 import { Users } from "lucide-react"
@@ -108,7 +109,7 @@ export function UserActions({ id, userId, name, email, type, isActive, fullData,
                         </Button>
                     )}
 
-                    {isSuperAdmin && type !== "student" && (
+                    {isSuperAdmin && (
                         <Button
                             variant="ghost"
                             size="sm"
@@ -182,6 +183,7 @@ export function UserActions({ id, userId, name, email, type, isActive, fullData,
                         supervisor={fullData}
                         open={showEditDialog}
                         onOpenChange={setShowEditDialog}
+                        isSuperAdmin={isSuperAdmin}
                     />
                     <ManageStudentsDialog
                         supervisorId={id}
@@ -191,9 +193,17 @@ export function UserActions({ id, userId, name, email, type, isActive, fullData,
                     />
                 </>
             )}
-            {type === "office" && fullData && (
+            {type === "student" && fullData && (
+                <EditStudentDialog
+                    student={fullData}
+                    open={showEditDialog}
+                    onOpenChange={setShowEditDialog}
+                    isSuperAdmin={isSuperAdmin}
+                />
+            )}
+            {type === "office" && (
                 <EditOfficeMemberDialog
-                    member={fullData}
+                    member={fullData ? { ...fullData, email } : { userId, isUserId: true, fullName: name, officeRole: "ADMIN", email }}
                     open={showEditDialog}
                     onOpenChange={setShowEditDialog}
                 />

@@ -19,11 +19,14 @@ const generateTempPassword = () => {
 const getSessionUser = async () => {
     const session = await auth()
     if (!session?.user) return null
+    const role = (session.user as any).role
+    const officeRole = (session.user as any).officeRole
     return {
         id: session.user.id,
         email: session.user.email,
-        role: (session.user as any).role,
-        officeRole: (session.user as any).officeRole
+        role,
+        officeRole,
+        isSuperAdmin: officeRole === "SUPER_ADMIN" || role === "QA"
     }
 }
 
@@ -527,24 +530,52 @@ export async function updateStudent(studentId: string, data: any) {
         return { error: "Unauthorized" }
     }
 
+    const isSuperAdmin = currentUser.isSuperAdmin
+    
     // Strip hourlyRate if not SUPER_ADMIN
-    const isSuperAdmin = currentUser.officeRole === "SUPER_ADMIN"
     if (!isSuperAdmin && data.hourlyRate !== undefined) {
         delete data.hourlyRate
     }
 
+    // Strip email if not SUPER_ADMIN
+    if (!isSuperAdmin && data.email !== undefined) {
+        delete data.email
+    }
+
     try {
-        await prisma.student.update({
-            where: { id: studentId },
-            data: data
+        await prisma.$transaction(async (tx) => {
+            const student = await tx.student.findUnique({ 
+                where: { id: studentId },
+                select: { userId: true, email: true }
+            })
+            if (!student) throw new Error("Student not found")
+
+            // If email changed, update User record too
+            if (data.email && data.email !== student.email) {
+                const emailInUse = await tx.user.findUnique({ where: { email: data.email } })
+                if (emailInUse && emailInUse.id !== student.userId) {
+                    throw new Error("Email is already in use by another user")
+                }
+                
+                await tx.user.update({
+                    where: { id: student.userId },
+                    data: { email: data.email }
+                })
+            }
+
+            await tx.student.update({
+                where: { id: studentId },
+                data: data
+            })
         })
+
         revalidatePath(`/office/students/${studentId}`)
         revalidatePath("/office/students")
         revalidatePath("/office/payments")
         return { success: true }
     } catch (error) {
         console.error("Update student error:", error)
-        return { error: "Failed to update student" }
+        return { error: error instanceof Error ? error.message : "Failed to update student" }
     }
 }
 
@@ -554,36 +585,101 @@ export async function updateSupervisor(supervisorId: string, data: any) {
         return { error: "Unauthorized" }
     }
 
+    const isSuperAdmin = currentUser.isSuperAdmin
+    
+    // Strip email if not SUPER_ADMIN
+    if (!isSuperAdmin && data.email !== undefined) {
+        delete data.email
+    }
+
     try {
-        await prisma.supervisor.update({
-            where: { id: supervisorId },
-            data: data
+        await prisma.$transaction(async (tx) => {
+            const supervisor = await tx.supervisor.findUnique({ 
+                where: { id: supervisorId },
+                select: { userId: true, email: true }
+            })
+            if (!supervisor) throw new Error("Supervisor not found")
+
+            // If email changed, update User record too
+            if (data.email && data.email !== supervisor.email) {
+                const emailInUse = await tx.user.findUnique({ where: { email: data.email } })
+                if (emailInUse && emailInUse.id !== supervisor.userId) {
+                    throw new Error("Email is already in use by another user")
+                }
+                
+                await tx.user.update({
+                    where: { id: supervisor.userId },
+                    data: { email: data.email }
+                })
+            }
+
+            await tx.supervisor.update({
+                where: { id: supervisorId },
+                data: data
+            })
         })
+
         revalidatePath(`/office/supervisors/${supervisorId}`)
         revalidatePath("/office/supervisors")
         return { success: true }
     } catch (error) {
         console.error("Update supervisor error:", error)
-        return { error: "Failed to update supervisor" }
+        return { error: error instanceof Error ? error.message : "Failed to update supervisor" }
     }
 }
 
-export async function updateOfficeMember(memberId: string, data: any) {
+export async function updateOfficeMember(id: string, data: any, isUserId: boolean = false) {
     const currentUser = await getSessionUser()
     if (!currentUser || currentUser.role !== "OFFICE" || currentUser.officeRole !== "SUPER_ADMIN") {
         return { error: "Unauthorized: Only Super Admin can edit office members" }
     }
 
     try {
-        await prisma.officeMember.update({
-            where: { id: memberId },
-            data: data
+        await prisma.$transaction(async (tx) => {
+            let userId = isUserId ? id : ""
+            if (!isUserId) {
+                const member = await tx.officeMember.findUnique({ where: { id } })
+                if (!member) throw new Error("Office member not found")
+                userId = member.userId
+            }
+
+            // Sync email if provided
+            if (data.email) {
+                const emailInUse = await tx.user.findUnique({ where: { email: data.email } })
+                    if (emailInUse && emailInUse.id !== userId) {
+                        throw new Error("Email is already in use by another user")
+                    }
+
+                await tx.user.update({
+                    where: { id: userId },
+                    data: { email: data.email }
+                })
+                // OfficeMember doesn't have an email field, so we delete it before updating the member record
+                delete data.email
+            }
+
+            if (isUserId) {
+                await tx.officeMember.upsert({
+                    where: { userId: id },
+                    update: data,
+                    create: {
+                        userId: id,
+                        ...data
+                    }
+                })
+            } else {
+                await tx.officeMember.update({
+                    where: { id: id },
+                    data: data
+                })
+            }
         })
+
         revalidatePath("/office/team")
         return { success: true }
     } catch (error) {
         console.error("Update office member error:", error)
-        return { error: "Failed to update office member" }
+        return { error: error instanceof Error ? error.message : "Failed to update office member" }
     }
 }
 

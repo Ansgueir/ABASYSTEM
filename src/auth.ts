@@ -88,44 +88,47 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
                 token.onboardingStep = user.onboardingStep
             }
 
-            // Continuous session validation: Check if user is still active
-            if (token.id && process.env.NEXT_RUNTIME === "nodejs") {
-                try {
-                    const dbUser = await prisma.user.findUnique({
-                        where: { id: token.id as string },
-                        select: { isActive: true, role: true, officeMember: { select: { officeRole: true, fullName: true } } }
-                    })
-
-                    console.log(`[AUTH] Checking user ${token.id}:`, dbUser ? "Found" : "Not Found", dbUser?.isActive);
-
-                    // If user doesn't exist or is disabled, invalidate token
-                    if (!dbUser || dbUser.isActive === false) {
-                        console.log(`[AUTH] Invalidating session for ${token.id} - User inactive or missing`);
-                        return null // This invalidates the session
-                    }
-
-                    // Optional: Update role if changed in DB (good for hierarchy changes)
-                    // @ts-ignore
-                    if (dbUser.role) token.role = dbUser.role
-                    if (dbUser.officeMember?.officeRole) {
-                        // @ts-ignore
-                        token.officeRole = dbUser.officeMember.officeRole
-                    }
-                } catch (error) {
-                    console.error("[AUTH] Error validating session:", error);
-                    // Decide whether to fail safe or block. 
-                    // If DB is down, maybe we shouldn't kill the session? 
-                    // But for security, usually we fail closed.
-                    // For debugging now, let's log and NOT return null to see if it allows login.
-                }
-            }
-
-            // Allow updating session data via update()
+            // 1. Priority: Allow updating session data via update()
             if (trigger === "update" && session) {
                 if (session.name) token.name = session.name
                 if (session.isFirstLogin !== undefined) token.isFirstLogin = session.isFirstLogin
                 if (session.onboardingCompleted !== undefined) token.onboardingCompleted = session.onboardingCompleted
                 if (session.onboardingStep !== undefined) token.onboardingStep = session.onboardingStep
+                return token // Return immediately after manual update
+            }
+
+            // 2. Continuous session validation: Sync with DB (ONLY in Node.js runtime)
+            // Middleware (Edge) must rely on the JWT to avoid Prisma crashes
+            if (token.id && process.env.NEXT_RUNTIME === "nodejs") {
+                try {
+                    const dbUser = await prisma.user.findUnique({
+                        where: { id: token.id as string },
+                        select: { 
+                            isActive: true, 
+                            role: true, 
+                            isFirstLogin: true, 
+                            onboardingCompleted: true,
+                            onboardingStep: true,
+                            officeMember: { select: { officeRole: true} } 
+                        }
+                    })
+
+                    // If user doesn't exist or is disabled, invalidate token
+                    if (!dbUser || dbUser.isActive === false) return null
+
+                    // Sync token flags from fresh DB state
+                    token.role = dbUser.role
+                    token.isFirstLogin = dbUser.isFirstLogin
+                    token.onboardingCompleted = dbUser.onboardingCompleted
+                    token.onboardingStep = dbUser.onboardingStep
+
+                    if (dbUser.officeMember?.officeRole) {
+                        // @ts-ignore
+                        token.officeRole = dbUser.officeMember.officeRole
+                    }
+                } catch (error) {
+                    console.error("[AUTH] JWT Sync Error:", error);
+                }
             }
 
             return token

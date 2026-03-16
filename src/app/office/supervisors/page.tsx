@@ -9,15 +9,15 @@ export default async function OfficeSupervisorsPage() {
     const session = await auth()
     if (!session?.user) redirect("/login")
 
-    const role = String((session.user as any).role).toLowerCase()
-    if (role !== "office" && role !== "qa") redirect("/login")
-    const isSuperAdmin = (session.user as any).officeRole === "SUPER_ADMIN"
+    const role = String((session.user as any).role).toUpperCase()
+    if (role !== "OFFICE" && role !== "QA") redirect("/login")
+    const isSuperAdmin = (session.user as any).officeRole === "SUPER_ADMIN" || role === "QA"
 
     let supervisors: any[] = []
 
     try {
         supervisors = await prisma.supervisor.findMany({
-            where: { user: { isHidden: false } },
+            where: { user: { isActive: true } },
             orderBy: { fullName: 'asc' },
             include: {
                 _count: { select: { students: true } },

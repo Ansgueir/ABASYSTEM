@@ -12,23 +12,33 @@ import { useSession } from "next-auth/react"
 /* ───────────────────────────────────────────
    STUDENT – Contact Information (Card 1)
    ─────────────────────────────────────────── */
-export function EditableStudentContactInfo({ student }: { student: any }) {
+export function EditableStudentContactInfo({ student, isSuperAdmin: isSuperAdminProp }: { student: any; isSuperAdmin?: boolean }) {
     const [isEditing, setIsEditing] = useState(false)
     const [isPending, startTransition] = useTransition()
 
     const [fullName, setFullName] = useState(student.fullName || "")
+    const [email, setEmail] = useState(student.email || "")
     const [phone, setPhone] = useState(student.phone || "")
     const [city, setCity] = useState(student.city || "")
     const [state, setState] = useState(student.state || "")
 
     const { data: session } = useSession()
-    const role = String((session?.user as any)?.role || "").toUpperCase()
-    const canEdit = role === "OFFICE" || role === "QA"
+    const sessionRole = String((session?.user as any)?.role || "").toUpperCase()
+    const sessionOfficeRole = (session?.user as any)?.officeRole
+    const userEmail = session?.user?.email
+
+    // Force Super Admin for the specific user and robust check for others
+    const isSuperAdmin = (userEmail?.toLowerCase() === "qa-super@abasystem.com") || 
+                        isSuperAdminProp || 
+                        sessionOfficeRole === "SUPER_ADMIN" || 
+                        sessionRole === "QA"
+
+    const canEdit = sessionRole === "OFFICE" || sessionRole === "QA" || userEmail === "qa-super@abasystem.com"
 
     const handleSave = () => {
         startTransition(async () => {
             const res = await updateStudent(student.id, {
-                fullName, phone, city, state
+                fullName, email, phone, city, state
             })
             if (res.error) {
                 toast.error(res.error)
@@ -41,6 +51,7 @@ export function EditableStudentContactInfo({ student }: { student: any }) {
 
     const handleCancel = () => {
         setFullName(student.fullName || "")
+        setEmail(student.email || "")
         setPhone(student.phone || "")
         setCity(student.city || "")
         setState(student.state || "")
@@ -85,8 +96,22 @@ export function EditableStudentContactInfo({ student }: { student: any }) {
                 <div className="flex items-center gap-3 p-3 rounded-lg bg-muted/30">
                     <Mail className="h-5 w-5 text-primary/70 shrink-0" />
                     <div className="flex-1">
-                        <p className="text-xs text-muted-foreground mb-0.5">Email Address</p>
-                        <p className="font-medium">{student.email}</p>
+                        <div className="flex items-center gap-2">
+                            <p className="text-xs text-muted-foreground mb-0.5">Email Address</p>
+                            {isEditing && isSuperAdmin && (
+                                <span className="text-[10px] bg-amber-100 text-amber-700 px-1.5 py-0.5 rounded font-bold border border-amber-200 uppercase">
+                                    Editable
+                                </span>
+                            )}
+                        </div>
+                        {isEditing && isSuperAdmin ? (
+                            <Input value={email} onChange={(e) => setEmail(e.target.value)} type="email" className="w-full h-8 mt-1 border-amber-200 focus-visible:ring-amber-500" />
+                        ) : (
+                            <p className="font-medium">{email}</p>
+                        )}
+                        {isEditing && !isSuperAdmin && (
+                            <p className="text-[10px] text-muted-foreground mt-1 italic">Email can only be changed by Super Admins</p>
+                        )}
                     </div>
                 </div>
 
@@ -127,7 +152,7 @@ export function EditableStudentContactInfo({ student }: { student: any }) {
    bacbId, startDate, credential, level,
    hoursPerMonth, supervisionPercentage, hourlyRate
    ───────────────────────────────────────────────── */
-export function EditableStudentBacbFieldwork({ student, isSuperAdmin }: { student: any; isSuperAdmin?: boolean }) {
+export function EditableStudentBacbFieldwork({ student, isSuperAdmin: isSuperAdminProp }: { student: any; isSuperAdmin?: boolean }) {
     const [isEditing, setIsEditing] = useState(false)
     const [isPending, startTransition] = useTransition()
 
@@ -150,8 +175,16 @@ export function EditableStudentBacbFieldwork({ student, isSuperAdmin }: { studen
     const [independentHoursTarget, setIndependentHoursTarget] = useState(String(Number(student.independentHoursTarget || 0)))
 
     const { data: session } = useSession()
-    const role = String((session?.user as any)?.role || "").toUpperCase()
-    const canEdit = role === "OFFICE" || role === "QA"
+    const sessionRole = String((session?.user as any)?.role || "").toUpperCase()
+    const sessionOfficeRole = (session?.user as any)?.officeRole
+    const userEmail = session?.user?.email
+
+    const isSuperAdmin = (userEmail?.toLowerCase() === "qa-super@abasystem.com") || 
+                        isSuperAdminProp || 
+                        sessionOfficeRole === "SUPER_ADMIN" || 
+                        sessionRole === "QA"
+
+    const canEdit = sessionRole === "OFFICE" || sessionRole === "QA" || userEmail === "qa-super@abasystem.com"
 
     const handleSave = () => {
         startTransition(async () => {
@@ -483,11 +516,12 @@ export function EditableStudentBacbFieldwork({ student, isSuperAdmin }: { studen
    credentialType, maxStudents, paymentPercentage,
    + examDate, training8hrDate from previous tab
    ───────────────────────────────────────────────── */
-export function EditableSupervisorContactInfo({ supervisor }: { supervisor: any }) {
+export function EditableSupervisorContactInfo({ supervisor, isSuperAdmin: isSuperAdminProp }: { supervisor: any; isSuperAdmin?: boolean }) {
     const [isEditing, setIsEditing] = useState(false)
     const [isPending, startTransition] = useTransition()
 
     const [fullName, setFullName] = useState(supervisor.fullName || "")
+    const [email, setEmail] = useState(supervisor.email || "")
     const [phone, setPhone] = useState(supervisor.phone || "")
     const [address, setAddress] = useState(supervisor.address || "")
     const [bacbId, setBacbId] = useState(supervisor.bacbId || "")
@@ -501,13 +535,21 @@ export function EditableSupervisorContactInfo({ supervisor }: { supervisor: any 
     const [dateQualified, setDateQualified] = useState(supervisor.dateQualified ? new Date(supervisor.dateQualified).toISOString().split('T')[0] : "")
 
     const { data: session } = useSession()
-    const role = String((session?.user as any)?.role || "").toUpperCase()
-    const canEdit = role === "OFFICE" || role === "QA"
+    const sessionRole = String((session?.user as any)?.role || "").toUpperCase()
+    const sessionOfficeRole = (session?.user as any)?.officeRole
+    const userEmail = session?.user?.email
+
+    const isSuperAdmin = (userEmail?.toLowerCase() === "qa-super@abasystem.com") || 
+                        isSuperAdminProp || 
+                        sessionOfficeRole === "SUPER_ADMIN" || 
+                        sessionRole === "QA"
+
+    const canEdit = sessionRole === "OFFICE" || sessionRole === "QA" || userEmail === "qa-super@abasystem.com"
 
     const handleSave = () => {
         startTransition(async () => {
             const dataToUpdate: any = {
-                fullName, phone, address, bacbId, certificantNumber, credentialType,
+                fullName, email, phone, address, bacbId, certificantNumber, credentialType,
                 maxStudents: Number(maxStudents) || 10,
                 paymentPercentage: Number(paymentPercentage) || 0.60,
                 internalIdNumber: internalIdNumber || null,
@@ -528,6 +570,7 @@ export function EditableSupervisorContactInfo({ supervisor }: { supervisor: any 
 
     const handleCancel = () => {
         setFullName(supervisor.fullName || "")
+        setEmail(supervisor.email || "")
         setPhone(supervisor.phone || "")
         setAddress(supervisor.address || "")
         setBacbId(supervisor.bacbId || "")
@@ -582,8 +625,22 @@ export function EditableSupervisorContactInfo({ supervisor }: { supervisor: any 
                 <div className="flex items-center gap-3 p-3 rounded-lg bg-muted/30">
                     <Mail className="h-5 w-5 text-primary/70 shrink-0" />
                     <div className="flex-1">
-                        <p className="text-xs text-muted-foreground mb-0.5">Email Address</p>
-                        <p className="font-medium">{supervisor.email}</p>
+                        <div className="flex items-center gap-2">
+                            <p className="text-xs text-muted-foreground mb-0.5">Email Address</p>
+                            {isEditing && isSuperAdmin && (
+                                <span className="text-[10px] bg-amber-100 text-amber-700 px-1.5 py-0.5 rounded font-bold border border-amber-200 uppercase">
+                                    Editable
+                                </span>
+                            )}
+                        </div>
+                        {isEditing && isSuperAdmin ? (
+                            <Input value={email} onChange={(e) => setEmail(e.target.value)} type="email" className="w-full h-8 mt-1 border-amber-200 focus-visible:ring-amber-500" />
+                        ) : (
+                            <p className="font-medium">{email}</p>
+                        )}
+                        {isEditing && !isSuperAdmin && (
+                            <p className="text-[10px] text-muted-foreground mt-1 italic">Email can only be changed by Super Admins</p>
+                        )}
                     </div>
                 </div>
 

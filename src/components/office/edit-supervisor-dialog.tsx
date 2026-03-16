@@ -22,9 +22,15 @@ interface EditSupervisorDialogProps {
     supervisor: any
     open?: boolean
     onOpenChange?: (open: boolean) => void
+    isSuperAdmin?: boolean
 }
 
-export function EditSupervisorDialog({ supervisor, open: controlledOpen, onOpenChange: controlledOnOpenChange }: EditSupervisorDialogProps) {
+export function EditSupervisorDialog({ 
+    supervisor, 
+    open: controlledOpen, 
+    onOpenChange: controlledOnOpenChange,
+    isSuperAdmin = false 
+}: EditSupervisorDialogProps) {
     const [internalOpen, setInternalOpen] = useState(false)
     const open = controlledOpen !== undefined ? controlledOpen : internalOpen
     const onOpenChange = controlledOnOpenChange || setInternalOpen
@@ -37,6 +43,7 @@ export function EditSupervisorDialog({ supervisor, open: controlledOpen, onOpenC
 
         const formattedData: any = {
             fullName: data.fullName,
+            email: data.email,
             phone: data.phone,
             address: data.address,
             bacbId: data.bacbId,
@@ -75,20 +82,25 @@ export function EditSupervisorDialog({ supervisor, open: controlledOpen, onOpenC
                     </DialogDescription>
                 </DialogHeader>
                 <form onSubmit={onSubmit} className="space-y-4 py-4">
-                    <div className="grid grid-cols-2 gap-4">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         <div className="space-y-2">
                             <Label htmlFor="fullName">Full Name</Label>
                             <Input id="fullName" name="fullName" defaultValue={supervisor.fullName} required />
                         </div>
                         <div className="space-y-2">
+                            <Label htmlFor="email">Email {isSuperAdmin && <span className="text-amber-600 font-bold ml-1">(Editable)</span>}</Label>
+                            <Input id="email" name="email" type="email" defaultValue={supervisor.email} required disabled={!isSuperAdmin} />
+                        </div>
+                    </div>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div className="space-y-2">
                             <Label htmlFor="phone">Phone</Label>
                             <Input id="phone" name="phone" defaultValue={supervisor.phone || ""} />
                         </div>
-                    </div>
-
-                    <div className="space-y-2">
-                        <Label htmlFor="address">Address</Label>
-                        <Input id="address" name="address" defaultValue={supervisor.address || ""} />
+                        <div className="space-y-2">
+                            <Label htmlFor="address">Address</Label>
+                            <Input id="address" name="address" defaultValue={supervisor.address || ""} />
+                        </div>
                     </div>
 
                     <div className="grid grid-cols-2 gap-4">

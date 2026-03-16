@@ -15,7 +15,7 @@ import {
     DropdownMenuItem,
     DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
-import { Sheet, SheetContent, SheetTrigger, SheetClose } from "@/components/ui/sheet"
+import { Sheet, SheetContent, SheetTrigger, SheetClose, SheetHeader, SheetTitle, SheetDescription } from "@/components/ui/sheet"
 import { Label } from "@/components/ui/label"
 import { Checkbox } from "@/components/ui/checkbox"
 import { format, isWithinInterval, parseISO } from "date-fns"
@@ -242,16 +242,19 @@ export function StudentList({ initialStudents, isSuperAdmin }: StudentListProps)
                                 </Button>
                             </SheetTrigger>
                             <SheetContent className="w-[400px] sm:w-[540px] overflow-y-auto">
-                                <div className="mb-6 flex flex-col space-y-2 text-center sm:text-left">
-                                    <div className="flex justify-between items-center text-lg font-semibold text-foreground">
-                                        <span>Advanced Filters</span>
+                                <SheetHeader className="mb-6">
+                                    <div className="flex justify-between items-center">
+                                        <SheetTitle className="text-xl font-bold">Advanced Filters</SheetTitle>
                                         {activeFiltersCount > 0 && (
                                             <Button variant="ghost" size="sm" onClick={clearFilters} className="text-muted-foreground hover:text-foreground">
                                                 Clear All
                                             </Button>
                                         )}
                                     </div>
-                                </div>
+                                    <SheetDescription>
+                                        Narrow down the student list by applying one or more filters below.
+                                    </SheetDescription>
+                                </SheetHeader>
 
                                 <div className="space-y-8 pb-12">
                                     {/* Status */}
@@ -557,6 +560,8 @@ export function StudentList({ initialStudents, isSuperAdmin }: StudentListProps)
                                                         email={student.email}
                                                         type="student"
                                                         isActive={student.user?.isActive ?? true}
+                                                        isSuperAdmin={isSuperAdmin}
+                                                        fullData={student}
                                                     />
                                                 </div>
                                             </td>
