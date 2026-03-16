@@ -42,9 +42,21 @@ export default function ProfilePage() {
                 const response = await fetch(`/api/user/profile?id=${session.user.id}`)
                 if (response.ok) {
                     const data = await response.json()
+                    
+                    if (!data) {
+                        setFormData(prev => ({
+                            ...prev,
+                            fullName: "Unknown Profile",
+                            email: session?.user?.email || "",
+                            academicDegree: "N/A",
+                            supervisorName: "N/A"
+                        }))
+                        return
+                    }
+
                     setFormData({
                         fullName: data.fullName || "",
-                        email: session.user.email || "",
+                        email: session?.user?.email || "",
                         phone: data.phone || "",
                         address: data.address || "",
                         academicDegree: data.academicDegree || "Student",

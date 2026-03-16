@@ -14,9 +14,9 @@ export default async function OfficeDashboard() {
     const session = await auth()
     if (!session?.user) redirect("/login")
 
-    const role = String((session.user as any).role).toLowerCase()
-    if (role !== "office" && role !== "qa") redirect("/login")
-    const isSuperAdmin = (session.user as any).officeRole === "SUPER_ADMIN"
+    const role = String((session.user as any).role).toUpperCase()
+    if (role !== "OFFICE" && role !== "QA") redirect("/login")
+    const isSuperAdmin = (session.user as any).officeRole === "SUPER_ADMIN" || role === "QA"
 
     let stats = {
         totalStudents: 0,

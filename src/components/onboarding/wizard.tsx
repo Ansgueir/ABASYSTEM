@@ -10,12 +10,16 @@ import { Label } from "@/components/ui/label"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Progress } from "@/components/ui/progress"
-import { Loader2 } from "lucide-react"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
+import { Calendar } from "@/components/ui/calendar"
+import { format } from "date-fns"
+import { Calendar as CalendarIcon, Loader2 } from "lucide-react"
+import { cn } from "@/lib/utils"
 import dynamic from "next/dynamic"
 import { useSession } from "next-auth/react"
 import { useEffect } from "react"
 import { getGeneralSettings } from "@/actions/settings"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 
 import type SignaturePad from "react-signature-canvas"
 
@@ -70,7 +74,7 @@ export default function OnboardingWizard({ initialStep, initialData }: WizardPro
     const [companyName, setCompanyName] = useState("ABA Supervision System")
 
     useEffect(() => {
-        getGeneralSettings().then(res => {
+        getGeneralSettings().then((res: any) => {
             if (res.success && res.settings) {
                 setCompanyName(res.settings.companyName)
             }
@@ -316,23 +320,55 @@ export default function OnboardingWizard({ initialStep, initialData }: WizardPro
                                     </div>
                                     <div className="space-y-2">
                                         <Label htmlFor="dateQualified">Date Qualified <span className="text-red-500">*</span></Label>
-                                        <Input
-                                            id="dateQualified"
-                                            type="date"
-                                            value={dateQualified}
-                                            onChange={(e) => setDateQualified(e.target.value)}
-                                            required
-                                        />
+                                        <Popover>
+                                            <PopoverTrigger asChild>
+                                                <div className="relative cursor-pointer group">
+                                                    <Input
+                                                        id="dateQualified-display"
+                                                        value={dateQualified ? format(new Date(dateQualified), "PPP") : ""}
+                                                        placeholder="dd/mm/aaaa"
+                                                        readOnly
+                                                        className="pr-10 rounded-xl cursor-pointer focus:ring-indigo-500/30 focus:border-indigo-500"
+                                                    />
+                                                    <CalendarIcon className="absolute right-3 top-1/2 -translate-y-1/2 h-5 w-5 text-indigo-600 opacity-70 group-hover:opacity-100 transition-opacity" />
+                                                </div>
+                                            </PopoverTrigger>
+                                            <PopoverContent className="w-auto p-0" align="start">
+                                                <Calendar
+                                                    mode="single"
+                                                    selected={dateQualified ? new Date(dateQualified) : undefined}
+                                                    onSelect={(date) => setDateQualified(date ? date.toISOString().split('T')[0] : "")}
+                                                    initialFocus
+                                                />
+                                            </PopoverContent>
+                                        </Popover>
+                                        <input type="hidden" name="dateQualified" value={dateQualified} required />
                                     </div>
                                     <div className="space-y-2">
                                         <Label htmlFor="examDate">Exam Date <span className="text-red-500">*</span></Label>
-                                        <Input
-                                            id="examDate"
-                                            type="date"
-                                            value={examDate}
-                                            onChange={(e) => setExamDate(e.target.value)}
-                                            required
-                                        />
+                                        <Popover>
+                                            <PopoverTrigger asChild>
+                                                <div className="relative cursor-pointer group">
+                                                    <Input
+                                                        id="examDate-display"
+                                                        value={examDate ? format(new Date(examDate), "PPP") : ""}
+                                                        placeholder="dd/mm/aaaa"
+                                                        readOnly
+                                                        className="pr-10 rounded-xl cursor-pointer focus:ring-indigo-500/30 focus:border-indigo-500"
+                                                    />
+                                                    <CalendarIcon className="absolute right-3 top-1/2 -translate-y-1/2 h-5 w-5 text-indigo-600 opacity-70 group-hover:opacity-100 transition-opacity" />
+                                                </div>
+                                            </PopoverTrigger>
+                                            <PopoverContent className="w-auto p-0" align="start">
+                                                <Calendar
+                                                    mode="single"
+                                                    selected={examDate ? new Date(examDate) : undefined}
+                                                    onSelect={(date) => setExamDate(date ? date.toISOString().split('T')[0] : "")}
+                                                    initialFocus
+                                                />
+                                            </PopoverContent>
+                                        </Popover>
+                                        <input type="hidden" name="examDate" value={examDate} required />
                                     </div>
                                 </div>
                             )}

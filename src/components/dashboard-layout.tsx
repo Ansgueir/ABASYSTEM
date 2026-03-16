@@ -20,7 +20,7 @@ import {
     Search
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
-import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet"
+import { Sheet, SheetContent, SheetTrigger, SheetHeader, SheetTitle, SheetDescription } from "@/components/ui/sheet"
 import { GlobalSearch } from "./global-search"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Input } from "@/components/ui/input"
@@ -39,12 +39,14 @@ export default function DashboardLayout({
     rightPanel
 }: DashboardLayoutProps) {
     const { data: session } = useSession()
+    const [mounted, setMounted] = useState(false)
     const [isSidebarOpen, setIsSidebarOpen] = useState(false)
     const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false)
     const [companyName, setCompanyName] = useState("ABA Supervision System")
     const pathname = usePathname()
 
     useEffect(() => {
+        setMounted(true)
         getGeneralSettings().then(res => {
             if (res.success && res.settings?.companyName) {
                 setCompanyName(res.settings.companyName)
@@ -99,24 +101,34 @@ export default function DashboardLayout({
             {/* Mobile Header */}
             <header className="lg:hidden sticky top-0 z-50 flex items-center justify-between px-4 py-3 bg-card border-b border-border shadow-sm">
                 <div className="flex items-center gap-3">
-                    <Sheet open={isSidebarOpen} onOpenChange={setIsSidebarOpen}>
-                        <SheetTrigger asChild>
-                            <Button variant="ghost" size="icon" className="rounded-xl">
-                                <Menu className="h-5 w-5" />
-                            </Button>
-                        </SheetTrigger>
-                        <SheetContent side="left" className="w-72 bg-card p-0">
-                            <SidebarContent
-                                routes={currentRoutes}
-                                pathname={pathname}
-                                collapsed={false}
-                                onToggleCollapse={undefined}
-                                onClose={() => setIsSidebarOpen(false)}
-                                user={{ name: userName, role: userRole, avatar: initials }}
-                                companyName={companyName}
-                            />
-                        </SheetContent>
-                    </Sheet>
+                    {mounted ? (
+                        <Sheet open={isSidebarOpen} onOpenChange={setIsSidebarOpen}>
+                            <SheetTrigger asChild>
+                                <Button variant="ghost" size="icon" className="rounded-xl">
+                                    <Menu className="h-5 w-5" />
+                                </Button>
+                            </SheetTrigger>
+                            <SheetContent side="left" className="w-72 bg-card p-0">
+                                <SheetHeader className="sr-only">
+                                    <SheetTitle>Navigation Menu</SheetTitle>
+                                    <SheetDescription>Main navigation links for the dashboard</SheetDescription>
+                                </SheetHeader>
+                                <SidebarContent
+                                    routes={currentRoutes}
+                                    pathname={pathname}
+                                    collapsed={false}
+                                    onToggleCollapse={undefined}
+                                    onClose={() => setIsSidebarOpen(false)}
+                                    user={{ name: userName, role: userRole, avatar: initials }}
+                                    companyName={companyName}
+                                />
+                            </SheetContent>
+                        </Sheet>
+                    ) : (
+                        <Button variant="ghost" size="icon" className="rounded-xl">
+                            <Menu className="h-5 w-5" />
+                        </Button>
+                    )}
                     <div className="flex items-center gap-2">
                         <div className="h-8 w-8 rounded-xl gradient-primary flex items-center justify-center">
                             <GraduationCap className="h-5 w-5 text-white" />

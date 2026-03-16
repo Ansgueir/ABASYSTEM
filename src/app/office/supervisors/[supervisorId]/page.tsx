@@ -20,9 +20,9 @@ export default async function OfficeSupervisorDetailPage({ params }: { params: P
     const { supervisorId } = await params
     const session = await auth()
     if (!session?.user) redirect("/login")
-    const role = String((session.user as any).role).toLowerCase()
-    if (role !== "office" && role !== "qa") redirect("/login")
-    const isSuperAdmin = (session.user as any).officeRole === "SUPER_ADMIN"
+    const role = String((session.user as any).role).toUpperCase()
+    if (role !== "OFFICE" && role !== "QA") redirect("/login")
+    const isSuperAdmin = (session.user as any).officeRole === "SUPER_ADMIN" || role === "QA"
 
     // Use `any` cast to avoid stale Prisma type errors
     const supervisor = await (prisma as any).supervisor.findUnique({
@@ -127,7 +127,7 @@ export default async function OfficeSupervisorDetailPage({ params }: { params: P
 
                     <TabsContent value="profile">
                         <div className="grid gap-6 md:grid-cols-2">
-                            <EditableSupervisorContactInfo supervisor={safeSupervisor} />
+                            <EditableSupervisorContactInfo supervisor={safeSupervisor} isSuperAdmin={isSuperAdmin} />
 
                             <div className="rounded-xl border bg-card p-6 space-y-4">
                                 <h3 className="font-semibold text-lg flex items-center gap-2">

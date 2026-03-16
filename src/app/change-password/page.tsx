@@ -66,17 +66,19 @@ export default function ChangePasswordPage() {
             } else if (result.success) {
                 toast.success("Password updated successfully!")
 
-                // Update session state before redirect
-                await update({
-                    isFirstLogin: false,
-                    onboardingCompleted: false,
-                    onboardingStep: 1
-                })
-
-                // Redirect to onboarding after short delay
-                setTimeout(() => {
+                try {
+                    // Update session state locally
+                    await update({
+                        isFirstLogin: false,
+                        onboardingCompleted: false,
+                        onboardingStep: 1
+                    })
                     router.push("/onboarding")
-                }, 1000)
+                } catch (updateError) {
+                    console.error("Session update failed, but password was changed:", updateError)
+                    toast.info("Password changed. Please refresh the page or login again to proceed.")
+                    setIsPending(false)
+                }
             }
         } catch (error) {
             console.error(error)

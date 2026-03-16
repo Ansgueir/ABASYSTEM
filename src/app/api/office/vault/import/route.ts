@@ -132,7 +132,7 @@ export async function POST(request: Request) {
                 }, { status: 422 })
             }
 
-            const existingStudents = await prisma.student.findMany({
+            const existingStudents = await (prisma as any).student.findMany({
                 include: { user: true, financialPeriods: true, supervisor: true }
             })
             const existingSupervisors = await prisma.supervisor.findMany({
@@ -256,7 +256,7 @@ export async function POST(request: Request) {
                 if (allRowNumbers.length > 1) mergedRecords.push({ bacbId, traineeName, allRowNumbers })
 
                 const existingStudent = existingStudents.find(
-                    s => s.bacbId === bacbId && s.fullName.toLowerCase().trim() === traineeName
+                    (s: any) => s.bacbId === bacbId && s.fullName.toLowerCase().trim() === traineeName
                 )
 
                 const supervisorName        = cellStr(row, "C")
@@ -349,7 +349,7 @@ export async function POST(request: Request) {
                     if (!traineeNameRaw || traineeNameRaw.trim() === "") break
 
                 const traineeName = traineeNameRaw.trim()
-                const existingStudent = existingStudents.find(s => s.fullName.toLowerCase().trim() === traineeName)
+                const existingStudent = existingStudents.find((s: any) => s.fullName.toLowerCase().trim() === traineeName)
 
                 // Iteración horizontal M (13) hasta BJ (62) - Periodos 1 al 50
                 for (let col = 13; col <= 62; col++) {
@@ -374,7 +374,7 @@ export async function POST(request: Request) {
                     }
 
                     if (existingStudent) {
-                        const existingPeriod = existingStudent.financialPeriods.find(p => p.periodNumber === periodNum)
+                        const existingPeriod = existingStudent.financialPeriods.find((p: any) => p.periodNumber === periodNum)
                         if (existingPeriod && Number(existingPeriod.amountDueOffice || 0) !== amount) {
                             conflicts.push({
                                 id: `CFL-${existingPeriod.id}`, 

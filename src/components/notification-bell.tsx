@@ -19,12 +19,14 @@ interface NotificationItem {
 }
 
 export function NotificationBell() {
+    const [mounted, setMounted] = useState(false)
     const [notifications, setNotifications] = useState<NotificationItem[]>([])
     const [unreadCount, setUnreadCount] = useState(0)
     const [open, setOpen] = useState(false)
     const router = useRouter()
 
     useEffect(() => {
+        setMounted(true)
         fetchNotifications()
     }, [])
 
@@ -61,6 +63,14 @@ export function NotificationBell() {
         } catch (error) {
             console.error("Failed to mark all as read", error)
         }
+    }
+
+    if (!mounted) {
+        return (
+            <Button variant="ghost" size="icon" className="rounded-xl relative">
+                <Bell className="h-5 w-5" />
+            </Button>
+        )
     }
 
     return (

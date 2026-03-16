@@ -101,9 +101,32 @@ export async function submitContactInfo(prevState: any, formData: FormData) {
                 return { error: "Missing required fields for student registration: BACB ID, Credential, City or State" }
             }
 
-            await prisma.student.update({
+            await prisma.student.upsert({
                 where: { userId: session.user.id },
-                data: {
+                create: {
+                    userId: session.user.id,
+                    fullName: session.user.name || "Student",
+                    email: session.user.email || "",
+                    phone: d.phone,
+                    address: d.address,
+                    city: d.city,
+                    state: d.state,
+                    bacbId: d.bacbId,
+                    credential: d.credential as CredentialType,
+                    vcsSequence: d.vcsSequence || null,
+                    school: "TBD", // Mandatory field default
+                    level: "BCBA", // Mandatory field default
+                    startDate: new Date(), // Mandatory field default
+                    supervisionType: "REGULAR", // Mandatory field default
+                    supervisionPercentage: 0.05, // Standard 5%
+                    hoursToDo: 0,
+                    hoursToPay: 0,
+                    amountToPay: 0,
+                    hoursPerMonth: 0,
+                    totalMonths: 0,
+                    endDate: new Date(),
+                },
+                update: {
                     phone: d.phone,
                     address: d.address,
                     city: d.city,
@@ -120,9 +143,21 @@ export async function submitContactInfo(prevState: any, formData: FormData) {
 
             const fullAddress = d.city && d.state ? `${d.address}, ${d.city}, ${d.state}` : d.address
 
-            await prisma.supervisor.update({
+            await prisma.supervisor.upsert({
                 where: { userId: session.user.id },
-                data: {
+                create: {
+                    userId: session.user.id,
+                    fullName: session.user.name || "Supervisor",
+                    email: session.user.email || "",
+                    phone: d.phone,
+                    address: fullAddress,
+                    certificantNumber: d.certificantNumber,
+                    bacbId: d.certificantNumber, // Use cert# as default bacbId
+                    credentialType: d.qualificationLevel as CredentialType,
+                    dateQualified: new Date(d.dateQualified),
+                    examDate: new Date(d.examDate),
+                },
+                update: {
                     phone: d.phone,
                     address: fullAddress,
                     certificantNumber: d.certificantNumber,

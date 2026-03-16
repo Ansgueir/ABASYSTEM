@@ -12,7 +12,7 @@ export async function generateOrUpdateFinancialPeriods(studentId: string) {
     if (!isSuperAdmin) return { error: "Permission Denied" }
 
     try {
-        const student = await prisma.student.findUnique({
+        const student = await (prisma as any).student.findUnique({
             where: { id: studentId },
             include: { financialPeriods: true }
         })

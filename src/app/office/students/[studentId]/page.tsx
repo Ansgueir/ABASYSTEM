@@ -21,9 +21,9 @@ export default async function OfficeStudentDetailPage({ params }: { params: Prom
     const { studentId } = await params
     const session = await auth()
     if (!session?.user) redirect("/login")
-    const role = String((session.user as any).role).toLowerCase()
-    if (role !== "office" && role !== "qa") redirect("/login")
-    const isSuperAdmin = (session.user as any).officeRole === "SUPER_ADMIN"
+    const role = String((session.user as any).role).toUpperCase()
+    if (role !== "OFFICE" && role !== "QA") redirect("/login")
+    const isSuperAdmin = (session.user as any).officeRole === "SUPER_ADMIN" || role === "QA"
 
     // Use `any` cast to avoid stale Prisma type errors after migration until server restarts
     const student = await (prisma as any).student.findUnique({
@@ -141,7 +141,7 @@ export default async function OfficeStudentDetailPage({ params }: { params: Prom
 
                     <TabsContent value="profile">
                         <div className="grid gap-6 md:grid-cols-2">
-                            <EditableStudentContactInfo student={safeStudent} />
+                            <EditableStudentContactInfo student={safeStudent} isSuperAdmin={isSuperAdmin} />
                             <EditableStudentBacbFieldwork student={safeStudent} isSuperAdmin={isSuperAdmin} />
                         </div>
                     </TabsContent>

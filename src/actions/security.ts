@@ -68,11 +68,8 @@ export async function changeInitialPassword(prevState: any, formData: FormData) 
             }
         })
 
-        console.log(`Password changed for user ${user.email}. Starting onboarding.`)
-
         // Return success so client can redirect or refresh
         return { success: true }
-
     } catch (error) {
         console.error("Failed to change password:", error)
         return { error: "Failed to update password" }
