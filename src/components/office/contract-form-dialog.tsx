@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useTransition } from "react"
+import { useState, useTransition, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -41,6 +41,13 @@ export function ContractFormDialog({ studentId, supervisors, existing }: Contrac
     const [open, setOpen] = useState(false)
     const [pending, startTransition] = useTransition()
     const [error, setError] = useState("")
+    const [mounted, setMounted] = useState(false)
+
+    useEffect(() => {
+        setMounted(true)
+    }, [])
+
+    if (!mounted) return null
 
     const isEditing = !!existing
 

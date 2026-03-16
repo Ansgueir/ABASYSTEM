@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useTransition } from "react"
+import { useState, useTransition, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { toast } from "sonner"
@@ -13,6 +13,9 @@ import { useSession } from "next-auth/react"
    STUDENT – Contact Information (Card 1)
    ─────────────────────────────────────────── */
 export function EditableStudentContactInfo({ student, isSuperAdmin: isSuperAdminProp }: { student: any; isSuperAdmin?: boolean }) {
+    const [mounted, setMounted] = useState(false)
+    const { data: session } = useSession()
+
     const [isEditing, setIsEditing] = useState(false)
     const [isPending, startTransition] = useTransition()
 
@@ -22,7 +25,19 @@ export function EditableStudentContactInfo({ student, isSuperAdmin: isSuperAdmin
     const [city, setCity] = useState(student.city || "")
     const [state, setState] = useState(student.state || "")
 
-    const { data: session } = useSession()
+    useEffect(() => {
+        setMounted(true)
+        if (session?.user) {
+            console.log("[EditableContactInfo] User session detected:", {
+                email: session.user.email,
+                role: (session.user as any).role,
+                officeRole: (session.user as any).officeRole
+            })
+        }
+    }, [session])
+
+    if (!mounted) return null
+
     const sessionRole = String((session?.user as any)?.role || "").toUpperCase()
     const sessionOfficeRole = (session?.user as any)?.officeRole
     const userEmail = session?.user?.email
@@ -33,7 +48,7 @@ export function EditableStudentContactInfo({ student, isSuperAdmin: isSuperAdmin
                         sessionOfficeRole === "SUPER_ADMIN" || 
                         sessionRole === "QA"
 
-    const canEdit = sessionRole === "OFFICE" || sessionRole === "QA" || userEmail === "qa-super@abasystem.com"
+    const canEdit = sessionRole === "OFFICE" || sessionRole === "QA" || userEmail?.toLowerCase() === "qa-super@abasystem.com"
 
     const handleSave = () => {
         startTransition(async () => {
@@ -153,6 +168,13 @@ export function EditableStudentContactInfo({ student, isSuperAdmin: isSuperAdmin
    hoursPerMonth, supervisionPercentage, hourlyRate
    ───────────────────────────────────────────────── */
 export function EditableStudentBacbFieldwork({ student, isSuperAdmin: isSuperAdminProp }: { student: any; isSuperAdmin?: boolean }) {
+    const [mounted, setMounted] = useState(false)
+    const { data: session } = useSession()
+
+    useEffect(() => {
+        setMounted(true)
+    }, [])
+
     const [isEditing, setIsEditing] = useState(false)
     const [isPending, startTransition] = useTransition()
 
@@ -174,7 +196,8 @@ export function EditableStudentBacbFieldwork({ student, isSuperAdmin: isSuperAdm
     const [concentratedHoursTarget, setConcentratedHoursTarget] = useState(String(Number(student.concentratedHoursTarget || 0)))
     const [independentHoursTarget, setIndependentHoursTarget] = useState(String(Number(student.independentHoursTarget || 0)))
 
-    const { data: session } = useSession()
+    if (!mounted) return null
+
     const sessionRole = String((session?.user as any)?.role || "").toUpperCase()
     const sessionOfficeRole = (session?.user as any)?.officeRole
     const userEmail = session?.user?.email
@@ -184,7 +207,7 @@ export function EditableStudentBacbFieldwork({ student, isSuperAdmin: isSuperAdm
                         sessionOfficeRole === "SUPER_ADMIN" || 
                         sessionRole === "QA"
 
-    const canEdit = sessionRole === "OFFICE" || sessionRole === "QA" || userEmail === "qa-super@abasystem.com"
+    const canEdit = sessionRole === "OFFICE" || sessionRole === "QA" || userEmail?.toLowerCase() === "qa-super@abasystem.com"
 
     const handleSave = () => {
         startTransition(async () => {
@@ -517,6 +540,13 @@ export function EditableStudentBacbFieldwork({ student, isSuperAdmin: isSuperAdm
    + examDate, training8hrDate from previous tab
    ───────────────────────────────────────────────── */
 export function EditableSupervisorContactInfo({ supervisor, isSuperAdmin: isSuperAdminProp }: { supervisor: any; isSuperAdmin?: boolean }) {
+    const [mounted, setMounted] = useState(false)
+    const { data: session } = useSession()
+
+    useEffect(() => {
+        setMounted(true)
+    }, [])
+
     const [isEditing, setIsEditing] = useState(false)
     const [isPending, startTransition] = useTransition()
 
@@ -534,7 +564,8 @@ export function EditableSupervisorContactInfo({ supervisor, isSuperAdmin: isSupe
     const [internalIdNumber, setInternalIdNumber] = useState(supervisor.internalIdNumber || "")
     const [dateQualified, setDateQualified] = useState(supervisor.dateQualified ? new Date(supervisor.dateQualified).toISOString().split('T')[0] : "")
 
-    const { data: session } = useSession()
+    if (!mounted) return null
+
     const sessionRole = String((session?.user as any)?.role || "").toUpperCase()
     const sessionOfficeRole = (session?.user as any)?.officeRole
     const userEmail = session?.user?.email
@@ -544,7 +575,7 @@ export function EditableSupervisorContactInfo({ supervisor, isSuperAdmin: isSupe
                         sessionOfficeRole === "SUPER_ADMIN" || 
                         sessionRole === "QA"
 
-    const canEdit = sessionRole === "OFFICE" || sessionRole === "QA" || userEmail === "qa-super@abasystem.com"
+    const canEdit = sessionRole === "OFFICE" || sessionRole === "QA" || userEmail?.toLowerCase() === "qa-super@abasystem.com"
 
     const handleSave = () => {
         startTransition(async () => {
