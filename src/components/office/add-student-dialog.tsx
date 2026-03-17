@@ -49,7 +49,7 @@ export function AddStudentDialog({ isSuperAdmin }: AddStudentDialogProps) {
                     Add Student
                 </Button>
             </DialogTrigger>
-            <DialogContent className="max-w-4xl w-[95vw] gap-6">
+            <DialogContent className="max-w-[1100px] w-[95vw] gap-6">
                 <DialogHeader>
                     <div className="flex items-center gap-2 mb-1">
                         <div className="h-2 w-10 bg-primary/20 rounded-full" />
@@ -60,9 +60,9 @@ export function AddStudentDialog({ isSuperAdmin }: AddStudentDialogProps) {
                     </DialogDescription>
                 </DialogHeader>
                 <form onSubmit={onSubmit}>
-                    <div className="grid gap-6 py-4 max-h-[70vh] overflow-y-auto px-4 scrollbar-thin scrollbar-thumb-primary/10">
+                    <div className="grid gap-6 py-4 max-h-[75vh] overflow-y-auto px-6 scrollbar-thin scrollbar-thumb-primary/10">
                         {/* Section: Personal Info */}
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
                             <div className="space-y-2">
                                 <Label htmlFor="fullName" className="text-xs uppercase tracking-wider font-semibold text-muted-foreground">Full Name</Label>
                                 <Input id="fullName" name="fullName" placeholder="Full legal name" required className="h-10 rounded-lg" />
@@ -73,7 +73,7 @@ export function AddStudentDialog({ isSuperAdmin }: AddStudentDialogProps) {
                             </div>
                         </div>
 
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
                             <div className="space-y-2">
                                 <Label htmlFor="phone" className="text-xs uppercase tracking-wider font-semibold text-muted-foreground">Phone Number</Label>
                                 <Input id="phone" name="phone" placeholder="+1..." required className="h-10 rounded-lg" />
@@ -85,7 +85,7 @@ export function AddStudentDialog({ isSuperAdmin }: AddStudentDialogProps) {
                         </div>
 
                         {/* Section: Academic/Program */}
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
                             <div className="space-y-2">
                                 <Label htmlFor="vcsSequence" className="text-xs uppercase tracking-wider font-semibold text-muted-foreground">VCS Sequence</Label>
                                 <Input id="vcsSequence" name="vcsSequence" className="h-10 rounded-lg" />
@@ -104,26 +104,26 @@ export function AddStudentDialog({ isSuperAdmin }: AddStudentDialogProps) {
                         </div>
 
                         {/* Section: Financials */}
-                        <div className="p-4 bg-muted/30 rounded-xl space-y-4">
+                        <div className="p-5 bg-muted/40 rounded-xl space-y-4">
                             <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground/80">Financial Calibration</p>
-                            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                            <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
                                 <div className="space-y-2">
                                     <Label htmlFor="totalAmountContract" className="text-xs font-semibold">Total Contract ($)</Label>
-                                    <Input id="totalAmountContract" name="totalAmountContract" type="number" step="0.01" placeholder="0.00" className="h-9" />
+                                    <Input id="totalAmountContract" name="totalAmountContract" type="number" step="0.01" placeholder="0.00" className="h-10" />
                                 </div>
                                 <div className="space-y-2">
                                     <Label htmlFor="analystPaymentRate" className="text-xs font-semibold">Analyst Rate (%)</Label>
-                                    <Input id="analystPaymentRate" name="analystPaymentRate" type="number" step="0.01" placeholder="0.60" className="h-9" />
+                                    <Input id="analystPaymentRate" name="analystPaymentRate" type="number" step="0.01" placeholder="0.60" className="h-10" />
                                 </div>
                                 <div className="space-y-2">
                                     <Label htmlFor="officePaymentRate" className="text-xs font-semibold">Office Rate (%)</Label>
-                                    <Input id="officePaymentRate" name="officePaymentRate" type="number" step="0.01" placeholder="0.40" className="h-9" />
+                                    <Input id="officePaymentRate" name="officePaymentRate" type="number" step="0.01" placeholder="0.40" className="h-10" />
                                 </div>
                             </div>
                         </div>
 
                         {/* Section: Targets */}
-                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
                             <div className="space-y-2">
                                 <Label htmlFor="regularHoursTarget" className="text-[11px] font-semibold text-muted-foreground">Reg. Target</Label>
                                 <Input id="regularHoursTarget" name="regularHoursTarget" type="number" placeholder="0" className="h-9" />
