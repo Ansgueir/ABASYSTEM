@@ -144,8 +144,8 @@ export function ContractFormDialog({ studentId, supervisors, existing }: Contrac
                                             {isSelected && <Check className="h-3 w-3 text-white" />}
                                         </div>
                                         <div className="flex-1 min-w-0">
-                                            <p className="text-sm font-medium leading-none">{sup.fullName}</p>
-                                            <p className="text-xs text-muted-foreground mt-0.5">{sup.credentialType} · BACB # {sup.bacbId}</p>
+                                            <p className="text-sm font-medium leading-none">{String(sup.fullName || "")}</p>
+                                            <p className="text-xs text-muted-foreground mt-0.5">{String(sup.credentialType || "")} · BACB # {String(sup.bacbId || "")}</p>
                                         </div>
                                         {isSelected && (
                                             <button
@@ -164,12 +164,12 @@ export function ContractFormDialog({ studentId, supervisors, existing }: Contrac
                                 )
                             })}
                         </div>
-                        {selectedIds.length > 0 && (
-                            <p className="text-xs text-muted-foreground">
-                                {selectedIds.length} supervisor(s) selected.
-                                {mainId && ` Primary: ${supervisors.find(s => s.id === mainId)?.fullName}.`}
-                            </p>
-                        )}
+                                {selectedIds.length > 0 && (
+                                    <p className="text-xs text-muted-foreground">
+                                        {selectedIds.length} supervisor(s) selected.
+                                        {mainId && ` Primary: ${String(supervisors.find(s => s.id === mainId)?.fullName || "")}.`}
+                                    </p>
+                                )}
                     </div>
 
                     {error && <p className="text-sm text-destructive">{error}</p>}

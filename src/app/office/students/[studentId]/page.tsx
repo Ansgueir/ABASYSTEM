@@ -69,7 +69,7 @@ export default async function OfficeStudentDetailPage({ params }: { params: Prom
 
     // All active supervisors for the multi-select — serialize to avoid Decimal crash
     const rawSupervisors = await prisma.supervisor.findMany({
-        where: { status: "ACTIVE", user: { isHidden: false } },
+        where: { status: "ACTIVE" },
         select: { id: true, fullName: true, bacbId: true, credentialType: true },
         orderBy: { fullName: "asc" }
     })
@@ -148,18 +148,22 @@ export default async function OfficeStudentDetailPage({ params }: { params: Prom
                         </TabsList>
 
                         <TabsContent value="contracts">
-                            <OfficeContractsTab
-                                studentId={studentId}
-                                contracts={safeStudent.contracts ?? []}
-                                allSupervisors={allSupervisors}
-                            />
+                            <DebugErrorBoundary title="Contracts Tab Error">
+                                <OfficeContractsTab
+                                    studentId={studentId}
+                                    contracts={safeStudent.contracts ?? []}
+                                    allSupervisors={allSupervisors}
+                                />
+                            </DebugErrorBoundary>
                         </TabsContent>
 
                         <TabsContent value="profile">
-                            <div className="grid gap-6 md:grid-cols-2">
-                                <EditableStudentContactInfo student={safeStudent} isSuperAdmin={isSuperAdmin} />
-                                <EditableStudentBacbFieldwork student={safeStudent} isSuperAdmin={isSuperAdmin} />
-                            </div>
+                            <DebugErrorBoundary title="Profile Tab Error">
+                                <div className="grid gap-6 md:grid-cols-2">
+                                    <EditableStudentContactInfo student={safeStudent} isSuperAdmin={isSuperAdmin} />
+                                    <EditableStudentBacbFieldwork student={safeStudent} isSuperAdmin={isSuperAdmin} />
+                                </div>
+                            </DebugErrorBoundary>
                         </TabsContent>
 
                         {safeStudent.financialPeriods && isSuperAdmin && (
@@ -169,37 +173,39 @@ export default async function OfficeStudentDetailPage({ params }: { params: Prom
                         )}
 
                         <TabsContent value="documents">
-                            <div className="flex justify-between items-center mb-4">
-                                <h3 className="font-semibold text-lg">Stored Documents</h3>
-                                <UploadDocumentDialog targetStudentId={studentId} />
-                            </div>
-                            <div className="space-y-3">
-                                {(safeStudent.documents ?? []).length === 0 ? (
-                                    <div className="p-10 text-center border border-dashed rounded-xl text-muted-foreground">No documents uploaded.</div>
-                                ) : (
-                                    (safeStudent.documents ?? []).map((doc: any) => (
-                                        <div key={doc.id} className="flex items-center justify-between p-4 rounded-lg border bg-card">
-                                            <div>
-                                                <p className="font-medium text-sm">{String(doc.documentType || "OTHER").replace(/_/g, " ")}</p>
-                                                <p className="text-xs text-muted-foreground">{String(doc.fileName || "")}</p>
-                                            </div>
-                                            <div className="flex items-center gap-4">
-                                                <span className={`text-xs font-semibold px-2 py-1 rounded-full ${doc.status === "APPROVED" ? "bg-success/10 text-success" :
-                                                    doc.status === "REJECTED" ? "bg-destructive/10 text-destructive" :
-                                                        "bg-muted text-muted-foreground"
-                                                    }`}>{String(doc.status || "PENDING")}</span>
+                            <DebugErrorBoundary title="Documents Tab Error">
+                                <div className="flex justify-between items-center mb-4">
+                                    <h3 className="font-semibold text-lg">Stored Documents</h3>
+                                    <UploadDocumentDialog targetStudentId={studentId} />
+                                </div>
+                                <div className="space-y-3">
+                                    {(safeStudent.documents ?? []).length === 0 ? (
+                                        <div className="p-10 text-center border border-dashed rounded-xl text-muted-foreground">No documents uploaded.</div>
+                                    ) : (
+                                        (safeStudent.documents ?? []).map((doc: any) => (
+                                            <div key={doc.id} className="flex items-center justify-between p-4 rounded-lg border bg-card">
+                                                <div>
+                                                    <p className="font-medium text-sm">{String(doc.documentType || "OTHER").replace(/_/g, " ")}</p>
+                                                    <p className="text-xs text-muted-foreground">{String(doc.fileName || "")}</p>
+                                                </div>
+                                                <div className="flex items-center gap-4">
+                                                    <span className={`text-xs font-semibold px-2 py-1 rounded-full ${doc.status === "APPROVED" ? "bg-success/10 text-success" :
+                                                        doc.status === "REJECTED" ? "bg-destructive/10 text-destructive" :
+                                                            "bg-muted text-muted-foreground"
+                                                        }`}>{String(doc.status || "PENDING")}</span>
 
 
-                                                <OfficeDocumentActions
-                                                    documentId={doc.id}
-                                                    fileUrl={doc.fileUrl}
-                                                    fileName={doc.fileName}
-                                                />
+                                                    <OfficeDocumentActions
+                                                        documentId={doc.id}
+                                                        fileUrl={doc.fileUrl}
+                                                        fileName={doc.fileName}
+                                                    />
+                                                </div>
                                             </div>
-                                        </div>
-                                    ))
-                                )}
-                            </div>
+                                        ))
+                                    )}
+                                </div>
+                            </DebugErrorBoundary>
                         </TabsContent>
                         <TabsContent value="activity">
                             <StudentActivityTab 

@@ -180,9 +180,9 @@ export function OfficeContractsTab({ studentId, contracts, allSupervisors }: Off
                                                 {cs.isMainSupervisor && (
                                                     <Star className="h-3 w-3 text-yellow-500 fill-yellow-500" />
                                                 )}
-                                                <span className="text-xs font-medium">{cs.supervisor.fullName}</span>
+                                                <span className="text-xs font-medium">{String(cs.supervisor.fullName || "")}</span>
                                                 <span className="text-[10px] text-muted-foreground">
-                                                    ({cs.supervisor.credentialType})
+                                                    ({String(cs.supervisor.credentialType || "")})
                                                 </span>
                                             </div>
                                         ))}
