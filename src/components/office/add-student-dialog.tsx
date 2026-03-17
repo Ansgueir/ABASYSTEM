@@ -49,7 +49,7 @@ export function AddStudentDialog({ isSuperAdmin }: AddStudentDialogProps) {
                     Add Student
                 </Button>
             </DialogTrigger>
-            <DialogContent className="sm:max-w-[600px] gap-6">
+            <DialogContent className="max-w-4xl w-[95vw] gap-6">
                 <DialogHeader>
                     <div className="flex items-center gap-2 mb-1">
                         <div className="h-2 w-10 bg-primary/20 rounded-full" />
