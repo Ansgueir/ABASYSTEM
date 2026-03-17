@@ -185,7 +185,11 @@ export function EditableStudentBacbFieldwork({ student, isSuperAdmin: isSuperAdm
     const [credential, setCredential] = useState(student.credential || "RBT")
     const [level, setLevel] = useState(student.level || "BCBA")
     const [fieldworkType, setFieldworkType] = useState(student.fieldworkType || "REGULAR")
-    const [startDate, setStartDate] = useState(student.startDate ? new Date(student.startDate).toISOString().split('T')[0] : "")
+    const [startDate, setStartDate] = useState(() => {
+        if (!student.startDate) return ""
+        const d = new Date(student.startDate)
+        return !isNaN(d.getTime()) ? d.toISOString().split('T')[0] : ""
+    })
     const [hoursPerMonth, setHoursPerMonth] = useState(String(Number(student.hoursPerMonth) || 130))
     const [supervisionPercentage, setSupervisionPercentage] = useState(String(Number(student.supervisionPercentage) || 5))
     const [hourlyRate, setHourlyRate] = useState(String(Number(student.hourlyRate || 0).toFixed(2)))
@@ -251,7 +255,11 @@ export function EditableStudentBacbFieldwork({ student, isSuperAdmin: isSuperAdm
         setCredential(student.credential || "RBT")
         setLevel(student.level || "BCBA")
         setFieldworkType(student.fieldworkType || "REGULAR")
-        setStartDate(student.startDate ? new Date(student.startDate).toISOString().split('T')[0] : "")
+        setStartDate(() => {
+            if (!student.startDate) return ""
+            const d = new Date(student.startDate)
+            return !isNaN(d.getTime()) ? d.toISOString().split('T')[0] : ""
+        })
         setHoursPerMonth(String(Number(student.hoursPerMonth) || 130))
         setSupervisionPercentage(String(Number(student.supervisionPercentage) || 5))
         setHourlyRate(String(Number(student.hourlyRate || 0).toFixed(2)))

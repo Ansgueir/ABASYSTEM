@@ -167,14 +167,15 @@ export default async function OfficeStudentDetailPage({ params }: { params: Prom
                                 (safeStudent.documents ?? []).map((doc: any) => (
                                     <div key={doc.id} className="flex items-center justify-between p-4 rounded-lg border bg-card">
                                         <div>
-                                            <p className="font-medium text-sm">{doc.documentType.replace(/_/g, " ")}</p>
+                                            <p className="font-medium text-sm">{String(doc.documentType || "OTHER").replace(/_/g, " ")}</p>
                                             <p className="text-xs text-muted-foreground">{doc.fileName}</p>
                                         </div>
                                         <div className="flex items-center gap-4">
                                             <span className={`text-xs font-semibold px-2 py-1 rounded-full ${doc.status === "APPROVED" ? "bg-success/10 text-success" :
                                                 doc.status === "REJECTED" ? "bg-destructive/10 text-destructive" :
                                                     "bg-muted text-muted-foreground"
-                                                }`}>{doc.status}</span>
+                                                }`}>{String(doc.status || "PENDING")}</span>
+
 
                                             <OfficeDocumentActions
                                                 documentId={doc.id}
