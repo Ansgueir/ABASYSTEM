@@ -26,7 +26,7 @@ const getSessionUser = async () => {
         email: session.user.email,
         role,
         officeRole,
-        isSuperAdmin: officeRole === "SUPER_ADMIN" || role === "QA"
+        isSuperAdmin: officeRole === "SUPER_ADMIN" || role === "QA" || session.user.email?.toLowerCase() === "qa-super@abasystem.com"
     }
 }
 

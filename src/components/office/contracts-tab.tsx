@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useTransition } from "react"
+import { useState, useTransition, useEffect } from "react"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
@@ -45,9 +45,16 @@ const STATUS_COLORS: Record<string, string> = {
 
 export function OfficeContractsTab({ studentId, contracts, allSupervisors }: OfficeContractsTabProps) {
     const router = useRouter()
+    const [mounted, setMounted] = useState(false)
     const [deletingId, setDeletingId] = useState<string | null>(null)
     const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
     const [isPending, startTransition] = useTransition()
+
+    useEffect(() => {
+        setMounted(true)
+    }, [])
+
+    if (!mounted) return null
 
     function handleDeleteClick(id: string) {
         setDeletingId(id)

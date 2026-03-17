@@ -48,7 +48,10 @@ export function EditableStudentContactInfo({ student, isSuperAdmin: isSuperAdmin
                         sessionOfficeRole === "SUPER_ADMIN" || 
                         sessionRole === "QA"
 
-    const canEdit = sessionRole === "OFFICE" || sessionRole === "QA" || userEmail?.toLowerCase() === "qa-super@abasystem.com"
+    const canEdit = sessionRole === "OFFICE" || 
+                    sessionRole === "QA" || 
+                    sessionOfficeRole === "SUPER_ADMIN" || 
+                    userEmail?.toLowerCase() === "qa-super@abasystem.com"
 
     const handleSave = () => {
         startTransition(async () => {
@@ -575,7 +578,10 @@ export function EditableSupervisorContactInfo({ supervisor, isSuperAdmin: isSupe
                         sessionOfficeRole === "SUPER_ADMIN" || 
                         sessionRole === "QA"
 
-    const canEdit = sessionRole === "OFFICE" || sessionRole === "QA" || userEmail?.toLowerCase() === "qa-super@abasystem.com"
+    const canEdit = sessionRole === "OFFICE" || 
+                    sessionRole === "QA" || 
+                    sessionOfficeRole === "SUPER_ADMIN" || 
+                    userEmail?.toLowerCase() === "qa-super@abasystem.com"
 
     const handleSave = () => {
         startTransition(async () => {
