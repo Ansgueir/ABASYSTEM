@@ -92,8 +92,8 @@ export function EditStudentDialog({
                             <Input id="fullName" name="fullName" defaultValue={student.fullName} required />
                         </div>
                         <div className="space-y-2">
-                            <Label htmlFor="email">Email {isSuperAdmin && <span className="text-amber-600 font-bold ml-1">(Editable)</span>}</Label>
-                            <Input id="email" name="email" type="email" defaultValue={student.email} required disabled={!isSuperAdmin} />
+                            <Label htmlFor="email">Email address</Label>
+                            <Input id="email" name="email" type="email" defaultValue={student.email} required />
                         </div>
                     </div>
                     <div className="grid grid-cols-1 gap-4">

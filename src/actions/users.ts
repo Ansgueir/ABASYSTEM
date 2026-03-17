@@ -537,11 +537,6 @@ export async function updateStudent(studentId: string, data: any) {
         delete data.hourlyRate
     }
 
-    // Strip email if not SUPER_ADMIN
-    if (!isSuperAdmin && data.email !== undefined) {
-        delete data.email
-    }
-
     try {
         await prisma.$transaction(async (tx) => {
             const student = await tx.student.findUnique({ 
@@ -587,10 +582,7 @@ export async function updateSupervisor(supervisorId: string, data: any) {
 
     const isSuperAdmin = currentUser.isSuperAdmin
     
-    // Strip email if not SUPER_ADMIN
-    if (!isSuperAdmin && data.email !== undefined) {
-        delete data.email
-    }
+    // All office roles can now edit email as per request
 
     try {
         await prisma.$transaction(async (tx) => {

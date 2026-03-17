@@ -88,8 +88,8 @@ export function EditSupervisorDialog({
                             <Input id="fullName" name="fullName" defaultValue={supervisor.fullName} required />
                         </div>
                         <div className="space-y-2">
-                            <Label htmlFor="email">Email {isSuperAdmin && <span className="text-amber-600 font-bold ml-1">(Editable)</span>}</Label>
-                            <Input id="email" name="email" type="email" defaultValue={supervisor.email} required disabled={!isSuperAdmin} />
+                            <Label htmlFor="email">Email address</Label>
+                            <Input id="email" name="email" type="email" defaultValue={supervisor.email} required />
                         </div>
                     </div>
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
