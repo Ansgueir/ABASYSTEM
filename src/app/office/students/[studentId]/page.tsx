@@ -87,15 +87,15 @@ export default async function OfficeStudentDetailPage({ params }: { params: Prom
                         <div className="flex items-center gap-4">
                             <Avatar className="h-16 w-16 border-2 border-primary/20">
                                 <AvatarFallback className="text-lg bg-primary/10 text-primary">
-                                    {student.fullName?.split(" ").map((n: string) => n[0]).join("") || "ST"}
+                                    {safeStudent.fullName?.split(" ").map((n: string) => n[0]).join("") || "ST"}
                                 </AvatarFallback>
                             </Avatar>
                             <div>
-                                <h1 className="text-3xl font-bold tracking-tight">{student.fullName}</h1>
+                                <h1 className="text-3xl font-bold tracking-tight">{safeStudent.fullName}</h1>
                                 <div className="flex items-center gap-2 text-muted-foreground mt-1">
                                     <GraduationCap className="h-4 w-4" />
-                                    <span>{student.academicDegree || "Student"}</span>
-                                    {student.status === "ACTIVE" && (
+                                    <span>{safeStudent.academicDegree || "Student"}</span>
+                                    {safeStudent.status === "ACTIVE" && (
                                         <span className="inline-flex items-center rounded-full bg-success/10 px-2 py-0.5 text-xs font-semibold text-success ml-2">Active</span>
                                     )}
                                 </div>
@@ -113,7 +113,7 @@ export default async function OfficeStudentDetailPage({ params }: { params: Prom
                             </div>
                             <div className="px-6 py-3 text-center hidden sm:block">
                                 <p className="text-xs text-muted-foreground uppercase font-semibold">Documents</p>
-                                <p className="text-2xl font-bold">{(student.documents ?? []).length}</p>
+                                <p className="text-2xl font-bold">{(safeStudent.documents ?? []).length}</p>
                             </div>
                         </div>
                         {/* Global edit profile button removed */}
@@ -158,10 +158,10 @@ export default async function OfficeStudentDetailPage({ params }: { params: Prom
                             <UploadDocumentDialog targetStudentId={studentId} />
                         </div>
                         <div className="space-y-3">
-                            {(student.documents ?? []).length === 0 ? (
+                            {(safeStudent.documents ?? []).length === 0 ? (
                                 <div className="p-10 text-center border border-dashed rounded-xl text-muted-foreground">No documents uploaded.</div>
                             ) : (
-                                (student.documents ?? []).map((doc: any) => (
+                                (safeStudent.documents ?? []).map((doc: any) => (
                                     <div key={doc.id} className="flex items-center justify-between p-4 rounded-lg border bg-card">
                                         <div>
                                             <p className="font-medium text-sm">{doc.documentType.replace(/_/g, " ")}</p>
@@ -200,7 +200,7 @@ export default async function OfficeStudentDetailPage({ params }: { params: Prom
                                         </tr>
                                     </thead>
                                     <tbody className="divide-y">
-                                        {[...(student.supervisionHours || []), ...(student.independentHours || [])]
+                                        {[...(safeStudent.supervisionHours || []), ...(safeStudent.independentHours || [])]
                                             .filter((h: any) => h.status === "APPROVED" || h.status === "BILLED")
                                             .sort((a: any, b: any) => new Date(b.date).getTime() - new Date(a.date).getTime())
                                             .map((hour: any) => (
@@ -275,7 +275,7 @@ export default async function OfficeStudentDetailPage({ params }: { params: Prom
                                                     </td>
                                                 </tr>
                                             ))}
-                                        {([...(student.supervisionHours || []), ...(student.independentHours || [])].filter((h: any) => h.status === "APPROVED" || h.status === "BILLED").length === 0) && (
+                                        {([...(safeStudent.supervisionHours || []), ...(safeStudent.independentHours || [])].filter((h: any) => h.status === "APPROVED" || h.status === "BILLED").length === 0) && (
                                             <tr>
                                                 <td colSpan={5} className="p-6 text-center text-muted-foreground">
                                                     No approved or billed activity found.
@@ -303,7 +303,7 @@ export default async function OfficeStudentDetailPage({ params }: { params: Prom
                                         </tr>
                                     </thead>
                                     <tbody className="divide-y">
-                                        {(student.invoices || []).map((invoice: any) => (
+                                        {(safeStudent.invoices || []).map((invoice: any) => (
                                             <tr key={invoice.id} className="hover:bg-muted/50 transition-colors">
                                                 <td className="p-3">{format(new Date(invoice.createdAt), "MMM d, yyyy")}</td>
                                                 <td className="p-3 text-right font-medium">${Number(invoice.amountDue).toFixed(2)}</td>
@@ -322,7 +322,7 @@ export default async function OfficeStudentDetailPage({ params }: { params: Prom
                                                 </td>
                                             </tr>
                                         ))}
-                                        {(!student.invoices || student.invoices.length === 0) && (
+                                        {(!safeStudent.invoices || safeStudent.invoices.length === 0) && (
                                             <tr>
                                                 <td colSpan={5} className="p-6 text-center text-muted-foreground">
                                                     No billing history available.

@@ -74,21 +74,21 @@ export default async function OfficeSupervisorDetailPage({ params }: { params: P
                         <div className="flex items-center gap-4">
                             <Avatar className="h-16 w-16 border-2 border-primary/20">
                                 <AvatarFallback className="text-lg bg-primary/10 text-primary">
-                                    {supervisor.fullName?.split(" ").map((n: string) => n[0]).join("") || "SV"}
+                                    {safeSupervisor.fullName?.split(" ").map((n: string) => n[0]).join("") || "SV"}
                                 </AvatarFallback>
                             </Avatar>
                             <div>
-                                <h1 className="text-3xl font-bold tracking-tight">{supervisor.fullName}</h1>
+                                <h1 className="text-3xl font-bold tracking-tight">{safeSupervisor.fullName}</h1>
                                 <div className="flex items-center gap-2 text-muted-foreground mt-1">
                                     <Award className="h-4 w-4" />
-                                    <span>{supervisor.credentialType || "BCBA"}</span>
-                                    {supervisor.status === "ACTIVE" && (
+                                    <span>{safeSupervisor.credentialType || "BCBA"}</span>
+                                    {safeSupervisor.status === "ACTIVE" && (
                                         <span className="inline-flex items-center rounded-full bg-success/10 px-2 py-0.5 text-xs font-semibold text-success ml-2">Active</span>
                                     )}
-                                    {supervisor.companyName && (
+                                    {safeSupervisor.companyName && (
                                         <>
                                             <span className="mx-1">•</span>
-                                            <span>{supervisor.companyName}</span>
+                                            <span>{safeSupervisor.companyName}</span>
                                         </>
                                     )}
                                 </div>
@@ -98,7 +98,7 @@ export default async function OfficeSupervisorDetailPage({ params }: { params: P
                         <div className="bg-card border rounded-xl overflow-hidden shadow-sm flex divide-x">
                             <div className="px-6 py-3 text-center">
                                 <p className="text-xs text-muted-foreground uppercase font-semibold">Active Students</p>
-                                <p className="text-2xl font-bold">{(supervisor.students ?? []).length} <span className="text-sm font-normal text-muted-foreground">/ {supervisor.maxStudents || 10}</span></p>
+                                <p className="text-2xl font-bold">{(safeSupervisor.students ?? []).length} <span className="text-sm font-normal text-muted-foreground">/ {safeSupervisor.maxStudents || 10}</span></p>
                             </div>
                             <div className="px-6 py-3 text-center hidden sm:block">
                                 <p className="text-xs text-muted-foreground uppercase font-semibold">Hours Supervised</p>
@@ -111,7 +111,7 @@ export default async function OfficeSupervisorDetailPage({ params }: { params: P
                         </div>
 
                         <div className="flex flex-wrap items-center gap-2">
-                            <ManageStudentsDialog supervisorId={supervisor.id} supervisorName={supervisor.fullName} />
+                            <ManageStudentsDialog supervisorId={safeSupervisor.id} supervisorName={safeSupervisor.fullName} />
                         </div>
                     </div>
                 </div>
@@ -137,24 +137,24 @@ export default async function OfficeSupervisorDetailPage({ params }: { params: P
                                 <div className="grid gap-3 text-sm">
                                     <div className="px-4 py-3 bg-muted/30 rounded-lg flex justify-between items-center">
                                         <span className="text-muted-foreground">Company Name</span>
-                                        <span className="font-medium">{supervisor.companyName || "N/A"}</span>
+                                        <span className="font-medium">{safeSupervisor.companyName || "N/A"}</span>
                                     </div>
                                     <div className="px-4 py-3 bg-muted/30 rounded-lg flex justify-between items-center">
                                         <span className="text-muted-foreground">Tax ID / EIN</span>
-                                        <span className="font-medium font-mono">{supervisor.taxId || "N/A"}</span>
+                                        <span className="font-medium font-mono">{safeSupervisor.taxId || "N/A"}</span>
                                     </div>
                                     <div className="px-4 py-3 bg-muted/30 rounded-lg flex justify-between items-center">
                                         <span className="text-muted-foreground">Bank Name</span>
-                                        <span className="font-medium">{supervisor.bankName || "N/A"}</span>
+                                        <span className="font-medium">{safeSupervisor.bankName || "N/A"}</span>
                                     </div>
                                     <div className="px-4 py-3 bg-muted/30 rounded-lg flex justify-between items-center">
                                         <span className="text-muted-foreground">Routing Number</span>
-                                        <span className="font-medium font-mono">{supervisor.routingNumber || "N/A"}</span>
+                                        <span className="font-medium font-mono">{safeSupervisor.routingNumber || "N/A"}</span>
                                     </div>
                                     <div className="px-4 py-3 bg-muted/30 rounded-lg flex justify-between items-center">
                                         <span className="text-muted-foreground">Account Number</span>
                                         <span className="font-medium font-mono">
-                                            {supervisor.accountNumber ? `••••${supervisor.accountNumber.slice(-4)}` : "N/A"}
+                                            {safeSupervisor.accountNumber ? `••••${safeSupervisor.accountNumber.slice(-4)}` : "N/A"}
                                         </span>
                                     </div>
                                 </div>
@@ -167,10 +167,10 @@ export default async function OfficeSupervisorDetailPage({ params }: { params: P
                             <div className="p-4 border-b bg-muted/30 flex justify-between items-center">
                                 <h3 className="font-semibold text-lg flex items-center gap-2">
                                     <Users className="h-5 w-5 text-muted-foreground" />
-                                    Assigned Students ({(supervisor.students ?? []).length})
+                                    Assigned Students ({(safeSupervisor.students ?? []).length})
                                 </h3>
                             </div>
-                            {(supervisor.students ?? []).length === 0 ? (
+                            {(safeSupervisor.students ?? []).length === 0 ? (
                                 <div className="p-10 text-center text-muted-foreground">No students assigned to this supervisor.</div>
                             ) : (
                                 <table className="w-full text-sm">
@@ -183,7 +183,7 @@ export default async function OfficeSupervisorDetailPage({ params }: { params: P
                                         </tr>
                                     </thead>
                                     <tbody className="divide-y">
-                                        {(supervisor.students ?? []).map((student: any) => (
+                                        {(safeSupervisor.students ?? []).map((student: any) => (
                                             <tr key={student.id} className="hover:bg-muted/5 transition-colors">
                                                 <td className="p-3 font-medium">{student.fullName}</td>
                                                 <td className="p-3 text-muted-foreground">{student.email}</td>
@@ -209,10 +209,10 @@ export default async function OfficeSupervisorDetailPage({ params }: { params: P
                             <UploadDocumentDialog targetSupervisorId={supervisorId} />
                         </div>
                         <div className="space-y-3">
-                            {(supervisor.documents ?? []).length === 0 ? (
+                            {(safeSupervisor.documents ?? []).length === 0 ? (
                                 <div className="p-10 text-center border border-dashed rounded-xl text-muted-foreground">No documents uploaded.</div>
                             ) : (
-                                (supervisor.documents ?? []).map((doc: any) => (
+                                (safeSupervisor.documents ?? []).map((doc: any) => (
                                     <div key={doc.id} className="flex items-center justify-between p-4 rounded-lg border bg-card">
                                         <div>
                                             <p className="font-medium text-sm">{doc.documentType.replace(/_/g, " ")}</p>
@@ -238,7 +238,7 @@ export default async function OfficeSupervisorDetailPage({ params }: { params: P
 
                     <TabsContent value="activity">
                         <div className="rounded-xl border bg-card overflow-hidden">
-                            {(supervisor.supervisionHours ?? []).length === 0 ? (
+                            {(safeSupervisor.supervisionHours ?? []).length === 0 ? (
                                 <div className="p-10 text-center text-muted-foreground">No activity logs found.</div>
                             ) : (
                                 <div className="overflow-x-auto">
@@ -254,7 +254,7 @@ export default async function OfficeSupervisorDetailPage({ params }: { params: P
                                             </tr>
                                         </thead>
                                         <tbody className="divide-y">
-                                            {(supervisor.supervisionHours ?? []).map((hour: any) => (
+                                            {(safeSupervisor.supervisionHours ?? []).map((hour: any) => (
                                                 <tr key={hour.id} className="hover:bg-muted/5 transition-colors">
                                                     <td className="p-3 whitespace-nowrap">{format(new Date(hour.date), "MMM d, yyyy")}</td>
                                                     <td className="p-3 font-medium">{hour.student?.fullName || 'Multiple Students'}</td>
@@ -326,7 +326,7 @@ export default async function OfficeSupervisorDetailPage({ params }: { params: P
                                                 </tr>
                                             ))}
                                         </tbody>
-                                        {(supervisor.supervisionHours ?? []).length === 100 && (
+                                        {(safeSupervisor.supervisionHours ?? []).length === 100 && (
                                             <tfoot>
                                                 <tr>
                                                     <td colSpan={5} className="p-4 text-center text-muted-foreground text-xs italic">
