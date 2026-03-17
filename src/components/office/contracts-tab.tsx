@@ -80,7 +80,7 @@ export function OfficeContractsTab({ studentId, contracts, allSupervisors }: Off
                         Manage contracts. The PDF is generated on-the-fly with current signatures — no re-signing needed when supervisors change.
                     </CardDescription>
                 </div>
-                {/* <ContractFormDialog studentId={studentId} supervisors={allSupervisors} /> */}
+                <ContractFormDialog studentId={studentId} supervisors={allSupervisors} />
             </CardHeader>
             <CardContent>
                 {contracts.length === 0 ? (
@@ -105,11 +105,19 @@ export function OfficeContractsTab({ studentId, contracts, allSupervisors }: Off
                                             <Calendar className="h-4 w-4 text-muted-foreground" />
                                             <span className="font-semibold">
                                                 Effective: {(() => {
-                                                    const d = new Date(contract.effectiveDate)
-                                                    return !isNaN(d.getTime()) ? format(d, "MMMM d, yyyy") : "N/A"
+                                                    try {
+                                                        const val = contract.effectiveDate;
+                                                        if (typeof val === 'object' && val !== null && ! (val instanceof Date)) {
+                                                            return `Corrupted Date: ${JSON.stringify(val)}`;
+                                                        }
+                                                        const d = new Date(val as any)
+                                                        return !isNaN(d.getTime()) ? format(d, "MMMM d, yyyy") : "Invalid Date"
+                                                    } catch (e) {
+                                                        return "Date Error"
+                                                    }
                                                 })()}
                                             </span>
-                                            <Badge variant={STATUS_COLORS[contract.status] as any ?? "secondary"}>
+                                            <Badge variant={STATUS_COLORS[String(contract.status || "")] as any ?? "secondary"}>
                                                 {String(contract.status || "UNKNOWN")}
                                             </Badge>
                                         </div>
@@ -124,18 +132,18 @@ export function OfficeContractsTab({ studentId, contracts, allSupervisors }: Off
 
                                     <div className="flex items-center gap-1 flex-shrink-0">
                                         {/* Edit */}
-                                        {/* <ContractFormDialog
+                                        <ContractFormDialog
                                             studentId={studentId}
                                             supervisors={allSupervisors}
                                             existing={{
-                                                id: contract.id,
-                                                effectiveDate: contract.effectiveDate,
-                                                supervisors: contract.supervisors.map(s => ({
-                                                    supervisorId: s.supervisorId,
-                                                    isMainSupervisor: s.isMainSupervisor,
+                                                id: String(contract.id || ""),
+                                                effectiveDate: contract.effectiveDate as any,
+                                                supervisors: (contract.supervisors || []).map(s => ({
+                                                    supervisorId: String(s.supervisorId || ""),
+                                                    isMainSupervisor: !!s.isMainSupervisor,
                                                 }))
                                             }}
-                                        /> */}
+                                        />
 
                                         {/* Download PDF */}
                                         <Button

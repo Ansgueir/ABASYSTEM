@@ -51,15 +51,21 @@ export function ContractFormDialog({ studentId, supervisors, existing }: Contrac
 
     const isEditing = !!existing
 
-    const [selectedIds, setSelectedIds] = useState<string[]>(
-        existing?.supervisors.map(s => s.supervisorId) ?? []
-    )
-    const [mainId, setMainId] = useState<string>(
-        existing?.supervisors.find(s => s.isMainSupervisor)?.supervisorId ?? ""
-    )
-    const [effectiveDate, setEffectiveDate] = useState<string>(
-        existing ? new Date(existing.effectiveDate).toISOString().split("T")[0] : new Date().toISOString().split("T")[0]
-    )
+    const [selectedIds, setSelectedIds] = useState<string[]>(() => {
+        try { return (existing?.supervisors || []).map(s => String(s.supervisorId || "")) } catch { return [] }
+    })
+    const [mainId, setMainId] = useState<string>(() => {
+        try { return String(existing?.supervisors.find(s => s.isMainSupervisor)?.supervisorId || "") } catch { return "" }
+    })
+    const [effectiveDate, setEffectiveDate] = useState<string>(() => {
+        try {
+            if (!existing) return new Date().toISOString().split("T")[0];
+            const d = new Date(existing.effectiveDate as any);
+            return !isNaN(d.getTime()) ? d.toISOString().split("T")[0] : new Date().toISOString().split("T")[0];
+        } catch {
+            return new Date().toISOString().split("T")[0];
+        }
+    })
 
     function toggleSupervisor(id: string) {
         setSelectedIds(prev => {
@@ -167,7 +173,12 @@ export function ContractFormDialog({ studentId, supervisors, existing }: Contrac
                                 {selectedIds.length > 0 && (
                                     <p className="text-xs text-muted-foreground">
                                         {selectedIds.length} supervisor(s) selected.
-                                        {mainId && ` Primary: ${String(supervisors.find(s => s.id === mainId)?.fullName || "")}.`}
+                                        {(() => {
+                                            try {
+                                                const primary = supervisors.find(s => String(s.id) === String(mainId));
+                                                return primary ? ` Primary: ${String(primary.fullName || "")}.` : "";
+                                            } catch { return "" }
+                                        })()}
                                     </p>
                                 )}
                     </div>
