@@ -13,10 +13,18 @@
 function _serialize<T>(obj: T): T {
     if (obj === null || obj === undefined) return obj
     if (typeof obj === "bigint") return Number(obj) as unknown as T
+    
     // Prisma Decimal – has toNumber() method
     if (typeof obj === "object" && obj !== null && typeof (obj as any).toNumber === "function") {
         return Number((obj as any).toNumber()) as unknown as T
     }
+
+    // SPECIAL FIX: Detect { month, year } object that triggers the React crash
+    if (typeof obj === "object" && obj !== null && 'month' in (obj as any) && 'year' in (obj as any) && Object.keys(obj as any).length === 2) {
+        const o = obj as any;
+        return `${o.month} ${o.year}` as unknown as T
+    }
+
     if (obj instanceof Date) return obj.toISOString() as unknown as T
     if (Array.isArray(obj)) return obj.map(_serialize) as unknown as T
     if (typeof obj === "object" && obj !== null) {
@@ -28,6 +36,7 @@ function _serialize<T>(obj: T): T {
     }
     return obj
 }
+
 
 export function serialize<T>(obj: T): T {
     try {

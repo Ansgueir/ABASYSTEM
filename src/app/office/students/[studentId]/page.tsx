@@ -18,6 +18,7 @@ import { OfficeDocumentActions } from "@/components/office/office-document-actio
 import { FinancialPeriodsTab } from "@/components/office/financial-periods-tab"
 import { StudentActivityTab } from "@/components/office/student-activity-tab"
 import { StudentBillingTab } from "@/components/office/student-billing-tab"
+import { DebugErrorBoundary } from "@/components/debug-error-boundary"
 
 export default async function OfficeStudentDetailPage({ params }: { params: Promise<{ studentId: string }> }) {
     const { studentId } = await params
@@ -98,14 +99,14 @@ export default async function OfficeStudentDetailPage({ params }: { params: Prom
                         <div className="flex items-center gap-4">
                             <Avatar className="h-16 w-16 border-2 border-primary/20">
                                 <AvatarFallback className="text-lg bg-primary/10 text-primary">
-                                    {safeStudent.fullName?.split(" ").map((n: string) => n[0]).join("") || "ST"}
+                                    {String(safeStudent.fullName || "").split(" ").map((n: string) => n[0]).join("") || "ST"}
                                 </AvatarFallback>
                             </Avatar>
                             <div>
                                 <h1 className="text-3xl font-bold tracking-tight">{safeStudent.fullName}</h1>
                                 <div className="flex items-center gap-2 text-muted-foreground mt-1">
                                     <GraduationCap className="h-4 w-4" />
-                                    <span>{safeStudent.academicDegree || "Student"}</span>
+                                    <span>{typeof safeStudent.academicDegree === 'object' ? JSON.stringify(safeStudent.academicDegree) : String(safeStudent.academicDegree || "Student")}</span>
                                     {safeStudent.status === "ACTIVE" && (
                                         <span className="inline-flex items-center rounded-full bg-success/10 px-2 py-0.5 text-xs font-semibold text-success ml-2">Active</span>
                                     )}
@@ -135,83 +136,85 @@ export default async function OfficeStudentDetailPage({ params }: { params: Prom
                 </div>
 
                 {/* Tabs */}
-                <Tabs defaultValue="contracts">
-                    <TabsList className="mb-6 bg-muted/50 p-1 border">
-                        <TabsTrigger value="contracts" className="px-6">Contracts</TabsTrigger>
-                        <TabsTrigger value="profile" className="px-6">Profile</TabsTrigger>
-                        <TabsTrigger value="documents" className="px-6">Documents</TabsTrigger>
-                        <TabsTrigger value="activity" className="px-6">Activity</TabsTrigger>
-                        <TabsTrigger value="billing" className="px-6">Billing</TabsTrigger>
-                        {isSuperAdmin && <TabsTrigger value="periods" className="px-6">Periods</TabsTrigger>}
-                    </TabsList>
+                <DebugErrorBoundary>
+                    <Tabs defaultValue="contracts">
+                        <TabsList className="mb-6 bg-muted/50 p-1 border">
+                            <TabsTrigger value="contracts" className="px-6">Contracts</TabsTrigger>
+                            <TabsTrigger value="profile" className="px-6">Profile</TabsTrigger>
+                            <TabsTrigger value="documents" className="px-6">Documents</TabsTrigger>
+                            <TabsTrigger value="activity" className="px-6">Activity</TabsTrigger>
+                            <TabsTrigger value="billing" className="px-6">Billing</TabsTrigger>
+                            {isSuperAdmin && <TabsTrigger value="periods" className="px-6">Periods</TabsTrigger>}
+                        </TabsList>
 
-                    <TabsContent value="contracts">
-                        <OfficeContractsTab
-                            studentId={studentId}
-                            contracts={safeStudent.contracts ?? []}
-                            allSupervisors={allSupervisors}
-                        />
-                    </TabsContent>
-
-                    <TabsContent value="profile">
-                        <div className="grid gap-6 md:grid-cols-2">
-                            <EditableStudentContactInfo student={safeStudent} isSuperAdmin={isSuperAdmin} />
-                            <EditableStudentBacbFieldwork student={safeStudent} isSuperAdmin={isSuperAdmin} />
-                        </div>
-                    </TabsContent>
-
-                    {safeStudent.financialPeriods && isSuperAdmin && (
-                        <TabsContent value="periods">
-                            <FinancialPeriodsTab studentId={studentId} periods={safeStudent.financialPeriods || []} />
+                        <TabsContent value="contracts">
+                            <OfficeContractsTab
+                                studentId={studentId}
+                                contracts={safeStudent.contracts ?? []}
+                                allSupervisors={allSupervisors}
+                            />
                         </TabsContent>
-                    )}
 
-                    <TabsContent value="documents">
-                        <div className="flex justify-between items-center mb-4">
-                            <h3 className="font-semibold text-lg">Stored Documents</h3>
-                            <UploadDocumentDialog targetStudentId={studentId} />
-                        </div>
-                        <div className="space-y-3">
-                            {(safeStudent.documents ?? []).length === 0 ? (
-                                <div className="p-10 text-center border border-dashed rounded-xl text-muted-foreground">No documents uploaded.</div>
-                            ) : (
-                                (safeStudent.documents ?? []).map((doc: any) => (
-                                    <div key={doc.id} className="flex items-center justify-between p-4 rounded-lg border bg-card">
-                                        <div>
-                                            <p className="font-medium text-sm">{String(doc.documentType || "OTHER").replace(/_/g, " ")}</p>
-                                            <p className="text-xs text-muted-foreground">{doc.fileName}</p>
+                        <TabsContent value="profile">
+                            <div className="grid gap-6 md:grid-cols-2">
+                                <EditableStudentContactInfo student={safeStudent} isSuperAdmin={isSuperAdmin} />
+                                <EditableStudentBacbFieldwork student={safeStudent} isSuperAdmin={isSuperAdmin} />
+                            </div>
+                        </TabsContent>
+
+                        {safeStudent.financialPeriods && isSuperAdmin && (
+                            <TabsContent value="periods">
+                                <FinancialPeriodsTab studentId={studentId} periods={safeStudent.financialPeriods || []} />
+                            </TabsContent>
+                        )}
+
+                        <TabsContent value="documents">
+                            <div className="flex justify-between items-center mb-4">
+                                <h3 className="font-semibold text-lg">Stored Documents</h3>
+                                <UploadDocumentDialog targetStudentId={studentId} />
+                            </div>
+                            <div className="space-y-3">
+                                {(safeStudent.documents ?? []).length === 0 ? (
+                                    <div className="p-10 text-center border border-dashed rounded-xl text-muted-foreground">No documents uploaded.</div>
+                                ) : (
+                                    (safeStudent.documents ?? []).map((doc: any) => (
+                                        <div key={doc.id} className="flex items-center justify-between p-4 rounded-lg border bg-card">
+                                            <div>
+                                                <p className="font-medium text-sm">{String(doc.documentType || "OTHER").replace(/_/g, " ")}</p>
+                                                <p className="text-xs text-muted-foreground">{String(doc.fileName || "")}</p>
+                                            </div>
+                                            <div className="flex items-center gap-4">
+                                                <span className={`text-xs font-semibold px-2 py-1 rounded-full ${doc.status === "APPROVED" ? "bg-success/10 text-success" :
+                                                    doc.status === "REJECTED" ? "bg-destructive/10 text-destructive" :
+                                                        "bg-muted text-muted-foreground"
+                                                    }`}>{String(doc.status || "PENDING")}</span>
+
+
+                                                <OfficeDocumentActions
+                                                    documentId={doc.id}
+                                                    fileUrl={doc.fileUrl}
+                                                    fileName={doc.fileName}
+                                                />
+                                            </div>
                                         </div>
-                                        <div className="flex items-center gap-4">
-                                            <span className={`text-xs font-semibold px-2 py-1 rounded-full ${doc.status === "APPROVED" ? "bg-success/10 text-success" :
-                                                doc.status === "REJECTED" ? "bg-destructive/10 text-destructive" :
-                                                    "bg-muted text-muted-foreground"
-                                                }`}>{String(doc.status || "PENDING")}</span>
+                                    ))
+                                )}
+                            </div>
+                        </TabsContent>
+                        <TabsContent value="activity">
+                            <StudentActivityTab 
+                                supervisionHours={safeStudent.supervisionHours || []} 
+                                independentHours={safeStudent.independentHours || []} 
+                            />
+                        </TabsContent>
 
-
-                                            <OfficeDocumentActions
-                                                documentId={doc.id}
-                                                fileUrl={doc.fileUrl}
-                                                fileName={doc.fileName}
-                                            />
-                                        </div>
-                                    </div>
-                                ))
-                            )}
-                        </div>
-                    </TabsContent>
-                    <TabsContent value="activity">
-                        <StudentActivityTab 
-                            supervisionHours={safeStudent.supervisionHours || []} 
-                            independentHours={safeStudent.independentHours || []} 
-                        />
-                    </TabsContent>
-
-                    <TabsContent value="billing">
-                        <StudentBillingTab 
-                            invoices={safeStudent.invoices || []} 
-                        />
-                    </TabsContent>
-                </Tabs>
+                        <TabsContent value="billing">
+                            <StudentBillingTab 
+                                invoices={safeStudent.invoices || []} 
+                            />
+                        </TabsContent>
+                    </Tabs>
+                </DebugErrorBoundary>
             </div>
         </DashboardLayout>
     )
