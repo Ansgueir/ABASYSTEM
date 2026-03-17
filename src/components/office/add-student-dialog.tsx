@@ -49,11 +49,11 @@ export function AddStudentDialog({ isSuperAdmin }: AddStudentDialogProps) {
                     Add Student
                 </Button>
             </DialogTrigger>
-            <DialogContent className="max-w-[1100px] w-[95vw] gap-6">
+            <DialogContent className="sm:max-w-6xl w-[95vw] gap-6">
                 <DialogHeader>
                     <div className="flex items-center gap-2 mb-1">
                         <div className="h-2 w-10 bg-primary/20 rounded-full" />
-                        <DialogTitle className="text-2xl font-bold">Add New Student</DialogTitle>
+                        <DialogTitle className="text-2xl font-bold">Add New Student V2</DialogTitle>
                     </div>
                     <DialogDescription className="text-base">
                         Create a new student profile. They will receive an email with login instructions.
