@@ -68,9 +68,10 @@ export function ContractFormDialog({ studentId, supervisors, existing }: Contrac
     })
 
     function toggleSupervisor(id: string) {
+        const sid = String(id || "")
         setSelectedIds(prev => {
-            const next = prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id]
-            if (!next.includes(mainId)) setMainId(next[0] ?? "")
+            const next = prev.includes(sid) ? prev.filter(x => x !== sid) : [...prev, sid]
+            if (!next.includes(String(mainId))) setMainId(next[0] ?? "")
             return next
         })
     }
@@ -84,11 +85,11 @@ export function ContractFormDialog({ studentId, supervisors, existing }: Contrac
         startTransition(async () => {
             let result: any
             if (isEditing) {
-                result = await updateContract({ contractId: existing!.id, supervisorIds: selectedIds, mainSupervisorId: mainId, effectiveDate })
+                result = await updateContract({ contractId: String(existing!.id), supervisorIds: selectedIds, mainSupervisorId: String(mainId), effectiveDate })
             } else {
-                result = await createContract({ studentId, supervisorIds: selectedIds, mainSupervisorId: mainId, effectiveDate })
+                result = await createContract({ studentId: String(studentId), supervisorIds: selectedIds, mainSupervisorId: String(mainId), effectiveDate })
             }
-            if (result?.error) { setError(result.error); return }
+            if (result?.error) { setError(String(result.error)); return }
             setOpen(false)
             router.refresh()
         })
@@ -102,46 +103,47 @@ export function ContractFormDialog({ studentId, supervisors, existing }: Contrac
                         <Pencil className="h-4 w-4" />
                     </Button>
                 ) : (
-                    <Button size="sm">
+                    <Button size="sm" className="h-8">
                         <Plus className="mr-2 h-4 w-4" /> New Contract
                     </Button>
                 )}
             </DialogTrigger>
             <DialogContent className="max-w-lg">
                 <DialogHeader>
-                    <DialogTitle>{isEditing ? "Edit Contract" : "New Supervision Contract"}</DialogTitle>
+                    <DialogTitle>{isEditing ? "Edit Assignment" : "Assign Supervisors"}</DialogTitle>
                 </DialogHeader>
 
                 <div className="space-y-5 py-2">
                     {/* Effective Date */}
                     <div className="space-y-1.5">
-                        <Label htmlFor="effectiveDate">Effective Date</Label>
+                        <Label htmlFor="effectiveDate">Assignment Effective Date</Label>
                         <Input
                             id="effectiveDate"
                             type="date"
-                            value={effectiveDate}
-                            onChange={e => setEffectiveDate(e.target.value)}
+                            value={String(effectiveDate || "")}
+                            onChange={e => setEffectiveDate(String(e.target.value))}
                         />
                     </div>
 
                     {/* Supervisor multi-select */}
                     <div className="space-y-1.5">
-                        <Label>Assign Supervisors</Label>
-                        <p className="text-xs text-muted-foreground">Click to select. Click ★ to set as primary supervisor.</p>
+                        <Label>Select Team</Label>
                         <div className="grid gap-2 max-h-60 overflow-y-auto pr-1">
-                            {supervisors.map(sup => {
-                                const isSelected = selectedIds.includes(sup.id)
-                                const isMain = mainId === sup.id
+                            {(supervisors || []).map(sup => {
+                                if (!sup || !sup.id) return null;
+                                const sid = String(sup.id)
+                                const isSelected = selectedIds.includes(sid)
+                                const isMain = String(mainId) === sid
                                 return (
                                     <div
-                                        key={sup.id}
+                                        key={sid}
                                         className={cn(
                                             "flex items-center gap-3 rounded-lg border p-3 cursor-pointer transition-colors",
                                             isSelected
                                                 ? "border-primary bg-primary/5"
                                                 : "border-border hover:border-primary/40 hover:bg-muted/30"
                                         )}
-                                        onClick={() => toggleSupervisor(sup.id)}
+                                        onClick={() => toggleSupervisor(sid)}
                                     >
                                         <div className={cn(
                                             "h-5 w-5 rounded border-2 flex items-center justify-center flex-shrink-0 transition-colors",
@@ -150,18 +152,19 @@ export function ContractFormDialog({ studentId, supervisors, existing }: Contrac
                                             {isSelected && <Check className="h-3 w-3 text-white" />}
                                         </div>
                                         <div className="flex-1 min-w-0">
-                                            <p className="text-sm font-medium leading-none">{String(sup.fullName || "")}</p>
-                                            <p className="text-xs text-muted-foreground mt-0.5">{String(sup.credentialType || "")} · BACB # {String(sup.bacbId || "")}</p>
+                                            <p className="text-sm font-bold leading-none">{String(sup.fullName || "Unnamed")}</p>
+                                            <p className="text-[10px] text-muted-foreground mt-1">
+                                                {String(sup.credentialType || "")} · # {String(sup.bacbId || "N/A")}
+                                            </p>
                                         </div>
                                         {isSelected && (
                                             <button
                                                 type="button"
-                                                onClick={e => { e.stopPropagation(); setMainId(sup.id) }}
+                                                onClick={e => { e.stopPropagation(); setMainId(sid) }}
                                                 className={cn(
                                                     "p-1 rounded transition-colors",
                                                     isMain ? "text-yellow-500" : "text-muted-foreground hover:text-yellow-400"
                                                 )}
-                                                title="Set as primary supervisor"
                                             >
                                                 <Star className="h-4 w-4" fill={isMain ? "currentColor" : "none"} />
                                             </button>
@@ -170,27 +173,16 @@ export function ContractFormDialog({ studentId, supervisors, existing }: Contrac
                                 )
                             })}
                         </div>
-                                {selectedIds.length > 0 && (
-                                    <p className="text-xs text-muted-foreground">
-                                        {selectedIds.length} supervisor(s) selected.
-                                        {(() => {
-                                            try {
-                                                const primary = supervisors.find(s => String(s.id) === String(mainId));
-                                                return primary ? ` Primary: ${String(primary.fullName || "")}.` : "";
-                                            } catch { return "" }
-                                        })()}
-                                    </p>
-                                )}
                     </div>
 
-                    {error && <p className="text-sm text-destructive">{error}</p>}
+                    {error && <p className="text-sm font-medium text-destructive">{String(error)}</p>}
                 </div>
 
                 <DialogFooter>
-                    <Button variant="outline" onClick={() => setOpen(false)}>Cancel</Button>
+                    <Button variant="outline" onClick={() => setOpen(false)} disabled={pending}>Cancel</Button>
                     <Button onClick={handleSubmit} disabled={pending}>
                         {pending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                        {isEditing ? "Save Changes" : "Create Contract"}
+                        {isEditing ? "Save Selection" : "Confirm Assignment"}
                     </Button>
                 </DialogFooter>
             </DialogContent>

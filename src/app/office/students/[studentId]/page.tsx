@@ -103,7 +103,7 @@ export default async function OfficeStudentDetailPage({ params }: { params: Prom
                                 </AvatarFallback>
                             </Avatar>
                             <div>
-                                <h1 className="text-3xl font-bold tracking-tight">{safeStudent.fullName}</h1>
+                                <h1 className="text-3xl font-bold tracking-tight">{String(safeStudent.fullName || "")}</h1>
                                 <div className="flex items-center gap-2 text-muted-foreground mt-1">
                                     <GraduationCap className="h-4 w-4" />
                                     <span>{typeof safeStudent.academicDegree === 'object' ? JSON.stringify(safeStudent.academicDegree) : String(safeStudent.academicDegree || "Student")}</span>
