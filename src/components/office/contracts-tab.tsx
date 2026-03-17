@@ -80,7 +80,7 @@ export function OfficeContractsTab({ studentId, contracts, allSupervisors }: Off
                         Manage contracts. The PDF is generated on-the-fly with current signatures — no re-signing needed when supervisors change.
                     </CardDescription>
                 </div>
-                <ContractFormDialog studentId={studentId} supervisors={allSupervisors} />
+                {/* <ContractFormDialog studentId={studentId} supervisors={allSupervisors} /> */}
             </CardHeader>
             <CardContent>
                 {contracts.length === 0 ? (
@@ -124,7 +124,7 @@ export function OfficeContractsTab({ studentId, contracts, allSupervisors }: Off
 
                                     <div className="flex items-center gap-1 flex-shrink-0">
                                         {/* Edit */}
-                                        <ContractFormDialog
+                                        {/* <ContractFormDialog
                                             studentId={studentId}
                                             supervisors={allSupervisors}
                                             existing={{
@@ -135,7 +135,7 @@ export function OfficeContractsTab({ studentId, contracts, allSupervisors }: Off
                                                     isMainSupervisor: s.isMainSupervisor,
                                                 }))
                                             }}
-                                        />
+                                        /> */}
 
                                         {/* Download PDF */}
                                         <Button
