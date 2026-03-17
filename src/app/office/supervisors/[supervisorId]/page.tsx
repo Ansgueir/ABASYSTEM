@@ -98,15 +98,18 @@ export default async function OfficeSupervisorDetailPage({ params }: { params: P
                         <div className="bg-card border rounded-xl overflow-hidden shadow-sm flex divide-x">
                             <div className="px-6 py-3 text-center">
                                 <p className="text-xs text-muted-foreground uppercase font-semibold">Active Students</p>
-                                <p className="text-2xl font-bold">{(safeSupervisor.students ?? []).length} <span className="text-sm font-normal text-muted-foreground">/ {safeSupervisor.maxStudents || 10}</span></p>
+                                <p className="text-2xl font-bold">
+                                    {Math.max(0, (safeSupervisor.students ?? []).length)} 
+                                    <span className="text-sm font-normal text-muted-foreground"> / {Number(safeSupervisor.maxStudents || 10)}</span>
+                                </p>
                             </div>
                             <div className="px-6 py-3 text-center hidden sm:block">
                                 <p className="text-xs text-muted-foreground uppercase font-semibold">Hours Supervised</p>
-                                <p className="text-2xl font-bold">{totalHoursLogged.toFixed(1)}</p>
+                                <p className="text-2xl font-bold">{typeof totalHoursLogged === 'number' && !isNaN(totalHoursLogged) ? totalHoursLogged.toFixed(1) : "0.0"}</p>
                             </div>
                             <div className="px-6 py-3 text-center hidden sm:block">
                                 <p className="text-xs text-muted-foreground uppercase font-semibold">Commission</p>
-                                <p className="text-2xl font-bold">{commissionCents}%</p>
+                                <p className="text-2xl font-bold">{Math.round(commissionCents)}%</p>
                             </div>
                         </div>
 
@@ -215,14 +218,14 @@ export default async function OfficeSupervisorDetailPage({ params }: { params: P
                                 (safeSupervisor.documents ?? []).map((doc: any) => (
                                     <div key={doc.id} className="flex items-center justify-between p-4 rounded-lg border bg-card">
                                         <div>
-                                            <p className="font-medium text-sm">{doc.documentType.replace(/_/g, " ")}</p>
+                                            <p className="font-medium text-sm">{String(doc.documentType || "OTHER").replace(/_/g, " ")}</p>
                                             <p className="text-xs text-muted-foreground">{doc.fileName}</p>
                                         </div>
                                         <div className="flex items-center gap-4">
                                             <span className={`text-xs font-semibold px-2 py-1 rounded-full ${doc.status === "APPROVED" ? "bg-success/10 text-success" :
                                                 doc.status === "REJECTED" ? "bg-destructive/10 text-destructive" :
                                                     "bg-muted text-muted-foreground"
-                                                }`}>{doc.status}</span>
+                                                }`}>{String(doc.status || "PENDING")}</span>
 
                                             <OfficeDocumentActions
                                                 documentId={doc.id}
@@ -254,77 +257,86 @@ export default async function OfficeSupervisorDetailPage({ params }: { params: P
                                             </tr>
                                         </thead>
                                         <tbody className="divide-y">
-                                            {(safeSupervisor.supervisionHours ?? []).map((hour: any) => (
-                                                <tr key={hour.id} className="hover:bg-muted/5 transition-colors">
-                                                    <td className="p-3 whitespace-nowrap">{format(new Date(hour.date), "MMM d, yyyy")}</td>
-                                                    <td className="p-3 font-medium">{hour.student?.fullName || 'Multiple Students'}</td>
-                                                    <td className="p-3 text-muted-foreground">{hour.activityType?.replace(/_/g, ' ') || 'Group Supervision'}</td>
-                                                    <td className="p-3">{Number(hour.hours).toFixed(1)} hrs</td>
-                                                    <td className="p-3">
-                                                        <Badge variant={hour.status === 'APPROVED' ? 'default' : hour.status === 'BILLED' ? 'default' : hour.status === 'REJECTED' ? 'destructive' : 'secondary'}>
-                                                            {hour.status}
-                                                        </Badge>
-                                                    </td>
-                                                    <td className="p-3 text-right">
-                                                        <Dialog>
-                                                            <DialogTrigger asChild>
-                                                                <Button variant="ghost" size="icon" className="h-8 w-8 rounded-full">
-                                                                    <Eye className="h-4 w-4 text-muted-foreground" />
-                                                                </Button>
-                                                            </DialogTrigger>
-                                                            <DialogContent className="sm:max-w-md">
-                                                                <DialogHeader>
-                                                                    <DialogTitle>Activity Details</DialogTitle>
-                                                                </DialogHeader>
-                                                                <div className="space-y-4 py-4 text-sm">
-                                                                    <div className="grid grid-cols-2 gap-4">
-                                                                        <div>
-                                                                            <p className="text-muted-foreground text-xs">Date</p>
-                                                                            <p className="font-medium">{format(new Date(hour.date), "MMMM d, yyyy")}</p>
-                                                                        </div>
-                                                                        <div>
-                                                                            <p className="text-muted-foreground text-xs">Duration</p>
-                                                                            <p className="font-medium">{Number(hour.hours).toFixed(1)} hrs</p>
-                                                                        </div>
-                                                                        <div>
-                                                                            <p className="text-muted-foreground text-xs">Student</p>
-                                                                            <p className="font-medium">{hour.student?.fullName || 'Multiple Students'}</p>
-                                                                        </div>
-                                                                        <div>
-                                                                            <p className="text-muted-foreground text-xs">Status</p>
-                                                                            <Badge variant={hour.status === 'APPROVED' ? 'default' : hour.status === 'BILLED' ? 'default' : hour.status === 'REJECTED' ? 'destructive' : 'secondary'} className="mt-1">
-                                                                                {hour.status}
-                                                                            </Badge>
-                                                                        </div>
-                                                                        <div className="col-span-2 border-t pt-4 mt-2">
-                                                                            <p className="text-muted-foreground text-xs">Activity Type</p>
-                                                                            <p className="font-medium">{hour.activityType?.replace(/_/g, ' ') || 'Group Supervision'}</p>
-                                                                        </div>
-                                                                        {hour.setting && (
-                                                                            <div className="col-span-2">
-                                                                                <p className="text-muted-foreground text-xs">Setting</p>
-                                                                                <p className="font-medium">{hour.setting?.replace(/_/g, ' ')}</p>
+                                            {(safeSupervisor.supervisionHours ?? []).map((hour: any) => {
+                                                const hourDate = hour?.date ? new Date(hour.date) : null;
+                                                const isValidDate = hourDate && !isNaN(hourDate.getTime());
+                                                
+                                                return (
+                                                    <tr key={hour.id} className="hover:bg-muted/5 transition-colors">
+                                                        <td className="p-3 whitespace-nowrap">
+                                                            {isValidDate ? format(hourDate!, "MMM d, yyyy") : "N/A"}
+                                                        </td>
+                                                        <td className="p-3 font-medium">{hour.student?.fullName || 'Multiple Students'}</td>
+                                                        <td className="p-3 text-muted-foreground">{String(hour.activityType || 'Group Supervision').replace(/_/g, ' ')}</td>
+                                                        <td className="p-3">{Number(hour.hours || 0).toFixed(1)} hrs</td>
+                                                        <td className="p-3">
+                                                            <Badge variant={hour.status === 'APPROVED' ? 'default' : hour.status === 'BILLED' ? 'default' : hour.status === 'REJECTED' ? 'destructive' : 'secondary'}>
+                                                                {String(hour.status || "UNKNOWN")}
+                                                            </Badge>
+                                                        </td>
+                                                        <td className="p-3 text-right">
+                                                            <Dialog>
+                                                                <DialogTrigger asChild>
+                                                                    <Button variant="ghost" size="icon" className="h-8 w-8 rounded-full">
+                                                                        <Eye className="h-4 w-4 text-muted-foreground" />
+                                                                    </Button>
+                                                                </DialogTrigger>
+                                                                <DialogContent className="sm:max-w-md">
+                                                                    <DialogHeader>
+                                                                        <DialogTitle>Activity Details</DialogTitle>
+                                                                    </DialogHeader>
+                                                                    <div className="space-y-4 py-4 text-sm">
+                                                                        <div className="grid grid-cols-2 gap-4">
+                                                                            <div>
+                                                                                <p className="text-muted-foreground text-xs">Date</p>
+                                                                                <p className="font-medium">
+                                                                                    {isValidDate ? format(hourDate!, "MMMM d, yyyy") : "N/A"}
+                                                                                </p>
                                                                             </div>
-                                                                        )}
-                                                                        {hour.notes && (
+                                                                            <div>
+                                                                                <p className="text-muted-foreground text-xs">Duration</p>
+                                                                                <p className="font-medium">{Number(hour.hours || 0).toFixed(1)} hrs</p>
+                                                                            </div>
+                                                                            <div>
+                                                                                <p className="text-muted-foreground text-xs">Student</p>
+                                                                                <p className="font-medium">{hour.student?.fullName || 'Multiple Students'}</p>
+                                                                            </div>
+                                                                            <div>
+                                                                                <p className="text-muted-foreground text-xs">Status</p>
+                                                                                <Badge variant={hour.status === 'APPROVED' ? 'default' : hour.status === 'BILLED' ? 'default' : hour.status === 'REJECTED' ? 'destructive' : 'secondary'} className="mt-1">
+                                                                                    {String(hour.status || "UNKNOWN")}
+                                                                                </Badge>
+                                                                            </div>
                                                                             <div className="col-span-2 border-t pt-4 mt-2">
-                                                                                <p className="text-muted-foreground text-xs">Notes</p>
-                                                                                <p className="italic bg-muted/30 p-3 rounded-lg mt-1">{hour.notes}</p>
+                                                                                <p className="text-muted-foreground text-xs">Activity Type</p>
+                                                                                <p className="font-medium">{String(hour.activityType || 'Group Supervision').replace(/_/g, ' ')}</p>
                                                                             </div>
-                                                                        )}
-                                                                        {hour.groupTopic && (
-                                                                            <div className="col-span-2 border-t pt-4 mt-2">
-                                                                                <p className="text-muted-foreground text-xs">Group Topic</p>
-                                                                                <p className="font-medium">{hour.groupTopic}</p>
-                                                                            </div>
-                                                                        )}
+                                                                            {hour.setting && (
+                                                                                <div className="col-span-2">
+                                                                                    <p className="text-muted-foreground text-xs">Setting</p>
+                                                                                    <p className="font-medium">{String(hour.setting).replace(/_/g, ' ')}</p>
+                                                                                </div>
+                                                                            )}
+                                                                            {hour.notes && (
+                                                                                <div className="col-span-2 border-t pt-4 mt-2">
+                                                                                    <p className="text-muted-foreground text-xs">Notes</p>
+                                                                                    <p className="italic bg-muted/30 p-3 rounded-lg mt-1">{String(hour.notes)}</p>
+                                                                                </div>
+                                                                            )}
+                                                                            {hour.groupTopic && (
+                                                                                <div className="col-span-2 border-t pt-4 mt-2">
+                                                                                    <p className="text-muted-foreground text-xs">Group Topic</p>
+                                                                                    <p className="font-medium">{String(hour.groupTopic)}</p>
+                                                                                </div>
+                                                                            )}
+                                                                        </div>
                                                                     </div>
-                                                                </div>
-                                                            </DialogContent>
-                                                        </Dialog>
-                                                    </td>
-                                                </tr>
-                                            ))}
+                                                                </DialogContent>
+                                                            </Dialog>
+                                                        </td>
+                                                    </tr>
+                                                );
+                                            })}
                                         </tbody>
                                         {(safeSupervisor.supervisionHours ?? []).length === 100 && (
                                             <tfoot>

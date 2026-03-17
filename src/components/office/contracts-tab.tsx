@@ -104,15 +104,21 @@ export function OfficeContractsTab({ studentId, contracts, allSupervisors }: Off
                                         <div className="flex items-center gap-2">
                                             <Calendar className="h-4 w-4 text-muted-foreground" />
                                             <span className="font-semibold">
-                                                Effective: {format(new Date(contract.effectiveDate), "MMMM d, yyyy")}
+                                                Effective: {(() => {
+                                                    const d = new Date(contract.effectiveDate)
+                                                    return !isNaN(d.getTime()) ? format(d, "MMMM d, yyyy") : "N/A"
+                                                })()}
                                             </span>
                                             <Badge variant={STATUS_COLORS[contract.status] as any ?? "secondary"}>
-                                                {contract.status}
+                                                {String(contract.status || "UNKNOWN")}
                                             </Badge>
                                         </div>
                                         <p className="text-xs text-muted-foreground">
-                                            Created {format(new Date(contract.createdAt), "MMM d, yyyy · HH:mm")}
-                                            {" · "}Contract ID: <code className="font-mono">{contract.id.slice(0, 8)}</code>
+                                            Created {(() => {
+                                                const d = new Date(contract.createdAt)
+                                                return !isNaN(d.getTime()) ? format(d, "MMM d, yyyy · HH:mm") : "N/A"
+                                            })()}
+                                            {" · "}Contract ID: <code className="font-mono">{String(contract.id || "").slice(0, 8)}</code>
                                         </p>
                                     </div>
 

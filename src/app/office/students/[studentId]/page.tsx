@@ -105,15 +105,18 @@ export default async function OfficeStudentDetailPage({ params }: { params: Prom
                         <div className="bg-card border rounded-xl overflow-hidden shadow-sm flex divide-x">
                             <div className="px-6 py-3 text-center">
                                 <p className="text-xs text-muted-foreground uppercase font-semibold">Total Hours</p>
-                                <p className="text-2xl font-bold">{totalHours.toFixed(1)} <span className="text-sm font-normal text-muted-foreground">/ 130</span></p>
+                                <p className="text-2xl font-bold">
+                                    {typeof totalHours === 'number' && !isNaN(totalHours) ? totalHours.toFixed(1) : "0.0"} 
+                                    <span className="text-sm font-normal text-muted-foreground"> / 130</span>
+                                </p>
                             </div>
                             <div className="px-6 py-3 text-center hidden sm:block">
                                 <p className="text-xs text-muted-foreground uppercase font-semibold">Contracts</p>
-                                <p className="text-2xl font-bold">{(safeStudent.contracts ?? []).length}</p>
+                                <p className="text-2xl font-bold">{Math.max(0, (safeStudent.contracts ?? []).length)}</p>
                             </div>
                             <div className="px-6 py-3 text-center hidden sm:block">
                                 <p className="text-xs text-muted-foreground uppercase font-semibold">Documents</p>
-                                <p className="text-2xl font-bold">{(safeStudent.documents ?? []).length}</p>
+                                <p className="text-2xl font-bold">{Math.max(0, (safeStudent.documents ?? []).length)}</p>
                             </div>
                         </div>
                         {/* Global edit profile button removed */}
@@ -201,65 +204,87 @@ export default async function OfficeStudentDetailPage({ params }: { params: Prom
                                     </thead>
                                     <tbody className="divide-y">
                                         {[...(safeStudent.supervisionHours || []), ...(safeStudent.independentHours || [])]
-                                            .filter((h: any) => h.status === "APPROVED" || h.status === "BILLED")
-                                            .sort((a: any, b: any) => new Date(b.date).getTime() - new Date(a.date).getTime())
-                                            .map((hour: any) => (
-                                                <tr key={hour.id} className="hover:bg-muted/50 transition-colors">
-                                                    <td className="p-3">{format(new Date(hour.date), "MMM d, yyyy")}</td>
-                                                    <td className="p-3 font-medium">{'activityType' in hour ? 'Supervised' : 'Independent'}</td>
-                                                    <td className="p-3">{Number(hour.hours).toFixed(1)} hrs</td>
-                                                    <td className="p-3">
-                                                        <Badge variant={hour.status === 'BILLED' ? 'default' : 'secondary'}>
-                                                            {hour.status}
-                                                        </Badge>
-                                                    </td>
-                                                    <td className="p-3 text-right">
-                                                        <Dialog>
-                                                            <DialogTrigger asChild>
-                                                                <Button variant="ghost" size="icon" className="h-8 w-8 rounded-full">
-                                                                    <Eye className="h-4 w-4 text-muted-foreground" />
-                                                                </Button>
-                                                            </DialogTrigger>
-                                                            <DialogContent className="sm:max-w-md">
-                                                                <DialogHeader>
-                                                                    <DialogTitle>Activity Details</DialogTitle>
-                                                                </DialogHeader>
-                                                                <div className="space-y-4 py-4 text-sm">
-                                                                    <div className="grid grid-cols-2 gap-4">
-                                                                        <div>
-                                                                            <p className="text-muted-foreground text-xs">Date</p>
-                                                                            <p className="font-medium">{format(new Date(hour.date), "MMMM d, yyyy")}</p>
-                                                                        </div>
-                                                                        <div>
-                                                                            <p className="text-muted-foreground text-xs">Duration</p>
-                                                                            <p className="font-medium">{Number(hour.hours).toFixed(1)} hrs</p>
-                                                                        </div>
-                                                                        <div>
-                                                                            <p className="text-muted-foreground text-xs">Type</p>
-                                                                            <p className="font-medium">{'activityType' in hour ? 'Supervised' : 'Independent'}</p>
-                                                                        </div>
-                                                                        <div>
-                                                                            <p className="text-muted-foreground text-xs">Status</p>
-                                                                            <Badge variant={hour.status === 'BILLED' ? 'default' : 'secondary'} className="mt-1">
-                                                                                {hour.status}
-                                                                            </Badge>
-                                                                        </div>
-                                                                        {'activityType' in hour && (
-                                                                            <>
-                                                                                <div className="col-span-2 border-t pt-4 mt-2">
-                                                                                    <p className="text-muted-foreground text-xs">Activity Type</p>
-                                                                                    <p className="font-medium">{hour.activityType?.replace(/_/g, ' ')}</p>
-                                                                                </div>
-                                                                                <div className="col-span-2">
-                                                                                    <p className="text-muted-foreground text-xs">Setting</p>
-                                                                                    <p className="font-medium">{hour.setting?.replace(/_/g, ' ')}</p>
-                                                                                </div>
-                                                                            </>
-                                                                        )}
+                                            .filter((h: any) => h && (h.status === "APPROVED" || h.status === "BILLED"))
+                                            .sort((a: any, b: any) => {
+                                                const dateA = a?.date ? new Date(a.date).getTime() : 0;
+                                                const dateB = b?.date ? new Date(b.date).getTime() : 0;
+                                                return dateB - dateA;
+                                            })
+                                            .map((hour: any) => {
+                                                const hourDate = hour?.date ? new Date(hour.date) : null;
+                                                const isValidDate = hourDate && !isNaN(hourDate.getTime());
+                                                const isSupervised = 'supervisionType' in hour || 'supervisorId' in hour;
+                                                
+                                                return (
+                                                    <tr key={hour.id} className="hover:bg-muted/50 transition-colors">
+                                                        <td className="p-3">
+                                                            {isValidDate ? format(hourDate!, "MMM d, yyyy") : "N/A"}
+                                                        </td>
+                                                        <td className="p-3 font-medium">
+                                                            {isSupervised ? 'Supervised' : 'Independent'}
+                                                        </td>
+                                                        <td className="p-3">
+                                                            {typeof hour.hours === 'number' ? hour.hours.toFixed(1) : 
+                                                             (typeof hour.hours === 'string' ? parseFloat(hour.hours).toFixed(1) : "0.0")} hrs
+                                                        </td>
+                                                        <td className="p-3">
+                                                            <Badge variant={hour.status === 'BILLED' ? 'default' : 'secondary'}>
+                                                                {String(hour.status || "UNKNOWN")}
+                                                            </Badge>
+                                                        </td>
+                                                        <td className="p-3 text-right">
+                                                            <Dialog>
+                                                                <DialogTrigger asChild>
+                                                                    <Button variant="ghost" size="icon" className="h-8 w-8 rounded-full">
+                                                                        <Eye className="h-4 w-4 text-muted-foreground" />
+                                                                    </Button>
+                                                                </DialogTrigger>
+                                                                <DialogContent className="sm:max-w-md">
+                                                                    <DialogHeader>
+                                                                        <DialogTitle>Activity Details</DialogTitle>
+                                                                    </DialogHeader>
+                                                                    <div className="space-y-4 py-4 text-sm">
+                                                                        <div className="grid grid-cols-2 gap-4">
+                                                                            <div>
+                                                                                <p className="text-muted-foreground text-xs">Date</p>
+                                                                                <p className="font-medium">
+                                                                                    {isValidDate ? format(hourDate!, "MMMM d, yyyy") : "N/A"}
+                                                                                </p>
+                                                                            </div>
+                                                                            <div>
+                                                                                <p className="text-muted-foreground text-xs">Duration</p>
+                                                                                <p className="font-medium">
+                                                                                    {Number(hour.hours || 0).toFixed(1)} hrs
+                                                                                </p>
+                                                                            </div>
+                                                                            <div>
+                                                                                <p className="text-muted-foreground text-xs">Type</p>
+                                                                                <p className="font-medium">
+                                                                                    {isSupervised ? 'Supervised' : 'Independent'}
+                                                                                </p>
+                                                                            </div>
+                                                                            <div>
+                                                                                <p className="text-muted-foreground text-xs">Status</p>
+                                                                                <Badge variant={hour.status === 'BILLED' ? 'default' : 'secondary'} className="mt-1">
+                                                                                    {String(hour.status || "UNKNOWN")}
+                                                                                </Badge>
+                                                                            </div>
+                                                                            {isSupervised && (
+                                                                                <>
+                                                                                    <div className="col-span-2 border-t pt-4 mt-2">
+                                                                                        <p className="text-muted-foreground text-xs">Activity Type</p>
+                                                                                        <p className="font-medium">{String(hour.activityType || "N/A").replace(/_/g, ' ')}</p>
+                                                                                    </div>
+                                                                                    <div className="col-span-2">
+                                                                                        <p className="text-muted-foreground text-xs">Setting</p>
+                                                                                        <p className="font-medium">{String(hour.setting || "N/A").replace(/_/g, ' ')}</p>
+                                                                                    </div>
+                                                                                </>
+                                                                            )}
                                                                         {hour.notes && (
                                                                             <div className="col-span-2 border-t pt-4 mt-2">
                                                                                 <p className="text-muted-foreground text-xs">Notes</p>
-                                                                                <p className="italic bg-muted/30 p-3 rounded-lg mt-1">{hour.notes}</p>
+                                                                                <p className="italic bg-muted/30 p-3 rounded-lg mt-1">{String(hour.notes)}</p>
                                                                             </div>
                                                                         )}
                                                                         {hour.groupTopic && (
@@ -274,8 +299,9 @@ export default async function OfficeStudentDetailPage({ params }: { params: Prom
                                                         </Dialog>
                                                     </td>
                                                 </tr>
-                                            ))}
-                                        {([...(safeStudent.supervisionHours || []), ...(safeStudent.independentHours || [])].filter((h: any) => h.status === "APPROVED" || h.status === "BILLED").length === 0) && (
+                                            );
+                                        })}
+                                        {([...(safeStudent.supervisionHours || []), ...(safeStudent.independentHours || [])].filter((h: any) => h && (h.status === "APPROVED" || h.status === "BILLED")).length === 0) && (
                                             <tr>
                                                 <td colSpan={5} className="p-6 text-center text-muted-foreground">
                                                     No approved or billed activity found.
@@ -303,25 +329,36 @@ export default async function OfficeStudentDetailPage({ params }: { params: Prom
                                         </tr>
                                     </thead>
                                     <tbody className="divide-y">
-                                        {(safeStudent.invoices || []).map((invoice: any) => (
-                                            <tr key={invoice.id} className="hover:bg-muted/50 transition-colors">
-                                                <td className="p-3">{format(new Date(invoice.createdAt), "MMM d, yyyy")}</td>
-                                                <td className="p-3 text-right font-medium">${Number(invoice.amountDue).toFixed(2)}</td>
-                                                <td className="p-3 text-right text-muted-foreground">${Number(invoice.amountPaid).toFixed(2)}</td>
-                                                <td className="p-3 text-right">
-                                                    <Badge variant={invoice.status === 'PAID' ? 'default' : 'secondary'}>
-                                                        {invoice.status}
-                                                    </Badge>
-                                                </td>
-                                                <td className="p-3 text-right">
-                                                    <Button variant="ghost" size="icon" className="h-8 w-8 rounded-full" asChild>
-                                                        <a href={`/api/office/invoices/${invoice.id}/download`} target="_blank">
-                                                            <Eye className="h-4 w-4 text-muted-foreground" />
-                                                        </a>
-                                                    </Button>
-                                                </td>
-                                            </tr>
-                                        ))}
+                                        {(safeStudent.invoices || []).map((invoice: any) => {
+                                            const invoiceDate = invoice?.createdAt || invoice?.invoiceDate ? new Date(invoice.createdAt || invoice.invoiceDate) : null;
+                                            const isValidInvoiceDate = invoiceDate && !isNaN(invoiceDate.getTime());
+                                            
+                                            return (
+                                                <tr key={invoice.id} className="hover:bg-muted/50 transition-colors">
+                                                    <td className="p-3">
+                                                        {isValidInvoiceDate ? format(invoiceDate!, "MMM d, yyyy") : "N/A"}
+                                                    </td>
+                                                    <td className="p-3 text-right font-medium">
+                                                        ${Number(invoice.amountDue || 0).toFixed(2)}
+                                                    </td>
+                                                    <td className="p-3 text-right text-muted-foreground">
+                                                        ${Number(invoice.amountPaid || 0).toFixed(2)}
+                                                    </td>
+                                                    <td className="p-3 text-right">
+                                                        <Badge variant={invoice.status === 'PAID' ? 'default' : 'secondary'}>
+                                                            {String(invoice.status || "UNKNOWN")}
+                                                        </Badge>
+                                                    </td>
+                                                    <td className="p-3 text-right">
+                                                        <Button variant="ghost" size="icon" className="h-8 w-8 rounded-full" asChild>
+                                                            <a href={`/api/office/invoices/${invoice.id}/download`} target="_blank">
+                                                                <Eye className="h-4 w-4 text-muted-foreground" />
+                                                            </a>
+                                                        </Button>
+                                                    </td>
+                                                </tr>
+                                            );
+                                        })}
                                         {(!safeStudent.invoices || safeStudent.invoices.length === 0) && (
                                             <tr>
                                                 <td colSpan={5} className="p-6 text-center text-muted-foreground">
