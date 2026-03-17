@@ -12,7 +12,7 @@ import {
 } from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { Plus } from "lucide-react"
+import { Plus, Loader2 } from "lucide-react"
 import { useState, useTransition } from "react"
 import { toast } from "sonner"
 import { createStudent } from "@/actions/users"
@@ -49,86 +49,109 @@ export function AddStudentDialog({ isSuperAdmin }: AddStudentDialogProps) {
                     Add Student
                 </Button>
             </DialogTrigger>
-            <DialogContent className="sm:max-w-[425px]">
+            <DialogContent className="sm:max-w-[600px] gap-6">
                 <DialogHeader>
-                    <DialogTitle>Add New Student</DialogTitle>
-                    <DialogDescription>
+                    <div className="flex items-center gap-2 mb-1">
+                        <div className="h-2 w-10 bg-primary/20 rounded-full" />
+                        <DialogTitle className="text-2xl font-bold">Add New Student</DialogTitle>
+                    </div>
+                    <DialogDescription className="text-base">
                         Create a new student profile. They will receive an email with login instructions.
                     </DialogDescription>
                 </DialogHeader>
                 <form onSubmit={onSubmit}>
-                    <div className="grid gap-4 py-4 max-h-[60vh] overflow-y-auto px-2">
-                        <div className="grid grid-cols-4 items-center gap-4">
-                            <Label htmlFor="fullName" className="text-right">
-                                Full Name
-                            </Label>
-                            <Input id="fullName" name="fullName" className="col-span-3" required />
+                    <div className="grid gap-6 py-4 max-h-[70vh] overflow-y-auto px-4 scrollbar-thin scrollbar-thumb-primary/10">
+                        {/* Section: Personal Info */}
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div className="space-y-2">
+                                <Label htmlFor="fullName" className="text-xs uppercase tracking-wider font-semibold text-muted-foreground">Full Name</Label>
+                                <Input id="fullName" name="fullName" placeholder="Full legal name" required className="h-10 rounded-lg" />
+                            </div>
+                            <div className="space-y-2">
+                                <Label htmlFor="email" className="text-xs uppercase tracking-wider font-semibold text-muted-foreground">Email Address</Label>
+                                <Input id="email" name="email" type="email" placeholder="email@example.com" required className="h-10 rounded-lg" />
+                            </div>
                         </div>
-                        <div className="grid grid-cols-4 items-center gap-4">
-                            <Label htmlFor="email" className="text-right">
-                                Email
-                            </Label>
-                            <Input id="email" name="email" type="email" className="col-span-3" required />
+
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div className="space-y-2">
+                                <Label htmlFor="phone" className="text-xs uppercase tracking-wider font-semibold text-muted-foreground">Phone Number</Label>
+                                <Input id="phone" name="phone" placeholder="+1..." required className="h-10 rounded-lg" />
+                            </div>
+                            <div className="space-y-2">
+                                <Label htmlFor="bacbId" className="text-xs uppercase tracking-wider font-semibold text-muted-foreground">BACB ID</Label>
+                                <Input id="bacbId" name="bacbId" placeholder="e.g. 1-23-45678" className="h-10 rounded-lg" />
+                            </div>
                         </div>
-                        <div className="grid grid-cols-4 items-center gap-4">
-                            <Label htmlFor="phone" className="text-right">
-                                Phone
-                            </Label>
-                            <Input id="phone" name="phone" className="col-span-3" required />
+
+                        {/* Section: Academic/Program */}
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div className="space-y-2">
+                                <Label htmlFor="vcsSequence" className="text-xs uppercase tracking-wider font-semibold text-muted-foreground">VCS Sequence</Label>
+                                <Input id="vcsSequence" name="vcsSequence" className="h-10 rounded-lg" />
+                            </div>
+                            <div className="space-y-2">
+                                <Label htmlFor="assignedOptionPlan" className="text-xs uppercase tracking-wider font-semibold text-muted-foreground">Option Plan</Label>
+                                <select id="assignedOptionPlan" name="assignedOptionPlan" className="flex h-10 w-full rounded-lg border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50">
+                                    <option value="">Select a plan...</option>
+                                    <option value="A">Plan A</option>
+                                    <option value="B">Plan B</option>
+                                    <option value="C">Plan C</option>
+                                    <option value="D">Plan D</option>
+                                    <option value="E">Plan E</option>
+                                </select>
+                            </div>
                         </div>
-                        <div className="grid grid-cols-4 items-center gap-4">
-                            <Label htmlFor="bacbId" className="text-right">BACB ID</Label>
-                            <Input id="bacbId" name="bacbId" className="col-span-3" />
+
+                        {/* Section: Financials */}
+                        <div className="p-4 bg-muted/30 rounded-xl space-y-4">
+                            <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground/80">Financial Calibration</p>
+                            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                <div className="space-y-2">
+                                    <Label htmlFor="totalAmountContract" className="text-xs font-semibold">Total Contract ($)</Label>
+                                    <Input id="totalAmountContract" name="totalAmountContract" type="number" step="0.01" placeholder="0.00" className="h-9" />
+                                </div>
+                                <div className="space-y-2">
+                                    <Label htmlFor="analystPaymentRate" className="text-xs font-semibold">Analyst Rate (%)</Label>
+                                    <Input id="analystPaymentRate" name="analystPaymentRate" type="number" step="0.01" placeholder="0.60" className="h-9" />
+                                </div>
+                                <div className="space-y-2">
+                                    <Label htmlFor="officePaymentRate" className="text-xs font-semibold">Office Rate (%)</Label>
+                                    <Input id="officePaymentRate" name="officePaymentRate" type="number" step="0.01" placeholder="0.40" className="h-9" />
+                                </div>
+                            </div>
                         </div>
-                        <div className="grid grid-cols-4 items-center gap-4">
-                            <Label htmlFor="vcsSequence" className="text-right">VCS Sequence</Label>
-                            <Input id="vcsSequence" name="vcsSequence" className="col-span-3" />
+
+                        {/* Section: Targets */}
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                            <div className="space-y-2">
+                                <Label htmlFor="regularHoursTarget" className="text-[11px] font-semibold text-muted-foreground">Reg. Target</Label>
+                                <Input id="regularHoursTarget" name="regularHoursTarget" type="number" placeholder="0" className="h-9" />
+                            </div>
+                            <div className="space-y-2">
+                                <Label htmlFor="concentratedHoursTarget" className="text-[11px] font-semibold text-muted-foreground">Conc. Target</Label>
+                                <Input id="concentratedHoursTarget" name="concentratedHoursTarget" type="number" placeholder="0" className="h-9" />
+                            </div>
+                            <div className="space-y-2">
+                                <Label htmlFor="independentHoursTarget" className="text-[11px] font-semibold text-muted-foreground">Indp. Target</Label>
+                                <Input id="independentHoursTarget" name="independentHoursTarget" type="number" placeholder="0" className="h-9" />
+                            </div>
                         </div>
-                        <div className="grid grid-cols-4 items-center gap-4">
-                            <Label htmlFor="assignedOptionPlan" className="text-right">Option Plan</Label>
-                            <select id="assignedOptionPlan" name="assignedOptionPlan" className="col-span-3 flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50">
-                                <option value="">Select...</option>
-                                <option value="A">A</option>
-                                <option value="B">B</option>
-                                <option value="C">C</option>
-                                <option value="D">D</option>
-                                <option value="E">E</option>
-                            </select>
+
+                        <div className="space-y-2">
+                            <Label htmlFor="internalComments" className="text-xs uppercase tracking-wider font-semibold text-muted-foreground">Internal Comments</Label>
+                            <Input id="internalComments" name="internalComments" placeholder="Add any relevant notes here..." className="h-10 rounded-lg" />
                         </div>
-                        <div className="grid grid-cols-4 items-center gap-4">
-                            <Label htmlFor="totalAmountContract" className="text-right">Total Contract ($)</Label>
-                            <Input id="totalAmountContract" name="totalAmountContract" type="number" step="0.01" className="col-span-3" />
-                        </div>
-                        <div className="grid grid-cols-4 items-center gap-4">
-                            <Label htmlFor="analystPaymentRate" className="text-right">Analyst Rate (%)</Label>
-                            <Input id="analystPaymentRate" name="analystPaymentRate" type="number" step="0.0001" placeholder="e.g. 0.60" className="col-span-3" />
-                        </div>
-                        <div className="grid grid-cols-4 items-center gap-4">
-                            <Label htmlFor="officePaymentRate" className="text-right">Office Rate (%)</Label>
-                            <Input id="officePaymentRate" name="officePaymentRate" type="number" step="0.0001" placeholder="e.g. 0.40" className="col-span-3" />
-                        </div>
-                        <div className="grid grid-cols-4 items-center gap-4">
-                            <Label htmlFor="regularHoursTarget" className="text-right">Reg. Hours Target</Label>
-                            <Input id="regularHoursTarget" name="regularHoursTarget" type="number" className="col-span-3" />
-                        </div>
-                        <div className="grid grid-cols-4 items-center gap-4">
-                            <Label htmlFor="concentratedHoursTarget" className="text-right">Conc. Hours Target</Label>
-                            <Input id="concentratedHoursTarget" name="concentratedHoursTarget" type="number" className="col-span-3" />
-                        </div>
-                        <div className="grid grid-cols-4 items-center gap-4">
-                            <Label htmlFor="independentHoursTarget" className="text-right">Indp. Hours Target</Label>
-                            <Input id="independentHoursTarget" name="independentHoursTarget" type="number" className="col-span-3" />
-                        </div>
-                        <div className="grid grid-cols-4 items-center gap-4">
-                            <Label htmlFor="internalComments" className="text-right">Comments</Label>
-                            <Input id="internalComments" name="internalComments" className="col-span-3" />
-                        </div>
+
                         {isSuperAdmin && (
-                            <div className="grid grid-cols-4 items-center gap-4">
-                                <Label htmlFor="hourlyRate" className="text-right">Hourly Rate ($)</Label>
-                                <Input id="hourlyRate" name="hourlyRate" type="number" step="0.01" className="col-span-3" required />
+                            <div className="pt-2 border-t">
+                                <div className="space-y-2">
+                                    <Label htmlFor="hourlyRate" className="text-xs uppercase tracking-wider font-semibold text-primary">Hourly Rate ($)</Label>
+                                    <Input id="hourlyRate" name="hourlyRate" type="number" step="0.01" placeholder="0.00" className="h-10 border-primary/30" required />
+                                </div>
                             </div>
                         )}
+                        
                         <input type="hidden" name="city" value="Miami" />
                         <input type="hidden" name="state" value="FL" />
                         <input type="hidden" name="school" value="FSU" />
@@ -136,9 +159,11 @@ export function AddStudentDialog({ isSuperAdmin }: AddStudentDialogProps) {
                         <input type="hidden" name="startDate" value={new Date().toISOString()} />
                         <input type="hidden" name="endDate" value={new Date(new Date().setFullYear(new Date().getFullYear() + 1)).toISOString()} />
                     </div>
-                    <DialogFooter>
-                        <Button type="submit" disabled={isPending}>
-                            {isPending ? "Creating..." : "Create Student"}
+                    <DialogFooter className="mt-4 gap-2">
+                        <Button type="button" variant="ghost" onClick={() => setOpen(false)} disabled={isPending}>Cancel</Button>
+                        <Button type="submit" disabled={isPending} size="lg" className="px-8 rounded-xl shadow-lg shadow-primary/20">
+                            {isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                            {isPending ? "Creating Profile..." : "Create Student"}
                         </Button>
                     </DialogFooter>
                 </form>
