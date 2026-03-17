@@ -59,9 +59,9 @@ export default function DashboardLayout({
     const officeRole = (session?.user as any)?.officeRole || null
     const userName = session?.user?.name || "User"
     const userEmail = session?.user?.email || ""
-    const initials = userName
+    const initials = (userName || "User")
         .split(" ")
-        .map((n) => n[0])
+        .map((n) => n?.[0] || "")
         .join("")
         .toUpperCase()
 
@@ -229,9 +229,9 @@ interface SidebarContentProps {
 }
 
 function SidebarContent({ routes, pathname, collapsed, onToggleCollapse, onClose, user, companyName }: SidebarContentProps) {
-    const splitName = companyName.split(" ")
-    const firstWord = splitName[0]
-    const remainingWords = splitName.slice(1).join(" ")
+    const splitName = (companyName || "ABA Supervision System").split(" ")
+    const firstWord = splitName[0] || "ABA"
+    const remainingWords = splitName.slice(1).join(" ") || ""
 
     return (
         <div className="flex flex-col h-full">
