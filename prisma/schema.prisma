@@ -12,8 +12,6 @@ model User {
   email               String              @unique
   passwordHash        String
   role                UserRole
-  isActive            Boolean             @default(true)
-  isHidden            Boolean             @default(false)
   isFirstLogin        Boolean             @default(true)
   onboardingCompleted Boolean             @default(false)
   onboardingStep      Int                 @default(0)
@@ -21,15 +19,14 @@ model User {
   initialsUrl         String?
   createdAt           DateTime            @default(now())
   updatedAt           DateTime            @updatedAt
-  requiresWizard      Boolean             @default(false)
-  inviteSent          Boolean             @default(false)
+  isActive            Boolean             @default(true)
+  auditLogs           AuditLog[]
   uploadedDocuments   Document[]
+  notifications       Notification[]
   officeMember        OfficeMember?
   repeatingSchedules  RepeatingSchedule[]
   student             Student?
   supervisor          Supervisor?
-  notifications       Notification[]
-  auditLogs           AuditLog[]
 }
 
 model Notification {
@@ -45,62 +42,49 @@ model Notification {
 }
 
 model Student {
-  id                      String                       @id @default(uuid())
-  userId                  String                       @unique
-  fullName                String
-  paymentAlias            String[]
-  supervisorId            String?
-  bacbId                  String                       @db.VarChar(10)
-  credential              CredentialType
-  school                  String
-  level                   LevelType
-  phone                   String
-  email                   String
-  address                 String                       @default("")
-  city                    String
-  state                   String
-  startDate               DateTime
-  supervisionType         SupervisionType
-  fieldworkType           FieldworkType                @default(REGULAR)
-  supervisionPercentage   Decimal
-  hoursToDo               Int
-  hoursToPay              Int
-  amountToPay             Decimal                      @db.Decimal(10, 2)
-  hourlyRate              Decimal                      @default(0) @db.Decimal(10, 2)
-  hoursPerMonth           Int
-  totalMonths             Int
-  endDate                 DateTime
-  status                  StudentStatus                @default(ACTIVE)
-  availableDaysGroup      String[]
-  notes                   String?
-  createdAt               DateTime                     @default(now())
-  updatedAt               DateTime                     @updatedAt
-  academicDegree          String?
-  contractStartDate       DateTime?
-  contracts               Contract[]
-  documents               Document[]
-  groupAttendance         GroupSupervisionAttendance[]
-  independentHours        IndependentHour[]
-  invoices                Invoice[]
-  supervisor              Supervisor?                  @relation(fields: [supervisorId], references: [id])
-  user                    User                         @relation(fields: [userId], references: [id])
-  evaluations             StudentEvaluation[]
-  payments                StudentPayment[]
-  vcsSequence             String?
-  assignedOptionPlan      OptionPlanType?
-  totalAmountContract     Decimal?                     @db.Decimal(10, 2)
-  analystPaymentRate      Decimal?                     @db.Decimal(5, 4)
-  officePaymentRate       Decimal?                     @db.Decimal(5, 4)
-  internalComments        String?
-  regularHoursTarget      Int?
-  concentratedHoursTarget Int?
-  independentHoursTarget  Int?
-
-  importBatchId String?
-
-  supervisionHours   SupervisionHour[]
-  supervisorPayments SupervisorPayment[]
-  financialPeriods   FinancialPeriod[]
+  id                    String                       @id @default(uuid())
+  userId                String                       @unique
+  fullName              String
+  paymentAlias          String[]
+  supervisorId          String?
+  bacbId                String                       @db.VarChar(10)
+  credential            CredentialType
+  school                String
+  level                 LevelType
+  phone                 String
+  email                 String
+  city                  String
+  state                 String
+  startDate             DateTime
+  supervisionType       SupervisionType
+  supervisionPercentage Decimal
+  hoursToDo             Int
+  hoursToPay            Int
+  amountToPay           Decimal                      @db.Decimal(10, 2)
+  hoursPerMonth         Int
+  totalMonths           Int
+  endDate               DateTime
+  status                StudentStatus                @default(ACTIVE)
+  availableDaysGroup    String[]
+  notes                 String?
+  createdAt             DateTime                     @default(now())
+  updatedAt             DateTime                     @updatedAt
+  academicDegree        String?
+  contractStartDate     DateTime?
+  address               String                       @default("")
+  fieldworkType         FieldworkType                @default(REGULAR)
+  hourlyRate            Decimal                      @default(0) @db.Decimal(10, 2)
+  contracts             Contract[]
+  documents             Document[]
+  groupAttendance       GroupSupervisionAttendance[]
+  independentHours      IndependentHour[]
+  invoices              Invoice[]
+  supervisor            Supervisor?                  @relation(fields: [supervisorId], references: [id])
+  user                  User                         @relation(fields: [userId], references: [id])
+  evaluations           StudentEvaluation[]
+  payments              StudentPayment[]
+  supervisionHours      SupervisionHour[]
+  supervisorPayments    SupervisorPayment[]
 
   @@index([fullName])
   @@index([email])
@@ -119,8 +103,6 @@ model Supervisor {
   training8hrDate    DateTime?
   availableDaysGroup String[]
   monthStarted       DateTime?
-  internalIdNumber   String?
-  dateQualified      DateTime?
   status             SupervisorStatus          @default(ACTIVE)
   companyName        String?
   taxId              String?
@@ -136,6 +118,7 @@ model Supervisor {
   updatedAt          DateTime                  @updatedAt
   credentialType     CredentialType            @default(BCBA)
   maxStudents        Int                       @default(10)
+  contracts          ContractSupervisor[]
   documents          Document[]
   groupSessions      GroupSupervisionSession[]
   students           Student[]
@@ -143,8 +126,6 @@ model Supervisor {
   supervisionHours   SupervisionHour[]
   user               User                      @relation(fields: [userId], references: [id])
   payments           SupervisorPayment[]
-  contracts          ContractSupervisor[]
-  importBatchId      String?
 
   @@index([fullName])
   @@index([email])
@@ -154,10 +135,10 @@ model OfficeMember {
   id          String     @id @default(uuid())
   userId      String     @unique
   fullName    String
-  officeRole  OfficeRole @default(ADMIN)
   permissions Json?
   createdAt   DateTime   @default(now())
   updatedAt   DateTime   @updatedAt
+  officeRole  OfficeRole @default(ADMIN)
   user        User       @relation(fields: [userId], references: [id])
 
   @@index([fullName])
@@ -174,9 +155,9 @@ model IndependentHour {
   notes               String?
   isRepeating         Boolean            @default(false)
   repeatingScheduleId String?
-  status              HourStatus         @default(PENDING)
-  rejectReason        String?
   createdAt           DateTime           @default(now())
+  rejectReason        String?
+  status              HourStatus         @default(PENDING)
   repeatingSchedule   RepeatingSchedule? @relation(fields: [repeatingScheduleId], references: [id])
   student             Student            @relation(fields: [studentId], references: [id])
 }
@@ -195,12 +176,12 @@ model SupervisionHour {
   groupTopic          String?
   isRepeating         Boolean            @default(false)
   repeatingScheduleId String?
-  status              HourStatus         @default(PENDING)
-  rejectReason        String?
-  amountBilled        Decimal?           @db.Decimal(10, 2)
-  supervisorPay       Decimal?           @db.Decimal(10, 2)
-  invoiceId           String?
   createdAt           DateTime           @default(now())
+  rejectReason        String?
+  status              HourStatus         @default(PENDING)
+  amountBilled        Decimal?           @db.Decimal(10, 2)
+  invoiceId           String?
+  supervisorPay       Decimal?           @db.Decimal(10, 2)
   invoice             Invoice?           @relation(fields: [invoiceId], references: [id])
   repeatingSchedule   RepeatingSchedule? @relation(fields: [repeatingScheduleId], references: [id])
   student             Student            @relation(fields: [studentId], references: [id])
@@ -225,15 +206,14 @@ model RepeatingSchedule {
 }
 
 model StudentPayment {
-  id            String      @id @default(uuid())
-  studentId     String
-  paymentDate   DateTime
-  amount        Decimal     @db.Decimal(10, 2)
-  paymentType   PaymentType
-  notes         String?
-  importBatchId String?
-  createdAt     DateTime    @default(now())
-  student       Student     @relation(fields: [studentId], references: [id])
+  id          String      @id @default(uuid())
+  studentId   String
+  paymentDate DateTime
+  amount      Decimal     @db.Decimal(10, 2)
+  paymentType PaymentType
+  notes       String?
+  createdAt   DateTime    @default(now())
+  student     Student     @relation(fields: [studentId], references: [id])
 }
 
 model SupervisorPayment {
@@ -245,7 +225,6 @@ model SupervisorPayment {
   amountPaidThisMonth Decimal    @db.Decimal(10, 2)
   amountAlreadyPaid   Decimal    @db.Decimal(10, 2)
   balanceDue          Decimal    @db.Decimal(10, 2)
-  importBatchId       String?
   createdAt           DateTime   @default(now())
   student             Student    @relation(fields: [studentId], references: [id])
   supervisor          Supervisor @relation(fields: [supervisorId], references: [id])
@@ -345,29 +324,30 @@ model GeneralValues {
   companyAddress              String
   companyPhone                String
   companyEmail                String
-  companyWebsite              String   @default("")
-  companyTaxId                String   @default("")
-  companyLogoUrl              String   @default("")
   updatedAt                   DateTime @updatedAt
+  companyWebsite              String   @default("")
+  companyLogoUrl              String   @default("")
+  companyTaxId                String   @default("")
 }
 
-model FinancialPeriod {
-  id                     String   @id @default(uuid())
-  studentId              String
-  periodNumber           Int
-  monthYearLabel         String
-  amountDueOffice        Decimal  @db.Decimal(10, 2)
-  amountDueAnalyst       Decimal  @db.Decimal(10, 2)
-  accumulatedDueOffice   Decimal  @db.Decimal(10, 2)
-  accumulatedPaidOffice  Decimal  @db.Decimal(10, 2)
-  accumulatedPaidAnalyst Decimal  @db.Decimal(10, 2)
-  importBatchId          String?
-  createdAt              DateTime @default(now())
-  updatedAt              DateTime @updatedAt
+model AuditLog {
+  id        String   @id @default(uuid())
+  userId    String
+  userEmail String?
+  action    String
+  entity    String
+  entityId  String?
+  details   String?
+  oldValues Json?
+  newValues Json?
+  ipAddress String?
+  createdAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id])
 
-  student Student @relation(fields: [studentId], references: [id], onDelete: Cascade)
-
-  @@unique([studentId, periodNumber])
+  @@index([action])
+  @@index([entity])
+  @@index([userId])
+  @@index([createdAt])
 }
 
 enum UserRole {
@@ -391,14 +371,6 @@ enum LevelType {
   BCBA
 }
 
-enum OptionPlanType {
-  A
-  B
-  C
-  D
-  E
-}
-
 enum SupervisionType {
   REGULAR
   CONCENTRATED
@@ -409,13 +381,11 @@ enum StudentStatus {
   PENDING
   COMPLETED
   WITHDRAWN
-  DISABLED
 }
 
 enum SupervisorStatus {
   ACTIVE
   WITHDRAWN
-  DISABLED
 }
 
 enum SettingType {
@@ -508,45 +478,4 @@ enum HourStatus {
 enum FieldworkType {
   REGULAR
   CONCENTRATED
-}
-
-model AuditLog {
-  id        String   @id @default(uuid())
-  userId    String
-  userEmail String?
-  action    String
-  entity    String
-  entityId  String?
-  details   String?
-  oldValues Json?
-  newValues Json?
-  ipAddress String?
-  createdAt DateTime @default(now())
-
-  user User @relation(fields: [userId], references: [id])
-
-  @@index([action])
-  @@index([entity])
-  @@index([userId])
-  @@index([createdAt])
-}
-
-model ImportBatch {
-  id          String      @id @default(uuid())
-  batchString String
-  createdAt   DateTime    @default(now())
-  status      String      @default("COMPLETED")
-  revertedAt  DateTime?
-  logs        ImportLog[]
-}
-
-model ImportLog {
-  id        String      @id @default(uuid())
-  batchId   String
-  tableName String
-  recordId  String
-  action    String      @default("UPDATE")
-  oldData   Json?
-  newData   Json?
-  batch     ImportBatch @relation(fields: [batchId], references: [id], onDelete: Cascade)
 }

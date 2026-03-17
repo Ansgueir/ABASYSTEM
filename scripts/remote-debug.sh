@@ -1,0 +1,16 @@
+#!/bin/bash
+export PGPASSWORD=Pr0s1s.2026
+STUDENT_ID="a1dc58e0-51f3-4538-8398-4b31e57be0cf"
+echo "{\"student\":"
+psql -h localhost -d aba_supervision -U aba_admin -t -c "SELECT row_to_json(s) FROM (SELECT * FROM \"Student\" WHERE id='$STUDENT_ID') s;"
+echo ",\"documents\":"
+psql -h localhost -d aba_supervision -U aba_admin -t -c "SELECT json_agg(d) FROM (SELECT * FROM \"Document\" WHERE \"studentId\"='$STUDENT_ID') d;"
+echo ",\"contracts\":"
+psql -h localhost -d aba_supervision -U aba_admin -t -c "SELECT json_agg(c) FROM (SELECT * FROM \"Contract\" WHERE \"studentId\"='$STUDENT_ID') c;"
+echo ",\"independentHours\":"
+psql -h localhost -d aba_supervision -U aba_admin -t -c "SELECT json_agg(ih) FROM (SELECT * FROM \"IndependentHour\" WHERE \"studentId\"='$STUDENT_ID') ih;"
+echo ",\"supervisionHours\":"
+psql -h localhost -d aba_supervision -U aba_admin -t -c "SELECT json_agg(sh) FROM (SELECT * FROM \"SupervisionHour\" WHERE \"studentId\"='$STUDENT_ID') sh;"
+echo ",\"invoices\":"
+psql -h localhost -d aba_supervision -U aba_admin -t -c "SELECT json_agg(i) FROM (SELECT * FROM \"Invoice\" WHERE \"studentId\"='$STUDENT_ID') i;"
+echo "}"

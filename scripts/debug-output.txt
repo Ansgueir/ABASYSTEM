@@ -1,0 +1,6 @@
+(node:4272) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///C:/Users/Andyf/OneDrive/Documentos/ERP%20PRACTICANTES/aba-supervision-system/scripts/debug-student.ts is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to C:\Users\Andyf\OneDrive\Documentos\ERP PRACTICANTES\aba-supervision-system\package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+Fetching raw data for student: a1dc58e0-51f3-4538-8398-4b31e57be0cf...
+Student not found

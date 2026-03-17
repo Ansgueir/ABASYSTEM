@@ -32,7 +32,7 @@ export function StudentBillingTab({ invoices = [] }: { invoices: any[] }) {
                         </tr>
                     </thead>
                     <tbody className="divide-y">
-                        {invoices.length === 0 ? (
+                        {(!invoices || invoices.length === 0) ? (
                             <tr>
                                 <td colSpan={5} className="p-6 text-center text-muted-foreground">
                                     No billing history available.

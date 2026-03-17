@@ -1,0 +1,67 @@
+(node:19484) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///C:/Users/Andyf/OneDrive/Documentos/ERP%20PRACTICANTES/aba-supervision-system/scripts/list-tables.ts is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to C:\Users\Andyf\OneDrive\Documentos\ERP PRACTICANTES\aba-supervision-system\package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+Listing all tables in the database...
+[
+  {
+    "table_name": "ContractSupervisor"
+  },
+  {
+    "table_name": "Notification"
+  },
+  {
+    "table_name": "AuditLog"
+  },
+  {
+    "table_name": "GeneralValues"
+  },
+  {
+    "table_name": "Supervisor"
+  },
+  {
+    "table_name": "Student"
+  },
+  {
+    "table_name": "User"
+  },
+  {
+    "table_name": "OfficeMember"
+  },
+  {
+    "table_name": "GroupSupervisionSession"
+  },
+  {
+    "table_name": "GroupSupervisionAttendance"
+  },
+  {
+    "table_name": "Contract"
+  },
+  {
+    "table_name": "StudentEvaluation"
+  },
+  {
+    "table_name": "_prisma_migrations"
+  },
+  {
+    "table_name": "RepeatingSchedule"
+  },
+  {
+    "table_name": "IndependentHour"
+  },
+  {
+    "table_name": "SupervisionHour"
+  },
+  {
+    "table_name": "StudentPayment"
+  },
+  {
+    "table_name": "SupervisorPayment"
+  },
+  {
+    "table_name": "Invoice"
+  },
+  {
+    "table_name": "Document"
+  }
+]

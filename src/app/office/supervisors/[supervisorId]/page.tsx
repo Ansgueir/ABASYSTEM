@@ -26,24 +26,29 @@ export default async function OfficeSupervisorDetailPage({ params }: { params: P
     const isSuperAdmin = (session.user as any).officeRole === "SUPER_ADMIN" || role === "QA"
 
     // Use `any` cast to avoid stale Prisma type errors
-    const supervisor = await (prisma as any).supervisor.findUnique({
-        where: { id: supervisorId },
-        include: {
-            documents: { orderBy: { uploadedAt: "desc" } },
-            students: {
-                orderBy: { fullName: "asc" }
-            },
-            supervisionHours: {
-                orderBy: { date: "desc" },
-                take: 100, // Limit shown history to latest 100 for performance
-                include: { student: true }
-            },
-            contracts: {
-                where: { contract: { status: "SIGNED" } },
-                include: { contract: true }
+    let supervisor = null;
+    try {
+        supervisor = await (prisma as any).supervisor.findUnique({
+            where: { id: supervisorId },
+            include: {
+                documents: { orderBy: { uploadedAt: "desc" } },
+                students: {
+                    orderBy: { fullName: "asc" }
+                },
+                supervisionHours: {
+                    orderBy: { date: "desc" },
+                    take: 100, // Limit shown history to latest 100 for performance
+                    include: { student: true }
+                },
+                contracts: {
+                    where: { contract: { status: "SIGNED" } },
+                    include: { contract: true }
+                }
             }
-        }
-    })
+        });
+    } catch (error) {
+        console.error("Critical error fetching supervisor data:", error);
+    }
 
     if (!supervisor) {
         return (

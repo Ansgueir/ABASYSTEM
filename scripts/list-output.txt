@@ -1,0 +1,22 @@
+(node:19172) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///C:/Users/Andyf/OneDrive/Documentos/ERP%20PRACTICANTES/aba-supervision-system/scripts/list-students.ts is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to C:\Users\Andyf\OneDrive\Documentos\ERP PRACTICANTES\aba-supervision-system\package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+Listing latest 10 students...
+[
+  {
+    "id": "0e562806-7dd2-47c9-8a31-da54dcdb9b37",
+    "fullName": "Test Estudiante",
+    "email": "testestudiante@abasystem.com"
+  },
+  {
+    "id": "6147fd62-16d5-408b-891d-fe2afa50e9f0",
+    "fullName": "Andr├®s V├ísquez",
+    "email": "andyfilth@gmail.com"
+  },
+  {
+    "id": "10f48795-1c93-4927-a777-f8791e7d97ff",
+    "fullName": "QA Estudiante",
+    "email": "qaestudiante@abasystem.com"
+  }
+]

@@ -28,26 +28,32 @@ export default async function OfficeStudentDetailPage({ params }: { params: Prom
     const isSuperAdmin = (session.user as any).officeRole === "SUPER_ADMIN" || role === "QA"
 
     // Use `any` cast to avoid stale Prisma type errors after migration until server restarts
-    const student = await (prisma as any).student.findUnique({
-        where: { id: studentId },
-        include: {
-            documents: { orderBy: { uploadedAt: "desc" } },
-            contracts: {
-                orderBy: { createdAt: "desc" },
-                include: {
-                    supervisors: {
-                        include: {
-                            supervisor: true
+    let student = null;
+    try {
+        student = await (prisma as any).student.findUnique({
+            where: { id: studentId },
+            include: {
+                documents: { orderBy: { uploadedAt: "desc" } },
+                contracts: {
+                    orderBy: { createdAt: "desc" },
+                    include: {
+                        supervisors: {
+                            include: {
+                                supervisor: true
+                            }
                         }
                     }
-                }
-            },
-            independentHours: { orderBy: { date: "desc" } },
-            supervisionHours: { orderBy: { date: "desc" } },
-            invoices: { orderBy: { createdAt: "desc" } },
-            financialPeriods: { orderBy: { periodNumber: "asc" } }
-        }
-    })
+                },
+                independentHours: { orderBy: { date: "desc" } },
+                supervisionHours: { orderBy: { date: "desc" } },
+                invoices: { orderBy: { createdAt: "desc" } },
+                // removed financialPeriods as it is not present in the current production schema
+            }
+        });
+    } catch (error) {
+        console.error("Critical error fetching student data:", error);
+        // We catch here so the page can at least render a "not found" or error state instead of crashing the whole app
+    }
 
     if (!student) {
         return (
@@ -114,7 +120,7 @@ export default async function OfficeStudentDetailPage({ params }: { params: Prom
                             </div>
                             <div className="px-6 py-3 text-center hidden sm:block">
                                 <p className="text-xs text-muted-foreground uppercase font-semibold">Contracts</p>
-                                <p className="text-2xl font-bold">{Math.max(0, (safeStudent.contracts ?? []).length)}</p>
+                                <p className="text-2xl font-bold">{Math.max(0, (safeStudent.contracts || []).length)}</p>
                             </div>
                             <div className="px-6 py-3 text-center hidden sm:block">
                                 <p className="text-xs text-muted-foreground uppercase font-semibold">Documents</p>
@@ -151,9 +157,9 @@ export default async function OfficeStudentDetailPage({ params }: { params: Prom
                         </div>
                     </TabsContent>
 
-                    {isSuperAdmin && (
+                    {safeStudent.financialPeriods && isSuperAdmin && (
                         <TabsContent value="periods">
-                            <FinancialPeriodsTab studentId={studentId} periods={safeStudent.financialPeriods ?? []} />
+                            <FinancialPeriodsTab studentId={studentId} periods={safeStudent.financialPeriods || []} />
                         </TabsContent>
                     )}
 

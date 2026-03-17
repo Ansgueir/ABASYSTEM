@@ -24,7 +24,10 @@ export function StudentActivityTab({ supervisionHours = [], independentHours = [
         return <div className="p-8 text-center text-muted-foreground">Loading activity history...</div>
     }
 
-    const allHours = [...supervisionHours, ...independentHours]
+    const safeSupervision = Array.isArray(supervisionHours) ? supervisionHours : []
+    const safeIndependent = Array.isArray(independentHours) ? independentHours : []
+
+    const allHours = [...safeSupervision, ...safeIndependent]
         .filter((h: any) => h && (h.status === "APPROVED" || h.status === "BILLED"))
         .sort((a: any, b: any) => {
             const dateA = a?.date ? new Date(a.date).getTime() : 0;
