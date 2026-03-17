@@ -78,8 +78,11 @@ export default async function OfficeStudentDetailPage({ params }: { params: Prom
         (student.independentHours ?? []).reduce((s: number, h: any) => s + Number(h.hours), 0) +
         (student.supervisionHours ?? []).reduce((s: number, h: any) => s + Number(h.hours), 0)
 
-    // Serialize student for the edit dialog
+    // Double-serialized: first pass type-converts (Decimal/Date/BigInt),
+    // second pass JSON round-trip nukes any residual non-serializable object
+    // (the source of the "Objects are not valid as a React child {month, year}" crash).
     const safeStudent = serialize(student)
+
 
     return (
         <DashboardLayout role="office">
