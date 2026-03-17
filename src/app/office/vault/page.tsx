@@ -8,6 +8,7 @@ import { ShieldAlert, RotateCcw, Eye } from "lucide-react"
 import { RecoverActionBtn } from "./recover-btn"
 
 import { VaultClientTabs } from "./vault-client-tabs"
+import { serialize } from "@/lib/serialize"
 
 export default async function VaultPage() {
     const session = await auth()
@@ -43,7 +44,7 @@ export default async function VaultPage() {
 
                 <div className="bg-white p-6 rounded-xl border shadow-sm">
                     {/* Placeholder for Tabs until we create the Client Component */}
-                    <VaultClientTabs hiddenUsers={hiddenUsers} />
+                    <VaultClientTabs hiddenUsers={serialize(hiddenUsers)} />
                 </div>
             </div>
         </DashboardLayout>
