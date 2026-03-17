@@ -89,7 +89,7 @@ export function EditSupervisorDialog({
                         </div>
                         <div className="space-y-2">
                             <Label htmlFor="email">Email address</Label>
-                            <Input id="email" name="email" type="email" defaultValue={supervisor.email} required />
+                            <Input id="email" name="email" type="email" defaultValue={supervisor.email} required disabled={!isSuperAdmin} />
                         </div>
                     </div>
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">

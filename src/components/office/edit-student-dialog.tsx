@@ -93,7 +93,7 @@ export function EditStudentDialog({
                         </div>
                         <div className="space-y-2">
                             <Label htmlFor="email">Email address</Label>
-                            <Input id="email" name="email" type="email" defaultValue={student.email} required />
+                            <Input id="email" name="email" type="email" defaultValue={student.email} required disabled={!isSuperAdmin} />
                         </div>
                     </div>
                     <div className="grid grid-cols-1 gap-4">
