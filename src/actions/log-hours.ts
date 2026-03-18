@@ -61,34 +61,34 @@ async function validateMonthlyLimit(studentId: string, date: Date, newHours: num
 
 async function validateTimeOverlap(studentId: string, date: Date, newStart: Date, minutes: number) {
     const newEnd = new Date(newStart.getTime() + minutes * 60000)
+    console.log(`[OverlapCheck] New: ${newStart.toISOString()} - ${newEnd.toISOString()} for Student: ${studentId}`)
 
-    // Format newStart and newEnd to ISO for consistent comparison if needed, 
-    // but Prisma handles Date objects well.
-    
-    // We check both IndependentHour and SupervisionHour
-    // Logic: (StartA < EndB) AND (EndA > StartB)
-    
-    const dayStart = new Date(date)
-    dayStart.setHours(0, 0, 0, 0)
-    const dayEnd = new Date(date)
-    dayEnd.setHours(23, 59, 59, 999)
+    // Fetch all records for the student within surrounding hours (+/- 12h)
+    const checkStart = new Date(newStart.getTime() - 12 * 3600000)
+    const checkEnd = new Date(newStart.getTime() + 12 * 3600000)
 
     // 1. Check Independent Hours
     const existingIndep = await prisma.independentHour.findMany({
         where: {
             studentId,
-            date: {
-                gte: dayStart,
-                lte: dayEnd
+            startTime: {
+                gte: checkStart,
+                lte: checkEnd
             }
         }
     })
 
+    console.log(`[OverlapCheck] Found ${existingIndep.length} existing Independent records within 24h window.`)
+
     for (const h of existingIndep) {
         const start = new Date(h.startTime)
-        const end = new Date(start.getTime() + Number(h.hours) * 3600000)
+        const hours = Number(h.hours)
+        const end = new Date(start.getTime() + hours * 3600000)
+        
+        console.log(`[OverlapCheck] Checking vs ID ${h.id.substring(0,8)} | Existing: ${start.toISOString()} - ${end.toISOString()}`)
         
         if (newStart < end && newEnd > start) {
+            console.log(`[OverlapCheck] CONFLICT DETECTED with ID ${h.id}`)
             throw new Error(`Time conflict: You already have an activity logged from ${formatTime(start)} to ${formatTime(end)}`)
         }
     }
@@ -97,18 +97,24 @@ async function validateTimeOverlap(studentId: string, date: Date, newStart: Date
     const existingSup = await prisma.supervisionHour.findMany({
         where: {
             studentId,
-            date: {
-                gte: dayStart,
-                lte: dayEnd
+            startTime: {
+                gte: checkStart,
+                lte: checkEnd
             }
         }
     })
 
+    console.log(`[OverlapCheck] Found ${existingSup.length} existing Supervision records within 24h window.`)
+
     for (const h of existingSup) {
         const start = new Date(h.startTime)
-        const end = new Date(start.getTime() + Number(h.hours) * 3600000)
+        const hours = Number(h.hours)
+        const end = new Date(start.getTime() + hours * 3600000)
         
+        console.log(`[OverlapCheck] Checking vs ID ${h.id.substring(0,8)} | Existing: ${start.toISOString()} - ${end.toISOString()}`)
+
         if (newStart < end && newEnd > start) {
+            console.log(`[OverlapCheck] CONFLICT DETECTED with ID ${h.id}`)
             throw new Error(`Time conflict: You already have an activity logged from ${formatTime(start)} to ${formatTime(end)}`)
         }
     }
