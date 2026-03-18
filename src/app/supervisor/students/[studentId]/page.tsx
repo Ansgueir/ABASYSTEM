@@ -9,6 +9,7 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/custom-tabs"
 import { DocumentsTab } from "@/components/supervisor/documents-tab"
 import { TimesheetsTab } from "@/components/supervisor/timesheets-tab"
+import { SupervisorContractsTab } from "@/components/supervisor/contracts-tab"
 import { EditableStudentBacbInfo } from "@/components/shared/editable-bacb-info"
 import { EditNotesDialog } from "@/components/supervisor/edit-notes-dialog"
 import { SupervisorNotesCard } from "@/components/shared/supervisor-notes-card"
@@ -22,11 +23,21 @@ export default async function SupervisorStudentDetailPage({ params }: { params: 
     const role = String((session.user as any).role).toLowerCase()
     if (role !== "supervisor" && role !== "qa") redirect("/login")
 
-    // Fetch full student profile with documents and both types of hours
+    // Fetch full student profile with documents, contracts and both types of hours
     const student = await prisma.student.findUnique({
         where: { id: studentId },
         include: {
             documents: { orderBy: { uploadedAt: 'desc' } },
+            contracts: { 
+                orderBy: { createdAt: 'desc' },
+                include: {
+                    supervisors: {
+                        include: {
+                            supervisor: true
+                        }
+                    }
+                }
+            },
             independentHours: { orderBy: { date: 'desc' } },
             supervisionHours: { orderBy: { date: 'desc' }, include: { supervisor: true } }
         }
@@ -170,15 +181,7 @@ export default async function SupervisorStudentDetailPage({ params }: { params: 
                     </TabsContent>
 
                     <TabsContent value="contracts">
-                        <div className="flex flex-col items-center justify-center p-12 text-center border rounded-xl bg-muted/10 border-dashed">
-                            <div className="p-4 rounded-full bg-muted mb-4">
-                                <FileText className="h-8 w-8 text-muted-foreground" />
-                            </div>
-                            <h3 className="text-lg font-semibold">Contract Generation</h3>
-                            <p className="text-muted-foreground max-w-sm mt-2">
-                                Automatic generation of Monthly Forms and Supervision Contracts is currently in development.
-                            </p>
-                        </div>
+                        <SupervisorContractsTab contracts={student.contracts as any} />
                     </TabsContent>
                 </Tabs>
             </div>
