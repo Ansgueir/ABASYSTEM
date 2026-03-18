@@ -157,7 +157,10 @@ export async function rejectContract(contractId: string, reason: string) {
 
     await prisma.contract.update({
         where: { id: contractId },
-        data: { status: "DRAFT" } // Rejected -> Draft (office can edit and resend)
+        data: { 
+            status: "REJECTED",
+            rejectionReason: reason 
+        }
     })
 
     // Optionally create a notification to OFFICE that contract was rejected with `reason`
@@ -174,6 +177,43 @@ export async function rejectContract(contractId: string, reason: string) {
         })
     }
 
+    revalidatePath("/student/contracts")
+    revalidatePath(`/office/students/${student.id}`)
+    return { success: true }
+}
+
+export async function resendContract(contractId: string) {
+    const session = await auth()
+    if (!session?.user) return { error: "Unauthorized" }
+    const role = String((session.user as any).role).toLowerCase()
+    if (role !== "office") return { error: "Only Office can resend contracts" }
+
+    const contract = await prisma.contract.findUnique({
+        where: { id: contractId },
+        include: { student: true }
+    })
+    if (!contract) return { error: "Contract not found" }
+
+    await prisma.contract.update({
+        where: { id: contractId },
+        data: { 
+            status: "SENT",
+            rejectionReason: null // Reset reason when resending
+        }
+    })
+
+    // Notify student
+    await (prisma as any).notification.create({
+        data: {
+            userId: contract.student.userId,
+            title: "Contract Re-Sent",
+            message: "A previously rejected contract has been updated and re-sent for your review.",
+            type: "CONTRACT",
+            link: "/student/contracts"
+        }
+    })
+
+    revalidatePath(`/office/students/${contract.studentId}`)
     revalidatePath("/student/contracts")
     return { success: true }
 }

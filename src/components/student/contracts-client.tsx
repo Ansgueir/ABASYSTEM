@@ -19,6 +19,7 @@ interface StudentContract {
         isMainSupervisor: boolean
         supervisor: { fullName: string; credentialType: string }
     }[]
+    rejectionReason?: string | null
 }
 
 export function StudentContractsClient({ contracts }: { contracts: StudentContract[] }) {
@@ -46,8 +47,9 @@ export function StudentContractsClient({ contracts }: { contracts: StudentContra
     const STATUS_COLORS: Record<string, string> = {
         DRAFT: "secondary",
         ACTIVE: "success",
-        SENT: "default", // or primary-like
+        SENT: "default",
         SIGNED: "outline",
+        REJECTED: "destructive",
     }
 
     return (
@@ -86,6 +88,16 @@ export function StudentContractsClient({ contracts }: { contracts: StudentContra
                                 ))}
                             </div>
                         </div>
+
+                        {contract.status === "REJECTED" && contract.rejectionReason && (
+                            <div className="bg-destructive/5 border border-destructive/20 rounded-lg p-4">
+                                <p className="text-sm font-semibold text-destructive mb-1 flex items-center gap-2">
+                                    <XCircle className="h-4 w-4" /> Rejection Reason
+                                </p>
+                                <p className="text-sm text-foreground italic">"{contract.rejectionReason}"</p>
+                                <p className="text-xs text-muted-foreground mt-2">The office has been notified and will review your comments. They may contact you to resolve the issues and re-send the contract.</p>
+                            </div>
+                        )}
 
                         {contract.status === "SENT" && (
                             <div className="bg-primary/5 border border-primary/20 rounded-lg p-4 flex flex-col sm:flex-row items-center justify-between gap-4">

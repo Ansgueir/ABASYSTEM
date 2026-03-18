@@ -4,12 +4,13 @@ import { useState, useTransition, useEffect } from "react"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
-import { Download, Trash2, Users, Calendar, Loader2, Star, Plus, Pencil } from "lucide-react"
+import { Download, Trash2, Users, Calendar, Loader2, Star, Plus, Pencil, RotateCcw, XCircle } from "lucide-react"
 import { format } from "date-fns"
-import { deleteContract } from "@/actions/contracts"
+import { deleteContract, resendContract } from "@/actions/contracts"
 import { ContractFormDialog } from "@/components/office/contract-form-dialog"
 import { useRouter } from "next/navigation"
 import { ConfirmDialog } from "@/components/ui/confirm-dialog"
+import { toast } from "sonner"
 
 interface Supervisor {
     id: string
@@ -28,6 +29,7 @@ interface ContractEntry {
         isMainSupervisor: boolean
         supervisor: { fullName: string; bacbId: string; credentialType: string }
     }[]
+    rejectionReason?: string | null
 }
 
 interface OfficeContractsTabProps {
@@ -41,6 +43,7 @@ const STATUS_COLORS: Record<string, string> = {
     ACTIVE: "success",
     SENT: "default",
     SIGNED: "outline",
+    REJECTED: "destructive",
 }
 
 /** Forced string conversion for any value to prevent React crashes */
@@ -86,10 +89,23 @@ export function OfficeContractsTab({ studentId, contracts, allSupervisors }: Off
     const handleConfirmDelete = () => {
         if (!deletingId) return
         startTransition(async () => {
-            await deleteContract(deletingId)
+            const res = await deleteContract(deletingId)
+            if (res.error) toast.error(res.error)
+            else toast.success("Contract deleted")
             setShowDeleteConfirm(false)
             setDeletingId(null)
             router.refresh()
+        })
+    }
+
+    const handleResend = (id: string) => {
+        startTransition(async () => {
+            const res = await resendContract(id)
+            if (res.error) toast.error(res.error)
+            else {
+                toast.success("Contract re-sent to student")
+                router.refresh()
+            }
         })
     }
 
@@ -147,6 +163,18 @@ export function OfficeContractsTab({ studentId, contracts, allSupervisors }: Off
                                         </div>
 
                                         <div className="flex items-center gap-2">
+                                            {contract.status === "REJECTED" && (
+                                                <Button 
+                                                    variant="default" 
+                                                    size="sm" 
+                                                    className="h-8 gap-1.5" 
+                                                    onClick={() => handleResend(contract.id)}
+                                                    disabled={isPending}
+                                                >
+                                                    {isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <RotateCcw className="h-4 w-4" />}
+                                                    Resend
+                                                </Button>
+                                            )}
                                             <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => handleEdit(contract)}>
                                                 <Pencil className="h-4 w-4" />
                                             </Button>
@@ -163,6 +191,15 @@ export function OfficeContractsTab({ studentId, contracts, allSupervisors }: Off
                                             </Button>
                                         </div>
                                     </div>
+
+                                    {contract.status === "REJECTED" && contract.rejectionReason && (
+                                        <div className="bg-destructive/5 border border-destructive/20 rounded-lg p-3 text-sm">
+                                            <div className="flex items-center gap-2 text-destructive font-semibold mb-1">
+                                                <XCircle className="h-4 w-4" /> Student Rejection Note
+                                            </div>
+                                            <p className="text-muted-foreground italic">"{contract.rejectionReason}"</p>
+                                        </div>
+                                    )}
 
                                     <div className="pt-2 border-t flex flex-wrap gap-2">
                                         {(contract.supervisors || []).map(cs => (

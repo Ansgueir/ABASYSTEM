@@ -315,14 +315,15 @@ model StudentEvaluation {
 }
 
 model Contract {
-  id            String               @id @default(uuid())
-  studentId     String
-  effectiveDate DateTime
-  status        ContractStatus       @default(DRAFT)
-  createdAt     DateTime             @default(now())
-  updatedAt     DateTime             @updatedAt
-  student       Student              @relation(fields: [studentId], references: [id])
-  supervisors   ContractSupervisor[]
+  id              String               @id @default(uuid())
+  studentId       String
+  effectiveDate   DateTime
+  status          ContractStatus       @default(DRAFT)
+  rejectionReason String?
+  createdAt       DateTime             @default(now())
+  updatedAt       DateTime             @updatedAt
+  student         Student              @relation(fields: [studentId], references: [id])
+  supervisors     ContractSupervisor[]
 }
 
 model ContractSupervisor {
@@ -479,6 +480,7 @@ enum ContractStatus {
   ACTIVE
   SENT
   SIGNED
+  REJECTED
 }
 
 enum DocumentStatus {
