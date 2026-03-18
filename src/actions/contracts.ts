@@ -146,42 +146,55 @@ export async function approveContract(contractId: string) {
 }
 
 export async function rejectContract(contractId: string, reason: string) {
-    const session = await auth()
-    if (!session?.user) return { error: "Unauthorized" }
+    try {
+        const session = await auth()
+        if (!session?.user) return { error: "Unauthorized" }
 
-    const student = await prisma.student.findUnique({ where: { userId: (session.user as any).id } })
-    if (!student) return { error: "Student not found" }
+        const student = await prisma.student.findUnique({ where: { userId: (session.user as any).id } })
+        if (!student) return { error: "Student not found" }
 
-    const contract = await prisma.contract.findUnique({ where: { id: contractId } })
-    if (!contract || contract.studentId !== student.id) return { error: "Contract not found" }
+        const contract = await prisma.contract.findUnique({ where: { id: contractId } })
+        if (!contract || contract.studentId !== student.id) return { error: "Contract not found" }
 
-    console.log(`[DEBUG] Rejecting contract ${contractId} for student ${student.id}`)
-    await prisma.contract.update({
-        where: { id: contractId },
-        data: { 
-            status: "REJECTED",
-            rejectionReason: reason 
-        }
-    })
-    console.log(`[DEBUG] Contract ${contractId} updated to REJECTED`)
+        console.log(`[DEBUG] Rejecting contract ${contractId} for student ${student.fullName}`)
 
-    // Optionally create a notification to OFFICE that contract was rejected with `reason`
-    const officeUsers = await prisma.user.findMany({ where: { role: "OFFICE" } })
-    if (officeUsers.length > 0) {
-        await (prisma as any).notification.createMany({
-            data: officeUsers.map(u => ({
-                userId: u.id,
-                title: "Contract Rejected",
-                message: `${student.fullName} rejected a contract. Reason: ${reason}`,
-                type: "CONTRACT",
-                link: `/office/students/${student.id}`
-            }))
+        // Update contract status
+        await prisma.contract.update({
+            where: { id: contractId },
+            data: { 
+                status: "REJECTED",
+                rejectionReason: reason 
+            }
         })
-    }
 
-    revalidatePath("/student/contracts")
-    revalidatePath(`/office/students/${student.id}`)
-    return { success: true }
+        // Notify office users
+        const officeUsers = await prisma.user.findMany({ where: { role: "OFFICE" } })
+        if (officeUsers.length > 0) {
+            try {
+                await (prisma as any).notification.createMany({
+                    data: officeUsers.map(u => ({
+                        userId: u.id,
+                        title: "Contract Rejected",
+                        message: `${student.fullName} rejected a contract. Reason: ${reason}`,
+                        type: "CONTRACT",
+                        link: `/office/students/${student.id}`
+                    }))
+                })
+            } catch (notifErr) {
+                console.error("[ERROR] Failed to create notifications:", notifErr)
+                // We don't fail the whole action if notification fails
+            }
+        }
+
+        revalidatePath("/student/contracts")
+        revalidatePath(`/office/students/${student.id}`)
+        
+        console.log(`[DEBUG] Contract ${contractId} successfully REJECTED`)
+        return { success: true }
+    } catch (err: any) {
+        console.error("[CRITICAL ERROR] Error in rejectContract:", err)
+        return { error: err.message || "An unexpected error occurred during rejection" }
+    }
 }
 
 export async function resendContract(contractId: string) {

@@ -12,6 +12,7 @@ import {
 } from "@/components/ui/dialog"
 import { Loader2, XCircle } from "lucide-react"
 import { rejectContract } from "@/actions/contracts"
+import { toast } from "sonner"
 
 interface RejectDialogProps {
     contractId: string
@@ -27,9 +28,14 @@ export function RejectContractDialog({ contractId, open, onOpenChange }: RejectD
     function handleSubmit() {
         if (!reason.trim()) return
         startTransition(async () => {
-            await rejectContract(contractId, reason)
-            onOpenChange(false)
-            router.refresh()
+            const res = await rejectContract(contractId, reason)
+            if (res?.error) {
+                toast.error(res.error)
+            } else {
+                toast.success("Contract rejected")
+                onOpenChange(false)
+                router.refresh()
+            }
         })
     }
 
