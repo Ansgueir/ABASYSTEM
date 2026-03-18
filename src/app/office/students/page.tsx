@@ -3,6 +3,7 @@ import { auth } from "@/auth"
 import { prisma } from "@/lib/prisma"
 import { redirect } from "next/navigation"
 import { StudentList } from "@/components/office/student-list"
+import { serialize } from "@/lib/serialize"
 
 export default async function OfficeStudentsPage() {
     const session = await auth()
@@ -32,8 +33,8 @@ export default async function OfficeStudentsPage() {
             }
         })
 
-        // Use full serialization to handle all nested Decimals (in student and supervisor)
-        students = JSON.parse(JSON.stringify(rawStudents))
+        // Use the common serialize helper to handle Decimals, Dates, and nested objects
+        students = serialize(rawStudents)
     } catch (error) {
         console.error("Error fetching students:", error)
     }

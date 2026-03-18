@@ -11,6 +11,7 @@ import { LogHoursDialog } from "@/components/log-hours-dialog"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import Link from "next/link"
 import { SupervisorContactDialog } from "@/components/student/supervisor-contact-dialog"
+import { serialize } from "@/lib/serialize"
 
 export default async function StudentDashboard() {
     let session = null;
@@ -154,7 +155,7 @@ export default async function StudentDashboard() {
                                 <p className="font-medium">{student.supervisor.fullName}</p>
                                 <p className="text-sm text-muted-foreground">BCBA</p>
                             </div>
-                            <SupervisorContactDialog supervisor={JSON.parse(JSON.stringify(student.supervisor))} />
+                            <SupervisorContactDialog supervisor={serialize(student.supervisor)} />
                         </div>
                     </CardContent>
                 </Card>
