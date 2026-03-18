@@ -59,6 +59,65 @@ async function validateMonthlyLimit(studentId: string, date: Date, newHours: num
     }
 }
 
+async function validateTimeOverlap(studentId: string, date: Date, newStart: Date, minutes: number) {
+    const newEnd = new Date(newStart.getTime() + minutes * 60000)
+
+    // Format newStart and newEnd to ISO for consistent comparison if needed, 
+    // but Prisma handles Date objects well.
+    
+    // We check both IndependentHour and SupervisionHour
+    // Logic: (StartA < EndB) AND (EndA > StartB)
+    
+    const dayStart = new Date(date)
+    dayStart.setHours(0, 0, 0, 0)
+    const dayEnd = new Date(date)
+    dayEnd.setHours(23, 59, 59, 999)
+
+    // 1. Check Independent Hours
+    const existingIndep = await prisma.independentHour.findMany({
+        where: {
+            studentId,
+            date: {
+                gte: dayStart,
+                lte: dayEnd
+            }
+        }
+    })
+
+    for (const h of existingIndep) {
+        const start = new Date(h.startTime)
+        const end = new Date(start.getTime() + Number(h.hours) * 3600000)
+        
+        if (newStart < end && newEnd > start) {
+            throw new Error(`Time conflict: You already have an activity logged from ${formatTime(start)} to ${formatTime(end)}`)
+        }
+    }
+
+    // 2. Check Supervision Hours
+    const existingSup = await prisma.supervisionHour.findMany({
+        where: {
+            studentId,
+            date: {
+                gte: dayStart,
+                lte: dayEnd
+            }
+        }
+    })
+
+    for (const h of existingSup) {
+        const start = new Date(h.startTime)
+        const end = new Date(start.getTime() + Number(h.hours) * 3600000)
+        
+        if (newStart < end && newEnd > start) {
+            throw new Error(`Time conflict: You already have an activity logged from ${formatTime(start)} to ${formatTime(end)}`)
+        }
+    }
+}
+
+function formatTime(date: Date) {
+    return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false })
+}
+
 // Check ratio of restricted hours
 // BCBA: Restricted > 40% -> Alert
 // BCaBA: Restricted > 60% -> Alert
@@ -185,6 +244,9 @@ export async function logHours(prevState: LogHoursState, formData: FormData) {
         const [hours, mins] = data.startTime.split(':').map(Number)
         const startDateTime = new Date(data.date)
         startDateTime.setHours(hours, mins, 0, 0)
+
+        // Validate time overlap
+        await validateTimeOverlap(studentId, data.date, startDateTime, data.minutes)
 
         if (data.type === "independent") {
             // Supervisors usually don't log independent hours FOR students, but if they do:
