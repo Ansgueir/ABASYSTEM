@@ -155,6 +155,7 @@ export async function rejectContract(contractId: string, reason: string) {
     const contract = await prisma.contract.findUnique({ where: { id: contractId } })
     if (!contract || contract.studentId !== student.id) return { error: "Contract not found" }
 
+    console.log(`[DEBUG] Rejecting contract ${contractId} for student ${student.id}`)
     await prisma.contract.update({
         where: { id: contractId },
         data: { 
@@ -162,6 +163,7 @@ export async function rejectContract(contractId: string, reason: string) {
             rejectionReason: reason 
         }
     })
+    console.log(`[DEBUG] Contract ${contractId} updated to REJECTED`)
 
     // Optionally create a notification to OFFICE that contract was rejected with `reason`
     const officeUsers = await prisma.user.findMany({ where: { role: "OFFICE" } })

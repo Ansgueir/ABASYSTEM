@@ -1,0 +1,1001 @@
+-- Logs begin at Fri 2026-02-06 13:28:48 UTC, end at Wed 2026-03-18 19:40:44 UTC. --
+Mar 18 18:21:33 dfc npm[2230481]: npm notice Changelog: https://github.com/npm/cli/releases/tag/v11.11.1
+Mar 18 18:21:33 dfc npm[2230481]: npm notice To update run: npm install -g npm@11.11.1
+Mar 18 18:21:33 dfc npm[2230481]: npm notice
+Mar 18 18:21:33 dfc systemd[1]: aba-system.service: Main process exited, code=exited, status=1/FAILURE
+Mar 18 18:21:33 dfc systemd[1]: aba-system.service: Failed with result 'exit-code'.
+Mar 18 18:21:44 dfc systemd[1]: aba-system.service: Scheduled restart job, restart counter is at 8.
+Mar 18 18:21:44 dfc systemd[1]: Stopped ABA Supervision System Service.
+Mar 18 18:21:44 dfc systemd[1]: Started ABA Supervision System Service.
+Mar 18 18:21:45 dfc npm[2230750]: > aba-supervision-system@0.1.0 start
+Mar 18 18:21:45 dfc npm[2230750]: > next start -p 3000
+Mar 18 18:21:45 dfc npm[2230789]: ⨯ Failed to start server
+Mar 18 18:21:45 dfc npm[2230789]: Error: listen EADDRINUSE: address already in use :::3000
+Mar 18 18:21:45 dfc npm[2230789]:     at <unknown> (Error: listen EADDRINUSE: address already in use :::3000)
+Mar 18 18:21:45 dfc npm[2230789]:     at new Promise (<anonymous>) {
+Mar 18 18:21:45 dfc npm[2230789]:   code: 'EADDRINUSE',
+Mar 18 18:21:45 dfc npm[2230789]:   errno: -98,
+Mar 18 18:21:45 dfc npm[2230789]:   syscall: 'listen',
+Mar 18 18:21:45 dfc npm[2230789]:   address: '::',
+Mar 18 18:21:45 dfc npm[2230789]:   port: 3000
+Mar 18 18:21:45 dfc npm[2230789]: }
+Mar 18 18:21:45 dfc npm[2230750]: npm notice
+Mar 18 18:21:45 dfc npm[2230750]: npm notice New major version of npm available! 10.8.2 -> 11.11.1
+Mar 18 18:21:45 dfc npm[2230750]: npm notice Changelog: https://github.com/npm/cli/releases/tag/v11.11.1
+Mar 18 18:21:45 dfc npm[2230750]: npm notice To update run: npm install -g npm@11.11.1
+Mar 18 18:21:45 dfc npm[2230750]: npm notice
+Mar 18 18:21:45 dfc systemd[1]: aba-system.service: Main process exited, code=exited, status=1/FAILURE
+Mar 18 18:21:45 dfc systemd[1]: aba-system.service: Failed with result 'exit-code'.
+Mar 18 18:21:46 dfc systemd[1]: Stopped ABA Supervision System Service.
+Mar 18 18:38:29 dfc systemd[1]: Started ABA Supervision System Service.
+Mar 18 18:38:29 dfc npm[2236890]: > aba-supervision-system@0.1.0 start
+Mar 18 18:38:29 dfc npm[2236890]: > next start -p 3000
+Mar 18 18:38:30 dfc npm[2236952]: ▲ Next.js 16.1.6
+Mar 18 18:38:30 dfc npm[2236952]: - Local:         http://localhost:3000
+Mar 18 18:38:30 dfc npm[2236952]: - Network:       http://192.168.73.100:3000
+Mar 18 18:38:30 dfc npm[2236952]: ✓ Starting...
+Mar 18 18:38:30 dfc npm[2236952]: ✓ Ready in 1056ms
+Mar 18 18:41:00 dfc npm[2236952]: ⨯ Error: Failed to load external module @prisma/client-2c3a283f134fdcb6: Error: Cannot find module '@prisma/client-2c3a283f134fdcb6'
+Mar 18 18:41:00 dfc npm[2236952]: Require stack:
+Mar 18 18:41:00 dfc npm[2236952]: - /opt/aba-system/.next/server/chunks/ssr/[root-of-the-server]__306e7953._.js
+Mar 18 18:41:00 dfc npm[2236952]: - /opt/aba-system/.next/server/chunks/ssr/[turbopack]_runtime.js
+Mar 18 18:41:00 dfc npm[2236952]: - /opt/aba-system/.next/server/app/_global-error/page.js
+Mar 18 18:41:00 dfc npm[2236952]: - /opt/aba-system/node_modules/next/dist/server/require.js
+Mar 18 18:41:00 dfc npm[2236952]: - /opt/aba-system/node_modules/next/dist/server/load-components.js
+Mar 18 18:41:00 dfc npm[2236952]: - /opt/aba-system/node_modules/next/dist/build/utils.js
+Mar 18 18:41:00 dfc npm[2236952]: - /opt/aba-system/node_modules/next/dist/build/swc/options.js
+Mar 18 18:41:00 dfc npm[2236952]: - /opt/aba-system/node_modules/next/dist/build/swc/index.js
+Mar 18 18:41:00 dfc npm[2236952]: - /opt/aba-system/node_modules/next/dist/build/next-config-ts/transpile-config.js
+Mar 18 18:41:00 dfc npm[2236952]: - /opt/aba-system/node_modules/next/dist/server/config.js
+Mar 18 18:41:00 dfc npm[2236952]: - /opt/aba-system/node_modules/next/dist/cli/next-test.js
+Mar 18 18:41:00 dfc npm[2236952]: - /opt/aba-system/node_modules/next/dist/bin/next
+Mar 18 18:41:00 dfc npm[2236952]:     at Context.externalRequire [as x] (.next/server/chunks/ssr/[turbopack]_runtime.js:535:15)
+Mar 18 18:41:00 dfc npm[2236952]:     at module evaluation (.next/server/chunks/ssr/[root-of-the-server]__306e7953._.js:1:45)
+Mar 18 18:41:00 dfc npm[2236952]:     at instantiateModule (.next/server/chunks/ssr/[turbopack]_runtime.js:740:9)
+Mar 18 18:41:00 dfc npm[2236952]:     at getOrInstantiateModuleFromParent (.next/server/chunks/ssr/[turbopack]_runtime.js:763:12)
+Mar 18 18:41:00 dfc npm[2236952]:     at Context.esmImport [as i] (.next/server/chunks/ssr/[turbopack]_runtime.js:228:20)
+Mar 18 18:41:00 dfc npm[2236952]:     at module evaluation (.next/server/chunks/ssr/[root-of-the-server]__306e7953._.js:1:224)
+Mar 18 18:41:00 dfc npm[2236952]:     at instantiateModule (.next/server/chunks/ssr/[turbopack]_runtime.js:740:9)
+Mar 18 18:41:00 dfc npm[2236952]:     at getOrInstantiateModuleFromParent (.next/server/chunks/ssr/[turbopack]_runtime.js:763:12)
+Mar 18 18:41:00 dfc npm[2236952]:     at Context.esmImport [as i] (.next/server/chunks/ssr/[turbopack]_runtime.js:228:20)
+Mar 18 18:41:00 dfc npm[2236952]:     at module evaluation (.next/server/chunks/ssr/_b3aa343f._.js:418:61110)
+Mar 18 18:41:00 dfc npm[2236952]: ⨯ Error: Failed to load external module @prisma/client-2c3a283f134fdcb6: Error: Cannot find module '@prisma/client-2c3a283f134fdcb6'
+Mar 18 18:41:00 dfc npm[2236952]: Require stack:
+Mar 18 18:41:00 dfc npm[2236952]: - /opt/aba-system/.next/server/chunks/ssr/[root-of-the-server]__306e7953._.js
+Mar 18 18:41:00 dfc npm[2236952]: - /opt/aba-system/.next/server/chunks/ssr/[turbopack]_runtime.js
+Mar 18 18:41:00 dfc npm[2236952]: - /opt/aba-system/.next/server/app/_global-error/page.js
+Mar 18 18:41:00 dfc npm[2236952]: - /opt/aba-system/node_modules/next/dist/server/require.js
+Mar 18 18:41:00 dfc npm[2236952]: - /opt/aba-system/node_modules/next/dist/server/load-components.js
+Mar 18 18:41:00 dfc npm[2236952]: - /opt/aba-system/node_modules/next/dist/build/utils.js
+Mar 18 18:41:00 dfc npm[2236952]: - /opt/aba-system/node_modules/next/dist/build/swc/options.js
+Mar 18 18:41:00 dfc npm[2236952]: - /opt/aba-system/node_modules/next/dist/build/swc/index.js
+Mar 18 18:41:00 dfc npm[2236952]: - /opt/aba-system/node_modules/next/dist/build/next-config-ts/transpile-config.js
+Mar 18 18:41:00 dfc npm[2236952]: - /opt/aba-system/node_modules/next/dist/server/config.js
+Mar 18 18:41:00 dfc npm[2236952]: - /opt/aba-system/node_modules/next/dist/cli/next-test.js
+Mar 18 18:41:00 dfc npm[2236952]: - /opt/aba-system/node_modules/next/dist/bin/next
+Mar 18 18:41:00 dfc npm[2236952]:     at Context.externalRequire [as x] (.next/server/chunks/ssr/[turbopack]_runtime.js:535:15)
+Mar 18 18:41:00 dfc npm[2236952]:     at module evaluation (.next/server/chunks/ssr/[root-of-the-server]__306e7953._.js:1:45)
+Mar 18 18:41:00 dfc npm[2236952]:     at instantiateModule (.next/server/chunks/ssr/[turbopack]_runtime.js:740:9)
+Mar 18 18:41:00 dfc npm[2236952]:     at getOrInstantiateModuleFromParent (.next/server/chunks/ssr/[turbopack]_runtime.js:763:12)
+Mar 18 18:41:00 dfc npm[2236952]:     at Context.esmImport [as i] (.next/server/chunks/ssr/[turbopack]_runtime.js:228:20)
+Mar 18 18:41:00 dfc npm[2236952]:     at module evaluation (.next/server/chunks/ssr/[root-of-the-server]__306e7953._.js:1:224)
+Mar 18 18:41:00 dfc npm[2236952]:     at instantiateModule (.next/server/chunks/ssr/[turbopack]_runtime.js:740:9)
+Mar 18 18:41:00 dfc npm[2236952]:     at getOrInstantiateModuleFromParent (.next/server/chunks/ssr/[turbopack]_runtime.js:763:12)
+Mar 18 18:41:00 dfc npm[2236952]:     at Context.esmImport [as i] (.next/server/chunks/ssr/[turbopack]_runtime.js:228:20)
+Mar 18 18:41:00 dfc npm[2236952]:     at module evaluation (.next/server/chunks/ssr/_b3aa343f._.js:418:61110)
+Mar 18 18:41:00 dfc npm[2236952]: ⨯ Error: Failed to load external module @prisma/client-2c3a283f134fdcb6: Error: Cannot find module '@prisma/client-2c3a283f134fdcb6'
+Mar 18 18:41:00 dfc npm[2236952]: Require stack:
+Mar 18 18:41:00 dfc npm[2236952]: - /opt/aba-system/.next/server/chunks/ssr/[root-of-the-server]__306e7953._.js
+Mar 18 18:41:00 dfc npm[2236952]: - /opt/aba-system/.next/server/chunks/ssr/[turbopack]_runtime.js
+Mar 18 18:41:00 dfc npm[2236952]: - /opt/aba-system/.next/server/app/_global-error/page.js
+Mar 18 18:41:00 dfc npm[2236952]: - /opt/aba-system/node_modules/next/dist/server/require.js
+Mar 18 18:41:00 dfc npm[2236952]: - /opt/aba-system/node_modules/next/dist/server/load-components.js
+Mar 18 18:41:00 dfc npm[2236952]: - /opt/aba-system/node_modules/next/dist/build/utils.js
+Mar 18 18:41:00 dfc npm[2236952]: - /opt/aba-system/node_modules/next/dist/build/swc/options.js
+Mar 18 18:41:00 dfc npm[2236952]: - /opt/aba-system/node_modules/next/dist/build/swc/index.js
+Mar 18 18:41:00 dfc npm[2236952]: - /opt/aba-system/node_modules/next/dist/build/next-config-ts/transpile-config.js
+Mar 18 18:41:00 dfc npm[2236952]: - /opt/aba-system/node_modules/next/dist/server/config.js
+Mar 18 18:41:00 dfc npm[2236952]: - /opt/aba-system/node_modules/next/dist/cli/next-test.js
+Mar 18 18:41:00 dfc npm[2236952]: - /opt/aba-system/node_modules/next/dist/bin/next
+Mar 18 18:41:00 dfc npm[2236952]:     at Context.externalRequire [as x] (.next/server/chunks/ssr/[turbopack]_runtime.js:535:15)
+Mar 18 18:41:00 dfc npm[2236952]:     at module evaluation (.next/server/chunks/ssr/[root-of-the-server]__306e7953._.js:1:45)
+Mar 18 18:41:00 dfc npm[2236952]:     at instantiateModule (.next/server/chunks/ssr/[turbopack]_runtime.js:740:9)
+Mar 18 18:41:00 dfc npm[2236952]:     at getOrInstantiateModuleFromParent (.next/server/chunks/ssr/[turbopack]_runtime.js:763:12)
+Mar 18 18:41:00 dfc npm[2236952]:     at Context.esmImport [as i] (.next/server/chunks/ssr/[turbopack]_runtime.js:228:20)
+Mar 18 18:41:00 dfc npm[2236952]:     at module evaluation (.next/server/chunks/ssr/[root-of-the-server]__306e7953._.js:1:224)
+Mar 18 18:41:00 dfc npm[2236952]:     at instantiateModule (.next/server/chunks/ssr/[turbopack]_runtime.js:740:9)
+Mar 18 18:41:00 dfc npm[2236952]:     at getOrInstantiateModuleFromParent (.next/server/chunks/ssr/[turbopack]_runtime.js:763:12)
+Mar 18 18:41:00 dfc npm[2236952]:     at Context.esmImport [as i] (.next/server/chunks/ssr/[turbopack]_runtime.js:228:20)
+Mar 18 18:41:00 dfc npm[2236952]:     at module evaluation (.next/server/chunks/ssr/_b3aa343f._.js:418:61110)
+Mar 18 18:41:00 dfc npm[2236952]: ⨯ Error: Failed to load external module @prisma/client-2c3a283f134fdcb6: Error: Cannot find module '@prisma/client-2c3a283f134fdcb6'
+Mar 18 18:41:00 dfc npm[2236952]: Require stack:
+Mar 18 18:41:00 dfc npm[2236952]: - /opt/aba-system/.next/server/chunks/ssr/[root-of-the-server]__306e7953._.js
+Mar 18 18:41:00 dfc npm[2236952]: - /opt/aba-system/.next/server/chunks/ssr/[turbopack]_runtime.js
+Mar 18 18:41:00 dfc npm[2236952]: - /opt/aba-system/.next/server/app/_global-error/page.js
+Mar 18 18:41:00 dfc npm[2236952]: - /opt/aba-system/node_modules/next/dist/server/require.js
+Mar 18 18:41:00 dfc npm[2236952]: - /opt/aba-system/node_modules/next/dist/server/load-components.js
+Mar 18 18:41:00 dfc npm[2236952]: - /opt/aba-system/node_modules/next/dist/build/utils.js
+Mar 18 18:41:00 dfc npm[2236952]: - /opt/aba-system/node_modules/next/dist/build/swc/options.js
+Mar 18 18:41:00 dfc npm[2236952]: - /opt/aba-system/node_modules/next/dist/build/swc/index.js
+Mar 18 18:41:00 dfc npm[2236952]: - /opt/aba-system/node_modules/next/dist/build/next-config-ts/transpile-config.js
+Mar 18 18:41:00 dfc npm[2236952]: - /opt/aba-system/node_modules/next/dist/server/config.js
+Mar 18 18:41:00 dfc npm[2236952]: - /opt/aba-system/node_modules/next/dist/cli/next-test.js
+Mar 18 18:41:00 dfc npm[2236952]: - /opt/aba-system/node_modules/next/dist/bin/next
+Mar 18 18:41:00 dfc npm[2236952]:     at Context.externalRequire [as x] (.next/server/chunks/ssr/[turbopack]_runtime.js:535:15)
+Mar 18 18:41:00 dfc npm[2236952]:     at module evaluation (.next/server/chunks/ssr/[root-of-the-server]__306e7953._.js:1:45)
+Mar 18 18:41:00 dfc npm[2236952]:     at instantiateModule (.next/server/chunks/ssr/[turbopack]_runtime.js:740:9)
+Mar 18 18:41:00 dfc npm[2236952]:     at getOrInstantiateModuleFromParent (.next/server/chunks/ssr/[turbopack]_runtime.js:763:12)
+Mar 18 18:41:00 dfc npm[2236952]:     at Context.esmImport [as i] (.next/server/chunks/ssr/[turbopack]_runtime.js:228:20)
+Mar 18 18:41:00 dfc npm[2236952]:     at module evaluation (.next/server/chunks/ssr/[root-of-the-server]__306e7953._.js:1:224)
+Mar 18 18:41:00 dfc npm[2236952]:     at instantiateModule (.next/server/chunks/ssr/[turbopack]_runtime.js:740:9)
+Mar 18 18:41:00 dfc npm[2236952]:     at getOrInstantiateModuleFromParent (.next/server/chunks/ssr/[turbopack]_runtime.js:763:12)
+Mar 18 18:41:00 dfc npm[2236952]:     at Context.esmImport [as i] (.next/server/chunks/ssr/[turbopack]_runtime.js:228:20)
+Mar 18 18:41:00 dfc npm[2236952]:     at module evaluation (.next/server/chunks/ssr/_b3aa343f._.js:418:61110)
+Mar 18 18:41:01 dfc npm[2236952]: ⨯ Error: Failed to load external module @prisma/client-2c3a283f134fdcb6: Error: Cannot find module '@prisma/client-2c3a283f134fdcb6'
+Mar 18 18:41:01 dfc npm[2236952]: Require stack:
+Mar 18 18:41:01 dfc npm[2236952]: - /opt/aba-system/.next/server/chunks/ssr/[root-of-the-server]__306e7953._.js
+Mar 18 18:41:01 dfc npm[2236952]: - /opt/aba-system/.next/server/chunks/ssr/[turbopack]_runtime.js
+Mar 18 18:41:01 dfc npm[2236952]: - /opt/aba-system/.next/server/app/_global-error/page.js
+Mar 18 18:41:01 dfc npm[2236952]: - /opt/aba-system/node_modules/next/dist/server/require.js
+Mar 18 18:41:01 dfc npm[2236952]: - /opt/aba-system/node_modules/next/dist/server/load-components.js
+Mar 18 18:41:01 dfc npm[2236952]: - /opt/aba-system/node_modules/next/dist/build/utils.js
+Mar 18 18:41:01 dfc npm[2236952]: - /opt/aba-system/node_modules/next/dist/build/swc/options.js
+Mar 18 18:41:01 dfc npm[2236952]: - /opt/aba-system/node_modules/next/dist/build/swc/index.js
+Mar 18 18:41:01 dfc npm[2236952]: - /opt/aba-system/node_modules/next/dist/build/next-config-ts/transpile-config.js
+Mar 18 18:41:01 dfc npm[2236952]: - /opt/aba-system/node_modules/next/dist/server/config.js
+Mar 18 18:41:01 dfc npm[2236952]: - /opt/aba-system/node_modules/next/dist/cli/next-test.js
+Mar 18 18:41:01 dfc npm[2236952]: - /opt/aba-system/node_modules/next/dist/bin/next
+Mar 18 18:41:01 dfc npm[2236952]:     at Context.externalRequire [as x] (.next/server/chunks/ssr/[turbopack]_runtime.js:535:15)
+Mar 18 18:41:01 dfc npm[2236952]:     at module evaluation (.next/server/chunks/ssr/[root-of-the-server]__306e7953._.js:1:45)
+Mar 18 18:41:01 dfc npm[2236952]:     at instantiateModule (.next/server/chunks/ssr/[turbopack]_runtime.js:740:9)
+Mar 18 18:41:01 dfc npm[2236952]:     at getOrInstantiateModuleFromParent (.next/server/chunks/ssr/[turbopack]_runtime.js:763:12)
+Mar 18 18:41:01 dfc npm[2236952]:     at Context.esmImport [as i] (.next/server/chunks/ssr/[turbopack]_runtime.js:228:20)
+Mar 18 18:41:01 dfc npm[2236952]:     at module evaluation (.next/server/chunks/ssr/[root-of-the-server]__306e7953._.js:1:224)
+Mar 18 18:41:01 dfc npm[2236952]:     at instantiateModule (.next/server/chunks/ssr/[turbopack]_runtime.js:740:9)
+Mar 18 18:41:01 dfc npm[2236952]:     at getOrInstantiateModuleFromParent (.next/server/chunks/ssr/[turbopack]_runtime.js:763:12)
+Mar 18 18:41:01 dfc npm[2236952]:     at Context.esmImport [as i] (.next/server/chunks/ssr/[turbopack]_runtime.js:228:20)
+Mar 18 18:41:01 dfc npm[2236952]:     at module evaluation (.next/server/chunks/ssr/_b3aa343f._.js:418:61110)
+Mar 18 18:41:01 dfc npm[2236952]: ⨯ Error: Failed to load external module @prisma/client-2c3a283f134fdcb6: Error: Cannot find module '@prisma/client-2c3a283f134fdcb6'
+Mar 18 18:41:01 dfc npm[2236952]: Require stack:
+Mar 18 18:41:01 dfc npm[2236952]: - /opt/aba-system/.next/server/chunks/ssr/[root-of-the-server]__306e7953._.js
+Mar 18 18:41:01 dfc npm[2236952]: - /opt/aba-system/.next/server/chunks/ssr/[turbopack]_runtime.js
+Mar 18 18:41:01 dfc npm[2236952]: - /opt/aba-system/.next/server/app/_global-error/page.js
+Mar 18 18:41:01 dfc npm[2236952]: - /opt/aba-system/node_modules/next/dist/server/require.js
+Mar 18 18:41:01 dfc npm[2236952]: - /opt/aba-system/node_modules/next/dist/server/load-components.js
+Mar 18 18:41:01 dfc npm[2236952]: - /opt/aba-system/node_modules/next/dist/build/utils.js
+Mar 18 18:41:01 dfc npm[2236952]: - /opt/aba-system/node_modules/next/dist/build/swc/options.js
+Mar 18 18:41:01 dfc npm[2236952]: - /opt/aba-system/node_modules/next/dist/build/swc/index.js
+Mar 18 18:41:01 dfc npm[2236952]: - /opt/aba-system/node_modules/next/dist/build/next-config-ts/transpile-config.js
+Mar 18 18:41:01 dfc npm[2236952]: - /opt/aba-system/node_modules/next/dist/server/config.js
+Mar 18 18:41:01 dfc npm[2236952]: - /opt/aba-system/node_modules/next/dist/cli/next-test.js
+Mar 18 18:41:01 dfc npm[2236952]: - /opt/aba-system/node_modules/next/dist/bin/next
+Mar 18 18:41:01 dfc npm[2236952]:     at Context.externalRequire [as x] (.next/server/chunks/ssr/[turbopack]_runtime.js:535:15)
+Mar 18 18:41:01 dfc npm[2236952]:     at module evaluation (.next/server/chunks/ssr/[root-of-the-server]__306e7953._.js:1:45)
+Mar 18 18:41:01 dfc npm[2236952]:     at instantiateModule (.next/server/chunks/ssr/[turbopack]_runtime.js:740:9)
+Mar 18 18:41:01 dfc npm[2236952]:     at getOrInstantiateModuleFromParent (.next/server/chunks/ssr/[turbopack]_runtime.js:763:12)
+Mar 18 18:41:01 dfc npm[2236952]:     at Context.esmImport [as i] (.next/server/chunks/ssr/[turbopack]_runtime.js:228:20)
+Mar 18 18:41:01 dfc npm[2236952]:     at module evaluation (.next/server/chunks/ssr/[root-of-the-server]__306e7953._.js:1:224)
+Mar 18 18:41:01 dfc npm[2236952]:     at instantiateModule (.next/server/chunks/ssr/[turbopack]_runtime.js:740:9)
+Mar 18 18:41:01 dfc npm[2236952]:     at getOrInstantiateModuleFromParent (.next/server/chunks/ssr/[turbopack]_runtime.js:763:12)
+Mar 18 18:41:01 dfc npm[2236952]:     at Context.esmImport [as i] (.next/server/chunks/ssr/[turbopack]_runtime.js:228:20)
+Mar 18 18:41:01 dfc npm[2236952]:     at module evaluation (.next/server/chunks/ssr/_b3aa343f._.js:418:61110)
+Mar 18 18:41:05 dfc npm[2236952]: ⨯ Error: Failed to load external module @prisma/client-2c3a283f134fdcb6: Error: Cannot find module '@prisma/client-2c3a283f134fdcb6'
+Mar 18 18:41:05 dfc npm[2236952]: Require stack:
+Mar 18 18:41:05 dfc npm[2236952]: - /opt/aba-system/.next/server/chunks/ssr/[root-of-the-server]__306e7953._.js
+Mar 18 18:41:05 dfc npm[2236952]: - /opt/aba-system/.next/server/chunks/ssr/[turbopack]_runtime.js
+Mar 18 18:41:05 dfc npm[2236952]: - /opt/aba-system/.next/server/app/_global-error/page.js
+Mar 18 18:41:05 dfc npm[2236952]: - /opt/aba-system/node_modules/next/dist/server/require.js
+Mar 18 18:41:05 dfc npm[2236952]: - /opt/aba-system/node_modules/next/dist/server/load-components.js
+Mar 18 18:41:05 dfc npm[2236952]: - /opt/aba-system/node_modules/next/dist/build/utils.js
+Mar 18 18:41:05 dfc npm[2236952]: - /opt/aba-system/node_modules/next/dist/build/swc/options.js
+Mar 18 18:41:05 dfc npm[2236952]: - /opt/aba-system/node_modules/next/dist/build/swc/index.js
+Mar 18 18:41:05 dfc npm[2236952]: - /opt/aba-system/node_modules/next/dist/build/next-config-ts/transpile-config.js
+Mar 18 18:41:05 dfc npm[2236952]: - /opt/aba-system/node_modules/next/dist/server/config.js
+Mar 18 18:41:05 dfc npm[2236952]: - /opt/aba-system/node_modules/next/dist/cli/next-test.js
+Mar 18 18:41:05 dfc npm[2236952]: - /opt/aba-system/node_modules/next/dist/bin/next
+Mar 18 18:41:05 dfc npm[2236952]:     at Context.externalRequire [as x] (.next/server/chunks/ssr/[turbopack]_runtime.js:535:15)
+Mar 18 18:41:05 dfc npm[2236952]:     at module evaluation (.next/server/chunks/ssr/[root-of-the-server]__306e7953._.js:1:45)
+Mar 18 18:41:05 dfc npm[2236952]:     at instantiateModule (.next/server/chunks/ssr/[turbopack]_runtime.js:740:9)
+Mar 18 18:41:05 dfc npm[2236952]:     at getOrInstantiateModuleFromParent (.next/server/chunks/ssr/[turbopack]_runtime.js:763:12)
+Mar 18 18:41:05 dfc npm[2236952]:     at Context.esmImport [as i] (.next/server/chunks/ssr/[turbopack]_runtime.js:228:20)
+Mar 18 18:41:05 dfc npm[2236952]:     at module evaluation (.next/server/chunks/ssr/[root-of-the-server]__306e7953._.js:1:224)
+Mar 18 18:41:05 dfc npm[2236952]:     at instantiateModule (.next/server/chunks/ssr/[turbopack]_runtime.js:740:9)
+Mar 18 18:41:05 dfc npm[2236952]:     at getOrInstantiateModuleFromParent (.next/server/chunks/ssr/[turbopack]_runtime.js:763:12)
+Mar 18 18:41:05 dfc npm[2236952]:     at Context.esmImport [as i] (.next/server/chunks/ssr/[turbopack]_runtime.js:228:20)
+Mar 18 18:41:05 dfc npm[2236952]:     at module evaluation (.next/server/chunks/ssr/_b3aa343f._.js:418:61110)
+Mar 18 18:41:05 dfc npm[2236952]: ⨯ Error: Failed to load external module @prisma/client-2c3a283f134fdcb6: Error: Cannot find module '@prisma/client-2c3a283f134fdcb6'
+Mar 18 18:41:05 dfc npm[2236952]: Require stack:
+Mar 18 18:41:05 dfc npm[2236952]: - /opt/aba-system/.next/server/chunks/ssr/[root-of-the-server]__306e7953._.js
+Mar 18 18:41:05 dfc npm[2236952]: - /opt/aba-system/.next/server/chunks/ssr/[turbopack]_runtime.js
+Mar 18 18:41:05 dfc npm[2236952]: - /opt/aba-system/.next/server/app/_global-error/page.js
+Mar 18 18:41:05 dfc npm[2236952]: - /opt/aba-system/node_modules/next/dist/server/require.js
+Mar 18 18:41:05 dfc npm[2236952]: - /opt/aba-system/node_modules/next/dist/server/load-components.js
+Mar 18 18:41:05 dfc npm[2236952]: - /opt/aba-system/node_modules/next/dist/build/utils.js
+Mar 18 18:41:05 dfc npm[2236952]: - /opt/aba-system/node_modules/next/dist/build/swc/options.js
+Mar 18 18:41:05 dfc npm[2236952]: - /opt/aba-system/node_modules/next/dist/build/swc/index.js
+Mar 18 18:41:05 dfc npm[2236952]: - /opt/aba-system/node_modules/next/dist/build/next-config-ts/transpile-config.js
+Mar 18 18:41:05 dfc npm[2236952]: - /opt/aba-system/node_modules/next/dist/server/config.js
+Mar 18 18:41:05 dfc npm[2236952]: - /opt/aba-system/node_modules/next/dist/cli/next-test.js
+Mar 18 18:41:05 dfc npm[2236952]: - /opt/aba-system/node_modules/next/dist/bin/next
+Mar 18 18:41:05 dfc npm[2236952]:     at Context.externalRequire [as x] (.next/server/chunks/ssr/[turbopack]_runtime.js:535:15)
+Mar 18 18:41:05 dfc npm[2236952]:     at module evaluation (.next/server/chunks/ssr/[root-of-the-server]__306e7953._.js:1:45)
+Mar 18 18:41:05 dfc npm[2236952]:     at instantiateModule (.next/server/chunks/ssr/[turbopack]_runtime.js:740:9)
+Mar 18 18:41:05 dfc npm[2236952]:     at getOrInstantiateModuleFromParent (.next/server/chunks/ssr/[turbopack]_runtime.js:763:12)
+Mar 18 18:41:05 dfc npm[2236952]:     at Context.esmImport [as i] (.next/server/chunks/ssr/[turbopack]_runtime.js:228:20)
+Mar 18 18:41:05 dfc npm[2236952]:     at module evaluation (.next/server/chunks/ssr/[root-of-the-server]__306e7953._.js:1:224)
+Mar 18 18:41:05 dfc npm[2236952]:     at instantiateModule (.next/server/chunks/ssr/[turbopack]_runtime.js:740:9)
+Mar 18 18:41:05 dfc npm[2236952]:     at getOrInstantiateModuleFromParent (.next/server/chunks/ssr/[turbopack]_runtime.js:763:12)
+Mar 18 18:41:05 dfc npm[2236952]:     at Context.esmImport [as i] (.next/server/chunks/ssr/[turbopack]_runtime.js:228:20)
+Mar 18 18:41:05 dfc npm[2236952]:     at module evaluation (.next/server/chunks/ssr/_b3aa343f._.js:418:61110)
+Mar 18 18:41:05 dfc npm[2236952]: ⨯ Error: Failed to load external module @prisma/client-2c3a283f134fdcb6: Error: Cannot find module '@prisma/client-2c3a283f134fdcb6'
+Mar 18 18:41:05 dfc npm[2236952]: Require stack:
+Mar 18 18:41:05 dfc npm[2236952]: - /opt/aba-system/.next/server/chunks/ssr/[root-of-the-server]__306e7953._.js
+Mar 18 18:41:05 dfc npm[2236952]: - /opt/aba-system/.next/server/chunks/ssr/[turbopack]_runtime.js
+Mar 18 18:41:05 dfc npm[2236952]: - /opt/aba-system/.next/server/app/_global-error/page.js
+Mar 18 18:41:05 dfc npm[2236952]: - /opt/aba-system/node_modules/next/dist/server/require.js
+Mar 18 18:41:05 dfc npm[2236952]: - /opt/aba-system/node_modules/next/dist/server/load-components.js
+Mar 18 18:41:05 dfc npm[2236952]: - /opt/aba-system/node_modules/next/dist/build/utils.js
+Mar 18 18:41:05 dfc npm[2236952]: - /opt/aba-system/node_modules/next/dist/build/swc/options.js
+Mar 18 18:41:05 dfc npm[2236952]: - /opt/aba-system/node_modules/next/dist/build/swc/index.js
+Mar 18 18:41:05 dfc npm[2236952]: - /opt/aba-system/node_modules/next/dist/build/next-config-ts/transpile-config.js
+Mar 18 18:41:05 dfc npm[2236952]: - /opt/aba-system/node_modules/next/dist/server/config.js
+Mar 18 18:41:05 dfc npm[2236952]: - /opt/aba-system/node_modules/next/dist/cli/next-test.js
+Mar 18 18:41:05 dfc npm[2236952]: - /opt/aba-system/node_modules/next/dist/bin/next
+Mar 18 18:41:05 dfc npm[2236952]:     at Context.externalRequire [as x] (.next/server/chunks/ssr/[turbopack]_runtime.js:535:15)
+Mar 18 18:41:05 dfc npm[2236952]:     at module evaluation (.next/server/chunks/ssr/[root-of-the-server]__306e7953._.js:1:45)
+Mar 18 18:41:05 dfc npm[2236952]:     at instantiateModule (.next/server/chunks/ssr/[turbopack]_runtime.js:740:9)
+Mar 18 18:41:05 dfc npm[2236952]:     at getOrInstantiateModuleFromParent (.next/server/chunks/ssr/[turbopack]_runtime.js:763:12)
+Mar 18 18:41:05 dfc npm[2236952]:     at Context.esmImport [as i] (.next/server/chunks/ssr/[turbopack]_runtime.js:228:20)
+Mar 18 18:41:05 dfc npm[2236952]:     at module evaluation (.next/server/chunks/ssr/[root-of-the-server]__306e7953._.js:1:224)
+Mar 18 18:41:05 dfc npm[2236952]:     at instantiateModule (.next/server/chunks/ssr/[turbopack]_runtime.js:740:9)
+Mar 18 18:41:05 dfc npm[2236952]:     at getOrInstantiateModuleFromParent (.next/server/chunks/ssr/[turbopack]_runtime.js:763:12)
+Mar 18 18:41:05 dfc npm[2236952]:     at Context.esmImport [as i] (.next/server/chunks/ssr/[turbopack]_runtime.js:228:20)
+Mar 18 18:41:05 dfc npm[2236952]:     at module evaluation (.next/server/chunks/ssr/_b3aa343f._.js:418:61110)
+Mar 18 18:41:05 dfc npm[2236952]: ⨯ Error: Failed to load external module @prisma/client-2c3a283f134fdcb6: Error: Cannot find module '@prisma/client-2c3a283f134fdcb6'
+Mar 18 18:41:05 dfc npm[2236952]: Require stack:
+Mar 18 18:41:05 dfc npm[2236952]: - /opt/aba-system/.next/server/chunks/ssr/[root-of-the-server]__306e7953._.js
+Mar 18 18:41:05 dfc npm[2236952]: - /opt/aba-system/.next/server/chunks/ssr/[turbopack]_runtime.js
+Mar 18 18:41:05 dfc npm[2236952]: - /opt/aba-system/.next/server/app/_global-error/page.js
+Mar 18 18:41:05 dfc npm[2236952]: - /opt/aba-system/node_modules/next/dist/server/require.js
+Mar 18 18:41:05 dfc npm[2236952]: - /opt/aba-system/node_modules/next/dist/server/load-components.js
+Mar 18 18:41:05 dfc npm[2236952]: - /opt/aba-system/node_modules/next/dist/build/utils.js
+Mar 18 18:41:05 dfc npm[2236952]: - /opt/aba-system/node_modules/next/dist/build/swc/options.js
+Mar 18 18:41:05 dfc npm[2236952]: - /opt/aba-system/node_modules/next/dist/build/swc/index.js
+Mar 18 18:41:05 dfc npm[2236952]: - /opt/aba-system/node_modules/next/dist/build/next-config-ts/transpile-config.js
+Mar 18 18:41:05 dfc npm[2236952]: - /opt/aba-system/node_modules/next/dist/server/config.js
+Mar 18 18:41:05 dfc npm[2236952]: - /opt/aba-system/node_modules/next/dist/cli/next-test.js
+Mar 18 18:41:05 dfc npm[2236952]: - /opt/aba-system/node_modules/next/dist/bin/next
+Mar 18 18:41:05 dfc npm[2236952]:     at Context.externalRequire [as x] (.next/server/chunks/ssr/[turbopack]_runtime.js:535:15)
+Mar 18 18:41:05 dfc npm[2236952]:     at module evaluation (.next/server/chunks/ssr/[root-of-the-server]__306e7953._.js:1:45)
+Mar 18 18:41:05 dfc npm[2236952]:     at instantiateModule (.next/server/chunks/ssr/[turbopack]_runtime.js:740:9)
+Mar 18 18:41:05 dfc npm[2236952]:     at getOrInstantiateModuleFromParent (.next/server/chunks/ssr/[turbopack]_runtime.js:763:12)
+Mar 18 18:41:05 dfc npm[2236952]:     at Context.esmImport [as i] (.next/server/chunks/ssr/[turbopack]_runtime.js:228:20)
+Mar 18 18:41:05 dfc npm[2236952]:     at module evaluation (.next/server/chunks/ssr/[root-of-the-server]__306e7953._.js:1:224)
+Mar 18 18:41:05 dfc npm[2236952]:     at instantiateModule (.next/server/chunks/ssr/[turbopack]_runtime.js:740:9)
+Mar 18 18:41:05 dfc npm[2236952]:     at getOrInstantiateModuleFromParent (.next/server/chunks/ssr/[turbopack]_runtime.js:763:12)
+Mar 18 18:41:05 dfc npm[2236952]:     at Context.esmImport [as i] (.next/server/chunks/ssr/[turbopack]_runtime.js:228:20)
+Mar 18 18:41:05 dfc npm[2236952]:     at module evaluation (.next/server/chunks/ssr/_b3aa343f._.js:418:61110)
+Mar 18 18:41:05 dfc npm[2236952]: ⨯ Error: Failed to load external module @prisma/client-2c3a283f134fdcb6: Error: Cannot find module '@prisma/client-2c3a283f134fdcb6'
+Mar 18 18:41:05 dfc npm[2236952]: Require stack:
+Mar 18 18:41:05 dfc npm[2236952]: - /opt/aba-system/.next/server/chunks/ssr/[root-of-the-server]__306e7953._.js
+Mar 18 18:41:05 dfc npm[2236952]: - /opt/aba-system/.next/server/chunks/ssr/[turbopack]_runtime.js
+Mar 18 18:41:05 dfc npm[2236952]: - /opt/aba-system/.next/server/app/_global-error/page.js
+Mar 18 18:41:05 dfc npm[2236952]: - /opt/aba-system/node_modules/next/dist/server/require.js
+Mar 18 18:41:05 dfc npm[2236952]: - /opt/aba-system/node_modules/next/dist/server/load-components.js
+Mar 18 18:41:05 dfc npm[2236952]: - /opt/aba-system/node_modules/next/dist/build/utils.js
+Mar 18 18:41:05 dfc npm[2236952]: - /opt/aba-system/node_modules/next/dist/build/swc/options.js
+Mar 18 18:41:05 dfc npm[2236952]: - /opt/aba-system/node_modules/next/dist/build/swc/index.js
+Mar 18 18:41:05 dfc npm[2236952]: - /opt/aba-system/node_modules/next/dist/build/next-config-ts/transpile-config.js
+Mar 18 18:41:05 dfc npm[2236952]: - /opt/aba-system/node_modules/next/dist/server/config.js
+Mar 18 18:41:05 dfc npm[2236952]: - /opt/aba-system/node_modules/next/dist/cli/next-test.js
+Mar 18 18:41:05 dfc npm[2236952]: - /opt/aba-system/node_modules/next/dist/bin/next
+Mar 18 18:41:05 dfc npm[2236952]:     at Context.externalRequire [as x] (.next/server/chunks/ssr/[turbopack]_runtime.js:535:15)
+Mar 18 18:41:05 dfc npm[2236952]:     at module evaluation (.next/server/chunks/ssr/[root-of-the-server]__306e7953._.js:1:45)
+Mar 18 18:41:05 dfc npm[2236952]:     at instantiateModule (.next/server/chunks/ssr/[turbopack]_runtime.js:740:9)
+Mar 18 18:41:05 dfc npm[2236952]:     at getOrInstantiateModuleFromParent (.next/server/chunks/ssr/[turbopack]_runtime.js:763:12)
+Mar 18 18:41:05 dfc npm[2236952]:     at Context.esmImport [as i] (.next/server/chunks/ssr/[turbopack]_runtime.js:228:20)
+Mar 18 18:41:05 dfc npm[2236952]:     at module evaluation (.next/server/chunks/ssr/[root-of-the-server]__306e7953._.js:1:224)
+Mar 18 18:41:05 dfc npm[2236952]:     at instantiateModule (.next/server/chunks/ssr/[turbopack]_runtime.js:740:9)
+Mar 18 18:41:05 dfc npm[2236952]:     at getOrInstantiateModuleFromParent (.next/server/chunks/ssr/[turbopack]_runtime.js:763:12)
+Mar 18 18:41:05 dfc npm[2236952]:     at Context.esmImport [as i] (.next/server/chunks/ssr/[turbopack]_runtime.js:228:20)
+Mar 18 18:41:05 dfc npm[2236952]:     at module evaluation (.next/server/chunks/ssr/_b3aa343f._.js:418:61110)
+Mar 18 18:41:05 dfc npm[2236952]: ⨯ Error: Failed to load external module @prisma/client-2c3a283f134fdcb6: Error: Cannot find module '@prisma/client-2c3a283f134fdcb6'
+Mar 18 18:41:05 dfc npm[2236952]: Require stack:
+Mar 18 18:41:05 dfc npm[2236952]: - /opt/aba-system/.next/server/chunks/ssr/[root-of-the-server]__306e7953._.js
+Mar 18 18:41:05 dfc npm[2236952]: - /opt/aba-system/.next/server/chunks/ssr/[turbopack]_runtime.js
+Mar 18 18:41:05 dfc npm[2236952]: - /opt/aba-system/.next/server/app/_global-error/page.js
+Mar 18 18:41:05 dfc npm[2236952]: - /opt/aba-system/node_modules/next/dist/server/require.js
+Mar 18 18:41:05 dfc npm[2236952]: - /opt/aba-system/node_modules/next/dist/server/load-components.js
+Mar 18 18:41:05 dfc npm[2236952]: - /opt/aba-system/node_modules/next/dist/build/utils.js
+Mar 18 18:41:05 dfc npm[2236952]: - /opt/aba-system/node_modules/next/dist/build/swc/options.js
+Mar 18 18:41:05 dfc npm[2236952]: - /opt/aba-system/node_modules/next/dist/build/swc/index.js
+Mar 18 18:41:05 dfc npm[2236952]: - /opt/aba-system/node_modules/next/dist/build/next-config-ts/transpile-config.js
+Mar 18 18:41:05 dfc npm[2236952]: - /opt/aba-system/node_modules/next/dist/server/config.js
+Mar 18 18:41:05 dfc npm[2236952]: - /opt/aba-system/node_modules/next/dist/cli/next-test.js
+Mar 18 18:41:05 dfc npm[2236952]: - /opt/aba-system/node_modules/next/dist/bin/next
+Mar 18 18:41:05 dfc npm[2236952]:     at Context.externalRequire [as x] (.next/server/chunks/ssr/[turbopack]_runtime.js:535:15)
+Mar 18 18:41:05 dfc npm[2236952]:     at module evaluation (.next/server/chunks/ssr/[root-of-the-server]__306e7953._.js:1:45)
+Mar 18 18:41:05 dfc npm[2236952]:     at instantiateModule (.next/server/chunks/ssr/[turbopack]_runtime.js:740:9)
+Mar 18 18:41:05 dfc npm[2236952]:     at getOrInstantiateModuleFromParent (.next/server/chunks/ssr/[turbopack]_runtime.js:763:12)
+Mar 18 18:41:05 dfc npm[2236952]:     at Context.esmImport [as i] (.next/server/chunks/ssr/[turbopack]_runtime.js:228:20)
+Mar 18 18:41:05 dfc npm[2236952]:     at module evaluation (.next/server/chunks/ssr/[root-of-the-server]__306e7953._.js:1:224)
+Mar 18 18:41:05 dfc npm[2236952]:     at instantiateModule (.next/server/chunks/ssr/[turbopack]_runtime.js:740:9)
+Mar 18 18:41:05 dfc npm[2236952]:     at getOrInstantiateModuleFromParent (.next/server/chunks/ssr/[turbopack]_runtime.js:763:12)
+Mar 18 18:41:05 dfc npm[2236952]:     at Context.esmImport [as i] (.next/server/chunks/ssr/[turbopack]_runtime.js:228:20)
+Mar 18 18:41:05 dfc npm[2236952]:     at module evaluation (.next/server/chunks/ssr/_b3aa343f._.js:418:61110)
+Mar 18 18:41:05 dfc npm[2236952]: ⨯ Error: Failed to load external module @prisma/client-2c3a283f134fdcb6: Error: Cannot find module '@prisma/client-2c3a283f134fdcb6'
+Mar 18 18:41:05 dfc npm[2236952]: Require stack:
+Mar 18 18:41:05 dfc npm[2236952]: - /opt/aba-system/.next/server/chunks/ssr/[root-of-the-server]__306e7953._.js
+Mar 18 18:41:05 dfc npm[2236952]: - /opt/aba-system/.next/server/chunks/ssr/[turbopack]_runtime.js
+Mar 18 18:41:05 dfc npm[2236952]: - /opt/aba-system/.next/server/app/_global-error/page.js
+Mar 18 18:41:05 dfc npm[2236952]: - /opt/aba-system/node_modules/next/dist/server/require.js
+Mar 18 18:41:05 dfc npm[2236952]: - /opt/aba-system/node_modules/next/dist/server/load-components.js
+Mar 18 18:41:05 dfc npm[2236952]: - /opt/aba-system/node_modules/next/dist/build/utils.js
+Mar 18 18:41:05 dfc npm[2236952]: - /opt/aba-system/node_modules/next/dist/build/swc/options.js
+Mar 18 18:41:05 dfc npm[2236952]: - /opt/aba-system/node_modules/next/dist/build/swc/index.js
+Mar 18 18:41:05 dfc npm[2236952]: - /opt/aba-system/node_modules/next/dist/build/next-config-ts/transpile-config.js
+Mar 18 18:41:05 dfc npm[2236952]: - /opt/aba-system/node_modules/next/dist/server/config.js
+Mar 18 18:41:05 dfc npm[2236952]: - /opt/aba-system/node_modules/next/dist/cli/next-test.js
+Mar 18 18:41:05 dfc npm[2236952]: - /opt/aba-system/node_modules/next/dist/bin/next
+Mar 18 18:41:05 dfc npm[2236952]:     at Context.externalRequire [as x] (.next/server/chunks/ssr/[turbopack]_runtime.js:535:15)
+Mar 18 18:41:05 dfc npm[2236952]:     at module evaluation (.next/server/chunks/ssr/[root-of-the-server]__306e7953._.js:1:45)
+Mar 18 18:41:05 dfc npm[2236952]:     at instantiateModule (.next/server/chunks/ssr/[turbopack]_runtime.js:740:9)
+Mar 18 18:41:05 dfc npm[2236952]:     at getOrInstantiateModuleFromParent (.next/server/chunks/ssr/[turbopack]_runtime.js:763:12)
+Mar 18 18:41:05 dfc npm[2236952]:     at Context.esmImport [as i] (.next/server/chunks/ssr/[turbopack]_runtime.js:228:20)
+Mar 18 18:41:05 dfc npm[2236952]:     at module evaluation (.next/server/chunks/ssr/[root-of-the-server]__306e7953._.js:1:224)
+Mar 18 18:41:05 dfc npm[2236952]:     at instantiateModule (.next/server/chunks/ssr/[turbopack]_runtime.js:740:9)
+Mar 18 18:41:05 dfc npm[2236952]:     at getOrInstantiateModuleFromParent (.next/server/chunks/ssr/[turbopack]_runtime.js:763:12)
+Mar 18 18:41:05 dfc npm[2236952]:     at Context.esmImport [as i] (.next/server/chunks/ssr/[turbopack]_runtime.js:228:20)
+Mar 18 18:41:05 dfc npm[2236952]:     at module evaluation (.next/server/chunks/ssr/_b3aa343f._.js:418:61110)
+Mar 18 18:41:05 dfc npm[2236952]: ⨯ Error: Failed to load external module @prisma/client-2c3a283f134fdcb6: Error: Cannot find module '@prisma/client-2c3a283f134fdcb6'
+Mar 18 18:41:05 dfc npm[2236952]: Require stack:
+Mar 18 18:41:05 dfc npm[2236952]: - /opt/aba-system/.next/server/chunks/ssr/[root-of-the-server]__306e7953._.js
+Mar 18 18:41:05 dfc npm[2236952]: - /opt/aba-system/.next/server/chunks/ssr/[turbopack]_runtime.js
+Mar 18 18:41:05 dfc npm[2236952]: - /opt/aba-system/.next/server/app/_global-error/page.js
+Mar 18 18:41:05 dfc npm[2236952]: - /opt/aba-system/node_modules/next/dist/server/require.js
+Mar 18 18:41:05 dfc npm[2236952]: - /opt/aba-system/node_modules/next/dist/server/load-components.js
+Mar 18 18:41:05 dfc npm[2236952]: - /opt/aba-system/node_modules/next/dist/build/utils.js
+Mar 18 18:41:05 dfc npm[2236952]: - /opt/aba-system/node_modules/next/dist/build/swc/options.js
+Mar 18 18:41:05 dfc npm[2236952]: - /opt/aba-system/node_modules/next/dist/build/swc/index.js
+Mar 18 18:41:05 dfc npm[2236952]: - /opt/aba-system/node_modules/next/dist/build/next-config-ts/transpile-config.js
+Mar 18 18:41:05 dfc npm[2236952]: - /opt/aba-system/node_modules/next/dist/server/config.js
+Mar 18 18:41:05 dfc npm[2236952]: - /opt/aba-system/node_modules/next/dist/cli/next-test.js
+Mar 18 18:41:05 dfc npm[2236952]: - /opt/aba-system/node_modules/next/dist/bin/next
+Mar 18 18:41:05 dfc npm[2236952]:     at Context.externalRequire [as x] (.next/server/chunks/ssr/[turbopack]_runtime.js:535:15)
+Mar 18 18:41:05 dfc npm[2236952]:     at module evaluation (.next/server/chunks/ssr/[root-of-the-server]__306e7953._.js:1:45)
+Mar 18 18:41:05 dfc npm[2236952]:     at instantiateModule (.next/server/chunks/ssr/[turbopack]_runtime.js:740:9)
+Mar 18 18:41:05 dfc npm[2236952]:     at getOrInstantiateModuleFromParent (.next/server/chunks/ssr/[turbopack]_runtime.js:763:12)
+Mar 18 18:41:05 dfc npm[2236952]:     at Context.esmImport [as i] (.next/server/chunks/ssr/[turbopack]_runtime.js:228:20)
+Mar 18 18:41:05 dfc npm[2236952]:     at module evaluation (.next/server/chunks/ssr/[root-of-the-server]__306e7953._.js:1:224)
+Mar 18 18:41:05 dfc npm[2236952]:     at instantiateModule (.next/server/chunks/ssr/[turbopack]_runtime.js:740:9)
+Mar 18 18:41:05 dfc npm[2236952]:     at getOrInstantiateModuleFromParent (.next/server/chunks/ssr/[turbopack]_runtime.js:763:12)
+Mar 18 18:41:05 dfc npm[2236952]:     at Context.esmImport [as i] (.next/server/chunks/ssr/[turbopack]_runtime.js:228:20)
+Mar 18 18:41:05 dfc npm[2236952]:     at module evaluation (.next/server/chunks/ssr/_b3aa343f._.js:418:61110)
+Mar 18 18:41:05 dfc npm[2236952]: ⨯ Error: Failed to load external module @prisma/client-2c3a283f134fdcb6: Error: Cannot find module '@prisma/client-2c3a283f134fdcb6'
+Mar 18 18:41:05 dfc npm[2236952]: Require stack:
+Mar 18 18:41:05 dfc npm[2236952]: - /opt/aba-system/.next/server/chunks/ssr/[root-of-the-server]__306e7953._.js
+Mar 18 18:41:05 dfc npm[2236952]: - /opt/aba-system/.next/server/chunks/ssr/[turbopack]_runtime.js
+Mar 18 18:41:05 dfc npm[2236952]: - /opt/aba-system/.next/server/app/_global-error/page.js
+Mar 18 18:41:05 dfc npm[2236952]: - /opt/aba-system/node_modules/next/dist/server/require.js
+Mar 18 18:41:05 dfc npm[2236952]: - /opt/aba-system/node_modules/next/dist/server/load-components.js
+Mar 18 18:41:05 dfc npm[2236952]: - /opt/aba-system/node_modules/next/dist/build/utils.js
+Mar 18 18:41:05 dfc npm[2236952]: - /opt/aba-system/node_modules/next/dist/build/swc/options.js
+Mar 18 18:41:05 dfc npm[2236952]: - /opt/aba-system/node_modules/next/dist/build/swc/index.js
+Mar 18 18:41:05 dfc npm[2236952]: - /opt/aba-system/node_modules/next/dist/build/next-config-ts/transpile-config.js
+Mar 18 18:41:05 dfc npm[2236952]: - /opt/aba-system/node_modules/next/dist/server/config.js
+Mar 18 18:41:05 dfc npm[2236952]: - /opt/aba-system/node_modules/next/dist/cli/next-test.js
+Mar 18 18:41:05 dfc npm[2236952]: - /opt/aba-system/node_modules/next/dist/bin/next
+Mar 18 18:41:05 dfc npm[2236952]:     at Context.externalRequire [as x] (.next/server/chunks/ssr/[turbopack]_runtime.js:535:15)
+Mar 18 18:41:05 dfc npm[2236952]:     at module evaluation (.next/server/chunks/ssr/[root-of-the-server]__306e7953._.js:1:45)
+Mar 18 18:41:05 dfc npm[2236952]:     at instantiateModule (.next/server/chunks/ssr/[turbopack]_runtime.js:740:9)
+Mar 18 18:41:05 dfc npm[2236952]:     at getOrInstantiateModuleFromParent (.next/server/chunks/ssr/[turbopack]_runtime.js:763:12)
+Mar 18 18:41:05 dfc npm[2236952]:     at Context.esmImport [as i] (.next/server/chunks/ssr/[turbopack]_runtime.js:228:20)
+Mar 18 18:41:05 dfc npm[2236952]:     at module evaluation (.next/server/chunks/ssr/[root-of-the-server]__306e7953._.js:1:224)
+Mar 18 18:41:05 dfc npm[2236952]:     at instantiateModule (.next/server/chunks/ssr/[turbopack]_runtime.js:740:9)
+Mar 18 18:41:05 dfc npm[2236952]:     at getOrInstantiateModuleFromParent (.next/server/chunks/ssr/[turbopack]_runtime.js:763:12)
+Mar 18 18:41:05 dfc npm[2236952]:     at Context.esmImport [as i] (.next/server/chunks/ssr/[turbopack]_runtime.js:228:20)
+Mar 18 18:41:05 dfc npm[2236952]:     at module evaluation (.next/server/chunks/ssr/_b3aa343f._.js:418:61110)
+Mar 18 18:41:05 dfc npm[2236952]: ⨯ Error: Failed to load external module @prisma/client-2c3a283f134fdcb6: Error: Cannot find module '@prisma/client-2c3a283f134fdcb6'
+Mar 18 18:41:05 dfc npm[2236952]: Require stack:
+Mar 18 18:41:05 dfc npm[2236952]: - /opt/aba-system/.next/server/chunks/ssr/[root-of-the-server]__306e7953._.js
+Mar 18 18:41:05 dfc npm[2236952]: - /opt/aba-system/.next/server/chunks/ssr/[turbopack]_runtime.js
+Mar 18 18:41:05 dfc npm[2236952]: - /opt/aba-system/.next/server/app/_global-error/page.js
+Mar 18 18:41:05 dfc npm[2236952]: - /opt/aba-system/node_modules/next/dist/server/require.js
+Mar 18 18:41:05 dfc npm[2236952]: - /opt/aba-system/node_modules/next/dist/server/load-components.js
+Mar 18 18:41:05 dfc npm[2236952]: - /opt/aba-system/node_modules/next/dist/build/utils.js
+Mar 18 18:41:05 dfc npm[2236952]: - /opt/aba-system/node_modules/next/dist/build/swc/options.js
+Mar 18 18:41:05 dfc npm[2236952]: - /opt/aba-system/node_modules/next/dist/build/swc/index.js
+Mar 18 18:41:05 dfc npm[2236952]: - /opt/aba-system/node_modules/next/dist/build/next-config-ts/transpile-config.js
+Mar 18 18:41:05 dfc npm[2236952]: - /opt/aba-system/node_modules/next/dist/server/config.js
+Mar 18 18:41:05 dfc npm[2236952]: - /opt/aba-system/node_modules/next/dist/cli/next-test.js
+Mar 18 18:41:05 dfc npm[2236952]: - /opt/aba-system/node_modules/next/dist/bin/next
+Mar 18 18:41:05 dfc npm[2236952]:     at Context.externalRequire [as x] (.next/server/chunks/ssr/[turbopack]_runtime.js:535:15)
+Mar 18 18:41:05 dfc npm[2236952]:     at module evaluation (.next/server/chunks/ssr/[root-of-the-server]__306e7953._.js:1:45)
+Mar 18 18:41:05 dfc npm[2236952]:     at instantiateModule (.next/server/chunks/ssr/[turbopack]_runtime.js:740:9)
+Mar 18 18:41:05 dfc npm[2236952]:     at getOrInstantiateModuleFromParent (.next/server/chunks/ssr/[turbopack]_runtime.js:763:12)
+Mar 18 18:41:05 dfc npm[2236952]:     at Context.esmImport [as i] (.next/server/chunks/ssr/[turbopack]_runtime.js:228:20)
+Mar 18 18:41:05 dfc npm[2236952]:     at module evaluation (.next/server/chunks/ssr/[root-of-the-server]__306e7953._.js:1:224)
+Mar 18 18:41:05 dfc npm[2236952]:     at instantiateModule (.next/server/chunks/ssr/[turbopack]_runtime.js:740:9)
+Mar 18 18:41:05 dfc npm[2236952]:     at getOrInstantiateModuleFromParent (.next/server/chunks/ssr/[turbopack]_runtime.js:763:12)
+Mar 18 18:41:05 dfc npm[2236952]:     at Context.esmImport [as i] (.next/server/chunks/ssr/[turbopack]_runtime.js:228:20)
+Mar 18 18:41:05 dfc npm[2236952]:     at module evaluation (.next/server/chunks/ssr/_b3aa343f._.js:418:61110)
+Mar 18 18:41:06 dfc npm[2236952]: ⨯ Error: Failed to load external module @prisma/client-2c3a283f134fdcb6: Error: Cannot find module '@prisma/client-2c3a283f134fdcb6'
+Mar 18 18:41:06 dfc npm[2236952]: Require stack:
+Mar 18 18:41:06 dfc npm[2236952]: - /opt/aba-system/.next/server/chunks/ssr/[root-of-the-server]__306e7953._.js
+Mar 18 18:41:06 dfc npm[2236952]: - /opt/aba-system/.next/server/chunks/ssr/[turbopack]_runtime.js
+Mar 18 18:41:06 dfc npm[2236952]: - /opt/aba-system/.next/server/app/_global-error/page.js
+Mar 18 18:41:06 dfc npm[2236952]: - /opt/aba-system/node_modules/next/dist/server/require.js
+Mar 18 18:41:06 dfc npm[2236952]: - /opt/aba-system/node_modules/next/dist/server/load-components.js
+Mar 18 18:41:06 dfc npm[2236952]: - /opt/aba-system/node_modules/next/dist/build/utils.js
+Mar 18 18:41:06 dfc npm[2236952]: - /opt/aba-system/node_modules/next/dist/build/swc/options.js
+Mar 18 18:41:06 dfc npm[2236952]: - /opt/aba-system/node_modules/next/dist/build/swc/index.js
+Mar 18 18:41:06 dfc npm[2236952]: - /opt/aba-system/node_modules/next/dist/build/next-config-ts/transpile-config.js
+Mar 18 18:41:06 dfc npm[2236952]: - /opt/aba-system/node_modules/next/dist/server/config.js
+Mar 18 18:41:06 dfc npm[2236952]: - /opt/aba-system/node_modules/next/dist/cli/next-test.js
+Mar 18 18:41:06 dfc npm[2236952]: - /opt/aba-system/node_modules/next/dist/bin/next
+Mar 18 18:41:06 dfc npm[2236952]:     at Context.externalRequire [as x] (.next/server/chunks/ssr/[turbopack]_runtime.js:535:15)
+Mar 18 18:41:06 dfc npm[2236952]:     at module evaluation (.next/server/chunks/ssr/[root-of-the-server]__306e7953._.js:1:45)
+Mar 18 18:41:06 dfc npm[2236952]:     at instantiateModule (.next/server/chunks/ssr/[turbopack]_runtime.js:740:9)
+Mar 18 18:41:06 dfc npm[2236952]:     at getOrInstantiateModuleFromParent (.next/server/chunks/ssr/[turbopack]_runtime.js:763:12)
+Mar 18 18:41:06 dfc npm[2236952]:     at Context.esmImport [as i] (.next/server/chunks/ssr/[turbopack]_runtime.js:228:20)
+Mar 18 18:41:06 dfc npm[2236952]:     at module evaluation (.next/server/chunks/ssr/[root-of-the-server]__306e7953._.js:1:224)
+Mar 18 18:41:06 dfc npm[2236952]:     at instantiateModule (.next/server/chunks/ssr/[turbopack]_runtime.js:740:9)
+Mar 18 18:41:06 dfc npm[2236952]:     at getOrInstantiateModuleFromParent (.next/server/chunks/ssr/[turbopack]_runtime.js:763:12)
+Mar 18 18:41:06 dfc npm[2236952]:     at Context.esmImport [as i] (.next/server/chunks/ssr/[turbopack]_runtime.js:228:20)
+Mar 18 18:41:06 dfc npm[2236952]:     at module evaluation (.next/server/chunks/ssr/_b3aa343f._.js:418:61110)
+Mar 18 18:41:06 dfc npm[2236952]: ⨯ Error: Failed to load external module @prisma/client-2c3a283f134fdcb6: Error: Cannot find module '@prisma/client-2c3a283f134fdcb6'
+Mar 18 18:41:06 dfc npm[2236952]: Require stack:
+Mar 18 18:41:06 dfc npm[2236952]: - /opt/aba-system/.next/server/chunks/ssr/[root-of-the-server]__306e7953._.js
+Mar 18 18:41:06 dfc npm[2236952]: - /opt/aba-system/.next/server/chunks/ssr/[turbopack]_runtime.js
+Mar 18 18:41:06 dfc npm[2236952]: - /opt/aba-system/.next/server/app/_global-error/page.js
+Mar 18 18:41:06 dfc npm[2236952]: - /opt/aba-system/node_modules/next/dist/server/require.js
+Mar 18 18:41:06 dfc npm[2236952]: - /opt/aba-system/node_modules/next/dist/server/load-components.js
+Mar 18 18:41:06 dfc npm[2236952]: - /opt/aba-system/node_modules/next/dist/build/utils.js
+Mar 18 18:41:06 dfc npm[2236952]: - /opt/aba-system/node_modules/next/dist/build/swc/options.js
+Mar 18 18:41:06 dfc npm[2236952]: - /opt/aba-system/node_modules/next/dist/build/swc/index.js
+Mar 18 18:41:06 dfc npm[2236952]: - /opt/aba-system/node_modules/next/dist/build/next-config-ts/transpile-config.js
+Mar 18 18:41:06 dfc npm[2236952]: - /opt/aba-system/node_modules/next/dist/server/config.js
+Mar 18 18:41:06 dfc npm[2236952]: - /opt/aba-system/node_modules/next/dist/cli/next-test.js
+Mar 18 18:41:06 dfc npm[2236952]: - /opt/aba-system/node_modules/next/dist/bin/next
+Mar 18 18:41:06 dfc npm[2236952]:     at Context.externalRequire [as x] (.next/server/chunks/ssr/[turbopack]_runtime.js:535:15)
+Mar 18 18:41:06 dfc npm[2236952]:     at module evaluation (.next/server/chunks/ssr/[root-of-the-server]__306e7953._.js:1:45)
+Mar 18 18:41:06 dfc npm[2236952]:     at instantiateModule (.next/server/chunks/ssr/[turbopack]_runtime.js:740:9)
+Mar 18 18:41:06 dfc npm[2236952]:     at getOrInstantiateModuleFromParent (.next/server/chunks/ssr/[turbopack]_runtime.js:763:12)
+Mar 18 18:41:06 dfc npm[2236952]:     at Context.esmImport [as i] (.next/server/chunks/ssr/[turbopack]_runtime.js:228:20)
+Mar 18 18:41:06 dfc npm[2236952]:     at module evaluation (.next/server/chunks/ssr/[root-of-the-server]__306e7953._.js:1:224)
+Mar 18 18:41:06 dfc npm[2236952]:     at instantiateModule (.next/server/chunks/ssr/[turbopack]_runtime.js:740:9)
+Mar 18 18:41:06 dfc npm[2236952]:     at getOrInstantiateModuleFromParent (.next/server/chunks/ssr/[turbopack]_runtime.js:763:12)
+Mar 18 18:41:06 dfc npm[2236952]:     at Context.esmImport [as i] (.next/server/chunks/ssr/[turbopack]_runtime.js:228:20)
+Mar 18 18:41:06 dfc npm[2236952]:     at module evaluation (.next/server/chunks/ssr/_b3aa343f._.js:418:61110)
+Mar 18 18:41:06 dfc npm[2236952]: ⨯ Error: Failed to load external module @prisma/client-2c3a283f134fdcb6: Error: Cannot find module '@prisma/client-2c3a283f134fdcb6'
+Mar 18 18:41:06 dfc npm[2236952]: Require stack:
+Mar 18 18:41:06 dfc npm[2236952]: - /opt/aba-system/.next/server/chunks/ssr/[root-of-the-server]__306e7953._.js
+Mar 18 18:41:06 dfc npm[2236952]: - /opt/aba-system/.next/server/chunks/ssr/[turbopack]_runtime.js
+Mar 18 18:41:06 dfc npm[2236952]: - /opt/aba-system/.next/server/app/_global-error/page.js
+Mar 18 18:41:06 dfc npm[2236952]: - /opt/aba-system/node_modules/next/dist/server/require.js
+Mar 18 18:41:06 dfc npm[2236952]: - /opt/aba-system/node_modules/next/dist/server/load-components.js
+Mar 18 18:41:06 dfc npm[2236952]: - /opt/aba-system/node_modules/next/dist/build/utils.js
+Mar 18 18:41:06 dfc npm[2236952]: - /opt/aba-system/node_modules/next/dist/build/swc/options.js
+Mar 18 18:41:06 dfc npm[2236952]: - /opt/aba-system/node_modules/next/dist/build/swc/index.js
+Mar 18 18:41:06 dfc npm[2236952]: - /opt/aba-system/node_modules/next/dist/build/next-config-ts/transpile-config.js
+Mar 18 18:41:06 dfc npm[2236952]: - /opt/aba-system/node_modules/next/dist/server/config.js
+Mar 18 18:41:06 dfc npm[2236952]: - /opt/aba-system/node_modules/next/dist/cli/next-test.js
+Mar 18 18:41:06 dfc npm[2236952]: - /opt/aba-system/node_modules/next/dist/bin/next
+Mar 18 18:41:06 dfc npm[2236952]:     at Context.externalRequire [as x] (.next/server/chunks/ssr/[turbopack]_runtime.js:535:15)
+Mar 18 18:41:06 dfc npm[2236952]:     at module evaluation (.next/server/chunks/ssr/[root-of-the-server]__306e7953._.js:1:45)
+Mar 18 18:41:06 dfc npm[2236952]:     at instantiateModule (.next/server/chunks/ssr/[turbopack]_runtime.js:740:9)
+Mar 18 18:41:06 dfc npm[2236952]:     at getOrInstantiateModuleFromParent (.next/server/chunks/ssr/[turbopack]_runtime.js:763:12)
+Mar 18 18:41:06 dfc npm[2236952]:     at Context.esmImport [as i] (.next/server/chunks/ssr/[turbopack]_runtime.js:228:20)
+Mar 18 18:41:06 dfc npm[2236952]:     at module evaluation (.next/server/chunks/ssr/[root-of-the-server]__306e7953._.js:1:224)
+Mar 18 18:41:06 dfc npm[2236952]:     at instantiateModule (.next/server/chunks/ssr/[turbopack]_runtime.js:740:9)
+Mar 18 18:41:06 dfc npm[2236952]:     at getOrInstantiateModuleFromParent (.next/server/chunks/ssr/[turbopack]_runtime.js:763:12)
+Mar 18 18:41:06 dfc npm[2236952]:     at Context.esmImport [as i] (.next/server/chunks/ssr/[turbopack]_runtime.js:228:20)
+Mar 18 18:41:06 dfc npm[2236952]:     at module evaluation (.next/server/chunks/ssr/_b3aa343f._.js:418:61110)
+Mar 18 18:41:06 dfc npm[2236952]: ⨯ Error: Failed to load external module @prisma/client-2c3a283f134fdcb6: Error: Cannot find module '@prisma/client-2c3a283f134fdcb6'
+Mar 18 18:41:06 dfc npm[2236952]: Require stack:
+Mar 18 18:41:06 dfc npm[2236952]: - /opt/aba-system/.next/server/chunks/ssr/[root-of-the-server]__306e7953._.js
+Mar 18 18:41:06 dfc npm[2236952]: - /opt/aba-system/.next/server/chunks/ssr/[turbopack]_runtime.js
+Mar 18 18:41:06 dfc npm[2236952]: - /opt/aba-system/.next/server/app/_global-error/page.js
+Mar 18 18:41:06 dfc npm[2236952]: - /opt/aba-system/node_modules/next/dist/server/require.js
+Mar 18 18:41:06 dfc npm[2236952]: - /opt/aba-system/node_modules/next/dist/server/load-components.js
+Mar 18 18:41:06 dfc npm[2236952]: - /opt/aba-system/node_modules/next/dist/build/utils.js
+Mar 18 18:41:06 dfc npm[2236952]: - /opt/aba-system/node_modules/next/dist/build/swc/options.js
+Mar 18 18:41:06 dfc npm[2236952]: - /opt/aba-system/node_modules/next/dist/build/swc/index.js
+Mar 18 18:41:06 dfc npm[2236952]: - /opt/aba-system/node_modules/next/dist/build/next-config-ts/transpile-config.js
+Mar 18 18:41:06 dfc npm[2236952]: - /opt/aba-system/node_modules/next/dist/server/config.js
+Mar 18 18:41:06 dfc npm[2236952]: - /opt/aba-system/node_modules/next/dist/cli/next-test.js
+Mar 18 18:41:06 dfc npm[2236952]: - /opt/aba-system/node_modules/next/dist/bin/next
+Mar 18 18:41:06 dfc npm[2236952]:     at Context.externalRequire [as x] (.next/server/chunks/ssr/[turbopack]_runtime.js:535:15)
+Mar 18 18:41:06 dfc npm[2236952]:     at module evaluation (.next/server/chunks/ssr/[root-of-the-server]__306e7953._.js:1:45)
+Mar 18 18:41:06 dfc npm[2236952]:     at instantiateModule (.next/server/chunks/ssr/[turbopack]_runtime.js:740:9)
+Mar 18 18:41:06 dfc npm[2236952]:     at getOrInstantiateModuleFromParent (.next/server/chunks/ssr/[turbopack]_runtime.js:763:12)
+Mar 18 18:41:06 dfc npm[2236952]:     at Context.esmImport [as i] (.next/server/chunks/ssr/[turbopack]_runtime.js:228:20)
+Mar 18 18:41:06 dfc npm[2236952]:     at module evaluation (.next/server/chunks/ssr/[root-of-the-server]__306e7953._.js:1:224)
+Mar 18 18:41:06 dfc npm[2236952]:     at instantiateModule (.next/server/chunks/ssr/[turbopack]_runtime.js:740:9)
+Mar 18 18:41:06 dfc npm[2236952]:     at getOrInstantiateModuleFromParent (.next/server/chunks/ssr/[turbopack]_runtime.js:763:12)
+Mar 18 18:41:06 dfc npm[2236952]:     at Context.esmImport [as i] (.next/server/chunks/ssr/[turbopack]_runtime.js:228:20)
+Mar 18 18:41:06 dfc npm[2236952]:     at module evaluation (.next/server/chunks/ssr/_b3aa343f._.js:418:61110)
+Mar 18 18:41:06 dfc npm[2236952]: ⨯ Error: Failed to load external module @prisma/client-2c3a283f134fdcb6: Error: Cannot find module '@prisma/client-2c3a283f134fdcb6'
+Mar 18 18:41:06 dfc npm[2236952]: Require stack:
+Mar 18 18:41:06 dfc npm[2236952]: - /opt/aba-system/.next/server/chunks/ssr/[root-of-the-server]__306e7953._.js
+Mar 18 18:41:06 dfc npm[2236952]: - /opt/aba-system/.next/server/chunks/ssr/[turbopack]_runtime.js
+Mar 18 18:41:06 dfc npm[2236952]: - /opt/aba-system/.next/server/app/_global-error/page.js
+Mar 18 18:41:06 dfc npm[2236952]: - /opt/aba-system/node_modules/next/dist/server/require.js
+Mar 18 18:41:06 dfc npm[2236952]: - /opt/aba-system/node_modules/next/dist/server/load-components.js
+Mar 18 18:41:06 dfc npm[2236952]: - /opt/aba-system/node_modules/next/dist/build/utils.js
+Mar 18 18:41:06 dfc npm[2236952]: - /opt/aba-system/node_modules/next/dist/build/swc/options.js
+Mar 18 18:41:06 dfc npm[2236952]: - /opt/aba-system/node_modules/next/dist/build/swc/index.js
+Mar 18 18:41:06 dfc npm[2236952]: - /opt/aba-system/node_modules/next/dist/build/next-config-ts/transpile-config.js
+Mar 18 18:41:06 dfc npm[2236952]: - /opt/aba-system/node_modules/next/dist/server/config.js
+Mar 18 18:41:06 dfc npm[2236952]: - /opt/aba-system/node_modules/next/dist/cli/next-test.js
+Mar 18 18:41:06 dfc npm[2236952]: - /opt/aba-system/node_modules/next/dist/bin/next
+Mar 18 18:41:06 dfc npm[2236952]:     at Context.externalRequire [as x] (.next/server/chunks/ssr/[turbopack]_runtime.js:535:15)
+Mar 18 18:41:06 dfc npm[2236952]:     at module evaluation (.next/server/chunks/ssr/[root-of-the-server]__306e7953._.js:1:45)
+Mar 18 18:41:06 dfc npm[2236952]:     at instantiateModule (.next/server/chunks/ssr/[turbopack]_runtime.js:740:9)
+Mar 18 18:41:06 dfc npm[2236952]:     at getOrInstantiateModuleFromParent (.next/server/chunks/ssr/[turbopack]_runtime.js:763:12)
+Mar 18 18:41:06 dfc npm[2236952]:     at Context.esmImport [as i] (.next/server/chunks/ssr/[turbopack]_runtime.js:228:20)
+Mar 18 18:41:06 dfc npm[2236952]:     at module evaluation (.next/server/chunks/ssr/[root-of-the-server]__306e7953._.js:1:224)
+Mar 18 18:41:06 dfc npm[2236952]:     at instantiateModule (.next/server/chunks/ssr/[turbopack]_runtime.js:740:9)
+Mar 18 18:41:06 dfc npm[2236952]:     at getOrInstantiateModuleFromParent (.next/server/chunks/ssr/[turbopack]_runtime.js:763:12)
+Mar 18 18:41:06 dfc npm[2236952]:     at Context.esmImport [as i] (.next/server/chunks/ssr/[turbopack]_runtime.js:228:20)
+Mar 18 18:41:06 dfc npm[2236952]:     at module evaluation (.next/server/chunks/ssr/_b3aa343f._.js:418:61110)
+Mar 18 18:41:06 dfc npm[2236952]: ⨯ Error: Failed to load external module @prisma/client-2c3a283f134fdcb6: Error: Cannot find module '@prisma/client-2c3a283f134fdcb6'
+Mar 18 18:41:06 dfc npm[2236952]: Require stack:
+Mar 18 18:41:06 dfc npm[2236952]: - /opt/aba-system/.next/server/chunks/ssr/[root-of-the-server]__306e7953._.js
+Mar 18 18:41:06 dfc npm[2236952]: - /opt/aba-system/.next/server/chunks/ssr/[turbopack]_runtime.js
+Mar 18 18:41:06 dfc npm[2236952]: - /opt/aba-system/.next/server/app/_global-error/page.js
+Mar 18 18:41:06 dfc npm[2236952]: - /opt/aba-system/node_modules/next/dist/server/require.js
+Mar 18 18:41:06 dfc npm[2236952]: - /opt/aba-system/node_modules/next/dist/server/load-components.js
+Mar 18 18:41:06 dfc npm[2236952]: - /opt/aba-system/node_modules/next/dist/build/utils.js
+Mar 18 18:41:06 dfc npm[2236952]: - /opt/aba-system/node_modules/next/dist/build/swc/options.js
+Mar 18 18:41:06 dfc npm[2236952]: - /opt/aba-system/node_modules/next/dist/build/swc/index.js
+Mar 18 18:41:06 dfc npm[2236952]: - /opt/aba-system/node_modules/next/dist/build/next-config-ts/transpile-config.js
+Mar 18 18:41:06 dfc npm[2236952]: - /opt/aba-system/node_modules/next/dist/server/config.js
+Mar 18 18:41:06 dfc npm[2236952]: - /opt/aba-system/node_modules/next/dist/cli/next-test.js
+Mar 18 18:41:06 dfc npm[2236952]: - /opt/aba-system/node_modules/next/dist/bin/next
+Mar 18 18:41:06 dfc npm[2236952]:     at Context.externalRequire [as x] (.next/server/chunks/ssr/[turbopack]_runtime.js:535:15)
+Mar 18 18:41:06 dfc npm[2236952]:     at module evaluation (.next/server/chunks/ssr/[root-of-the-server]__306e7953._.js:1:45)
+Mar 18 18:41:06 dfc npm[2236952]:     at instantiateModule (.next/server/chunks/ssr/[turbopack]_runtime.js:740:9)
+Mar 18 18:41:06 dfc npm[2236952]:     at getOrInstantiateModuleFromParent (.next/server/chunks/ssr/[turbopack]_runtime.js:763:12)
+Mar 18 18:41:06 dfc npm[2236952]:     at Context.esmImport [as i] (.next/server/chunks/ssr/[turbopack]_runtime.js:228:20)
+Mar 18 18:41:06 dfc npm[2236952]:     at module evaluation (.next/server/chunks/ssr/[root-of-the-server]__306e7953._.js:1:224)
+Mar 18 18:41:06 dfc npm[2236952]:     at instantiateModule (.next/server/chunks/ssr/[turbopack]_runtime.js:740:9)
+Mar 18 18:41:06 dfc npm[2236952]:     at getOrInstantiateModuleFromParent (.next/server/chunks/ssr/[turbopack]_runtime.js:763:12)
+Mar 18 18:41:06 dfc npm[2236952]:     at Context.esmImport [as i] (.next/server/chunks/ssr/[turbopack]_runtime.js:228:20)
+Mar 18 18:41:06 dfc npm[2236952]:     at module evaluation (.next/server/chunks/ssr/_b3aa343f._.js:418:61110)
+Mar 18 18:41:06 dfc npm[2236952]: ⨯ Error: Failed to load external module @prisma/client-2c3a283f134fdcb6: Error: Cannot find module '@prisma/client-2c3a283f134fdcb6'
+Mar 18 18:41:06 dfc npm[2236952]: Require stack:
+Mar 18 18:41:06 dfc npm[2236952]: - /opt/aba-system/.next/server/chunks/ssr/[root-of-the-server]__306e7953._.js
+Mar 18 18:41:06 dfc npm[2236952]: - /opt/aba-system/.next/server/chunks/ssr/[turbopack]_runtime.js
+Mar 18 18:41:06 dfc npm[2236952]: - /opt/aba-system/.next/server/app/_global-error/page.js
+Mar 18 18:41:06 dfc npm[2236952]: - /opt/aba-system/node_modules/next/dist/server/require.js
+Mar 18 18:41:06 dfc npm[2236952]: - /opt/aba-system/node_modules/next/dist/server/load-components.js
+Mar 18 18:41:06 dfc npm[2236952]: - /opt/aba-system/node_modules/next/dist/build/utils.js
+Mar 18 18:41:06 dfc npm[2236952]: - /opt/aba-system/node_modules/next/dist/build/swc/options.js
+Mar 18 18:41:06 dfc npm[2236952]: - /opt/aba-system/node_modules/next/dist/build/swc/index.js
+Mar 18 18:41:06 dfc npm[2236952]: - /opt/aba-system/node_modules/next/dist/build/next-config-ts/transpile-config.js
+Mar 18 18:41:06 dfc npm[2236952]: - /opt/aba-system/node_modules/next/dist/server/config.js
+Mar 18 18:41:06 dfc npm[2236952]: - /opt/aba-system/node_modules/next/dist/cli/next-test.js
+Mar 18 18:41:06 dfc npm[2236952]: - /opt/aba-system/node_modules/next/dist/bin/next
+Mar 18 18:41:06 dfc npm[2236952]:     at Context.externalRequire [as x] (.next/server/chunks/ssr/[turbopack]_runtime.js:535:15)
+Mar 18 18:41:06 dfc npm[2236952]:     at module evaluation (.next/server/chunks/ssr/[root-of-the-server]__306e7953._.js:1:45)
+Mar 18 18:41:06 dfc npm[2236952]:     at instantiateModule (.next/server/chunks/ssr/[turbopack]_runtime.js:740:9)
+Mar 18 18:41:06 dfc npm[2236952]:     at getOrInstantiateModuleFromParent (.next/server/chunks/ssr/[turbopack]_runtime.js:763:12)
+Mar 18 18:41:06 dfc npm[2236952]:     at Context.esmImport [as i] (.next/server/chunks/ssr/[turbopack]_runtime.js:228:20)
+Mar 18 18:41:06 dfc npm[2236952]:     at module evaluation (.next/server/chunks/ssr/[root-of-the-server]__306e7953._.js:1:224)
+Mar 18 18:41:06 dfc npm[2236952]:     at instantiateModule (.next/server/chunks/ssr/[turbopack]_runtime.js:740:9)
+Mar 18 18:41:06 dfc npm[2236952]:     at getOrInstantiateModuleFromParent (.next/server/chunks/ssr/[turbopack]_runtime.js:763:12)
+Mar 18 18:41:06 dfc npm[2236952]:     at Context.esmImport [as i] (.next/server/chunks/ssr/[turbopack]_runtime.js:228:20)
+Mar 18 18:41:06 dfc npm[2236952]:     at module evaluation (.next/server/chunks/ssr/_b3aa343f._.js:418:61110)
+Mar 18 18:41:06 dfc npm[2236952]: ⨯ Error: Failed to load external module @prisma/client-2c3a283f134fdcb6: Error: Cannot find module '@prisma/client-2c3a283f134fdcb6'
+Mar 18 18:41:06 dfc npm[2236952]: Require stack:
+Mar 18 18:41:06 dfc npm[2236952]: - /opt/aba-system/.next/server/chunks/ssr/[root-of-the-server]__306e7953._.js
+Mar 18 18:41:06 dfc npm[2236952]: - /opt/aba-system/.next/server/chunks/ssr/[turbopack]_runtime.js
+Mar 18 18:41:06 dfc npm[2236952]: - /opt/aba-system/.next/server/app/_global-error/page.js
+Mar 18 18:41:06 dfc npm[2236952]: - /opt/aba-system/node_modules/next/dist/server/require.js
+Mar 18 18:41:06 dfc npm[2236952]: - /opt/aba-system/node_modules/next/dist/server/load-components.js
+Mar 18 18:41:06 dfc npm[2236952]: - /opt/aba-system/node_modules/next/dist/build/utils.js
+Mar 18 18:41:06 dfc npm[2236952]: - /opt/aba-system/node_modules/next/dist/build/swc/options.js
+Mar 18 18:41:06 dfc npm[2236952]: - /opt/aba-system/node_modules/next/dist/build/swc/index.js
+Mar 18 18:41:06 dfc npm[2236952]: - /opt/aba-system/node_modules/next/dist/build/next-config-ts/transpile-config.js
+Mar 18 18:41:06 dfc npm[2236952]: - /opt/aba-system/node_modules/next/dist/server/config.js
+Mar 18 18:41:06 dfc npm[2236952]: - /opt/aba-system/node_modules/next/dist/cli/next-test.js
+Mar 18 18:41:06 dfc npm[2236952]: - /opt/aba-system/node_modules/next/dist/bin/next
+Mar 18 18:41:06 dfc npm[2236952]:     at Context.externalRequire [as x] (.next/server/chunks/ssr/[turbopack]_runtime.js:535:15)
+Mar 18 18:41:06 dfc npm[2236952]:     at module evaluation (.next/server/chunks/ssr/[root-of-the-server]__306e7953._.js:1:45)
+Mar 18 18:41:06 dfc npm[2236952]:     at instantiateModule (.next/server/chunks/ssr/[turbopack]_runtime.js:740:9)
+Mar 18 18:41:06 dfc npm[2236952]:     at getOrInstantiateModuleFromParent (.next/server/chunks/ssr/[turbopack]_runtime.js:763:12)
+Mar 18 18:41:06 dfc npm[2236952]:     at Context.esmImport [as i] (.next/server/chunks/ssr/[turbopack]_runtime.js:228:20)
+Mar 18 18:41:06 dfc npm[2236952]:     at module evaluation (.next/server/chunks/ssr/[root-of-the-server]__306e7953._.js:1:224)
+Mar 18 18:41:06 dfc npm[2236952]:     at instantiateModule (.next/server/chunks/ssr/[turbopack]_runtime.js:740:9)
+Mar 18 18:41:06 dfc npm[2236952]:     at getOrInstantiateModuleFromParent (.next/server/chunks/ssr/[turbopack]_runtime.js:763:12)
+Mar 18 18:41:06 dfc npm[2236952]:     at Context.esmImport [as i] (.next/server/chunks/ssr/[turbopack]_runtime.js:228:20)
+Mar 18 18:41:06 dfc npm[2236952]:     at module evaluation (.next/server/chunks/ssr/_b3aa343f._.js:418:61110)
+Mar 18 18:41:07 dfc npm[2236952]: ⨯ Error: Failed to load external module @prisma/client-2c3a283f134fdcb6: Error: Cannot find module '@prisma/client-2c3a283f134fdcb6'
+Mar 18 18:41:07 dfc npm[2236952]: Require stack:
+Mar 18 18:41:07 dfc npm[2236952]: - /opt/aba-system/.next/server/chunks/ssr/[root-of-the-server]__306e7953._.js
+Mar 18 18:41:07 dfc npm[2236952]: - /opt/aba-system/.next/server/chunks/ssr/[turbopack]_runtime.js
+Mar 18 18:41:07 dfc npm[2236952]: - /opt/aba-system/.next/server/app/_global-error/page.js
+Mar 18 18:41:07 dfc npm[2236952]: - /opt/aba-system/node_modules/next/dist/server/require.js
+Mar 18 18:41:07 dfc npm[2236952]: - /opt/aba-system/node_modules/next/dist/server/load-components.js
+Mar 18 18:41:07 dfc npm[2236952]: - /opt/aba-system/node_modules/next/dist/build/utils.js
+Mar 18 18:41:07 dfc npm[2236952]: - /opt/aba-system/node_modules/next/dist/build/swc/options.js
+Mar 18 18:41:07 dfc npm[2236952]: - /opt/aba-system/node_modules/next/dist/build/swc/index.js
+Mar 18 18:41:07 dfc npm[2236952]: - /opt/aba-system/node_modules/next/dist/build/next-config-ts/transpile-config.js
+Mar 18 18:41:07 dfc npm[2236952]: - /opt/aba-system/node_modules/next/dist/server/config.js
+Mar 18 18:41:07 dfc npm[2236952]: - /opt/aba-system/node_modules/next/dist/cli/next-test.js
+Mar 18 18:41:07 dfc npm[2236952]: - /opt/aba-system/node_modules/next/dist/bin/next
+Mar 18 18:41:07 dfc npm[2236952]:     at Context.externalRequire [as x] (.next/server/chunks/ssr/[turbopack]_runtime.js:535:15)
+Mar 18 18:41:07 dfc npm[2236952]:     at module evaluation (.next/server/chunks/ssr/[root-of-the-server]__306e7953._.js:1:45)
+Mar 18 18:41:07 dfc npm[2236952]:     at instantiateModule (.next/server/chunks/ssr/[turbopack]_runtime.js:740:9)
+Mar 18 18:41:07 dfc npm[2236952]:     at getOrInstantiateModuleFromParent (.next/server/chunks/ssr/[turbopack]_runtime.js:763:12)
+Mar 18 18:41:07 dfc npm[2236952]:     at Context.esmImport [as i] (.next/server/chunks/ssr/[turbopack]_runtime.js:228:20)
+Mar 18 18:41:07 dfc npm[2236952]:     at module evaluation (.next/server/chunks/ssr/[root-of-the-server]__306e7953._.js:1:224)
+Mar 18 18:41:07 dfc npm[2236952]:     at instantiateModule (.next/server/chunks/ssr/[turbopack]_runtime.js:740:9)
+Mar 18 18:41:07 dfc npm[2236952]:     at getOrInstantiateModuleFromParent (.next/server/chunks/ssr/[turbopack]_runtime.js:763:12)
+Mar 18 18:41:07 dfc npm[2236952]:     at Context.esmImport [as i] (.next/server/chunks/ssr/[turbopack]_runtime.js:228:20)
+Mar 18 18:41:07 dfc npm[2236952]:     at module evaluation (.next/server/chunks/ssr/_b3aa343f._.js:418:61110)
+Mar 18 18:41:07 dfc npm[2236952]: ⨯ Error: Failed to load external module @prisma/client-2c3a283f134fdcb6: Error: Cannot find module '@prisma/client-2c3a283f134fdcb6'
+Mar 18 18:41:07 dfc npm[2236952]: Require stack:
+Mar 18 18:41:07 dfc npm[2236952]: - /opt/aba-system/.next/server/chunks/ssr/[root-of-the-server]__306e7953._.js
+Mar 18 18:41:07 dfc npm[2236952]: - /opt/aba-system/.next/server/chunks/ssr/[turbopack]_runtime.js
+Mar 18 18:41:07 dfc npm[2236952]: - /opt/aba-system/.next/server/app/_global-error/page.js
+Mar 18 18:41:07 dfc npm[2236952]: - /opt/aba-system/node_modules/next/dist/server/require.js
+Mar 18 18:41:07 dfc npm[2236952]: - /opt/aba-system/node_modules/next/dist/server/load-components.js
+Mar 18 18:41:07 dfc npm[2236952]: - /opt/aba-system/node_modules/next/dist/build/utils.js
+Mar 18 18:41:07 dfc npm[2236952]: - /opt/aba-system/node_modules/next/dist/build/swc/options.js
+Mar 18 18:41:07 dfc npm[2236952]: - /opt/aba-system/node_modules/next/dist/build/swc/index.js
+Mar 18 18:41:07 dfc npm[2236952]: - /opt/aba-system/node_modules/next/dist/build/next-config-ts/transpile-config.js
+Mar 18 18:41:07 dfc npm[2236952]: - /opt/aba-system/node_modules/next/dist/server/config.js
+Mar 18 18:41:07 dfc npm[2236952]: - /opt/aba-system/node_modules/next/dist/cli/next-test.js
+Mar 18 18:41:07 dfc npm[2236952]: - /opt/aba-system/node_modules/next/dist/bin/next
+Mar 18 18:41:07 dfc npm[2236952]:     at Context.externalRequire [as x] (.next/server/chunks/ssr/[turbopack]_runtime.js:535:15)
+Mar 18 18:41:07 dfc npm[2236952]:     at module evaluation (.next/server/chunks/ssr/[root-of-the-server]__306e7953._.js:1:45)
+Mar 18 18:41:07 dfc npm[2236952]:     at instantiateModule (.next/server/chunks/ssr/[turbopack]_runtime.js:740:9)
+Mar 18 18:41:07 dfc npm[2236952]:     at getOrInstantiateModuleFromParent (.next/server/chunks/ssr/[turbopack]_runtime.js:763:12)
+Mar 18 18:41:07 dfc npm[2236952]:     at Context.esmImport [as i] (.next/server/chunks/ssr/[turbopack]_runtime.js:228:20)
+Mar 18 18:41:07 dfc npm[2236952]:     at module evaluation (.next/server/chunks/ssr/[root-of-the-server]__306e7953._.js:1:224)
+Mar 18 18:41:07 dfc npm[2236952]:     at instantiateModule (.next/server/chunks/ssr/[turbopack]_runtime.js:740:9)
+Mar 18 18:41:07 dfc npm[2236952]:     at getOrInstantiateModuleFromParent (.next/server/chunks/ssr/[turbopack]_runtime.js:763:12)
+Mar 18 18:41:07 dfc npm[2236952]:     at Context.esmImport [as i] (.next/server/chunks/ssr/[turbopack]_runtime.js:228:20)
+Mar 18 18:41:07 dfc npm[2236952]:     at module evaluation (.next/server/chunks/ssr/_b3aa343f._.js:418:61110)
+Mar 18 18:41:13 dfc npm[2236952]: ⨯ Error: Failed to load external module @prisma/client-2c3a283f134fdcb6: Error: Cannot find module '@prisma/client-2c3a283f134fdcb6'
+Mar 18 18:41:13 dfc npm[2236952]: Require stack:
+Mar 18 18:41:13 dfc npm[2236952]: - /opt/aba-system/.next/server/chunks/ssr/[root-of-the-server]__306e7953._.js
+Mar 18 18:41:13 dfc npm[2236952]: - /opt/aba-system/.next/server/chunks/ssr/[turbopack]_runtime.js
+Mar 18 18:41:13 dfc npm[2236952]: - /opt/aba-system/.next/server/app/_global-error/page.js
+Mar 18 18:41:13 dfc npm[2236952]: - /opt/aba-system/node_modules/next/dist/server/require.js
+Mar 18 18:41:13 dfc npm[2236952]: - /opt/aba-system/node_modules/next/dist/server/load-components.js
+Mar 18 18:41:13 dfc npm[2236952]: - /opt/aba-system/node_modules/next/dist/build/utils.js
+Mar 18 18:41:13 dfc npm[2236952]: - /opt/aba-system/node_modules/next/dist/build/swc/options.js
+Mar 18 18:41:13 dfc npm[2236952]: - /opt/aba-system/node_modules/next/dist/build/swc/index.js
+Mar 18 18:41:13 dfc npm[2236952]: - /opt/aba-system/node_modules/next/dist/build/next-config-ts/transpile-config.js
+Mar 18 18:41:13 dfc npm[2236952]: - /opt/aba-system/node_modules/next/dist/server/config.js
+Mar 18 18:41:13 dfc npm[2236952]: - /opt/aba-system/node_modules/next/dist/cli/next-test.js
+Mar 18 18:41:13 dfc npm[2236952]: - /opt/aba-system/node_modules/next/dist/bin/next
+Mar 18 18:41:13 dfc npm[2236952]:     at Context.externalRequire [as x] (.next/server/chunks/ssr/[turbopack]_runtime.js:535:15)
+Mar 18 18:41:13 dfc npm[2236952]:     at module evaluation (.next/server/chunks/ssr/[root-of-the-server]__306e7953._.js:1:45)
+Mar 18 18:41:13 dfc npm[2236952]:     at instantiateModule (.next/server/chunks/ssr/[turbopack]_runtime.js:740:9)
+Mar 18 18:41:13 dfc npm[2236952]:     at getOrInstantiateModuleFromParent (.next/server/chunks/ssr/[turbopack]_runtime.js:763:12)
+Mar 18 18:41:13 dfc npm[2236952]:     at Context.esmImport [as i] (.next/server/chunks/ssr/[turbopack]_runtime.js:228:20)
+Mar 18 18:41:13 dfc npm[2236952]:     at module evaluation (.next/server/chunks/ssr/[root-of-the-server]__306e7953._.js:1:224)
+Mar 18 18:41:13 dfc npm[2236952]:     at instantiateModule (.next/server/chunks/ssr/[turbopack]_runtime.js:740:9)
+Mar 18 18:41:13 dfc npm[2236952]:     at getOrInstantiateModuleFromParent (.next/server/chunks/ssr/[turbopack]_runtime.js:763:12)
+Mar 18 18:41:13 dfc npm[2236952]:     at Context.esmImport [as i] (.next/server/chunks/ssr/[turbopack]_runtime.js:228:20)
+Mar 18 18:41:13 dfc npm[2236952]:     at module evaluation (.next/server/chunks/ssr/_b3aa343f._.js:418:61110)
+Mar 18 18:41:13 dfc npm[2236952]: ⨯ Error: Failed to load external module @prisma/client-2c3a283f134fdcb6: Error: Cannot find module '@prisma/client-2c3a283f134fdcb6'
+Mar 18 18:41:13 dfc npm[2236952]: Require stack:
+Mar 18 18:41:13 dfc npm[2236952]: - /opt/aba-system/.next/server/chunks/ssr/[root-of-the-server]__306e7953._.js
+Mar 18 18:41:13 dfc npm[2236952]: - /opt/aba-system/.next/server/chunks/ssr/[turbopack]_runtime.js
+Mar 18 18:41:13 dfc npm[2236952]: - /opt/aba-system/.next/server/app/_global-error/page.js
+Mar 18 18:41:13 dfc npm[2236952]: - /opt/aba-system/node_modules/next/dist/server/require.js
+Mar 18 18:41:13 dfc npm[2236952]: - /opt/aba-system/node_modules/next/dist/server/load-components.js
+Mar 18 18:41:13 dfc npm[2236952]: - /opt/aba-system/node_modules/next/dist/build/utils.js
+Mar 18 18:41:13 dfc npm[2236952]: - /opt/aba-system/node_modules/next/dist/build/swc/options.js
+Mar 18 18:41:13 dfc npm[2236952]: - /opt/aba-system/node_modules/next/dist/build/swc/index.js
+Mar 18 18:41:13 dfc npm[2236952]: - /opt/aba-system/node_modules/next/dist/build/next-config-ts/transpile-config.js
+Mar 18 18:41:13 dfc npm[2236952]: - /opt/aba-system/node_modules/next/dist/server/config.js
+Mar 18 18:41:13 dfc npm[2236952]: - /opt/aba-system/node_modules/next/dist/cli/next-test.js
+Mar 18 18:41:13 dfc npm[2236952]: - /opt/aba-system/node_modules/next/dist/bin/next
+Mar 18 18:41:13 dfc npm[2236952]:     at Context.externalRequire [as x] (.next/server/chunks/ssr/[turbopack]_runtime.js:535:15)
+Mar 18 18:41:13 dfc npm[2236952]:     at module evaluation (.next/server/chunks/ssr/[root-of-the-server]__306e7953._.js:1:45)
+Mar 18 18:41:13 dfc npm[2236952]:     at instantiateModule (.next/server/chunks/ssr/[turbopack]_runtime.js:740:9)
+Mar 18 18:41:13 dfc npm[2236952]:     at getOrInstantiateModuleFromParent (.next/server/chunks/ssr/[turbopack]_runtime.js:763:12)
+Mar 18 18:41:13 dfc npm[2236952]:     at Context.esmImport [as i] (.next/server/chunks/ssr/[turbopack]_runtime.js:228:20)
+Mar 18 18:41:13 dfc npm[2236952]:     at module evaluation (.next/server/chunks/ssr/[root-of-the-server]__306e7953._.js:1:224)
+Mar 18 18:41:13 dfc npm[2236952]:     at instantiateModule (.next/server/chunks/ssr/[turbopack]_runtime.js:740:9)
+Mar 18 18:41:13 dfc npm[2236952]:     at getOrInstantiateModuleFromParent (.next/server/chunks/ssr/[turbopack]_runtime.js:763:12)
+Mar 18 18:41:13 dfc npm[2236952]:     at Context.esmImport [as i] (.next/server/chunks/ssr/[turbopack]_runtime.js:228:20)
+Mar 18 18:41:13 dfc npm[2236952]:     at module evaluation (.next/server/chunks/ssr/_b3aa343f._.js:418:61110)
+Mar 18 18:41:17 dfc npm[2236952]: ⨯ Error: Failed to load external module @prisma/client-2c3a283f134fdcb6: Error: Cannot find module '@prisma/client-2c3a283f134fdcb6'
+Mar 18 18:41:17 dfc npm[2236952]: Require stack:
+Mar 18 18:41:17 dfc npm[2236952]: - /opt/aba-system/.next/server/chunks/ssr/[root-of-the-server]__306e7953._.js
+Mar 18 18:41:17 dfc npm[2236952]: - /opt/aba-system/.next/server/chunks/ssr/[turbopack]_runtime.js
+Mar 18 18:41:17 dfc npm[2236952]: - /opt/aba-system/.next/server/app/_global-error/page.js
+Mar 18 18:41:17 dfc npm[2236952]: - /opt/aba-system/node_modules/next/dist/server/require.js
+Mar 18 18:41:17 dfc npm[2236952]: - /opt/aba-system/node_modules/next/dist/server/load-components.js
+Mar 18 18:41:17 dfc npm[2236952]: - /opt/aba-system/node_modules/next/dist/build/utils.js
+Mar 18 18:41:17 dfc npm[2236952]: - /opt/aba-system/node_modules/next/dist/build/swc/options.js
+Mar 18 18:41:17 dfc npm[2236952]: - /opt/aba-system/node_modules/next/dist/build/swc/index.js
+Mar 18 18:41:17 dfc npm[2236952]: - /opt/aba-system/node_modules/next/dist/build/next-config-ts/transpile-config.js
+Mar 18 18:41:17 dfc npm[2236952]: - /opt/aba-system/node_modules/next/dist/server/config.js
+Mar 18 18:41:17 dfc npm[2236952]: - /opt/aba-system/node_modules/next/dist/cli/next-test.js
+Mar 18 18:41:17 dfc npm[2236952]: - /opt/aba-system/node_modules/next/dist/bin/next
+Mar 18 18:41:17 dfc npm[2236952]:     at Context.externalRequire [as x] (.next/server/chunks/ssr/[turbopack]_runtime.js:535:15)
+Mar 18 18:41:17 dfc npm[2236952]:     at module evaluation (.next/server/chunks/ssr/[root-of-the-server]__306e7953._.js:1:45)
+Mar 18 18:41:17 dfc npm[2236952]:     at instantiateModule (.next/server/chunks/ssr/[turbopack]_runtime.js:740:9)
+Mar 18 18:41:17 dfc npm[2236952]:     at getOrInstantiateModuleFromParent (.next/server/chunks/ssr/[turbopack]_runtime.js:763:12)
+Mar 18 18:41:17 dfc npm[2236952]:     at Context.esmImport [as i] (.next/server/chunks/ssr/[turbopack]_runtime.js:228:20)
+Mar 18 18:41:17 dfc npm[2236952]:     at module evaluation (.next/server/chunks/ssr/[root-of-the-server]__306e7953._.js:1:224)
+Mar 18 18:41:17 dfc npm[2236952]:     at instantiateModule (.next/server/chunks/ssr/[turbopack]_runtime.js:740:9)
+Mar 18 18:41:17 dfc npm[2236952]:     at getOrInstantiateModuleFromParent (.next/server/chunks/ssr/[turbopack]_runtime.js:763:12)
+Mar 18 18:41:17 dfc npm[2236952]:     at Context.esmImport [as i] (.next/server/chunks/ssr/[turbopack]_runtime.js:228:20)
+Mar 18 18:41:17 dfc npm[2236952]:     at module evaluation (.next/server/chunks/ssr/_b3aa343f._.js:418:61110)
+Mar 18 18:41:17 dfc npm[2236952]: ⨯ Error: Failed to load external module @prisma/client-2c3a283f134fdcb6: Error: Cannot find module '@prisma/client-2c3a283f134fdcb6'
+Mar 18 18:41:17 dfc npm[2236952]: Require stack:
+Mar 18 18:41:17 dfc npm[2236952]: - /opt/aba-system/.next/server/chunks/ssr/[root-of-the-server]__306e7953._.js
+Mar 18 18:41:17 dfc npm[2236952]: - /opt/aba-system/.next/server/chunks/ssr/[turbopack]_runtime.js
+Mar 18 18:41:17 dfc npm[2236952]: - /opt/aba-system/.next/server/app/_global-error/page.js
+Mar 18 18:41:17 dfc npm[2236952]: - /opt/aba-system/node_modules/next/dist/server/require.js
+Mar 18 18:41:17 dfc npm[2236952]: - /opt/aba-system/node_modules/next/dist/server/load-components.js
+Mar 18 18:41:17 dfc npm[2236952]: - /opt/aba-system/node_modules/next/dist/build/utils.js
+Mar 18 18:41:17 dfc npm[2236952]: - /opt/aba-system/node_modules/next/dist/build/swc/options.js
+Mar 18 18:41:17 dfc npm[2236952]: - /opt/aba-system/node_modules/next/dist/build/swc/index.js
+Mar 18 18:41:17 dfc npm[2236952]: - /opt/aba-system/node_modules/next/dist/build/next-config-ts/transpile-config.js
+Mar 18 18:41:17 dfc npm[2236952]: - /opt/aba-system/node_modules/next/dist/server/config.js
+Mar 18 18:41:17 dfc npm[2236952]: - /opt/aba-system/node_modules/next/dist/cli/next-test.js
+Mar 18 18:41:17 dfc npm[2236952]: - /opt/aba-system/node_modules/next/dist/bin/next
+Mar 18 18:41:17 dfc npm[2236952]:     at Context.externalRequire [as x] (.next/server/chunks/ssr/[turbopack]_runtime.js:535:15)
+Mar 18 18:41:17 dfc npm[2236952]:     at module evaluation (.next/server/chunks/ssr/[root-of-the-server]__306e7953._.js:1:45)
+Mar 18 18:41:17 dfc npm[2236952]:     at instantiateModule (.next/server/chunks/ssr/[turbopack]_runtime.js:740:9)
+Mar 18 18:41:17 dfc npm[2236952]:     at getOrInstantiateModuleFromParent (.next/server/chunks/ssr/[turbopack]_runtime.js:763:12)
+Mar 18 18:41:17 dfc npm[2236952]:     at Context.esmImport [as i] (.next/server/chunks/ssr/[turbopack]_runtime.js:228:20)
+Mar 18 18:41:17 dfc npm[2236952]:     at module evaluation (.next/server/chunks/ssr/[root-of-the-server]__306e7953._.js:1:224)
+Mar 18 18:41:17 dfc npm[2236952]:     at instantiateModule (.next/server/chunks/ssr/[turbopack]_runtime.js:740:9)
+Mar 18 18:41:17 dfc npm[2236952]:     at getOrInstantiateModuleFromParent (.next/server/chunks/ssr/[turbopack]_runtime.js:763:12)
+Mar 18 18:41:17 dfc npm[2236952]:     at Context.esmImport [as i] (.next/server/chunks/ssr/[turbopack]_runtime.js:228:20)
+Mar 18 18:41:17 dfc npm[2236952]:     at module evaluation (.next/server/chunks/ssr/_b3aa343f._.js:418:61110)
+Mar 18 18:43:45 dfc systemd[1]: Stopping ABA Supervision System Service...
+Mar 18 18:43:46 dfc systemd[1]: aba-system.service: Succeeded.
+Mar 18 18:43:46 dfc systemd[1]: Stopped ABA Supervision System Service.
+Mar 18 18:43:46 dfc systemd[1]: Started ABA Supervision System Service.
+Mar 18 18:43:47 dfc npm[2238275]: > aba-supervision-system@0.1.0 start
+Mar 18 18:43:47 dfc npm[2238275]: > next start -p 3000
+Mar 18 18:43:48 dfc npm[2238311]: ▲ Next.js 16.1.6
+Mar 18 18:43:48 dfc npm[2238311]: - Local:         http://localhost:3000
+Mar 18 18:43:48 dfc npm[2238311]: - Network:       http://192.168.73.100:3000
+Mar 18 18:43:48 dfc npm[2238311]: ✓ Starting...
+Mar 18 18:43:50 dfc npm[2238311]: ✓ Ready in 1986ms
+Mar 18 18:44:40 dfc npm[2238311]: ⨯ Error [PrismaClientKnownRequestError]:
+Mar 18 18:44:40 dfc npm[2238311]: Invalid `prisma.contract.findMany()` invocation:
+Mar 18 18:44:40 dfc npm[2238311]: The column `Contract.rejectionReason` does not exist in the current database.
+Mar 18 18:44:40 dfc npm[2238311]:     at async i (.next/server/chunks/ssr/[root-of-the-server]__70ccb7bc._.js:1:2825) {
+Mar 18 18:44:40 dfc npm[2238311]:   code: 'P2022',
+Mar 18 18:44:40 dfc npm[2238311]:   clientVersion: '5.22.0',
+Mar 18 18:44:40 dfc npm[2238311]:   meta: [Object],
+Mar 18 18:44:40 dfc npm[2238311]:   digest: '1067947020'
+Mar 18 18:44:40 dfc npm[2238311]: }
+Mar 18 18:44:48 dfc npm[2238311]: ⨯ Error [PrismaClientKnownRequestError]:
+Mar 18 18:44:48 dfc npm[2238311]: Invalid `prisma.contract.findMany()` invocation:
+Mar 18 18:44:48 dfc npm[2238311]: The column `Contract.rejectionReason` does not exist in the current database.
+Mar 18 18:44:48 dfc npm[2238311]:     at async i (.next/server/chunks/ssr/[root-of-the-server]__70ccb7bc._.js:1:2825) {
+Mar 18 18:44:48 dfc npm[2238311]:   code: 'P2022',
+Mar 18 18:44:48 dfc npm[2238311]:   clientVersion: '5.22.0',
+Mar 18 18:44:48 dfc npm[2238311]:   meta: [Object],
+Mar 18 18:44:48 dfc npm[2238311]:   digest: '1067947020'
+Mar 18 18:44:48 dfc npm[2238311]: }
+Mar 18 18:44:48 dfc npm[2238311]: ⨯ Error [PrismaClientKnownRequestError]:
+Mar 18 18:44:48 dfc npm[2238311]: Invalid `prisma.contract.findMany()` invocation:
+Mar 18 18:44:48 dfc npm[2238311]: The column `Contract.rejectionReason` does not exist in the current database.
+Mar 18 18:44:48 dfc npm[2238311]:     at async i (.next/server/chunks/ssr/[root-of-the-server]__70ccb7bc._.js:1:2825) {
+Mar 18 18:44:48 dfc npm[2238311]:   code: 'P2022',
+Mar 18 18:44:48 dfc npm[2238311]:   clientVersion: '5.22.0',
+Mar 18 18:44:48 dfc npm[2238311]:   meta: [Object],
+Mar 18 18:44:48 dfc npm[2238311]:   digest: '1067947020'
+Mar 18 18:44:48 dfc npm[2238311]: }
+Mar 18 18:44:48 dfc npm[2238311]: ⨯ Error [PrismaClientKnownRequestError]:
+Mar 18 18:44:48 dfc npm[2238311]: Invalid `prisma.contract.findMany()` invocation:
+Mar 18 18:44:48 dfc npm[2238311]: The column `Contract.rejectionReason` does not exist in the current database.
+Mar 18 18:44:48 dfc npm[2238311]:     at async i (.next/server/chunks/ssr/[root-of-the-server]__70ccb7bc._.js:1:2825) {
+Mar 18 18:44:48 dfc npm[2238311]:   code: 'P2022',
+Mar 18 18:44:48 dfc npm[2238311]:   clientVersion: '5.22.0',
+Mar 18 18:44:48 dfc npm[2238311]:   meta: [Object],
+Mar 18 18:44:48 dfc npm[2238311]:   digest: '1067947020'
+Mar 18 18:44:48 dfc npm[2238311]: }
+Mar 18 18:44:48 dfc npm[2238311]: ⨯ Error [PrismaClientKnownRequestError]:
+Mar 18 18:44:48 dfc npm[2238311]: Invalid `prisma.contract.findMany()` invocation:
+Mar 18 18:44:48 dfc npm[2238311]: The column `Contract.rejectionReason` does not exist in the current database.
+Mar 18 18:44:48 dfc npm[2238311]:     at async i (.next/server/chunks/ssr/[root-of-the-server]__70ccb7bc._.js:1:2825) {
+Mar 18 18:44:48 dfc npm[2238311]:   code: 'P2022',
+Mar 18 18:44:48 dfc npm[2238311]:   clientVersion: '5.22.0',
+Mar 18 18:44:48 dfc npm[2238311]:   meta: [Object],
+Mar 18 18:44:48 dfc npm[2238311]:   digest: '1067947020'
+Mar 18 18:44:48 dfc npm[2238311]: }
+Mar 18 18:44:48 dfc npm[2238311]: ⨯ Error [PrismaClientKnownRequestError]:
+Mar 18 18:44:48 dfc npm[2238311]: Invalid `prisma.contract.findMany()` invocation:
+Mar 18 18:44:48 dfc npm[2238311]: The column `Contract.rejectionReason` does not exist in the current database.
+Mar 18 18:44:48 dfc npm[2238311]:     at async i (.next/server/chunks/ssr/[root-of-the-server]__70ccb7bc._.js:1:2825) {
+Mar 18 18:44:48 dfc npm[2238311]:   code: 'P2022',
+Mar 18 18:44:48 dfc npm[2238311]:   clientVersion: '5.22.0',
+Mar 18 18:44:48 dfc npm[2238311]:   meta: [Object],
+Mar 18 18:44:48 dfc npm[2238311]:   digest: '1067947020'
+Mar 18 18:44:48 dfc npm[2238311]: }
+Mar 18 18:44:48 dfc npm[2238311]: ⨯ Error [PrismaClientKnownRequestError]:
+Mar 18 18:44:48 dfc npm[2238311]: Invalid `prisma.contract.findMany()` invocation:
+Mar 18 18:44:48 dfc npm[2238311]: The column `Contract.rejectionReason` does not exist in the current database.
+Mar 18 18:44:48 dfc npm[2238311]:     at async i (.next/server/chunks/ssr/[root-of-the-server]__70ccb7bc._.js:1:2825) {
+Mar 18 18:44:48 dfc npm[2238311]:   code: 'P2022',
+Mar 18 18:44:48 dfc npm[2238311]:   clientVersion: '5.22.0',
+Mar 18 18:44:48 dfc npm[2238311]:   meta: [Object],
+Mar 18 18:44:48 dfc npm[2238311]:   digest: '1067947020'
+Mar 18 18:44:48 dfc npm[2238311]: }
+Mar 18 18:44:49 dfc npm[2238311]: ⨯ Error [PrismaClientKnownRequestError]:
+Mar 18 18:44:49 dfc npm[2238311]: Invalid `prisma.contract.findMany()` invocation:
+Mar 18 18:44:49 dfc npm[2238311]: The column `Contract.rejectionReason` does not exist in the current database.
+Mar 18 18:44:49 dfc npm[2238311]:     at async i (.next/server/chunks/ssr/[root-of-the-server]__70ccb7bc._.js:1:2825) {
+Mar 18 18:44:49 dfc npm[2238311]:   code: 'P2022',
+Mar 18 18:44:49 dfc npm[2238311]:   clientVersion: '5.22.0',
+Mar 18 18:44:49 dfc npm[2238311]:   meta: [Object],
+Mar 18 18:44:49 dfc npm[2238311]:   digest: '1067947020'
+Mar 18 18:44:49 dfc npm[2238311]: }
+Mar 18 18:46:12 dfc systemd[1]: Stopping ABA Supervision System Service...
+Mar 18 18:46:12 dfc systemd[1]: aba-system.service: Killing process 2238330 (tokio-runtime-w) with signal SIGKILL.
+Mar 18 18:46:12 dfc systemd[1]: aba-system.service: Succeeded.
+Mar 18 18:46:12 dfc systemd[1]: Stopped ABA Supervision System Service.
+Mar 18 18:46:12 dfc systemd[1]: Started ABA Supervision System Service.
+Mar 18 18:46:14 dfc npm[2238810]: > aba-supervision-system@0.1.0 start
+Mar 18 18:46:14 dfc npm[2238810]: > next start -p 3000
+Mar 18 18:46:14 dfc npm[2238827]: ▲ Next.js 16.1.6
+Mar 18 18:46:14 dfc npm[2238827]: - Local:         http://localhost:3000
+Mar 18 18:46:14 dfc npm[2238827]: - Network:       http://192.168.73.100:3000
+Mar 18 18:46:14 dfc npm[2238827]: ✓ Starting...
+Mar 18 18:46:15 dfc npm[2238827]: ✓ Ready in 1232ms
+Mar 18 19:35:10 dfc systemd[1]: Stopping ABA Supervision System Service...
+Mar 18 19:35:10 dfc systemd[1]: aba-system.service: Killing process 2238847 (tokio-runtime-w) with signal SIGKILL.
+Mar 18 19:35:10 dfc systemd[1]: aba-system.service: Succeeded.
+Mar 18 19:35:10 dfc systemd[1]: Stopped ABA Supervision System Service.
+Mar 18 19:35:10 dfc systemd[1]: Started ABA Supervision System Service.
+Mar 18 19:35:11 dfc npm[2243012]: > aba-supervision-system@0.1.0 start
+Mar 18 19:35:11 dfc npm[2243012]: > next start -p 3000
+Mar 18 19:35:12 dfc npm[2243051]: ▲ Next.js 16.1.6
+Mar 18 19:35:12 dfc npm[2243051]: - Local:         http://localhost:3000
+Mar 18 19:35:12 dfc npm[2243051]: - Network:       http://192.168.73.100:3000
+Mar 18 19:35:12 dfc npm[2243051]: ✓ Starting...
+Mar 18 19:35:13 dfc npm[2243051]: Error: EACCES: permission denied, scandir '/opt/aba-system/public'
+Mar 18 19:35:13 dfc npm[2243051]:     at ignore-listed frames {
+Mar 18 19:35:13 dfc npm[2243051]:   errno: -13,
+Mar 18 19:35:13 dfc npm[2243051]:   code: 'EACCES',
+Mar 18 19:35:13 dfc npm[2243051]:   syscall: 'scandir',
+Mar 18 19:35:13 dfc npm[2243051]:   path: '/opt/aba-system/public'
+Mar 18 19:35:13 dfc npm[2243051]: }
+Mar 18 19:35:13 dfc npm[2243012]: npm notice
+Mar 18 19:35:13 dfc npm[2243012]: npm notice New major version of npm available! 10.8.2 -> 11.11.1
+Mar 18 19:35:13 dfc npm[2243012]: npm notice Changelog: https://github.com/npm/cli/releases/tag/v11.11.1
+Mar 18 19:35:13 dfc npm[2243012]: npm notice To update run: npm install -g npm@11.11.1
+Mar 18 19:35:13 dfc npm[2243012]: npm notice
+Mar 18 19:35:13 dfc systemd[1]: aba-system.service: Main process exited, code=exited, status=1/FAILURE
+Mar 18 19:35:13 dfc systemd[1]: aba-system.service: Failed with result 'exit-code'.
+Mar 18 19:35:23 dfc systemd[1]: aba-system.service: Scheduled restart job, restart counter is at 1.
+Mar 18 19:35:23 dfc systemd[1]: Stopped ABA Supervision System Service.
+Mar 18 19:35:23 dfc systemd[1]: Started ABA Supervision System Service.
+Mar 18 19:35:24 dfc npm[2243150]: > aba-supervision-system@0.1.0 start
+Mar 18 19:35:24 dfc npm[2243150]: > next start -p 3000
+Mar 18 19:35:25 dfc npm[2243173]: ▲ Next.js 16.1.6
+Mar 18 19:35:25 dfc npm[2243173]: - Local:         http://localhost:3000
+Mar 18 19:35:25 dfc npm[2243173]: - Network:       http://192.168.73.100:3000
+Mar 18 19:35:25 dfc npm[2243173]: ✓ Starting...
+Mar 18 19:35:25 dfc npm[2243173]: Error: EACCES: permission denied, scandir '/opt/aba-system/public'
+Mar 18 19:35:25 dfc npm[2243173]:     at ignore-listed frames {
+Mar 18 19:35:25 dfc npm[2243173]:   errno: -13,
+Mar 18 19:35:25 dfc npm[2243173]:   code: 'EACCES',
+Mar 18 19:35:25 dfc npm[2243173]:   syscall: 'scandir',
+Mar 18 19:35:25 dfc npm[2243173]:   path: '/opt/aba-system/public'
+Mar 18 19:35:25 dfc npm[2243173]: }
+Mar 18 19:35:25 dfc npm[2243150]: npm notice
+Mar 18 19:35:25 dfc npm[2243150]: npm notice New major version of npm available! 10.8.2 -> 11.11.1
+Mar 18 19:35:25 dfc npm[2243150]: npm notice Changelog: https://github.com/npm/cli/releases/tag/v11.11.1
+Mar 18 19:35:25 dfc npm[2243150]: npm notice To update run: npm install -g npm@11.11.1
+Mar 18 19:35:25 dfc npm[2243150]: npm notice
+Mar 18 19:35:25 dfc systemd[1]: aba-system.service: Main process exited, code=exited, status=1/FAILURE
+Mar 18 19:35:25 dfc systemd[1]: aba-system.service: Failed with result 'exit-code'.
+Mar 18 19:35:36 dfc systemd[1]: aba-system.service: Scheduled restart job, restart counter is at 2.
+Mar 18 19:35:36 dfc systemd[1]: Stopped ABA Supervision System Service.
+Mar 18 19:35:36 dfc systemd[1]: Started ABA Supervision System Service.
+Mar 18 19:35:36 dfc npm[2243291]: > aba-supervision-system@0.1.0 start
+Mar 18 19:35:36 dfc npm[2243291]: > next start -p 3000
+Mar 18 19:35:37 dfc npm[2243303]: ▲ Next.js 16.1.6
+Mar 18 19:35:37 dfc npm[2243303]: - Local:         http://localhost:3000
+Mar 18 19:35:37 dfc npm[2243303]: - Network:       http://192.168.73.100:3000
+Mar 18 19:35:37 dfc npm[2243303]: ✓ Starting...
+Mar 18 19:35:38 dfc npm[2243303]: Error: EACCES: permission denied, scandir '/opt/aba-system/public'
+Mar 18 19:35:38 dfc npm[2243303]:     at ignore-listed frames {
+Mar 18 19:35:38 dfc npm[2243303]:   errno: -13,
+Mar 18 19:35:38 dfc npm[2243303]:   code: 'EACCES',
+Mar 18 19:35:38 dfc npm[2243303]:   syscall: 'scandir',
+Mar 18 19:35:38 dfc npm[2243303]:   path: '/opt/aba-system/public'
+Mar 18 19:35:38 dfc npm[2243303]: }
+Mar 18 19:35:38 dfc npm[2243291]: npm notice
+Mar 18 19:35:38 dfc npm[2243291]: npm notice New major version of npm available! 10.8.2 -> 11.11.1
+Mar 18 19:35:38 dfc npm[2243291]: npm notice Changelog: https://github.com/npm/cli/releases/tag/v11.11.1
+Mar 18 19:35:38 dfc npm[2243291]: npm notice To update run: npm install -g npm@11.11.1
+Mar 18 19:35:38 dfc npm[2243291]: npm notice
+Mar 18 19:35:38 dfc systemd[1]: aba-system.service: Main process exited, code=exited, status=1/FAILURE
+Mar 18 19:35:38 dfc systemd[1]: aba-system.service: Failed with result 'exit-code'.
+Mar 18 19:35:48 dfc systemd[1]: aba-system.service: Scheduled restart job, restart counter is at 3.
+Mar 18 19:35:48 dfc systemd[1]: Stopped ABA Supervision System Service.
+Mar 18 19:35:48 dfc systemd[1]: Started ABA Supervision System Service.
+Mar 18 19:35:49 dfc npm[2243330]: > aba-supervision-system@0.1.0 start
+Mar 18 19:35:49 dfc npm[2243330]: > next start -p 3000
+Mar 18 19:35:49 dfc npm[2243356]: ▲ Next.js 16.1.6
+Mar 18 19:35:49 dfc npm[2243356]: - Local:         http://localhost:3000
+Mar 18 19:35:49 dfc npm[2243356]: - Network:       http://192.168.73.100:3000
+Mar 18 19:35:49 dfc npm[2243356]: ✓ Starting...
+Mar 18 19:35:50 dfc npm[2243356]: Error: EACCES: permission denied, scandir '/opt/aba-system/public'
+Mar 18 19:35:50 dfc npm[2243356]:     at ignore-listed frames {
+Mar 18 19:35:50 dfc npm[2243356]:   errno: -13,
+Mar 18 19:35:50 dfc npm[2243356]:   code: 'EACCES',
+Mar 18 19:35:50 dfc npm[2243356]:   syscall: 'scandir',
+Mar 18 19:35:50 dfc npm[2243356]:   path: '/opt/aba-system/public'
+Mar 18 19:35:50 dfc npm[2243356]: }
+Mar 18 19:35:50 dfc npm[2243330]: npm notice
+Mar 18 19:35:50 dfc npm[2243330]: npm notice New major version of npm available! 10.8.2 -> 11.11.1
+Mar 18 19:35:50 dfc npm[2243330]: npm notice Changelog: https://github.com/npm/cli/releases/tag/v11.11.1
+Mar 18 19:35:50 dfc npm[2243330]: npm notice To update run: npm install -g npm@11.11.1
+Mar 18 19:35:50 dfc npm[2243330]: npm notice
+Mar 18 19:35:50 dfc systemd[1]: aba-system.service: Main process exited, code=exited, status=1/FAILURE
+Mar 18 19:35:50 dfc systemd[1]: aba-system.service: Failed with result 'exit-code'.
+Mar 18 19:36:00 dfc systemd[1]: aba-system.service: Scheduled restart job, restart counter is at 4.
+Mar 18 19:36:00 dfc systemd[1]: Stopped ABA Supervision System Service.
+Mar 18 19:36:00 dfc systemd[1]: Started ABA Supervision System Service.
+Mar 18 19:36:01 dfc npm[2243452]: > aba-supervision-system@0.1.0 start
+Mar 18 19:36:01 dfc npm[2243452]: > next start -p 3000
+Mar 18 19:36:02 dfc npm[2243479]: ▲ Next.js 16.1.6
+Mar 18 19:36:02 dfc npm[2243479]: - Local:         http://localhost:3000
+Mar 18 19:36:02 dfc npm[2243479]: - Network:       http://192.168.73.100:3000
+Mar 18 19:36:02 dfc npm[2243479]: ✓ Starting...
+Mar 18 19:36:03 dfc npm[2243479]: Error: EACCES: permission denied, scandir '/opt/aba-system/public'
+Mar 18 19:36:03 dfc npm[2243479]:     at ignore-listed frames {
+Mar 18 19:36:03 dfc npm[2243479]:   errno: -13,
+Mar 18 19:36:03 dfc npm[2243479]:   code: 'EACCES',
+Mar 18 19:36:03 dfc npm[2243479]:   syscall: 'scandir',
+Mar 18 19:36:03 dfc npm[2243479]:   path: '/opt/aba-system/public'
+Mar 18 19:36:03 dfc npm[2243479]: }
+Mar 18 19:36:03 dfc npm[2243452]: npm notice
+Mar 18 19:36:03 dfc npm[2243452]: npm notice New major version of npm available! 10.8.2 -> 11.11.1
+Mar 18 19:36:03 dfc npm[2243452]: npm notice Changelog: https://github.com/npm/cli/releases/tag/v11.11.1
+Mar 18 19:36:03 dfc npm[2243452]: npm notice To update run: npm install -g npm@11.11.1
+Mar 18 19:36:03 dfc npm[2243452]: npm notice
+Mar 18 19:36:03 dfc systemd[1]: aba-system.service: Main process exited, code=exited, status=1/FAILURE
+Mar 18 19:36:03 dfc systemd[1]: aba-system.service: Failed with result 'exit-code'.
+Mar 18 19:36:13 dfc systemd[1]: aba-system.service: Scheduled restart job, restart counter is at 5.
+Mar 18 19:36:13 dfc systemd[1]: Stopped ABA Supervision System Service.
+Mar 18 19:36:13 dfc systemd[1]: Started ABA Supervision System Service.
+Mar 18 19:36:14 dfc npm[2243506]: > aba-supervision-system@0.1.0 start
+Mar 18 19:36:14 dfc npm[2243506]: > next start -p 3000
+Mar 18 19:36:15 dfc npm[2243532]: ▲ Next.js 16.1.6
+Mar 18 19:36:15 dfc npm[2243532]: - Local:         http://localhost:3000
+Mar 18 19:36:15 dfc npm[2243532]: - Network:       http://192.168.73.100:3000
+Mar 18 19:36:15 dfc npm[2243532]: ✓ Starting...
+Mar 18 19:36:16 dfc npm[2243532]: Error: EACCES: permission denied, scandir '/opt/aba-system/public'
+Mar 18 19:36:16 dfc npm[2243532]:     at ignore-listed frames {
+Mar 18 19:36:16 dfc npm[2243532]:   errno: -13,
+Mar 18 19:36:16 dfc npm[2243532]:   code: 'EACCES',
+Mar 18 19:36:16 dfc npm[2243532]:   syscall: 'scandir',
+Mar 18 19:36:16 dfc npm[2243532]:   path: '/opt/aba-system/public'
+Mar 18 19:36:16 dfc npm[2243532]: }
+Mar 18 19:36:16 dfc npm[2243506]: npm notice
+Mar 18 19:36:16 dfc npm[2243506]: npm notice New major version of npm available! 10.8.2 -> 11.11.1
+Mar 18 19:36:16 dfc npm[2243506]: npm notice Changelog: https://github.com/npm/cli/releases/tag/v11.11.1
+Mar 18 19:36:16 dfc npm[2243506]: npm notice To update run: npm install -g npm@11.11.1
+Mar 18 19:36:16 dfc npm[2243506]: npm notice
+Mar 18 19:36:16 dfc systemd[1]: aba-system.service: Main process exited, code=exited, status=1/FAILURE
+Mar 18 19:36:16 dfc systemd[1]: aba-system.service: Failed with result 'exit-code'.
+Mar 18 19:36:22 dfc systemd[1]: Stopped ABA Supervision System Service.
+Mar 18 19:36:22 dfc systemd[1]: Started ABA Supervision System Service.
+Mar 18 19:36:23 dfc npm[2243641]: > aba-supervision-system@0.1.0 start
+Mar 18 19:36:23 dfc npm[2243641]: > next start -p 3000
+Mar 18 19:36:24 dfc npm[2243654]: ▲ Next.js 16.1.6
+Mar 18 19:36:24 dfc npm[2243654]: - Local:         http://localhost:3000
+Mar 18 19:36:24 dfc npm[2243654]: - Network:       http://192.168.73.100:3000
+Mar 18 19:36:24 dfc npm[2243654]: ✓ Starting...
+Mar 18 19:36:24 dfc npm[2243654]: ✓ Ready in 918ms
