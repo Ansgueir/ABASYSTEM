@@ -91,7 +91,7 @@ export function DocumentList({ documents }: DocumentListProps) {
                                     {doc ? (
                                         <div className="flex gap-2">
                                             <Button variant="ghost" size="icon" asChild>
-                                                <a href={doc.fileUrl} target="_blank" rel="noopener noreferrer">
+                                                <a href={`/api/documents/${doc.id}/view`} target="_blank" rel="noopener noreferrer">
                                                     <ExternalLink className="h-4 w-4" />
                                                 </a>
                                             </Button>
@@ -146,7 +146,7 @@ export function DocumentList({ documents }: DocumentListProps) {
                                     </div>
                                     <div className="flex gap-2">
                                         <Button variant="ghost" size="icon" asChild>
-                                            <a href={doc.fileUrl} target="_blank" rel="noopener noreferrer">
+                                            <a href={`/api/documents/${doc.id}/view`} target="_blank" rel="noopener noreferrer">
                                                 <ExternalLink className="h-4 w-4" />
                                             </a>
                                         </Button>
