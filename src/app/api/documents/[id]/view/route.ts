@@ -45,15 +45,20 @@ export async function GET(
             return new NextResponse("Forbidden", { status: 403 })
         }
 
-        // The fileUrl stored is like "/uploads/folder/filename"
-        // We moved storage to process.cwd() + "/uploads"
-        // Ensure the path is relative to the app root correctly
         const relativePath = document.fileUrl.startsWith("/") ? document.fileUrl.substring(1) : document.fileUrl
-        const filePath = path.resolve(process.cwd(), relativePath)
-
+        
+        // Try new path first (root level uploads)
+        let filePath = path.resolve(process.cwd(), relativePath)
+        
         if (!fs.existsSync(filePath)) {
-            console.error(`[ERROR] File not found at resolved path: ${filePath}`)
-            return new NextResponse("File not found on server", { status: 404 })
+            // Fallback to old path (inside public folder)
+            const publicPath = path.resolve(process.cwd(), "public", relativePath)
+            if (fs.existsSync(publicPath)) {
+                filePath = publicPath
+            } else {
+                console.error(`[ERROR] File not found at resolved paths: ${filePath} OR ${publicPath}`)
+                return new NextResponse("File not found on server", { status: 404 })
+            }
         }
 
         const fileBuffer = fs.readFileSync(filePath)
