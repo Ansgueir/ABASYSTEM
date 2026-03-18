@@ -1,6 +1,7 @@
 "use client"
 
 import { useState, useTransition } from "react"
+import { useRouter } from "next/navigation"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
@@ -23,6 +24,7 @@ interface StudentContract {
 }
 
 export function StudentContractsClient({ contracts }: { contracts: StudentContract[] }) {
+    const router = useRouter()
     const [rejectingId, setRejectingId] = useState<string | null>(null)
     const [approvingId, setApprovingId] = useState<string | null>(null)
     const [pendingId, setPendingId] = useState<string | null>(null)

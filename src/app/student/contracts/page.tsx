@@ -1,4 +1,5 @@
 import DashboardLayout from "@/components/dashboard-layout"
+export const dynamic = 'force-dynamic'
 import { auth } from "@/auth"
 import { redirect } from "next/navigation"
 import { prisma } from "@/lib/prisma"

@@ -1,6 +1,7 @@
 "use client"
 
 import { useState, useTransition } from "react"
+import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import {
     Dialog,
@@ -19,6 +20,7 @@ interface RejectDialogProps {
 }
 
 export function RejectContractDialog({ contractId, open, onOpenChange }: RejectDialogProps) {
+    const router = useRouter()
     const [reason, setReason] = useState("")
     const [pending, startTransition] = useTransition()
 
@@ -27,6 +29,7 @@ export function RejectContractDialog({ contractId, open, onOpenChange }: RejectD
         startTransition(async () => {
             await rejectContract(contractId, reason)
             onOpenChange(false)
+            router.refresh()
         })
     }
 

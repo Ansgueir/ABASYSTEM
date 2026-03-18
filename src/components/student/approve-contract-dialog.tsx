@@ -1,6 +1,7 @@
 "use client"
 
 import { useTransition } from "react"
+import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import {
     Dialog,
@@ -21,6 +22,7 @@ interface ApproveDialogProps {
 }
 
 export function ApproveContractDialog({ contractId, open, onOpenChange }: ApproveDialogProps) {
+    const router = useRouter()
     const [pending, startTransition] = useTransition()
 
     function handleSubmit() {
@@ -31,6 +33,7 @@ export function ApproveContractDialog({ contractId, open, onOpenChange }: Approv
             } else {
                 toast.success("Contract signed successfully")
                 onOpenChange(false)
+                router.refresh()
             }
         })
     }
