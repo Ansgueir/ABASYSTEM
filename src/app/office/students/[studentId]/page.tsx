@@ -19,6 +19,7 @@ import { FinancialPeriodsTab } from "@/components/office/financial-periods-tab"
 import { StudentActivityTab } from "@/components/office/student-activity-tab"
 import { StudentBillingTab } from "@/components/office/student-billing-tab"
 import { DebugErrorBoundary } from "@/components/debug-error-boundary"
+import { SupervisorNotesCard } from "@/components/shared/supervisor-notes-card"
 
 export default async function OfficeStudentDetailPage({ params }: { params: Promise<{ studentId: string }> }) {
     const { studentId } = await params
@@ -160,7 +161,14 @@ export default async function OfficeStudentDetailPage({ params }: { params: Prom
                         <TabsContent value="profile">
                             <DebugErrorBoundary title="Profile Tab Error">
                                 <div className="grid gap-6 md:grid-cols-2">
-                                    <EditableStudentContactInfo student={safeStudent} isSuperAdmin={isSuperAdmin} />
+                                    <div className="space-y-6">
+                                        <EditableStudentContactInfo student={safeStudent} isSuperAdmin={isSuperAdmin} />
+                                        <SupervisorNotesCard 
+                                            studentId={safeStudent.id} 
+                                            notes={safeStudent.notes} 
+                                            canEdit={true} 
+                                        />
+                                    </div>
                                     <EditableStudentBacbFieldwork student={safeStudent} isSuperAdmin={isSuperAdmin} />
                                 </div>
                             </DebugErrorBoundary>

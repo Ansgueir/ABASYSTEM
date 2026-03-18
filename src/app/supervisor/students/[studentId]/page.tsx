@@ -10,6 +10,9 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/custom
 import { DocumentsTab } from "@/components/supervisor/documents-tab"
 import { TimesheetsTab } from "@/components/supervisor/timesheets-tab"
 import { EditableStudentBacbInfo } from "@/components/shared/editable-bacb-info"
+import { EditNotesDialog } from "@/components/supervisor/edit-notes-dialog"
+import { SupervisorNotesCard } from "@/components/shared/supervisor-notes-card"
+import { Pencil } from "lucide-react"
 
 export default async function SupervisorStudentDetailPage({ params }: { params: Promise<{ studentId: string }> }) {
     const { studentId } = await params
@@ -150,14 +153,11 @@ export default async function SupervisorStudentDetailPage({ params }: { params: 
                                 </div>
                             </div>
 
-                            <div className="rounded-xl border bg-card text-card-foreground shadow-sm p-6 space-y-4">
-                                <h3 className="font-semibold text-lg">Supervisor Notes</h3>
-                                <div className="p-4 rounded-lg bg-yellow-50/50 border border-yellow-100 min-h-[150px]">
-                                    <p className="text-sm text-yellow-900 italic">
-                                        {student.notes || "No additional notes have been registered for this student."}
-                                    </p>
-                                </div>
-                            </div>
+                            <SupervisorNotesCard
+                                studentId={student.id}
+                                notes={student.notes}
+                                canEdit={true}
+                            />
                         </div>
 
                         <div className="mt-6">

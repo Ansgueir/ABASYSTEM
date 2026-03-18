@@ -23,7 +23,11 @@ export async function GET(req: Request) {
                 where: { userId: id },
                 include: { supervisor: true }
             })
-            return NextResponse.json(student)
+            if (!student) return new NextResponse("Student not found", { status: 404 })
+            
+            // Exclude sensitive fields from serialization for Students
+            const { notes, internalComments, analystPaymentRate, officePaymentRate, ...safeStudent } = student as any
+            return NextResponse.json(safeStudent)
         } else if (role === "SUPERVISOR") {
             const supervisor = await prisma.supervisor.findUnique({
                 where: { userId: id }
