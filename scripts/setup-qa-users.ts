@@ -35,7 +35,8 @@ async function main() {
             certificantNumber: 'CERT-001',
             credentialType: 'BCBA',
             maxStudents: 10,
-            status: 'ACTIVE'
+            status: 'ACTIVE',
+            availableDaysGroup: []
         }
     })
     console.log('✅ QA Supervisor OK:', supervisorUser.email, '| Profile ID:', supervisorProfile.id)
@@ -142,10 +143,13 @@ async function main() {
             hoursToDo: 130,
             hoursToPay: 0,
             amountToPay: 0,
+            hourlyRate: 0,
             hoursPerMonth: 130,
             totalMonths: 12,
             endDate: new Date(new Date().setFullYear(new Date().getFullYear() + 1)),
-            supervisorId: supervisorProfile.id
+            supervisorId: supervisorProfile.id,
+            availableDaysGroup: [],
+            paymentAlias: []
         }
     })
     console.log('✅ QA Student OK:', studentUser.email, '| Profile ID:', studentProfile.id)
