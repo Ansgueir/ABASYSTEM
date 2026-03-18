@@ -56,13 +56,39 @@ async function main() {
 
     const officeProfile = await prisma.officeMember.upsert({
         where: { userId: officeUser.id },
-        update: {},
+        update: { officeRole: 'ADMIN' },
         create: {
             userId: officeUser.id,
-            fullName: 'QA Office Admin'
+            fullName: 'QA Office Admin',
+            officeRole: 'ADMIN'
         }
     })
     console.log('✅ QA Office OK:', officeUser.email, '| Profile ID:', officeProfile.id)
+
+    // ============================================
+    // 2.1 QA SUPER OFFICE
+    // ============================================
+    console.log('Creating QA Super Office...')
+    const superOfficeUser = await prisma.user.upsert({
+        where: { email: 'qa-super@abasystem.com' },
+        update: { role: 'OFFICE', passwordHash },
+        create: {
+            email: 'qa-super@abasystem.com',
+            passwordHash,
+            role: 'OFFICE'
+        }
+    })
+
+    const superOfficeProfile = await prisma.officeMember.upsert({
+        where: { userId: superOfficeUser.id },
+        update: { officeRole: 'SUPER_ADMIN' },
+        create: {
+            userId: superOfficeUser.id,
+            fullName: 'QA Super Office',
+            officeRole: 'SUPER_ADMIN'
+        }
+    })
+    console.log('✅ QA Super Office OK:', superOfficeUser.email, '| Profile ID:', superOfficeProfile.id)
 
     // ============================================
     // 3. QA STUDENT (normalize existing or create)
@@ -134,9 +160,10 @@ async function main() {
     console.log('========================================')
     console.log('Password for all accounts: Password123!')
     console.log('')
-    console.log('1. Student:    qaestudiante@abasystem.com')
-    console.log('2. Supervisor: qasupervisor@abasystem.com')
-    console.log('3. Office:     qaoffice@abasystem.com')
+    console.log('1. Student:      qaestudiante@abasystem.com')
+    console.log('2. Supervisor:   qasupervisor@abasystem.com')
+    console.log('3. Office:       qaoffice@abasystem.com')
+    console.log('4. Super Office: qa-super@abasystem.com')
     console.log('========================================')
 }
 
@@ -146,3 +173,4 @@ main()
         process.exit(1)
     })
     .finally(async () => await prisma.$disconnect())
+
