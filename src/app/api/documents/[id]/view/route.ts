@@ -25,23 +25,34 @@ export async function GET(
 
         let allowed = ["OFFICE", "QA"].includes(role)
         if (!allowed && role === "STUDENT" && document.student?.userId === userId) allowed = true
-        if (!allowed && role === "SUPERVISOR" && document.supervisor?.userId === userId) allowed = true
         
-        // Supervisor viewing student docs is another case, but for now we keep it simple
+        // Supervisor viewing student docs
         if (!allowed && role === "SUPERVISOR") {
-             // Basic permission for supervisors to view students they supervise
-             allowed = true
+            // Check if supervisor is assigned to this student
+            const isAssigned = await prisma.student.findFirst({
+                where: { 
+                    id: document.studentId || undefined,
+                    supervisor: { userId: userId }
+                }
+            })
+            if (isAssigned || document.supervisor?.userId === userId) {
+                allowed = true
+            }
         }
 
-        if (!allowed) return new NextResponse("Forbidden", { status: 403 })
+        if (!allowed) {
+            console.warn(`[WARN] Access forbidden to document ${id} for user ${userId} with role ${role}`)
+            return new NextResponse("Forbidden", { status: 403 })
+        }
 
         // The fileUrl stored is like "/uploads/folder/filename"
         // We moved storage to process.cwd() + "/uploads"
-        // So the physical path is process.cwd() + fileUrl
-        const filePath = path.join(process.cwd(), document.fileUrl)
+        // Ensure the path is relative to the app root correctly
+        const relativePath = document.fileUrl.startsWith("/") ? document.fileUrl.substring(1) : document.fileUrl
+        const filePath = path.resolve(process.cwd(), relativePath)
 
         if (!fs.existsSync(filePath)) {
-            console.error(`[ERROR] File not found: ${filePath}`)
+            console.error(`[ERROR] File not found at resolved path: ${filePath}`)
             return new NextResponse("File not found on server", { status: 404 })
         }
 

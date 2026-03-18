@@ -27,6 +27,7 @@ export function OfficeDocumentActions({
     const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
     const isPdf = fileName.toLowerCase().endsWith(".pdf")
     const isImage = /\.(jpg|jpeg|png|webp|gif)$/i.test(fileName)
+    const viewUrl = `/api/documents/${documentId}/view`
 
     const handleDelete = async () => {
         setIsDeleting(true)
@@ -58,13 +59,13 @@ export function OfficeDocumentActions({
                     <div className="flex-1 overflow-auto bg-muted/20 flex items-center justify-center p-4">
                         {isPdf ? (
                             <iframe
-                                src={fileUrl}
+                                src={viewUrl}
                                 className="w-full h-full rounded-md shadow-sm border bg-white"
                                 title={fileName}
                             />
                         ) : isImage ? (
                             <img
-                                src={fileUrl}
+                                src={viewUrl}
                                 alt={fileName}
                                 className="max-w-full max-h-full object-contain rounded-md shadow-sm"
                             />
@@ -76,7 +77,7 @@ export function OfficeDocumentActions({
                                     The browser cannot preview this file type directly. Please use the download button to view the file.
                                 </p>
                                 <Button className="mt-6" asChild>
-                                    <a href={fileUrl} download={fileName} target="_blank" rel="noopener noreferrer">
+                                    <a href={viewUrl} download={fileName} target="_blank" rel="noopener noreferrer">
                                         <Download className="mr-2 h-4 w-4" />
                                         Download File
                                     </a>
@@ -88,7 +89,7 @@ export function OfficeDocumentActions({
             </Dialog>
 
             <Button variant="ghost" size="icon" className="h-8 w-8 rounded-full" title="Download Document" asChild>
-                <a href={fileUrl} download={fileName} target="_blank" rel="noopener noreferrer">
+                <a href={viewUrl} download={fileName} target="_blank" rel="noopener noreferrer">
                     <Download className="h-4 w-4 text-muted-foreground hover:text-primary transition-colors" />
                 </a>
             </Button>

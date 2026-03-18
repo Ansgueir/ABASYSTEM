@@ -56,7 +56,7 @@ export function DocumentsTab({ documents }: DocumentsTabProps) {
 
                             <div className="flex items-center gap-2">
                                 <Button variant="ghost" size="icon" asChild title="View">
-                                    <a href={doc.fileUrl} target="_blank" rel="noopener noreferrer">
+                                    <a href={`/api/documents/${doc.id}/view`} target="_blank" rel="noopener noreferrer">
                                         <ExternalLink className="h-4 w-4" />
                                     </a>
                                 </Button>
