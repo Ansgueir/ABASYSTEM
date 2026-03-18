@@ -384,6 +384,7 @@ enum CredentialType {
   LMHC
   NO_CREDENTIAL
   BCBA
+  BCBA_D
 }
 
 enum LevelType {
