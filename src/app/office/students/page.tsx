@@ -32,16 +32,8 @@ export default async function OfficeStudentsPage() {
             }
         })
 
-        // Convert Prisma Decimal objects to plain numbers for serialization to Client Component
-        students = rawStudents.map(s => ({
-            ...s,
-            supervisionPercentage: s.supervisionPercentage ? Number(s.supervisionPercentage) : 0,
-            amountToPay: s.amountToPay ? Number(s.amountToPay) : 0,
-            hourlyRate: s.hourlyRate ? Number(s.hourlyRate) : 0,
-            analystPaymentRate: s.analystPaymentRate ? Number(s.analystPaymentRate) : null,
-            officePaymentRate: s.officePaymentRate ? Number(s.officePaymentRate) : null,
-            totalAmountContract: s.totalAmountContract ? Number(s.totalAmountContract) : null,
-        }))
+        // Use full serialization to handle all nested Decimals (in student and supervisor)
+        students = JSON.parse(JSON.stringify(rawStudents))
     } catch (error) {
         console.error("Error fetching students:", error)
     }
