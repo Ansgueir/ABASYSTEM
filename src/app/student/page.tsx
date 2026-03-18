@@ -154,7 +154,7 @@ export default async function StudentDashboard() {
                                 <p className="font-medium">{student.supervisor.fullName}</p>
                                 <p className="text-sm text-muted-foreground">BCBA</p>
                             </div>
-                            <SupervisorContactDialog supervisor={student.supervisor} />
+                            <SupervisorContactDialog supervisor={JSON.parse(JSON.stringify(student.supervisor))} />
                         </div>
                     </CardContent>
                 </Card>
