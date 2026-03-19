@@ -10,6 +10,7 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/custom
 import { serialize } from "@/lib/serialize"
 import { ManageStudentsDialog, ManageStudentsForm } from "@/components/office/manage-students-dialog"
 import { EditableSupervisorContactInfo } from "@/components/shared/editable-contact-info"
+import { EditableSupervisorFinancialInfo } from "@/components/office/editable-financial-info"
 import { format } from "date-fns"
 import { Badge } from "@/components/ui/badge"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
@@ -139,36 +140,7 @@ export default async function OfficeSupervisorDetailPage({ params }: { params: P
                         <div className="grid gap-6 md:grid-cols-2">
                             <EditableSupervisorContactInfo supervisor={safeSupervisor} isSuperAdmin={isSuperAdmin} />
 
-                            <div className="rounded-xl border bg-card p-6 space-y-4">
-                                <h3 className="font-semibold text-lg flex items-center gap-2">
-                                    <Landmark className="h-5 w-5 text-muted-foreground" />
-                                    Financial & Banking Information
-                                </h3>
-                                <div className="grid gap-3 text-sm">
-                                    <div className="px-4 py-3 bg-muted/30 rounded-lg flex justify-between items-center">
-                                        <span className="text-muted-foreground">Company Name</span>
-                                        <span className="font-medium">{safeSupervisor.companyName || "N/A"}</span>
-                                    </div>
-                                    <div className="px-4 py-3 bg-muted/30 rounded-lg flex justify-between items-center">
-                                        <span className="text-muted-foreground">Tax ID / EIN</span>
-                                        <span className="font-medium font-mono">{safeSupervisor.taxId || "N/A"}</span>
-                                    </div>
-                                    <div className="px-4 py-3 bg-muted/30 rounded-lg flex justify-between items-center">
-                                        <span className="text-muted-foreground">Bank Name</span>
-                                        <span className="font-medium">{safeSupervisor.bankName || "N/A"}</span>
-                                    </div>
-                                    <div className="px-4 py-3 bg-muted/30 rounded-lg flex justify-between items-center">
-                                        <span className="text-muted-foreground">Routing Number</span>
-                                        <span className="font-medium font-mono">{safeSupervisor.routingNumber || "N/A"}</span>
-                                    </div>
-                                    <div className="px-4 py-3 bg-muted/30 rounded-lg flex justify-between items-center">
-                                        <span className="text-muted-foreground">Account Number</span>
-                                        <span className="font-medium font-mono">
-                                            {safeSupervisor.accountNumber ? `••••${safeSupervisor.accountNumber.slice(-4)}` : "N/A"}
-                                        </span>
-                                    </div>
-                                </div>
-                            </div>
+                            <EditableSupervisorFinancialInfo supervisor={safeSupervisor} />
                         </div>
                     </TabsContent>
 
