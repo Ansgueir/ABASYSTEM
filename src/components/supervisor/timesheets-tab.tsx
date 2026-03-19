@@ -57,9 +57,10 @@ export function TimesheetsTab({ independentHours, supervisionHours }: Timesheets
     // Safe parsing of hours which might be strings, numbers, or Decimals depending on serialization
     const getHours = (h: any) => Number(h) || 0
 
-    const totalHours = allEntries.reduce((sum, entry) => sum + getHours(entry.hours), 0)
-    const restrictedHours = allEntries.filter(e => e.activityType === 'RESTRICTED').reduce((sum, entry) => sum + getHours(entry.hours), 0)
-    const unrestrictedHours = allEntries.filter(e => e.activityType === 'UNRESTRICTED').reduce((sum, entry) => sum + getHours(entry.hours), 0)
+    const validEntries = allEntries.filter(e => e.status !== 'REJECTED')
+    const totalHours = validEntries.reduce((sum, entry) => sum + getHours(entry.hours), 0)
+    const restrictedHours = validEntries.filter(e => e.activityType === 'RESTRICTED').reduce((sum, entry) => sum + getHours(entry.hours), 0)
+    const unrestrictedHours = validEntries.filter(e => e.activityType === 'UNRESTRICTED').reduce((sum, entry) => sum + getHours(entry.hours), 0)
 
     // Rule: "Alerta si las horas restringidas superan el 40% (BCBA)"
     const isAlert = totalHours > 0 && (restrictedHours / totalHours) > 0.4

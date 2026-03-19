@@ -74,9 +74,13 @@ export default async function SupervisorStudentDetailPage({ params }: { params: 
         )
     }
 
-    // Calculations for the Header
-    const totalIndependent = student.independentHours.reduce((sum, h) => sum + Number(h.hours), 0)
-    const totalSupervised = student.supervisionHours.reduce((sum, h) => sum + Number(h.hours), 0)
+    // Calculations for the Header - Strictly exclude REJECTED hours
+    const totalIndependent = student.independentHours
+        .filter(h => h.status !== 'REJECTED')
+        .reduce((sum, h) => sum + Number(h.hours), 0)
+    const totalSupervised = student.supervisionHours
+        .filter(h => h.status !== 'REJECTED')
+        .reduce((sum, h) => sum + Number(h.hours), 0)
     const totalHours = totalIndependent + totalSupervised
 
     // Serialization for client components (converting Decimal to Number)

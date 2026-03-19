@@ -56,19 +56,19 @@ export default async function StudentDashboard() {
 
             const [indepMonth, supMonth, indepTotal, supTotal, pendingInvoices] = await Promise.all([
                 prisma.independentHour.aggregate({
-                    where: { studentId: student.id, date: { gte: currentMonthStart } },
+                    where: { studentId: student.id, date: { gte: currentMonthStart }, status: { not: 'REJECTED' } },
                     _sum: { hours: true }
                 }),
                 prisma.supervisionHour.aggregate({
-                    where: { studentId: student.id, date: { gte: currentMonthStart } },
+                    where: { studentId: student.id, date: { gte: currentMonthStart }, status: { not: 'REJECTED' } },
                     _sum: { hours: true }
                 }),
                 prisma.independentHour.aggregate({
-                    where: { studentId: student.id },
+                    where: { studentId: student.id, status: { not: 'REJECTED' } },
                     _sum: { hours: true }
                 }),
                 prisma.supervisionHour.aggregate({
-                    where: { studentId: student.id },
+                    where: { studentId: student.id, status: { not: 'REJECTED' } },
                     _sum: { hours: true }
                 }),
                 prisma.invoice.aggregate({

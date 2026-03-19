@@ -6,11 +6,11 @@ export async function getMonthStats(studentId: string, date: Date = new Date()) 
     const end = endOfMonth(date)
 
     const independent = await prisma.independentHour.findMany({
-        where: { studentId, date: { gte: start, lte: end } }
+        where: { studentId, date: { gte: start, lte: end }, status: { not: 'REJECTED' } }
     })
 
     const supervision = await prisma.supervisionHour.findMany({
-        where: { studentId, date: { gte: start, lte: end } }
+        where: { studentId, date: { gte: start, lte: end }, status: { not: 'REJECTED' } }
     })
 
     const totalIndependent = independent.reduce((sum, h) => sum + Number(h.hours), 0)
