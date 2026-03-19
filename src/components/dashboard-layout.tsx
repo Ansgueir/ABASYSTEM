@@ -79,6 +79,7 @@ export default function DashboardLayout({
             { name: "My Students", href: "/supervisor/students", icon: Users },
             { name: "Timesheet Entry", href: "/supervisor/timesheet", icon: FileText },
             { name: "Payments", href: "/supervisor/payments", icon: CreditCard },
+            { name: "Documents", href: "/supervisor/documents", icon: FileText },
             { name: "Profile", href: "/supervisor/profile", icon: Settings },
         ],
         office: [

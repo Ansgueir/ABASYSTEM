@@ -12,17 +12,29 @@ import { useState, useTransition } from "react"
 import { useRouter } from "next/navigation"
 import { ConfirmDialog } from "./ui/confirm-dialog"
 
-interface DocumentListProps {
-    documents: Document[]
-}
-
-const REQUIRED_DOCS = [
+const DEFAULT_REQUIRED_DOCS = [
     { type: DocumentType.IDENTIFICATION, label: "Identification (ID/Driver's License)", description: "Required for contract generation" },
     { type: DocumentType.PROOF_START_DATE, label: "Proof of Start Date", description: "Required for contract generation" },
     { type: DocumentType.ACADEMIC_DEGREE, label: "Academic Degree", description: "Required for contract generation" },
 ]
 
-export function DocumentList({ documents }: DocumentListProps) {
+interface DocumentListProps {
+    documents: Document[]
+    requiredDocs?: Array<{ type: DocumentType; label: string; description: string }>
+    title?: string
+    description?: string
+    targetStudentId?: string
+    targetSupervisorId?: string
+}
+
+export function DocumentList({ 
+    documents, 
+    requiredDocs = DEFAULT_REQUIRED_DOCS,
+    title = "Required Documents for Contract",
+    description = "Please upload these documents to generate your supervision contract.",
+    targetStudentId,
+    targetSupervisorId
+}: DocumentListProps) {
     const router = useRouter()
     const [deletingId, setDeletingId] = useState<string | null>(null)
     const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
@@ -51,14 +63,14 @@ export function DocumentList({ documents }: DocumentListProps) {
                 <CardHeader>
                     <CardTitle className="flex items-center gap-2">
                         <AlertCircle className="h-5 w-5 text-primary" />
-                        Required Documents for Contract
+                        {title}
                     </CardTitle>
                     <CardDescription>
-                        Please upload these documents to generate your supervision contract.
+                        {description}
                     </CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-4">
-                    {REQUIRED_DOCS.map((req) => {
+                    {requiredDocs.map((req) => {
                         const doc = documents.find(d => d.documentType === req.type)
                         const isUploaded = !!doc
 
@@ -106,7 +118,11 @@ export function DocumentList({ documents }: DocumentListProps) {
                                             </Button>
                                         </div>
                                     ) : (
-                                        <UploadDocumentDialog defaultType={req.type as any} />
+                                        <UploadDocumentDialog 
+                                            defaultType={req.type as any} 
+                                            targetStudentId={targetStudentId}
+                                            targetSupervisorId={targetSupervisorId}
+                                        />
                                     )}
                                 </div>
                             </div>
@@ -122,16 +138,19 @@ export function DocumentList({ documents }: DocumentListProps) {
                         <CardTitle>Other Documents</CardTitle>
                         <CardDescription>Additional uploaded files.</CardDescription>
                     </div>
-                    <UploadDocumentDialog />
+                    <UploadDocumentDialog 
+                        targetStudentId={targetStudentId}
+                        targetSupervisorId={targetSupervisorId}
+                    />
                 </CardHeader>
                 <CardContent>
-                    {documents.filter(d => !REQUIRED_DOCS.find(r => r.type === d.documentType)).length === 0 ? (
+                    {documents.filter(d => !requiredDocs.find(r => r.type === d.documentType)).length === 0 ? (
                         <div className="text-center py-8 text-muted-foreground text-sm">
                             No other documents uploaded.
                         </div>
                     ) : (
                         <div className="space-y-3">
-                            {documents.filter(d => !REQUIRED_DOCS.find(r => r.type === d.documentType)).map(doc => (
+                            {documents.filter(d => !requiredDocs.find(r => r.type === d.documentType)).map(doc => (
                                 <div key={doc.id} className="flex items-center justify-between p-3 rounded-lg border bg-muted/20">
                                     <div className="flex items-center gap-3">
                                         <FileText className="h-8 w-8 text-muted-foreground" />
