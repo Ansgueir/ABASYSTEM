@@ -8,7 +8,7 @@ import Link from "next/link"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/custom-tabs"
 import { serialize } from "@/lib/serialize"
-import { ManageStudentsDialog } from "@/components/office/manage-students-dialog"
+import { ManageStudentsDialog, ManageStudentsForm } from "@/components/office/manage-students-dialog"
 import { EditableSupervisorContactInfo } from "@/components/shared/editable-contact-info"
 import { format } from "date-fns"
 import { Badge } from "@/components/ui/badge"
@@ -120,7 +120,7 @@ export default async function OfficeSupervisorDetailPage({ params }: { params: P
                         </div>
 
                         <div className="flex flex-wrap items-center gap-2">
-                            <ManageStudentsDialog supervisorId={safeSupervisor.id} supervisorName={safeSupervisor.fullName} />
+                            {/* Manage Students moved to Tabs */}
                         </div>
                     </div>
                 </div>
@@ -128,10 +128,11 @@ export default async function OfficeSupervisorDetailPage({ params }: { params: P
                 {/* Tabs */}
                 <Tabs defaultValue="profile">
                     <TabsList className="mb-6 bg-muted/50 p-1 border">
-                        <TabsTrigger value="profile" className="px-6">Profile</TabsTrigger>
-                        <TabsTrigger value="students" className="px-6">Students</TabsTrigger>
-                        <TabsTrigger value="documents" className="px-6">Documents</TabsTrigger>
-                        <TabsTrigger value="activity" className="px-6">Activity Log</TabsTrigger>
+                        <TabsTrigger value="profile" className="px-6 font-medium">Profile</TabsTrigger>
+                        <TabsTrigger value="students" className="px-6 font-medium">Students</TabsTrigger>
+                        <TabsTrigger value="manage" className="px-6 font-medium font-semibold text-primary">Manage Students</TabsTrigger>
+                        <TabsTrigger value="documents" className="px-6 font-medium">Documents</TabsTrigger>
+                        <TabsTrigger value="activity" className="px-6 font-medium">Activity Log</TabsTrigger>
                     </TabsList>
 
                     <TabsContent value="profile">
@@ -209,6 +210,24 @@ export default async function OfficeSupervisorDetailPage({ params }: { params: P
                                     </tbody>
                                 </table>
                             )}
+                        </div>
+                    </TabsContent>
+
+                    <TabsContent value="manage">
+                        <div className="bg-card border rounded-2xl p-8 shadow-sm max-w-4xl">
+                            <div className="mb-6">
+                                <h3 className="text-xl font-bold flex items-center gap-2">
+                                    <Users className="h-6 w-6 text-primary" />
+                                    Manage Student Assignments
+                                </h3>
+                                <p className="text-sm text-muted-foreground mt-1">
+                                    Link students to {safeSupervisor.fullName} or remove existing assignments.
+                                </p>
+                            </div>
+                            <ManageStudentsForm 
+                                supervisorId={safeSupervisor.id} 
+                                supervisorName={safeSupervisor.fullName} 
+                            />
                         </div>
                     </TabsContent>
 
