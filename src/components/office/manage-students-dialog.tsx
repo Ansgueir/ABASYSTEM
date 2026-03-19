@@ -17,6 +17,8 @@ import { getManageableStudents, assignStudentToSupervisor } from "@/actions/assi
 interface ManageStudentsProps {
     supervisorId: string
     supervisorName: string
+    open?: boolean
+    onOpenChange?: (open: boolean) => void
 }
 
 export function ManageStudentsForm({ supervisorId, supervisorName }: ManageStudentsProps) {
@@ -140,16 +142,21 @@ export function ManageStudentsForm({ supervisorId, supervisorName }: ManageStude
     )
 }
 
-export function ManageStudentsDialog({ supervisorId, supervisorName }: ManageStudentsProps) {
-    const [open, setOpen] = useState(false)
+export function ManageStudentsDialog({ supervisorId, supervisorName, open: controlledOpen, onOpenChange: controlledOnOpenChange }: ManageStudentsProps) {
+    const [internalOpen, setInternalOpen] = useState(false)
+    const open = controlledOpen !== undefined ? controlledOpen : internalOpen
+    const onOpenChange = controlledOnOpenChange || setInternalOpen
+
     return (
-        <Dialog open={open} onOpenChange={setOpen}>
-            <DialogTrigger asChild>
-                <Button variant="outline" size="sm" className="h-8 gap-2">
-                    <Users className="h-4 w-4" />
-                    Manage Students
-                </Button>
-            </DialogTrigger>
+        <Dialog open={open} onOpenChange={onOpenChange}>
+            {controlledOpen === undefined && (
+                <DialogTrigger asChild>
+                    <Button variant="outline" size="sm" className="h-8 gap-2">
+                        <Users className="h-4 w-4" />
+                        Manage Students
+                    </Button>
+                </DialogTrigger>
+            )}
             <DialogContent className="sm:max-w-[600px] max-h-[80vh] flex flex-col">
                 <DialogHeader>
                     <DialogTitle className="flex items-center gap-2">
@@ -163,7 +170,7 @@ export function ManageStudentsDialog({ supervisorId, supervisorName }: ManageStu
                 <div className="mt-4 overflow-hidden flex-1 flex flex-col">
                     <ManageStudentsForm supervisorId={supervisorId} supervisorName={supervisorName} />
                     <div className="mt-6 pt-4 border-t flex justify-end">
-                        <Button variant="outline" className="rounded-full px-6" onClick={() => setOpen(false)}>Close</Button>
+                        <Button variant="outline" className="rounded-full px-6" onClick={() => onOpenChange(false)}>Close</Button>
                     </div>
                 </div>
             </DialogContent>
