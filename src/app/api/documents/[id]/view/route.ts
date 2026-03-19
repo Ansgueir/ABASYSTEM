@@ -28,11 +28,14 @@ export async function GET(
         
         // Supervisor viewing student docs
         if (!allowed && role === "SUPERVISOR") {
-            // Check if supervisor is assigned to this student
+            // Check if supervisor is assigned to this student (Primary or via Pivot)
             const isAssigned = await prisma.student.findFirst({
                 where: { 
                     id: document.studentId || undefined,
-                    supervisor: { userId: userId }
+                    OR: [
+                        { supervisor: { userId: userId } }, // Primary
+                        { supervisors: { some: { supervisor: { userId: userId } } } } // Secondary/Pivot
+                    ]
                 }
             })
             if (isAssigned || document.supervisor?.userId === userId) {
@@ -47,18 +50,25 @@ export async function GET(
 
         const relativePath = document.fileUrl.startsWith("/") ? document.fileUrl.substring(1) : document.fileUrl
         
-        // Try new path first (root level uploads)
-        let filePath = path.resolve(process.cwd(), relativePath)
-        
-        if (!fs.existsSync(filePath)) {
-            // Fallback to old path (inside public folder)
-            const publicPath = path.resolve(process.cwd(), "public", relativePath)
-            if (fs.existsSync(publicPath)) {
-                filePath = publicPath
-            } else {
-                console.error(`[ERROR] File not found at resolved paths: ${filePath} OR ${publicPath}`)
-                return new NextResponse("File not found on server", { status: 404 })
+        // Comprehensive path resolution
+        const possiblePaths = [
+            path.resolve(process.cwd(), relativePath), // Relative to CWD (root uploads)
+            path.join("/opt/aba-system", relativePath), // Hardcoded absolute (root uploads)
+            path.resolve(process.cwd(), "public", relativePath), // Legacy public folder
+            path.join("/opt/aba-system/public", relativePath) // Hardcoded absolute public
+        ]
+
+        let filePath = ""
+        for (const p of possiblePaths) {
+            if (fs.existsSync(p)) {
+                filePath = p
+                break
             }
+        }
+
+        if (!filePath) {
+            console.error(`[CRITICAL ERROR] File not found for document ${id}. Tried: ${possiblePaths.join(" | ")}`)
+            return new NextResponse("File not found on server", { status: 404 })
         }
 
         const fileBuffer = fs.readFileSync(filePath)
