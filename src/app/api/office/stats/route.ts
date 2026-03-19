@@ -37,12 +37,17 @@ export async function GET() {
             })
         ])
 
-        const stats = {
+        const isSuperAdmin = (session.user as any).officeRole === "SUPER_ADMIN" || role === "qa"
+
+        const stats: any = {
             totalStudents: studentCount,
             totalSupervisors: supervisorCount,
             pendingPayments: pendingInvoices,
-            totalPaidOut: Number(paidInvoicesAgg._sum?.amountPaid || 0),
             activeStudents: studentCount
+        }
+
+        if (isSuperAdmin) {
+            stats.totalPaidOut = Number(paidInvoicesAgg._sum?.amountPaid || 0)
         }
 
         return NextResponse.json(stats, { status: 200 })

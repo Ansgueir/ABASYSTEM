@@ -42,8 +42,11 @@ export default async function OfficeDashboard() {
         stats.totalStudents = studentCount
         stats.totalSupervisors = supervisorCount
         stats.pendingPayments = pendingInvoices
-        stats.totalPaidOut = Number(paidInvoicesAgg._sum?.amountPaid || 0)
-        stats.activeStudents = studentCount // For now, all are active
+        stats.activeStudents = studentCount 
+
+        if (isSuperAdmin) {
+            stats.totalPaidOut = Number(paidInvoicesAgg._sum?.amountPaid || 0)
+        }
     } catch (error) {
         console.error("Error fetching stats:", error)
     }
@@ -123,7 +126,7 @@ export default async function OfficeDashboard() {
                 </div>
 
                 {/* Stats Grid */}
-                <OfficeStatsGrid initialStats={stats} />
+                <OfficeStatsGrid initialStats={stats} isSuperAdmin={isSuperAdmin} />
 
                 {/* Quick Links */}
                 <div className="grid gap-4 md:grid-cols-3">
