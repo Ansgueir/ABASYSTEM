@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Reporte de Auditoría ABA Supervision System</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 40px;
+            color: #333;
+            line-height: 1.6;
+        }
+        h1, h2, h3 {
+            color: #2c3e50;
+            border-bottom: 2px solid #3498db;
+            padding-bottom: 10px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 20px;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 12px;
+            text-align: left;
+        }
+        th {
+            background-color: #f2f2f2;
+            color: #2c3e50;
+        }
+        .status-success {
+            color: green;
+            font-weight: bold;
+        }
+        .status-fail {
+            color: red;
+            font-weight: bold;
+        }
+        .status-critical {
+            color: white;
+            background-color: darkred;
+            padding: 2px 5px;
+            font-weight: bold;
+        }
+        .role-section {
+            margin-top: 30px;
+        }
+        .report-fault {
+            background-color: #fff5f5;
+            border-left: 5px solid #e53e3e;
+            padding: 15px;
+            margin-bottom: 20px;
+        }
+        .severity-high {
+            color: #e53e3e;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <h1>Reporte de Auditoría Técnica y Funcional</h1>
+    <p><strong>Proyecto:</strong> ABA Supervision System</p>
+    <p><strong>Fecha:</strong> 19 de Marzo, 2026</p>
+    <p><strong>Auditor:</strong> Senior QA Automation Engineer (Antigravity)</p>
+    <p><strong>Objetivo:</strong> Evaluar el cumplimiento de los requerimientos de negocio y restricciones de seguridad.</p>
+
+    <div class="role-section">
+        <h2>1. Rol: Estudiante (qaestudiante@abasystem.com)</h2>
+        <table>
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Nombre de Prueba</th>
+                    <th>Resultado</th>
+                    <th>Evidencia</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>TC-01</td>
+                    <td>Login Estudiante</td>
+                    <td class="status-success">EXITOSO</td>
+                    <td>Acceso concedido al dashboard.</td>
+                </tr>
+                <tr>
+                    <td>TC-02</td>
+                    <td>Perfil Lectura Única</td>
+                    <td class="status-fail">FALLIDO</td>
+                    <td>Campos Phone y Address son editables.</td>
+                </tr>
+                <tr>
+                    <td>TC-03</td>
+                    <td>Repeating Schedule</td>
+                    <td class="status-success">EXITOSO</td>
+                    <td>Fechas futuras bloqueadas en gris.</td>
+                </tr>
+                <tr>
+                    <td>TC-04</td>
+                    <td>Carga de Documentos</td>
+                    <td class="status-success">EXITOSO</td>
+                    <td>Estado de documentos visible.</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <div class="role-section">
+        <h2>2. Rol: Office (qaoffice@abasystem.com)</h2>
+        <table>
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Nombre de Prueba</th>
+                    <th>Resultado</th>
+                    <th>Evidencia</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>TC-05</td>
+                    <td>Restricción Pagos Totales</td>
+                    <td class="status-fail">FALLIDO</td>
+                    <td>Total Paid Out visible en Dashboard.</td>
+                </tr>
+                <tr>
+                    <td>TC-06</td>
+                    <td>Bloqueo de Contrato</td>
+                    <td class="status-critical">CRÍTICO</td>
+                    <td>Contrato generado sin documentos obligatorios.</td>
+                </tr>
+                <tr>
+                    <td>TC-07</td>
+                    <td>Acceso General Values</td>
+                    <td class="status-success">EXITOSO</td>
+                    <td>Sin acceso a configuración de tasas.</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <div class="role-section">
+        <h2>3. Perfiles Super Office y Supervisor</h2>
+        <table>
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Validación</th>
+                    <th>Resultado</th>
+                    <th>Observación</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>TC-08</td>
+                    <td>Acceso QA Vault</td>
+                    <td class="status-success">EXITOSO</td>
+                    <td>Super Office tiene acceso total.</td>
+                </tr>
+                <tr>
+                    <td>TC-09</td>
+                    <td>Cálculo Comisión</td>
+                    <td class="status-fail">DISCREPANCIA</td>
+                    <td>60% asignado a BCBA_D (debería ser 54%).</td>
+                </tr>
+                <tr>
+                    <td>TC-10</td>
+                    <td>Perfil Supervisor</td>
+                    <td class="status-fail">FALLIDO</td>
+                    <td>Phone y Address editables por el supervisor.</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <h2>Resumen de Hallazgos Críticos</h2>
+    
+    <div class="report-fault">
+        <h3 class="severity-high">Falla de Seguridad: Generación de Contratos</h3>
+        <p>El sistema ignoró la regla: <em>"No generar contrato sin ID, prueba de matrícula y grado académico"</em>. Se permitió la creación de un contrato activo con documentos parciales.</p>
+    </div>
+
+    <div class="report-fault">
+        <h3 class="severity-high">Exposición de Datos Financieros</h3>
+        <p>El total general de pagos ("Total Paid Out") es visible para el perfil Office, incumpliendo la segregación de funciones (SoD).</p>
+    </div>
+
+    <div class="report-fault">
+        <h3>Inconsistencia en Tasas de Comisión</h3>
+        <p>Se detectó que graduaciones BCBA_D reciben 60% de comisión, contradiciendo el ajuste global del 54% para BCBA.</p>
+    </div>
+
+</body>
+</html>

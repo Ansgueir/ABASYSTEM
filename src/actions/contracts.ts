@@ -92,6 +92,14 @@ export async function updateContract(data: {
     const role = String((session.user as any).role).toLowerCase()
     if (role !== "office") return { error: "Only Office can edit contracts" }
 
+    // Fetch current state
+    const currentContract = await prisma.contract.findUnique({ where: { id: data.contractId } })
+    if (!currentContract) return { error: "Contract not found" }
+
+    // Business Rule: If already ACTIVE, keep it ACTIVE. Do not revert to SENT.
+    // If it was REJECTED or SENT, we keep it as SENT (or move to SENT if it was REJECTED).
+    const nextStatus = currentContract.status === "ACTIVE" ? "ACTIVE" : "SENT"
+
     // Remove all existing pivot rows and re-create
     await prisma.contractSupervisor.deleteMany({ where: { contractId: data.contractId } })
 
@@ -99,6 +107,8 @@ export async function updateContract(data: {
         where: { id: data.contractId },
         data: {
             effectiveDate: new Date(data.effectiveDate),
+            status: nextStatus,
+            rejectionReason: nextStatus === "SENT" ? null : currentContract.rejectionReason,
             supervisors: {
                 create: data.supervisorIds.map(supId => ({
                     supervisorId: supId,
