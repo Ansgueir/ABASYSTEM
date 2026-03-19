@@ -130,7 +130,7 @@ export default async function OfficeSupervisorDetailPage({ params }: { params: P
                     <TabsList className="mb-6 bg-muted/50 p-1 border">
                         <TabsTrigger value="profile" className="px-6 font-medium">Profile</TabsTrigger>
                         <TabsTrigger value="students" className="px-6 font-medium">Students</TabsTrigger>
-                        <TabsTrigger value="manage" className="px-6 font-medium font-semibold text-primary">Manage Students</TabsTrigger>
+                        <TabsTrigger value="manage" className="px-6 font-medium">Manage Students</TabsTrigger>
                         <TabsTrigger value="documents" className="px-6 font-medium">Documents</TabsTrigger>
                         <TabsTrigger value="activity" className="px-6 font-medium">Activity Log</TabsTrigger>
                     </TabsList>
