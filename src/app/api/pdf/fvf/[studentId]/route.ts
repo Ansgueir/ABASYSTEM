@@ -27,12 +27,19 @@ export async function GET(
             where: { id: studentId },
             include: {
                 user: true,
-                supervisor: { include: { user: true } }
+                supervisors: {
+                    include: { supervisor: { include: { user: true } } },
+                    orderBy: { isPrimary: 'desc' }
+                }
             }
         });
 
-        if (!student || !student.supervisor) {
-            return new NextResponse("Student or supervisor not found", { status: 404 });
+        const supervisorAssignments = student?.supervisors || [];
+        const primaryAssignment = supervisorAssignments.find((a: any) => a.isPrimary);
+        const primarySupervisor = primaryAssignment?.supervisor || null;
+
+        if (!student || !primarySupervisor) {
+            return new NextResponse("Student or primary supervisor not found", { status: 404 });
         }
 
         // For FVF (Final/Fieldwork Verification), we usually take ALL approved hours
@@ -107,9 +114,22 @@ export async function GET(
         // Fieldwork Type Checkbox
         tryCheck("CHECK_FIELDWORK"); // Supervised Fieldwork (usually the name for the checkbox)
         
-        // Supervisor 1 info
-        trySetText("SUPERVISOR_NAME_1", student.supervisor.fullName);
-        trySetText("SUPERVISOR_BACB_ID_1", student.supervisor.bacbId || student.supervisor.certificantNumber || "");
+        // Map up to 4 supervisors
+        for (let i = 0; i < 4; i++) {
+            const assignment = supervisorAssignments[i];
+            const nameField = `SUPERVISOR_NAME_${i + 1}`;
+            const idField = `SUPERVISOR_BACB_ID_${i + 1}`;
+
+            if (assignment) {
+                const s = assignment.supervisor;
+                trySetText(nameField, s.fullName);
+                trySetText(idField, s.certificantNumber || s.bacbId || "");
+            } else {
+                // Clear unused fields (important to remove hardcoded values in templates)
+                trySetText(nameField, "");
+                trySetText(idField, "");
+            }
+        }
 
         // Calculations
         trySetText("INDEPENDENT_HOURS", totalIndependent.toFixed(2));
@@ -118,8 +138,8 @@ export async function GET(
         trySetText("PERCENT_HOURS_SUPERVISED", supervisionPercentage.toFixed(1) + "%");
 
         // Responsible Supervisor
-        trySetText("RESPONSIBLE_SUPERVISOR_NAME", student.supervisor.fullName);
-        trySetText("RESPONSIBLE_SUPERVISOR_ACCOUNT_ID", student.supervisor.bacbId || student.supervisor.certificantNumber || "");
+        trySetText("RESPONSIBLE_SUPERVISOR_NAME", primarySupervisor.fullName);
+        trySetText("RESPONSIBLE_SUPERVISOR_ACCOUNT_ID", primarySupervisor.certificantNumber || primarySupervisor.bacbId || "");
 
         // Dates for Signatures
         const todayStr = format(new Date(), "MM/dd/yyyy");
@@ -179,8 +199,8 @@ export async function GET(
             }
         };
 
-        if (student.supervisor.user.signatureUrl) {
-            await stampSignature("SUPERVISOR_SIGNATURE", student.supervisor.user.signatureUrl);
+        if (primarySupervisor.user.signatureUrl) {
+            await stampSignature("SUPERVISOR_SIGNATURE", primarySupervisor.user.signatureUrl);
         }
 
         form.flatten();
