@@ -212,8 +212,10 @@ export default async function SupervisorDashboard() {
                                                 <p className="text-sm text-muted-foreground">{student.academicDegree || 'Student'}</p>
                                             </div>
                                         </div>
-                                        <Button variant="ghost" size="sm" className="rounded-xl">
-                                            View <ArrowRight className="h-4 w-4 ml-1" />
+                                        <Button variant="ghost" size="sm" className="rounded-xl" asChild>
+                                            <Link href={`/supervisor/students/${student.id}`}>
+                                                View <ArrowRight className="h-4 w-4 ml-1" />
+                                            </Link>
                                         </Button>
                                     </div>
                                 ))}
