@@ -146,6 +146,7 @@ export default async function OfficeStudentDetailPage({ params }: { params: Prom
                         <TabsList className="mb-6 bg-muted/50 p-1 border">
                             <TabsTrigger value="contracts" className="px-6">Contracts</TabsTrigger>
                             <TabsTrigger value="profile" className="px-6">Profile</TabsTrigger>
+                            <TabsTrigger value="supervisor" className="px-6">Supervisor</TabsTrigger>
                             <TabsTrigger value="documents" className="px-6">Documents</TabsTrigger>
                             <TabsTrigger value="activity" className="px-6">Activity</TabsTrigger>
                             <TabsTrigger value="billing" className="px-6">Billing</TabsTrigger>
@@ -167,11 +168,6 @@ export default async function OfficeStudentDetailPage({ params }: { params: Prom
                                 <div className="grid gap-6 md:grid-cols-2">
                                     <div className="space-y-6">
                                         <EditableStudentContactInfo student={safeStudent} isSuperAdmin={isSuperAdmin} />
-                                        <SupervisorAssignmentCard 
-                                            studentId={safeStudent.id}
-                                            currentAssignments={safeStudent.supervisors || []}
-                                            allSupervisors={allSupervisors}
-                                        />
                                         <SupervisorNotesCard 
                                             studentId={safeStudent.id} 
                                             notes={safeStudent.notes} 
@@ -179,6 +175,18 @@ export default async function OfficeStudentDetailPage({ params }: { params: Prom
                                         />
                                     </div>
                                     <EditableStudentBacbFieldwork student={safeStudent} isSuperAdmin={isSuperAdmin} />
+                                </div>
+                            </DebugErrorBoundary>
+                        </TabsContent>
+
+                        <TabsContent value="supervisor">
+                            <DebugErrorBoundary title="Supervisor Assignment Tab Error">
+                                <div className="max-w-2xl">
+                                    <SupervisorAssignmentCard 
+                                        studentId={safeStudent.id}
+                                        currentAssignments={safeStudent.supervisors || []}
+                                        allSupervisors={allSupervisors}
+                                    />
                                 </div>
                             </DebugErrorBoundary>
                         </TabsContent>
