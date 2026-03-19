@@ -276,7 +276,7 @@ export default function OnboardingWizard({ initialStep, initialData }: WizardPro
                                                 <SelectItem value="RBT">RBT</SelectItem>
                                                 <SelectItem value="BCaBA">BCaBA</SelectItem>
                                                 <SelectItem value="BCBA">BCBA</SelectItem>
-                                                <SelectItem value="STUDENT">STUDENT</SelectItem>
+                                                <SelectItem value="NO_CREDENTIAL">NO CREDENTIAL (STUDENT)</SelectItem>
                                             </SelectContent>
                                         </Select>
                                     </div>

@@ -112,7 +112,7 @@ export async function submitContactInfo(prevState: any, formData: FormData) {
                     city: d.city,
                     state: d.state,
                     bacbId: d.bacbId,
-                    credential: d.credential as CredentialType,
+                    credential: (d.credential === "STUDENT" ? "NO_CREDENTIAL" : d.credential) as CredentialType,
                     vcsSequence: d.vcsSequence || null,
                     school: "TBD", // Mandatory field default
                     level: "BCBA", // Mandatory field default
@@ -132,7 +132,7 @@ export async function submitContactInfo(prevState: any, formData: FormData) {
                     city: d.city,
                     state: d.state,
                     bacbId: d.bacbId,
-                    credential: d.credential as CredentialType,
+                    credential: (d.credential === "STUDENT" ? "NO_CREDENTIAL" : d.credential) as CredentialType,
                     vcsSequence: d.vcsSequence || null,
                 }
             })
