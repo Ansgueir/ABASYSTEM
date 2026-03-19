@@ -187,7 +187,7 @@ export async function GET(
 
                             page.drawImage(image, {
                                 x: rect.x + 10, // Adjusted offset for FVF
-                                y: rect.y + 2,
+                                y: rect.y - 12, // Lowered to sit on the line
                                 width: Math.min(targetWidth, rect.width - 20),
                                 height: targetHeight,
                             });

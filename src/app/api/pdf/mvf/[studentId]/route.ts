@@ -205,7 +205,7 @@ export async function GET(
                             // Align above the line rect.y, avoid overflowing rect.width
                             page.drawImage(image, {
                                 x: rect.x + 75,
-                                y: rect.y + 2, // base line
+                                y: rect.y - 12, // Lowered to sit on the line
                                 width: Math.min(targetWidth, rect.width - 75),
                                 height: targetHeight,
                             });
