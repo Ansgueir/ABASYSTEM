@@ -30,16 +30,22 @@ export default async function SupervisorDashboard() {
         supervisor = await prisma.supervisor.findUnique({
             where: { userId: session.user.id },
             include: {
-                students: {
-                    take: 5,
+                studentAssignments: {
+                    include: {
+                        student: {
+                            include: {
+                                supervisionHours: { orderBy: { date: "desc" } }
+                            }
+                        }
+                    },
                     orderBy: { createdAt: 'desc' }
                 }
             }
         })
 
         if (supervisor) {
-            students = supervisor.students
-            stats.totalStudents = supervisor.students.length
+            students = (supervisor as any).studentAssignments.map((a: any) => a.student)
+            stats.totalStudents = students.length
 
             const currentMonthStart = startOfMonth(new Date())
             const hoursAgg = await prisma.supervisionHour.aggregate({

@@ -23,14 +23,15 @@ export default async function SupervisorStudentsPage() {
         const supervisor = await prisma.supervisor.findUnique({
             where: { userId: session.user.id },
             include: {
-                students: {
-                    orderBy: { fullName: 'asc' }
+                studentAssignments: {
+                    include: { student: true },
+                    orderBy: { student: { fullName: 'asc' } }
                 }
             }
         })
 
         if (supervisor) {
-            students = supervisor.students
+            students = (supervisor as any).studentAssignments.map((a: any) => a.student)
         }
     } catch (error) {
         console.error("Error fetching students:", error)

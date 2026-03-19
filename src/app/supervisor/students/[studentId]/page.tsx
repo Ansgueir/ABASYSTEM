@@ -23,7 +23,25 @@ export default async function SupervisorStudentDetailPage({ params }: { params: 
     const role = String((session.user as any).role).toLowerCase()
     if (role !== "supervisor" && role !== "qa") redirect("/login")
 
-    // Fetch full student profile with documents, contracts and both types of hours
+    const supervisor = await prisma.supervisor.findUnique({
+        where: { userId: session.user.id }
+    })
+
+    if (!supervisor) redirect("/login")
+
+    // Fetch student only if assigned to this supervisor (or if role is QA)
+    const assignment = await (prisma as any).studentSupervisor.findFirst({
+        where: {
+            studentId,
+            supervisorId: supervisor.id
+        }
+    })
+
+    if (!assignment && role !== "qa") {
+        redirect("/supervisor/students")
+    }
+
+    // Fetch full student profile
     const student = await prisma.student.findUnique({
         where: { id: studentId },
         include: {

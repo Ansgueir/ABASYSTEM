@@ -20,6 +20,7 @@ import { StudentActivityTab } from "@/components/office/student-activity-tab"
 import { StudentBillingTab } from "@/components/office/student-billing-tab"
 import { DebugErrorBoundary } from "@/components/debug-error-boundary"
 import { SupervisorNotesCard } from "@/components/shared/supervisor-notes-card"
+import { SupervisorAssignmentCard } from "@/components/office/supervisor-assignment-card"
 
 export default async function OfficeStudentDetailPage({ params }: { params: Promise<{ studentId: string }> }) {
     const { studentId } = await params
@@ -49,6 +50,9 @@ export default async function OfficeStudentDetailPage({ params }: { params: Prom
                 independentHours: { orderBy: { date: "desc" } },
                 supervisionHours: { orderBy: { date: "desc" } },
                 invoices: { orderBy: { createdAt: "desc" } },
+                supervisors: {
+                    include: { supervisor: true }
+                },
                 // removed financialPeriods as it is not present in the current production schema
             }
         });
@@ -163,6 +167,11 @@ export default async function OfficeStudentDetailPage({ params }: { params: Prom
                                 <div className="grid gap-6 md:grid-cols-2">
                                     <div className="space-y-6">
                                         <EditableStudentContactInfo student={safeStudent} isSuperAdmin={isSuperAdmin} />
+                                        <SupervisorAssignmentCard 
+                                            studentId={safeStudent.id}
+                                            currentAssignments={safeStudent.supervisors || []}
+                                            allSupervisors={allSupervisors}
+                                        />
                                         <SupervisorNotesCard 
                                             studentId={safeStudent.id} 
                                             notes={safeStudent.notes} 

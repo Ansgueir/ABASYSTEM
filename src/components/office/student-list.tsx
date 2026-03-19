@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input"
 import { GraduationCap, Search, Download, Eye, Filter, X, ChevronRight, CalendarIcon } from "lucide-react"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import { AddStudentDialog } from "@/components/office/add-student-dialog"
+import { Badge } from "@/components/ui/badge"
 import { UserActions } from "@/components/office/user-actions"
 import Link from "next/link"
 import {
@@ -44,7 +45,10 @@ export function StudentList({ initialStudents, isSuperAdmin }: StudentListProps)
     const uniqueSupervisors = useMemo(() => {
         const map = new Map()
         initialStudents.forEach(s => {
-            if (s.supervisor) map.set(s.supervisor.id, s.supervisor.fullName)
+            const sups = s.supervisors || (s.supervisor ? [{ supervisor: s.supervisor }] : [])
+            sups.forEach((m: any) => {
+                if (m.supervisor) map.set(m.supervisor.id, m.supervisor.fullName)
+            })
         })
         return Array.from(map.entries()).map(([id, name]) => ({ id, name }))
     }, [initialStudents])
@@ -70,16 +74,18 @@ export function StudentList({ initialStudents, isSuperAdmin }: StudentListProps)
             const matchesSearch =
                 student.fullName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
                 student.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                student.supervisors?.some((s: any) => s.supervisor.fullName?.toLowerCase().includes(searchTerm.toLowerCase())) ||
                 student.supervisor?.fullName?.toLowerCase().includes(searchTerm.toLowerCase())
 
             // Status Map
             const derivedStatus = !student.user?.isActive ? 'INACTIVE' : (student.status || 'PENDING')
             const matchesStatus = statusFilter.length === 0 || statusFilter.includes(derivedStatus.toUpperCase())
 
-            // Supervisor Match
-            const supervisorId = student.supervisor?.id || "unassigned"
-            const matchesSupervisor = supervisorFilter.length === 0 || supervisorFilter.includes(supervisorId) ||
-                (supervisorFilter.includes("unassigned") && !student.supervisor)
+            // Supervisor Match - Check if any assigned supervisor matches
+            const studentSupervisorIds = student.supervisors?.map((s: any) => s.supervisorId) || (student.supervisorId ? [student.supervisorId] : [])
+            const matchesSupervisor = supervisorFilter.length === 0 || 
+                studentSupervisorIds.some((id: string) => supervisorFilter.includes(id)) ||
+                (supervisorFilter.includes("unassigned") && studentSupervisorIds.length === 0)
 
             // Start Date
             let matchesStartDate = false
@@ -522,13 +528,24 @@ export function StudentList({ initialStudents, isSuperAdmin }: StudentListProps)
                                                 </div>
                                             </td>
                                             <td className="p-4 hidden md:table-cell">
-                                                {student.supervisor ? (
-                                                    <div className="flex flex-col">
+                                                <div className="flex flex-col gap-1">
+                                                    {student.supervisors && student.supervisors.length > 0 ? (
+                                                        <>
+                                                            {student.supervisors.map((s: any) => (
+                                                                <div key={s.supervisorId} className="flex items-center gap-1">
+                                                                    <span className={`font-medium ${s.isPrimary ? 'text-foreground' : 'text-muted-foreground text-xs italic'}`}>
+                                                                        {s.supervisor.fullName}
+                                                                        {s.isPrimary && <Badge variant="outline" className="ml-2 text-[8px] h-3 px-1 border-emerald-500/30 text-emerald-600 bg-emerald-50">Prim</Badge>}
+                                                                    </span>
+                                                                </div>
+                                                            ))}
+                                                        </>
+                                                    ) : student.supervisor ? (
                                                         <span className="font-medium text-foreground">{student.supervisor.fullName}</span>
-                                                    </div>
-                                                ) : (
-                                                    <span className="text-xs px-2 py-1 rounded bg-muted text-muted-foreground/70 font-medium">Not Assigned</span>
-                                                )}
+                                                    ) : (
+                                                        <span className="text-xs px-2 py-1 rounded bg-muted text-muted-foreground/70 font-medium">Not Assigned</span>
+                                                    )}
+                                                </div>
                                             </td>
                                             <td className="p-4 hidden lg:table-cell">
                                                 <div className="flex flex-col">

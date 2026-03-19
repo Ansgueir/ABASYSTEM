@@ -49,13 +49,13 @@ model Student {
   userId                  String                       @unique
   fullName                String
   paymentAlias            String[]
-  supervisorId            String?
   bacbId                  String                       @db.VarChar(10)
   credential              CredentialType
   school                  String
   level                   LevelType
   phone                   String
   email                   String
+  supervisorId            String?
   address                 String                       @default("")
   city                    String
   state                   String
@@ -82,8 +82,9 @@ model Student {
   groupAttendance         GroupSupervisionAttendance[]
   independentHours        IndependentHour[]
   invoices                Invoice[]
-  supervisor              Supervisor?                  @relation(fields: [supervisorId], references: [id])
+  supervisors             StudentSupervisor[]
   user                    User                         @relation(fields: [userId], references: [id])
+  supervisor              Supervisor?                  @relation("PrimarySupervisor", fields: [supervisorId], references: [id])
   evaluations             StudentEvaluation[]
   payments                StudentPayment[]
   vcsSequence             String?
@@ -138,16 +139,32 @@ model Supervisor {
   maxStudents        Int                       @default(10)
   documents          Document[]
   groupSessions      GroupSupervisionSession[]
-  students           Student[]
+  studentAssignments StudentSupervisor[]
   evaluations        StudentEvaluation[]
   supervisionHours   SupervisionHour[]
   user               User                      @relation(fields: [userId], references: [id])
+  students           Student[]                 @relation("PrimarySupervisor")
   payments           SupervisorPayment[]
   contracts          ContractSupervisor[]
   importBatchId      String?
 
   @@index([fullName])
   @@index([email])
+}
+
+model StudentSupervisor {
+  id           String     @id @default(uuid())
+  studentId    String
+  supervisorId String
+  isPrimary    Boolean    @default(false)
+  createdAt    DateTime   @default(now())
+  updatedAt    DateTime   @updatedAt
+  student      Student    @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  supervisor   Supervisor @relation(fields: [supervisorId], references: [id])
+
+  @@unique([studentId, supervisorId])
+  @@index([studentId])
+  @@index([supervisorId])
 }
 
 model OfficeMember {

@@ -21,6 +21,9 @@ export default async function OfficeStudentsPage() {
             orderBy: { fullName: 'asc' },
             include: {
                 supervisor: true,
+                supervisors: {
+                    include: { supervisor: true }
+                },
                 user: {
                     select: { isActive: true, email: true }
                 },
