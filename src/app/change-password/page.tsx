@@ -9,6 +9,7 @@ import { Loader2 } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
 import { useSession } from "next-auth/react"
+import { PasswordInput } from "@/components/ui/password-input"
 import {
     Card,
     CardContent,
@@ -100,30 +101,27 @@ export default function ChangePasswordPage() {
                     <CardContent className="space-y-4">
                         <div className="space-y-2">
                             <Label htmlFor="currentPassword">Current Password</Label>
-                            <Input
+                            <PasswordInput
                                 id="currentPassword"
                                 name="currentPassword"
-                                type="password"
                                 required
                                 placeholder="Enter the temporary password"
                             />
                         </div>
                         <div className="space-y-2">
                             <Label htmlFor="newPassword">New Password</Label>
-                            <Input
+                            <PasswordInput
                                 id="newPassword"
                                 name="newPassword"
-                                type="password"
                                 required
                                 placeholder="Min 8 chars, uppercase, lowercase, number, special char"
                             />
                         </div>
                         <div className="space-y-2">
                             <Label htmlFor="confirmPassword">Confirm New Password</Label>
-                            <Input
+                            <PasswordInput
                                 id="confirmPassword"
                                 name="confirmPassword"
-                                type="password"
                                 required
                                 placeholder="Re-enter new password"
                             />
