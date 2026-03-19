@@ -22,8 +22,12 @@ export async function getManageableStudents(supervisorId: string) {
 
     try {
         const allStudents = await prisma.student.findMany({
-            include: { supervisors: true },
-            select: { id: true, fullName: true, email: true, supervisors: true }
+            select: { 
+                id: true, 
+                fullName: true, 
+                email: true, 
+                supervisors: true 
+            }
         })
 
         const unassigned = allStudents.filter(s => s.supervisors.length === 0)
