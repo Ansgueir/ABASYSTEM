@@ -30,7 +30,8 @@ export default async function SupervisorDashboard() {
         supervisor = await prisma.supervisor.findUnique({
             where: { userId: session.user.id },
             include: {
-                studentAssignments: {
+                students: true, // Legacy 1:N
+                studentAssignments: { // New N:M
                     include: {
                         student: {
                             include: {
@@ -44,17 +45,31 @@ export default async function SupervisorDashboard() {
         })
 
         if (supervisor) {
-            students = (supervisor as any).studentAssignments.map((a: any) => a.student)
+            // DUAL DISCOVERY: Combine both N:M and legacy correlations to ensure 100% coverage
+            const nmIds = (supervisor as any).studentAssignments.map((a: any) => a.studentId)
+            const legacyIds = (supervisor as any).students.map((s: any) => s.id)
+            const allAssignedIds = Array.from(new Set([...nmIds, ...legacyIds]))
+            
+            // Build the unified student objects list for the UI
+            const studentsFromNm = (supervisor as any).studentAssignments.map((a: any) => a.student)
+            const studentsFromLegacy = (supervisor as any).students
+            const uniqueStudents = [...studentsFromNm]
+            studentsFromLegacy.forEach((s: any) => {
+                if (!uniqueStudents.find(us => us.id === s.id)) {
+                    uniqueStudents.push(s)
+                }
+            })
+
+            students = uniqueStudents
             stats.totalStudents = students.length
 
             const currentMonthStart = startOfMonth(new Date())
-            const assignedStudentIds = (supervisor as any).studentAssignments.map((a: any) => a.studentId)
             
             // 1. Total Hours this month (excluding rejected)
-            // As requested: Filter by assigned students using the IN operator
+            // Using ALL detected student IDs (Dual Mode)
             const hoursAgg = await prisma.supervisionHour.aggregate({
                 where: {
-                    studentId: { in: assignedStudentIds },
+                    studentId: { in: allAssignedIds },
                     date: { gte: currentMonthStart },
                     status: { not: 'REJECTED' }
                 },

@@ -25,18 +25,20 @@ export default async function SupervisorTimesheetPage() {
         supervisor = await prisma.supervisor.findUnique({
             where: { userId: session.user.id },
             include: { 
-                studentAssignments: true,
+                studentAssignments: { include: { student: true } },
                 students: true 
             }
         })
  
         if (supervisor) {
-            const assignedStudentIds = (supervisor as any).studentAssignments.map((a: any) => a.studentId)
+            const nmIds = (supervisor as any).studentAssignments.map((a: any) => a.studentId)
+            const legacyIds = (supervisor as any).students.map((s: any) => s.id)
+            const allAssignedIds = Array.from(new Set([...nmIds, ...legacyIds]))
             
             const raw = await prisma.supervisionHour.findMany({
                 where: { 
-                    studentId: { in: assignedStudentIds },
-                    status: { not: 'REJECTED' } // Usually helpful for auditing 'valid' timesheet
+                    studentId: { in: allAssignedIds },
+                    status: { not: 'REJECTED' }
                 },
                 orderBy: { date: 'desc' },
                 take: 50,
