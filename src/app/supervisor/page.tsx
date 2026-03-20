@@ -48,12 +48,13 @@ export default async function SupervisorDashboard() {
             stats.totalStudents = students.length
 
             const currentMonthStart = startOfMonth(new Date())
+            const assignedStudentIds = (supervisor as any).studentAssignments.map((a: any) => a.studentId)
             
             // 1. Total Hours this month (excluding rejected)
-            // We sum ALL hours supervised by this supervisor, regardless of student assignment
+            // As requested: Filter by assigned students using the IN operator
             const hoursAgg = await prisma.supervisionHour.aggregate({
                 where: {
-                    supervisorId: supervisor.id,
+                    studentId: { in: assignedStudentIds },
                     date: { gte: currentMonthStart },
                     status: { not: 'REJECTED' }
                 },
