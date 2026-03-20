@@ -33,8 +33,10 @@ export default async function OfficeSupervisorDetailPage({ params }: { params: P
             where: { id: supervisorId },
             include: {
                 documents: { orderBy: { uploadedAt: "desc" } },
-                students: {
-                    orderBy: { fullName: "asc" }
+                studentAssignments: {
+                    include: {
+                        student: true
+                    }
                 },
                 supervisionHours: {
                     orderBy: { date: "desc" },
@@ -63,6 +65,15 @@ export default async function OfficeSupervisorDetailPage({ params }: { params: P
     }
 
     const safeSupervisor = serialize(supervisor)
+    
+    // Normalize N:M assignments to a simple students array for UI compatibility
+    const assignedStudents = (supervisor.studentAssignments || [])
+        .map((sa: any) => sa.student)
+        .filter(Boolean)
+        .sort((a: any, b: any) => a.fullName.localeCompare(b.fullName))
+    
+    // Overwrite the (empty or legacy) students property with normalized data
+    safeSupervisor.students = assignedStudents
 
     const totalHoursLogged = (supervisor.supervisionHours ?? []).reduce((s: number, h: any) => s + Number(h.hours), 0)
     const commissionCents = Number(supervisor.paymentPercentage || 0.54) * 100
