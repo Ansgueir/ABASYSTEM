@@ -65,10 +65,11 @@ export default async function SupervisorDashboard() {
 
             const currentMonthStart = startOfMonth(new Date())
             
-            // EMERGENCY DIAGNOSTIC: Show EVERYTHING in the DB to see if data exists at all
+            // 1. Fetch both Supervised and Independent hours in parallel (Dual Mode Filter)
             const [superAgg, indepAgg] = await Promise.all([
                 prisma.supervisionHour.aggregate({
                     where: {
+                        studentId: { in: allAssignedIds },
                         date: { gte: currentMonthStart },
                         status: { not: 'REJECTED' }
                     },
@@ -77,6 +78,7 @@ export default async function SupervisorDashboard() {
                 }),
                 prisma.independentHour.aggregate({
                     where: {
+                        studentId: { in: allAssignedIds },
                         date: { gte: currentMonthStart },
                         status: { not: 'REJECTED' }
                     },
