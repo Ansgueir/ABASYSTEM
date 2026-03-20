@@ -141,7 +141,8 @@ export function LogHoursDialog({ disabled = false, disabledMessage }: LogHoursDi
                 <Button 
                     className="bg-indigo-600/50 hover:bg-indigo-600/60 text-white cursor-not-allowed"
                     onClick={() => {
-                        toast.error(disabledMessage || "You cannot log hours yet. Please contact the Office.")
+                        setErrorMessage(disabledMessage || "You cannot log hours yet. Please contact the Office to have a Supervisor assigned to your profile.")
+                        setErrorDialogOpen(true)
                     }}
                 >
                     <Clock className="mr-2 h-4 w-4" />
