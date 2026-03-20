@@ -32,16 +32,40 @@ export default async function SupervisionLogsReviewPage({
     const statusFilter = validTabs.includes(activeTab) ? activeTab : "PENDING"
 
     let logs: any[] = []
-
+ 
     try {
-        logs = await prisma.supervisionHour.findMany({
-            where: { status: statusFilter as any },
-            orderBy: { date: 'asc' },
-            include: {
-                student: { select: { fullName: true } },
-                supervisor: { select: { fullName: true } }
-            }
-        })
+        const [supervisionLogs, independentLogs] = await Promise.all([
+            prisma.supervisionHour.findMany({
+                where: { status: statusFilter as any },
+                orderBy: { date: 'desc' },
+                include: {
+                    student: { select: { fullName: true } },
+                    supervisor: { select: { fullName: true } }
+                }
+            }),
+            prisma.independentHour.findMany({
+                where: { status: statusFilter as any },
+                orderBy: { date: 'desc' },
+                include: {
+                    student: { select: { fullName: true } }
+                }
+            })
+        ])
+
+        // Combine and tag them
+        const combined = [
+            ...supervisionLogs.map(l => ({ ...l, type: 'SUPERVISED' })),
+            ...independentLogs.map(l => ({ 
+                ...l, 
+                type: 'INDEPENDENT', 
+                supervisor: { fullName: 'N/A (Indep.)' },
+                supervisionType: 'N/A' 
+            }))
+        ]
+
+        // Sort by date desc
+        logs = combined.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
+
     } catch (error) {
         console.error(`Error fetching ${statusFilter} logs:`, error)
     }

@@ -65,21 +65,31 @@ export default async function SupervisorDashboard() {
 
             const currentMonthStart = startOfMonth(new Date())
             
-            // 1. Total Hours this month (excluding rejected)
-            // Using ALL detected student IDs (Dual Mode)
-            const hoursAgg = await prisma.supervisionHour.aggregate({
-                where: {
-                    studentId: { in: allAssignedIds },
-                    date: { gte: currentMonthStart },
-                    status: { not: 'REJECTED' }
-                },
-                _sum: { hours: true, supervisorPay: true },
-                _count: { id: true }
-            })
+            // 1. Fetch both Supervised and Independent hours in parallel
+            const [superAgg, indepAgg] = await Promise.all([
+                prisma.supervisionHour.aggregate({
+                    where: {
+                        studentId: { in: allAssignedIds },
+                        date: { gte: currentMonthStart },
+                        status: { not: 'REJECTED' }
+                    },
+                    _sum: { hours: true, supervisorPay: true },
+                    _count: { id: true }
+                }),
+                prisma.independentHour.aggregate({
+                    where: {
+                        studentId: { in: allAssignedIds },
+                        date: { gte: currentMonthStart },
+                        status: { not: 'REJECTED' }
+                    },
+                    _sum: { hours: true },
+                    _count: { id: true }
+                })
+            ])
             
-            stats.hoursThisMonth = Number(hoursAgg._sum?.hours) || 0
-            stats.completedSessions = hoursAgg._count?.id || 0
-            stats.pendingEarnings = Number(hoursAgg._sum?.supervisorPay) || 0
+            stats.hoursThisMonth = (Number(superAgg._sum?.hours) || 0) + (Number(indepAgg._sum?.hours) || 0)
+            stats.completedSessions = (superAgg._count?.id || 0) + (indepAgg._count?.id || 0)
+            stats.pendingEarnings = Number(superAgg._sum?.supervisorPay) || 0
         }
     } catch (error) {
         console.error("Error fetching supervisor data:", error)

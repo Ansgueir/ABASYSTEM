@@ -35,21 +35,41 @@ export default async function SupervisorTimesheetPage() {
             const legacyIds = (supervisor as any).students.map((s: any) => s.id)
             const allAssignedIds = Array.from(new Set([...nmIds, ...legacyIds]))
             
-            const raw = await prisma.supervisionHour.findMany({
-                where: { 
-                    studentId: { in: allAssignedIds },
-                    status: { not: 'REJECTED' }
-                },
-                orderBy: { date: 'desc' },
-                take: 50,
-                include: { student: true }
-            })
+            const [superLogs, indepLogs] = await Promise.all([
+                prisma.supervisionHour.findMany({
+                    where: { 
+                        studentId: { in: allAssignedIds },
+                        status: { not: 'REJECTED' }
+                    },
+                    orderBy: { date: 'desc' },
+                    take: 50,
+                    include: { student: true }
+                }),
+                prisma.independentHour.findMany({
+                    where: { 
+                        studentId: { in: allAssignedIds },
+                        status: { not: 'REJECTED' }
+                    },
+                    orderBy: { date: 'desc' },
+                    take: 50,
+                    include: { student: true }
+                })
+            ])
+
+            const combined = [
+                ...superLogs.map(l => ({ ...l, type: 'SUPERVISED' })),
+                ...indepLogs.map(l => ({ ...l, type: 'INDEPENDENT', supervisionType: 'N/A' }))
+            ]
+
+            const raw = combined
+                .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
+                .slice(0, 50)
  
-            hours = raw.map(x => ({
+            hours = (raw as any[]).map(x => ({
                 ...x,
                 hours: Number(x.hours),
-                amountBilled: x.amountBilled ? Number(x.amountBilled) : null,
-                supervisorPay: x.supervisorPay ? Number(x.supervisorPay) : null,
+                amountBilled: x.amountBilled ? Number(x.amountBilled) : 0,
+                supervisorPay: x.supervisorPay ? Number(x.supervisorPay) : 0,
                 student: {
                     ...x.student,
                     hourlyRate: Number(x.student.hourlyRate),
