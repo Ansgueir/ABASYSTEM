@@ -5,11 +5,16 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Card, CardContent } from "@/components/ui/card"
 import { ShieldAlert, Eye, UploadCloud, History } from "lucide-react"
 import { RecoverActionBtn } from "./recover-btn"
+import { PurgeActionBtn } from "./purge-btn"
 import { Button } from "@/components/ui/button"
 import { ImportStaging } from "./import-staging"
 import { ImportHistory } from "./import-history"
+import { useSession } from "next-auth/react"
 
 export function VaultClientTabs({ hiddenUsers }: { hiddenUsers: any[] }) {
+    const { data: session } = useSession()
+    const isPurgeMaster = session?.user?.email === 'qa-super@abasystem.com'
+
     return (
         <Tabs defaultValue="ghosts" className="w-full">
             <TabsList className="grid w-full grid-cols-3">
@@ -81,6 +86,13 @@ export function VaultClientTabs({ hiddenUsers }: { hiddenUsers: any[] }) {
                                                     </a>
                                                 )}
                                                 <RecoverActionBtn id={id} type={type} name={name} />
+                                                {isPurgeMaster && (
+                                                    <PurgeActionBtn 
+                                                        userId={user.id} 
+                                                        userName={name} 
+                                                        userEmail={user.email} 
+                                                    />
+                                                )}
                                             </div>
                                         </div>
                                     </CardContent>
