@@ -48,33 +48,22 @@ export default async function SupervisorDashboard() {
             stats.totalStudents = students.length
 
             const currentMonthStart = startOfMonth(new Date())
-            const studentIds = students.map(s => s.id)
             
             // 1. Total Hours this month (excluding rejected)
+            // We sum ALL hours supervised by this supervisor, regardless of student assignment
             const hoursAgg = await prisma.supervisionHour.aggregate({
                 where: {
                     supervisorId: supervisor.id,
-                    studentId: { in: studentIds },
                     date: { gte: currentMonthStart },
                     status: { not: 'REJECTED' }
                 },
-                _sum: { hours: true },
+                _sum: { hours: true, supervisorPay: true },
                 _count: { id: true }
             })
+            
             stats.hoursThisMonth = Number(hoursAgg._sum?.hours) || 0
             stats.completedSessions = hoursAgg._count?.id || 0
-
-            // 2. Pending Earnings (sum of supervisorPay where not paid yet? For now, sum of approved/pending)
-            const earningsAgg = await prisma.supervisionHour.aggregate({
-                where: {
-                    supervisorId: supervisor.id,
-                    studentId: { in: studentIds },
-                    date: { gte: currentMonthStart },
-                    status: { not: 'REJECTED' }
-                },
-                _sum: { supervisorPay: true }
-            })
-            stats.pendingEarnings = Number(earningsAgg._sum?.supervisorPay) || 0
+            stats.pendingEarnings = Number(hoursAgg._sum?.supervisorPay) || 0
         }
     } catch (error) {
         console.error("Error fetching supervisor data:", error)
