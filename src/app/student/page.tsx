@@ -48,7 +48,10 @@ export default async function StudentDashboard() {
     try {
         student = await prisma.student.findUnique({
             where: { userId: session.user.id },
-            include: { supervisor: { include: { user: true } } }
+            include: { 
+                supervisor: { include: { user: true } },
+                supervisors: true 
+            }
         })
 
         if (student) {
@@ -173,7 +176,10 @@ export default async function StudentDashboard() {
                         <h1 className="mt-2 text-3xl font-bold">Track Your Progress Towards Certification</h1>
                         <p className="mt-2 text-white/80 max-w-lg">Log your hours, stay on top of supervision requirements, and achieve your goals.</p>
                         <div className="mt-6">
-                            <LogHoursDialog />
+                            <LogHoursDialog 
+                                disabled={!student?.supervisors || student.supervisors.length === 0} 
+                                disabledMessage="You cannot log hours yet. Please contact the Office to have a Supervisor assigned to your profile."
+                            />
                         </div>
                     </div>
                     {/* Decorative elements */}

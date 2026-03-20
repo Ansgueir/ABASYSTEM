@@ -220,13 +220,20 @@ export async function logHours(prevState: LogHoursState, formData: FormData) {
 
         if (role === "student") {
             const student = await prisma.student.findUnique({
-                where: { userId: session.user.id }
+                where: { userId: session.user.id },
+                include: { supervisors: true }
             })
             if (!student) return { error: "Student profile not found" }
+            
+            // BUSINESS RULE: Student MUST have at least one supervisor to log ANY hour.
+            if (!student.supervisors || student.supervisors.length === 0) {
+                return { error: "Forbidden: You cannot log hours yet. Please contact the Office to have a Supervisor assigned to your profile." }
+            }
+
             studentId = student.id
             // If supervision, use assigned supervisor
             if (data.type === "supervision") {
-                if (!student.supervisorId) return { error: "No supervisor assigned" }
+                if (!student.supervisorId) return { error: "No primary supervisor assigned for supervision logging" }
                 supervisorId = student.supervisorId
             }
         } else if (role === "supervisor") {

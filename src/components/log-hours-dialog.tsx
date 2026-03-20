@@ -57,7 +57,12 @@ const formSchema = z.object({
     notes: z.string().optional(),
 })
 
-export function LogHoursDialog() {
+interface LogHoursDialogProps {
+    disabled?: boolean
+    disabledMessage?: string
+}
+
+export function LogHoursDialog({ disabled = false, disabledMessage }: LogHoursDialogProps) {
     const [open, setOpen] = useState(false)
     const [isPending, setIsPending] = useState(false)
 
@@ -134,7 +139,15 @@ export function LogHoursDialog() {
         <>
             <Dialog open={open} onOpenChange={setOpen}>
                 <DialogTrigger asChild>
-                    <Button className="bg-indigo-600 hover:bg-indigo-700 text-white">
+                    <Button 
+                        className="bg-indigo-600 hover:bg-indigo-700 text-white"
+                        onClick={(e) => {
+                            if (disabled) {
+                                e.preventDefault()
+                                toast.error(disabledMessage || "You cannot log hours yet. Please contact the Office.")
+                            }
+                        }}
+                    >
                         <Clock className="mr-2 h-4 w-4" />
                         Log Hours
                     </Button>
