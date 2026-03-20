@@ -137,28 +137,31 @@ export function LogHoursDialog({ disabled = false, disabledMessage }: LogHoursDi
 
     return (
         <>
-            <Dialog open={open} onOpenChange={setOpen}>
-                <DialogTrigger asChild>
-                    <Button 
-                        className="bg-indigo-600 hover:bg-indigo-700 text-white"
-                        onClick={(e) => {
-                            if (disabled) {
-                                e.preventDefault()
-                                toast.error(disabledMessage || "You cannot log hours yet. Please contact the Office.")
-                            }
-                        }}
-                    >
-                        <Clock className="mr-2 h-4 w-4" />
-                        Log Hours
-                    </Button>
-                </DialogTrigger>
-                <DialogContent className="sm:max-w-[500px] max-h-[90vh] overflow-y-auto">
-                    <DialogHeader>
-                        <DialogTitle>Log Hours</DialogTitle>
-                        <DialogDescription>
-                            Record your fieldwork hours.
-                        </DialogDescription>
-                    </DialogHeader>
+            {disabled ? (
+                <Button 
+                    className="bg-indigo-600/50 hover:bg-indigo-600/60 text-white cursor-not-allowed"
+                    onClick={() => {
+                        toast.error(disabledMessage || "You cannot log hours yet. Please contact the Office.")
+                    }}
+                >
+                    <Clock className="mr-2 h-4 w-4" />
+                    Log Hours
+                </Button>
+            ) : (
+                <Dialog open={open} onOpenChange={setOpen}>
+                    <DialogTrigger asChild>
+                        <Button className="bg-indigo-600 hover:bg-indigo-700 text-white">
+                            <Clock className="mr-2 h-4 w-4" />
+                            Log Hours
+                        </Button>
+                    </DialogTrigger>
+                    <DialogContent className="sm:max-w-[500px] max-h-[90vh] overflow-y-auto">
+                        <DialogHeader>
+                            <DialogTitle>Log Hours</DialogTitle>
+                            <DialogDescription>
+                                Record your fieldwork hours.
+                            </DialogDescription>
+                        </DialogHeader>
                     <Form {...form}>
                         <form onSubmit={form.handleSubmit(onSubmit, (errors) => console.log("Form Errors:", errors))} className="space-y-4">
 
@@ -338,6 +341,7 @@ export function LogHoursDialog({ disabled = false, disabledMessage }: LogHoursDi
                     </Form>
                 </DialogContent>
             </Dialog>
+        )}
 
             <Dialog open={errorDialogOpen} onOpenChange={setErrorDialogOpen}>
                 <DialogContent className="sm:max-w-[425px] border-l-4 border-red-600">

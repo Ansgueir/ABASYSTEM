@@ -50,7 +50,9 @@ export default async function StudentDashboard() {
             where: { userId: session.user.id },
             include: { 
                 supervisor: { include: { user: true } },
-                supervisors: true 
+                supervisors: {
+                    include: { supervisor: true }
+                } 
             }
         })
 
@@ -142,27 +144,39 @@ export default async function StudentDashboard() {
             </Card>
 
             {/* Supervisor */}
-            {student?.supervisor && (
-                <Card>
-                    <CardHeader className="pb-3">
-                        <CardTitle className="text-base">Your Supervisor</CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                        <div className="flex items-center gap-3">
-                            <Avatar className="h-12 w-12 border-2 border-primary/20">
-                                <AvatarFallback className="bg-primary/10 text-primary">
-                                    {student.supervisor.fullName.split(' ').map(n => n[0]).join('')}
-                                </AvatarFallback>
-                            </Avatar>
-                            <div className="flex-1">
-                                <p className="font-medium">{student.supervisor.fullName}</p>
-                                <p className="text-sm text-muted-foreground">BCBA</p>
+            {(() => {
+                const primaryAssignment = (student?.supervisors || []).find((s: any) => s.isPrimary);
+                const primarySupervisor = primaryAssignment?.supervisor || student?.supervisor;
+                
+                if (!primarySupervisor) return null;
+
+                return (
+                    <Card>
+                        <CardHeader className="pb-3">
+                            <CardTitle className="text-base">Your Supervisor</CardTitle>
+                        </CardHeader>
+                        <CardContent>
+                            <div className="flex items-center gap-3">
+                                <Avatar className="h-12 w-12 border-2 border-primary/20">
+                                    <AvatarFallback className="bg-primary/10 text-primary">
+                                        {primarySupervisor.fullName.split(' ').map((n: string) => n[0]).join('')}
+                                    </AvatarFallback>
+                                </Avatar>
+                                <div className="flex-1">
+                                    <p className="font-medium text-sm lg:text-base">{primarySupervisor.fullName}</p>
+                                    <p className="text-xs text-muted-foreground">{primarySupervisor.credentialType || 'BCBA'}</p>
+                                </div>
+                                <SupervisorContactDialog supervisor={serialize(primarySupervisor)} />
                             </div>
-                            <SupervisorContactDialog supervisor={serialize(student.supervisor)} />
-                        </div>
-                    </CardContent>
-                </Card>
-            )}
+                            {primaryAssignment && (
+                                <div className="mt-2 px-2 py-0.5 bg-emerald-50 border border-emerald-100 rounded-md inline-block">
+                                    <span className="text-[10px] text-emerald-700 font-bold uppercase tracking-wider">Primary</span>
+                                </div>
+                            )}
+                        </CardContent>
+                    </Card>
+                );
+            })()}
         </div>
     )
 

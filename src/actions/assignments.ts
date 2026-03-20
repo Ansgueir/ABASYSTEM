@@ -83,6 +83,12 @@ export async function updateStudentAssignments(
                     data: assignments
                 })
             }
+
+            // Sync legacy supervisorId field for backward compatibility and UI consistency
+            await tx.student.update({
+                where: { id: studentId },
+                data: { supervisorId: primarySupervisorId }
+            })
         })
 
         revalidatePath("/office/supervisors")

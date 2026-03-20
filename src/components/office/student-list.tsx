@@ -529,22 +529,20 @@ export function StudentList({ initialStudents, isSuperAdmin }: StudentListProps)
                                             </td>
                                             <td className="p-4 hidden md:table-cell">
                                                 <div className="flex flex-col gap-1">
-                                                    {student.supervisors && student.supervisors.length > 0 ? (
-                                                        <>
-                                                            {student.supervisors.map((s: any) => (
-                                                                <div key={s.supervisorId} className="flex items-center gap-1">
-                                                                    <span className={`font-medium ${s.isPrimary ? 'text-foreground' : 'text-muted-foreground text-xs italic'}`}>
-                                                                        {s.supervisor.fullName}
-                                                                        {s.isPrimary && <Badge variant="outline" className="ml-2 text-[8px] h-3 px-1 border-emerald-500/30 text-emerald-600 bg-emerald-50">Prim</Badge>}
-                                                                    </span>
-                                                                </div>
-                                                            ))}
-                                                        </>
-                                                    ) : student.supervisor ? (
-                                                        <span className="font-medium text-foreground">{student.supervisor.fullName}</span>
-                                                    ) : (
-                                                        <span className="text-xs px-2 py-1 rounded bg-muted text-muted-foreground/70 font-medium">Not Assigned</span>
-                                                    )}
+                                            {student.supervisors && student.supervisors.length > 0 ? (
+                                                <div className="flex flex-col gap-1">
+                                                    {student.supervisors.map((s: any) => (
+                                                        <div key={s.supervisorId} className="flex items-center gap-1">
+                                                            <span className={`font-medium ${s.isPrimary ? 'text-foreground' : 'text-muted-foreground text-xs italic'}`}>
+                                                                {s.supervisor.fullName}
+                                                                {s.isPrimary && <Badge variant="outline" className="ml-2 text-[8px] h-3 px-1 border-emerald-500/30 text-emerald-600 bg-emerald-50">Prim</Badge>}
+                                                            </span>
+                                                        </div>
+                                                    ))}
+                                                </div>
+                                            ) : (
+                                                <span className="text-xs px-2 py-1 rounded bg-muted text-muted-foreground/70 font-medium">Not Assigned</span>
+                                            )}
                                                 </div>
                                             </td>
                                             <td className="p-4 hidden lg:table-cell">
