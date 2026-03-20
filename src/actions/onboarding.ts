@@ -212,6 +212,10 @@ export async function submitSignatures(signatureData: string, initialsData: stri
         return { error: "Invalid signature data" }
     }
 
+    // Logger for payload size to diagnose potential limits
+    const totalSizeKB = (signatureData.length + initialsData.length) / 1024
+    console.log(`[ONBOARDING] Saving signatures for user ${session.user.id}. Total payload size: ${totalSizeKB.toFixed(2)} KB`);
+
     try {
         await prisma.user.update({
             where: { id: session.user.id },
@@ -219,14 +223,15 @@ export async function submitSignatures(signatureData: string, initialsData: stri
                 signatureUrl: signatureData, // Storing base64 directly for MVP
                 initialsUrl: initialsData,
                 onboardingCompleted: true,
-                onboardingStep: 3 // Stay at 3 or increment? Requirement says "onboardingCompleted = true".
+                onboardingStep: 3
             }
         })
 
+        console.log(`[ONBOARDING] User ${session.user.id} marked as onboardingCompleted in DB`);
         revalidatePath("/onboarding")
         return { success: true }
     } catch (error) {
-        console.error("Error saving signatures:", error)
-        return { error: "Failed to save signatures" }
+        console.error("[ONBOARDING] Error saving signatures to Prisma:", error)
+        return { error: "Database error while saving signatures. The files might be too large or the connection was lost." }
     }
 }

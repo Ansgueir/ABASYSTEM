@@ -138,6 +138,8 @@ export default function OnboardingWizard({ initialStep, initialData }: WizardPro
     }
 
     async function handleNextStep3() {
+        console.log("[WIZARD] Finalizing Step 3 - Sending Signatures...");
+        
         if (!sigPad || sigPad.isEmpty()) {
             toast.error("Please sign the document")
             return
@@ -148,30 +150,48 @@ export default function OnboardingWizard({ initialStep, initialData }: WizardPro
         }
 
         setIsPending(true)
-        const sigData = sigPad.toDataURL() // base64 png
-        const initData = initialsPad.toDataURL()
-
+        
         try {
+            const sigData = sigPad.toDataURL() // base64 png
+            const initData = initialsPad.toDataURL()
+            
+            console.log("[WIZARD] Calling submitSignatures Server Action...");
             const result = await submitSignatures(sigData, initData)
-            if (result.error) {
+            
+            if (result && result.error) {
+                console.error("[WIZARD] Server Action Error:", result.error);
                 toast.error(result.error)
-            } else {
-                await update({ onboardingCompleted: true }) // CRITICAL: Update session before redirect
-                toast.success("Onboarding Complete!")
+                setIsPending(false)
+            } else if (result && result.success) {
+                console.log("[WIZARD] Signatures saved successfully. Updating session...");
+                
+                // Important to wait for session update
+                try {
+                    await update({ onboardingCompleted: true })
+                    console.log("[WIZARD] Session updated. Redirecting...");
+                    
+                    toast.success("Onboarding Complete!")
 
-                // Determine dashboard path based on role
-                const rolePath = initialData.role?.toLowerCase() || "student"
-                const dashboardPath = `/${rolePath}`
+                    // Determine dashboard path based on role
+                    const role = initialData.role?.toUpperCase() || "STUDENT"
+                    let dashboardPath = "/student"
+                    if (role === "SUPERVISOR" || role === "QA") dashboardPath = "/supervisor"
+                    else if (role === "OFFICE") dashboardPath = "/office"
 
-                // Small delay to ensure cookie is set
-                setTimeout(() => {
+                    // Use push directly or window.location if router.push fails
                     router.push(dashboardPath)
-                }, 500)
+                } catch (sessionError) {
+                    console.error("[WIZARD] Session update crash:", sessionError);
+                    // Fallback redirect even if session update crashes
+                    window.location.href = "/" 
+                }
+            } else {
+                 throw new Error("Invalid response from server action");
             }
         } catch (err: any) {
             if (err?.message?.includes('NEXT_REDIRECT')) throw err;
-            console.error("Setup error:", err)
-            toast.error("An error occurred")
+            console.error("[WIZARD] Fatal crash in handleNextStep3:", err);
+            toast.error("An error occurred during final step. Please refresh and check your dashboard.")
             setIsPending(false)
         }
     }
