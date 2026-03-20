@@ -23,7 +23,12 @@ export default async function TimesheetPage() {
 
     try {
         student = await prisma.student.findUnique({
-            where: { userId: session.user.id }
+            where: { userId: session.user.id },
+            include: { 
+                supervisors: {
+                    include: { supervisor: true }
+                } 
+            }
         })
 
         if (student) {
@@ -74,7 +79,10 @@ export default async function TimesheetPage() {
                             <Filter className="h-4 w-4 mr-2" />
                             Filter
                         </Button>
-                        <LogHoursDialog />
+                        <LogHoursDialog 
+                            disabled={!student?.supervisors || student.supervisors.length === 0} 
+                            disabledMessage="You cannot log hours yet. Please contact the Office to have a Supervisor assigned to your profile."
+                        />
                         <Button variant="outline" className="rounded-xl" asChild>
                             <a href="/api/student/timesheet/export" target="_blank">
                                 <Download className="h-4 w-4 mr-2" />
@@ -99,7 +107,10 @@ export default async function TimesheetPage() {
                                 <p className="text-muted-foreground">No hours logged yet</p>
                                 <p className="text-muted-foreground">No hours logged yet</p>
                                 <div className="mt-4">
-                                    <LogHoursDialog />
+                                    <LogHoursDialog 
+                                        disabled={!student?.supervisors || student.supervisors.length === 0} 
+                                        disabledMessage="You cannot log hours yet. Please contact the Office to have a Supervisor assigned to your profile."
+                                    />
                                 </div>
                             </div>
                         ) : (
