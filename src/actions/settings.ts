@@ -16,7 +16,7 @@ export async function getGeneralSettings() {
                     rateRegular: 45.0,
                     rateConcentrated: 60.0,
                     supervisorPaymentPercentage: 0.54,
-                    companyName: "ABA Supervision System",
+                    companyName: "ABA Supervisors System",
                     companyAddress: "123 Main St, Miami, FL",
                     companyPhone: "(555) 123-4567",
                     companyEmail: "office@abasystem.com",

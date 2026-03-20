@@ -60,9 +60,7 @@ export default function LoginPage() {
                             <GraduationCap className="h-10 w-10 text-white" />
                         </div>
                     </div>
-                    <CardTitle className="text-2xl font-bold tracking-tight text-balance">
-                        ABA Supervision System
-                    </CardTitle>
+                    <h1 className="text-2xl font-bold tracking-tight text-gray-900">ABA Supervisors System</h1>
                     <CardDescription>
                         Enter your credentials to access your portal
                     </CardDescription>
@@ -154,7 +152,7 @@ export default function LoginPage() {
                 </CardContent>
                 <CardFooter className="flex justify-center border-t pt-4">
                     <p className="text-xs text-muted-foreground">
-                        ABA Supervision System
+                        ABA Supervisors System
                     </p>
                 </CardFooter>
             </Card>

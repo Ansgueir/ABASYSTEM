@@ -13,8 +13,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "ABA Supervision System",
-  description: "Advanced Supervisor and Student Management Platform",
+  title: "ABA Supervisors System",
+  description: "Advanced Management for Applied Behavior Analysis Supervision.",
 };
 
 import { ThemeProvider } from "@/components/theme-provider"

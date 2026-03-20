@@ -248,7 +248,7 @@ function SidebarContent({ routes, pathname, collapsed, onToggleCollapse, onClose
                     {!collapsed && (
                         <div className="flex flex-col leading-tight pt-1">
                             <div className="truncate w-full max-w-[140px]" title={companyName}>
-                                <span className="font-bold text-base text-foreground">{firstWord}</span>
+                                <span className="font-bold text-xl tracking-tight text-white">ABA Supervisors System</span>
                                 <span className="font-light text-base text-muted-foreground ml-1">{remainingWords}</span>
                             </div>
                         </div>
