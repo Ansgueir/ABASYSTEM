@@ -363,7 +363,7 @@ export function LogHoursDialog({ disabled = false, disabledMessage, students }: 
                                             control={form.control}
                                             name="startTime"
                                             render={({ field }) => (
-                                                <FormItem>
+                                                <FormItem className="flex flex-col justify-end">
                                                     <FormLabel>Start Time</FormLabel>
                                                     <FormControl>
                                                         <Input type="time" {...field} />
