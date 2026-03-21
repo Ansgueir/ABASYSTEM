@@ -140,7 +140,7 @@ export function LogHoursDialog({ disabled = false, disabledMessage }: LogHoursDi
                 formData.append("activityType", values.activityType)
                 if (values.notes) formData.append("notes", values.notes)
 
-                const result = await logHours(null, formData)
+                const result = await (logHours as any)(null, formData) as Awaited<ReturnType<typeof logHours>>
                 setIsPending(false)
 
                 if (result.warning) {
