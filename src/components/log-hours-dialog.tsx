@@ -76,11 +76,14 @@ const formSchema = z.object({
 interface LogHoursDialogProps {
     disabled?: boolean
     disabledMessage?: string
+    students?: { id: string; fullName: string }[]  // Supervisor mode: list of assigned students
 }
 
-export function LogHoursDialog({ disabled = false, disabledMessage }: LogHoursDialogProps) {
+export function LogHoursDialog({ disabled = false, disabledMessage, students }: LogHoursDialogProps) {
+    const isSupervisorMode = students && students.length > 0
     const [open, setOpen] = useState(false)
     const [isPending, setIsPending] = useState(false)
+    const [selectedStudentId, setSelectedStudentId] = useState<string>(students?.[0]?.id || "")
     const [errorDialogOpen, setErrorDialogOpen] = useState(false)
     const [errorMessage, setErrorMessage] = useState("")
 
@@ -131,6 +134,12 @@ export function LogHoursDialog({ disabled = false, disabledMessage }: LogHoursDi
         try {
             if (values.mode === "single") {
                 // Single log
+                if (isSupervisorMode && !selectedStudentId) {
+                    setErrorMessage("Please select a student before logging hours.")
+                    setErrorDialogOpen(true)
+                    setIsPending(false)
+                    return
+                }
                 const formData = new FormData()
                 formData.append("type", values.type)
                 formData.append("date", values.date!.toISOString())
@@ -139,6 +148,7 @@ export function LogHoursDialog({ disabled = false, disabledMessage }: LogHoursDi
                 formData.append("setting", values.setting)
                 formData.append("activityType", values.activityType)
                 if (values.notes) formData.append("notes", values.notes)
+                if (isSupervisorMode && selectedStudentId) formData.append("studentId", selectedStudentId)
 
                 const result = await (logHours as any)(null, formData) as Awaited<ReturnType<typeof logHours>>
                 setIsPending(false)
@@ -176,6 +186,7 @@ export function LogHoursDialog({ disabled = false, disabledMessage }: LogHoursDi
                     setting: values.setting,
                     activityType: values.activityType,
                     notes: values.notes,
+                    studentId: isSupervisorMode ? selectedStudentId : undefined,
                 })
 
                 setIsPending(false)
@@ -270,6 +281,25 @@ export function LogHoursDialog({ disabled = false, disabledMessage }: LogHoursDi
                                         </FormItem>
                                     )}
                                 />
+
+                                {/* Student selector — Supervisor mode only */}
+                                {isSupervisorMode && (
+                                    <div className="space-y-2">
+                                        <label className="text-sm font-medium">Student</label>
+                                        <Select value={selectedStudentId} onValueChange={setSelectedStudentId}>
+                                            <SelectTrigger className="w-full">
+                                                <SelectValue placeholder="Select a student" />
+                                            </SelectTrigger>
+                                            <SelectContent>
+                                                {students!.map(s => (
+                                                    <SelectItem key={s.id} value={s.id}>
+                                                        {s.fullName}
+                                                    </SelectItem>
+                                                ))}
+                                            </SelectContent>
+                                        </Select>
+                                    </div>
+                                )}
 
                                 {/* Type */}
                                 <FormField

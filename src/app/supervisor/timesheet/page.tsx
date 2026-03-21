@@ -1,13 +1,12 @@
 import DashboardLayout from "@/components/dashboard-layout"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
-import { Clock, Calendar, Plus, Filter } from "lucide-react"
+import { Clock, Filter } from "lucide-react"
 import { auth } from "@/auth"
 import { prisma } from "@/lib/prisma"
 import { redirect } from "next/navigation"
 import { format } from "date-fns"
-import { Avatar, AvatarFallback } from "@/components/ui/avatar"
-import { LogSupervisionDialog } from "@/components/log-supervision-dialog"
+import { LogHoursDialog } from "@/components/log-hours-dialog"
 import { serialize } from "@/lib/serialize"
 import { SupervisorSessionsList } from "@/components/supervisor/sessions-list"
 
@@ -82,7 +81,14 @@ export default async function SupervisorTimesheetPage() {
         console.error("Error fetching timesheet:", error)
     }
 
-    const serializedStudents = serialize(supervisor?.students || [])
+    const nmStudents = supervisor?.studentAssignments?.map((a: any) => a.student) || []
+    const legacyStudents = supervisor?.students || []
+    const allStudentsMap = new Map<string, any>()
+    for (const s of [...nmStudents, ...legacyStudents]) {
+        if (s?.id) allStudentsMap.set(s.id, s)
+    }
+    const allStudents = Array.from(allStudentsMap.values())
+    const serializedStudents = serialize(allStudents.map((s: any) => ({ id: s.id, fullName: s.fullName })))
 
     return (
         <DashboardLayout role="supervisor">
@@ -98,7 +104,7 @@ export default async function SupervisorTimesheetPage() {
                             <Filter className="h-4 w-4 mr-2" />
                             Filter
                         </Button>
-                        <LogSupervisionDialog students={serializedStudents} />
+                        <LogHoursDialog students={serializedStudents} />
                     </div>
                 </div>
 
@@ -114,7 +120,7 @@ export default async function SupervisorTimesheetPage() {
                                 <p className="text-muted-foreground">No supervision hours logged yet</p>
                                 <p className="text-muted-foreground">No supervision hours logged yet</p>
                                 <div className="mt-4">
-                                    <LogSupervisionDialog students={serializedStudents} />
+                                    <LogHoursDialog students={serializedStudents} />
                                 </div>
                             </div>
                         ) : (
