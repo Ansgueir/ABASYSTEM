@@ -484,3 +484,186 @@ export async function revertSupervisionHourToPending(logId: string) {
         return { error: "Failed to revert log" }
     }
 }
+
+// ─── BULK HOUR GENERATION ───────────────────────────────────────────────────
+
+export type BulkLogState = {
+    success?: boolean
+    created?: number
+    skipped?: number
+    error?: string
+}
+
+export async function logBulkHours(payload: {
+    type: 'independent' | 'supervision'
+    startDate: string
+    endDate: string
+    weekdays: number[]   // 0=Sun, 1=Mon, 2=Tue, 3=Wed, 4=Thu, 5=Fri, 6=Sat
+    startTime: string    // "HH:MM"
+    minutes: number
+    setting: string
+    activityType: string
+    notes?: string
+    studentId?: string   // for supervisor-initiated logs
+}): Promise<BulkLogState> {
+    const session = await auth()
+    if (!session?.user) return { error: 'Unauthorized' }
+
+    const role = String((session.user as any).role).toLowerCase()
+    if (role !== 'student' && role !== 'supervisor') {
+        return { error: 'Unauthorized role' }
+    }
+
+    try {
+        let studentId = payload.studentId
+        let supervisorId: string | undefined
+
+        if (role === 'student') {
+            const student = await prisma.student.findUnique({
+                where: { userId: session.user.id },
+                include: { supervisors: true }
+            })
+            if (!student) return { error: 'Student profile not found' }
+            if (!student.supervisors || student.supervisors.length === 0) {
+                return { error: 'Forbidden: You need an assigned Supervisor before logging hours.' }
+            }
+            studentId = student.id
+            if (payload.type === 'supervision') {
+                if (!student.supervisorId) return { error: 'No primary supervisor assigned for supervision logging' }
+                supervisorId = student.supervisorId
+            }
+        } else if (role === 'supervisor') {
+            if (!studentId) return { error: 'Student ID is required for supervisor bulk logging' }
+            const supervisor = await prisma.supervisor.findUnique({ where: { userId: session.user.id } })
+            if (!supervisor) return { error: 'Supervisor profile not found' }
+            supervisorId = supervisor.id
+        }
+
+        if (!studentId) return { error: 'Could not resolve Student ID' }
+
+        const hoursDecimal = payload.minutes / 60
+        const start = new Date(payload.startDate)
+        const end = new Date(payload.endDate)
+        start.setHours(0, 0, 0, 0)
+        end.setHours(23, 59, 59, 999)
+
+        if (start > end) return { error: 'Start Date must be before End Date' }
+
+        // Build list of matching dates
+        const matchingDates: Date[] = []
+        const cursor = new Date(start)
+        cursor.setHours(0, 0, 0, 0)
+
+        while (cursor <= end) {
+            if (payload.weekdays.includes(cursor.getDay())) {
+                matchingDates.push(new Date(cursor))
+            }
+            cursor.setDate(cursor.getDate() + 1)
+        }
+
+        if (matchingDates.length === 0) {
+            return { error: 'No matching dates found for the selected weekdays and date range.' }
+        }
+
+        // Validate monthly cap for each unique month affected
+        const uniqueMonths = new Set(matchingDates.map(d => `${d.getFullYear()}-${d.getMonth()}`))
+        for (const monthKey of uniqueMonths) {
+            const [year, month] = monthKey.split('-').map(Number)
+            const monthDate = new Date(year, month, 15)
+            const matchingInThisMonth = matchingDates.filter(d => d.getFullYear() === year && d.getMonth() === month)
+            const newHoursInMonth = matchingInThisMonth.length * hoursDecimal
+            await validateMonthlyLimit(studentId, monthDate, newHoursInMonth)
+        }
+
+        let created = 0
+        let skipped = 0
+
+        for (const date of matchingDates) {
+            const [h, m] = payload.startTime.split(':').map(Number)
+            const startDateTime = new Date(date)
+            startDateTime.setHours(h, m, 0, 0)
+
+            try {
+                if (payload.type === 'independent') {
+                    await prisma.independentHour.create({
+                        data: {
+                            studentId: studentId!,
+                            date,
+                            startTime: startDateTime,
+                            hours: hoursDecimal,
+                            setting: payload.setting as any,
+                            activityType: payload.activityType as any,
+                            notes: payload.notes,
+                        }
+                    })
+                } else {
+                    if (!supervisorId) { skipped++; continue }
+                    await prisma.supervisionHour.create({
+                        data: {
+                            studentId: studentId!,
+                            supervisorId,
+                            date,
+                            startTime: startDateTime,
+                            hours: hoursDecimal,
+                            setting: payload.setting as any,
+                            activityType: payload.activityType as any,
+                            supervisionType: 'INDIVIDUAL' as any,
+                            notes: payload.notes,
+                        }
+                    })
+                }
+                created++
+            } catch {
+                skipped++
+            }
+        }
+
+        revalidatePath('/student')
+        revalidatePath('/student/timesheet')
+        revalidatePath('/supervisor')
+        revalidatePath('/supervisor/timesheet')
+
+        return { success: true, created, skipped }
+
+    } catch (err) {
+        console.error('Bulk log error:', err)
+        return { error: err instanceof Error ? err.message : 'Unexpected error during bulk log' }
+    }
+}
+
+// ─── STUDENT EDIT GUARD ──────────────────────────────────────────────────────
+
+export async function updateIndependentHour(
+    logId: string,
+    data: { setting?: string; activityType?: string; notes?: string; minutes?: number }
+): Promise<{ success?: boolean; error?: string }> {
+    const session = await auth()
+    if (!session?.user) return { error: 'Unauthorized' }
+
+    const role = String((session.user as any).role).toLowerCase()
+    if (role !== 'student') return { error: 'Forbidden: Only students can edit their own logs.' }
+
+    try {
+        const hour = await prisma.independentHour.findUnique({ where: { id: logId } })
+        if (!hour) return { error: 'Log not found' }
+
+        // 403 Guard — APPROVED logs are immutable
+        if (hour.status === 'APPROVED') {
+            return { error: 'Forbidden: This log has already been approved and cannot be modified.' }
+        }
+
+        const updatePayload: any = {}
+        if (data.notes !== undefined) updatePayload.notes = data.notes
+        if (data.setting !== undefined) updatePayload.setting = data.setting
+        if (data.activityType !== undefined) updatePayload.activityType = data.activityType
+        if (data.minutes !== undefined) updatePayload.hours = data.minutes / 60
+
+        await prisma.independentHour.update({ where: { id: logId }, data: updatePayload })
+
+        revalidatePath('/student/timesheet')
+        return { success: true }
+    } catch (err) {
+        console.error('updateIndependentHour error:', err)
+        return { error: err instanceof Error ? err.message : 'Failed to update log' }
+    }
+}
