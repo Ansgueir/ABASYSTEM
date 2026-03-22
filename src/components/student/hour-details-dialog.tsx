@@ -34,6 +34,14 @@ export function HourDetailsDialog({ hour }: HourDetailsDialogProps) {
     const [setting, setSetting] = useState(hour?.setting || "")
     const [activityType, setActivityType] = useState(hour?.activityType || "")
     const [minutes, setMinutes] = useState(Math.round((Number(hour?.hours) || 1) * 60))
+    // Date as YYYY-MM-DD string for <input type="date">
+    const [dateStr, setDateStr] = useState(
+        hour?.date ? format(new Date(hour.date), 'yyyy-MM-dd') : ''
+    )
+    // StartTime as HH:MM string
+    const [startTimeStr, setStartTimeStr] = useState(
+        hour?.startTime ? format(new Date(hour.startTime), 'HH:mm') : '09:00'
+    )
 
     if (!hour) return null
 
@@ -47,7 +55,9 @@ export function HourDetailsDialog({ hour }: HourDetailsDialogProps) {
                 notes,
                 setting,
                 activityType,
-                minutes
+                minutes,
+                date: dateStr || undefined,
+                startTime: startTimeStr || undefined,
             })
             if (result.error) {
                 toast.error(result.error)
@@ -164,6 +174,26 @@ export function HourDetailsDialog({ hour }: HourDetailsDialogProps) {
                             </DialogTitle>
                         </DialogHeader>
                         <div className="space-y-4 py-4">
+                            <div className="grid grid-cols-2 gap-4">
+                                <div className="space-y-2">
+                                    <Label htmlFor="edit-date">Date of Service</Label>
+                                    <Input
+                                        id="edit-date"
+                                        type="date"
+                                        value={dateStr}
+                                        onChange={e => setDateStr(e.target.value)}
+                                    />
+                                </div>
+                                <div className="space-y-2">
+                                    <Label htmlFor="edit-starttime">Start Time</Label>
+                                    <Input
+                                        id="edit-starttime"
+                                        type="time"
+                                        value={startTimeStr}
+                                        onChange={e => setStartTimeStr(e.target.value)}
+                                    />
+                                </div>
+                            </div>
                             <div className="grid grid-cols-2 gap-4">
                                 <div className="space-y-2">
                                     <Label htmlFor="edit-setting">Setting</Label>

@@ -635,7 +635,14 @@ export async function logBulkHours(payload: {
 
 export async function updateIndependentHour(
     logId: string,
-    data: { setting?: string; activityType?: string; notes?: string; minutes?: number }
+    data: {
+        setting?: string
+        activityType?: string
+        notes?: string
+        minutes?: number
+        date?: string       // YYYY-MM-DD
+        startTime?: string  // HH:MM
+    }
 ): Promise<{ success?: boolean; error?: string }> {
     const session = await auth()
     if (!session?.user) return { error: 'Unauthorized' }
@@ -657,6 +664,26 @@ export async function updateIndependentHour(
         if (data.setting !== undefined) updatePayload.setting = data.setting
         if (data.activityType !== undefined) updatePayload.activityType = data.activityType
         if (data.minutes !== undefined) updatePayload.hours = data.minutes / 60
+
+        if (data.date) {
+            const newDate = new Date(data.date)
+            if (!isNaN(newDate.getTime())) {
+                updatePayload.date = newDate
+                // Rebuild startTime preserving the HH:MM from the user input
+                if (data.startTime) {
+                    const [h, m] = data.startTime.split(':').map(Number)
+                    const newStart = new Date(newDate)
+                    newStart.setHours(h, m, 0, 0)
+                    updatePayload.startTime = newStart
+                }
+            }
+        } else if (data.startTime) {
+            // Date didn't change, only time
+            const [h, m] = data.startTime.split(':').map(Number)
+            const base = new Date(hour.date)
+            base.setHours(h, m, 0, 0)
+            updatePayload.startTime = base
+        }
 
         await prisma.independentHour.update({ where: { id: logId }, data: updatePayload })
 
