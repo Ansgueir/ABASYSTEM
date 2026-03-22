@@ -208,7 +208,7 @@ export default function LoginPage() {
 
             {/* ─── Forgot Password Dialog ─────────────────────────────────── */}
             <Dialog open={forgotOpen} onOpenChange={handleForgotClose}>
-                <DialogContent className="sm:max-w-[420px]">
+                <DialogContent className="sm:max-w-[540px]">
                     <DialogHeader>
                         <div className="flex justify-center mb-3">
                             <div className={`p-3 rounded-xl ${forgotSent ? 'bg-green-100' : 'bg-indigo-100'}`}>
