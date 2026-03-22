@@ -34,6 +34,9 @@ export function HourDetailsDialog({ hour }: HourDetailsDialogProps) {
     const [setting, setSetting] = useState(hour?.setting || "")
     const [activityType, setActivityType] = useState(hour?.activityType || "")
     const [minutes, setMinutes] = useState(Math.round((Number(hour?.hours) || 1) * 60))
+    const [type, setType] = useState<'independent' | 'supervision'>(
+        (hour?.type === 'supervised' || hour?.type === 'supervision') ? 'supervision' : 'independent'
+    )
     // Date as YYYY-MM-DD string for <input type="date">
     const [dateStr, setDateStr] = useState(
         hour?.date ? format(new Date(hour.date), 'yyyy-MM-dd') : ''
@@ -56,6 +59,7 @@ export function HourDetailsDialog({ hour }: HourDetailsDialogProps) {
                 setting,
                 activityType,
                 minutes,
+                type,
                 date: dateStr || undefined,
                 startTime: startTimeStr || undefined,
             })
@@ -193,6 +197,19 @@ export function HourDetailsDialog({ hour }: HourDetailsDialogProps) {
                                         onChange={e => setStartTimeStr(e.target.value)}
                                     />
                                 </div>
+                            </div>
+                            {/* Type — full width row */}
+                            <div className="space-y-2">
+                                <Label htmlFor="edit-type">Type</Label>
+                                <Select value={type} onValueChange={(v) => setType(v as 'independent' | 'supervision')}>
+                                    <SelectTrigger id="edit-type" className="w-full">
+                                        <SelectValue />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        <SelectItem value="independent">Independent</SelectItem>
+                                        <SelectItem value="supervision">Supervised</SelectItem>
+                                    </SelectContent>
+                                </Select>
                             </div>
                             <div className="grid grid-cols-2 gap-4">
                                 <div className="space-y-2">

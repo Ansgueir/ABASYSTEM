@@ -642,6 +642,7 @@ export async function updateIndependentHour(
         minutes?: number
         date?: string       // YYYY-MM-DD
         startTime?: string  // HH:MM
+        type?: 'independent' | 'supervision'
     }
 ): Promise<{ success?: boolean; error?: string }> {
     const session = await auth()
@@ -659,30 +660,74 @@ export async function updateIndependentHour(
             return { error: 'Forbidden: This log has already been approved and cannot be modified.' }
         }
 
-        const updatePayload: any = {}
-        if (data.notes !== undefined) updatePayload.notes = data.notes
-        if (data.setting !== undefined) updatePayload.setting = data.setting
-        if (data.activityType !== undefined) updatePayload.activityType = data.activityType
-        if (data.minutes !== undefined) updatePayload.hours = data.minutes / 60
+        // ── Resolve final date & startTime ──────────────────────────────────
+        let finalDate = hour.date
+        let finalStartTime = hour.startTime
 
         if (data.date) {
             const newDate = new Date(data.date)
             if (!isNaN(newDate.getTime())) {
-                updatePayload.date = newDate
-                // Rebuild startTime preserving the HH:MM from the user input
+                finalDate = newDate
                 if (data.startTime) {
                     const [h, m] = data.startTime.split(':').map(Number)
                     const newStart = new Date(newDate)
                     newStart.setHours(h, m, 0, 0)
-                    updatePayload.startTime = newStart
+                    finalStartTime = newStart
                 }
             }
         } else if (data.startTime) {
-            // Date didn't change, only time
             const [h, m] = data.startTime.split(':').map(Number)
             const base = new Date(hour.date)
             base.setHours(h, m, 0, 0)
-            updatePayload.startTime = base
+            finalStartTime = base
+        }
+
+        const finalHours = data.minutes !== undefined ? data.minutes / 60 : Number(hour.hours)
+        const finalSetting = (data.setting ?? hour.setting) as any
+        const finalActivity = (data.activityType ?? hour.activityType) as any
+        const finalNotes = data.notes !== undefined ? data.notes : hour.notes
+
+        // ── Type change: independent → supervision ──────────────────────────
+        if (data.type === 'supervision') {
+            // Find student to get supervisorId
+            const student = await prisma.student.findUnique({
+                where: { id: hour.studentId },
+                select: { supervisorId: true }
+            })
+            if (!student?.supervisorId) {
+                return { error: 'Cannot convert: no primary supervisor is assigned to this student.' }
+            }
+
+            // Atomic migration: create supervised + delete independent
+            await prisma.$transaction([
+                prisma.supervisionHour.create({
+                    data: {
+                        studentId: hour.studentId,
+                        supervisorId: student.supervisorId,
+                        date: finalDate,
+                        startTime: finalStartTime,
+                        hours: finalHours,
+                        setting: finalSetting,
+                        activityType: finalActivity,
+                        supervisionType: 'INDIVIDUAL' as any,
+                        notes: finalNotes,
+                    }
+                }),
+                prisma.independentHour.delete({ where: { id: logId } })
+            ])
+
+            revalidatePath('/student/timesheet')
+            return { success: true }
+        }
+
+        // ── Same type: update in place ───────────────────────────────────────
+        const updatePayload: any = {
+            date: finalDate,
+            startTime: finalStartTime,
+            hours: finalHours,
+            setting: finalSetting,
+            activityType: finalActivity,
+            notes: finalNotes,
         }
 
         await prisma.independentHour.update({ where: { id: logId }, data: updatePayload })
