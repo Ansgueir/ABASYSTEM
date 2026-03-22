@@ -1,15 +1,23 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState } from "react"
 import { signIn } from "next-auth/react"
 import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
-import { GraduationCap, Briefcase, Building2, Loader2 } from "lucide-react"
+import { GraduationCap, Briefcase, Building2, Loader2, Mail, KeyRound, ArrowLeft, CheckCircle2 } from "lucide-react"
 import { PasswordInput } from "@/components/ui/password-input"
-
+import {
+    Dialog,
+    DialogContent,
+    DialogHeader,
+    DialogTitle,
+    DialogDescription,
+    DialogFooter,
+} from "@/components/ui/dialog"
+import { requestPasswordReset } from "@/actions/security"
 
 export default function LoginPage() {
     const router = useRouter()
@@ -18,6 +26,13 @@ export default function LoginPage() {
     const [email, setEmail] = useState("")
     const [password, setPassword] = useState("")
     const [error, setError] = useState("")
+
+    // Forgot password modal state
+    const [forgotOpen, setForgotOpen] = useState(false)
+    const [forgotEmail, setForgotEmail] = useState("")
+    const [forgotLoading, setForgotLoading] = useState(false)
+    const [forgotSent, setForgotSent] = useState(false)
+    const [forgotError, setForgotError] = useState("")
 
     const handleLogin = async (e: React.FormEvent) => {
         e.preventDefault()
@@ -43,6 +58,31 @@ export default function LoginPage() {
         } finally {
             setIsLoading(false)
         }
+    }
+
+    const handleForgotPassword = async (e: React.FormEvent) => {
+        e.preventDefault()
+        setForgotLoading(true)
+        setForgotError("")
+
+        const result = await requestPasswordReset(forgotEmail)
+
+        setForgotLoading(false)
+        if (result.error) {
+            setForgotError(result.error)
+        } else {
+            setForgotSent(true)
+        }
+    }
+
+    const handleForgotClose = () => {
+        setForgotOpen(false)
+        // Reset state after close animation
+        setTimeout(() => {
+            setForgotEmail("")
+            setForgotError("")
+            setForgotSent(false)
+        }, 300)
     }
 
     return (
@@ -118,7 +158,16 @@ export default function LoginPage() {
                             />
                         </div>
                         <div className="space-y-2">
-                            <Label htmlFor="password">Password</Label>
+                            <div className="flex items-center justify-between">
+                                <Label htmlFor="password">Password</Label>
+                                <button
+                                    type="button"
+                                    onClick={() => setForgotOpen(true)}
+                                    className="text-xs text-primary hover:underline focus:outline-none transition-colors"
+                                >
+                                    Forgot password?
+                                </button>
+                            </div>
                             <PasswordInput
                                 id="password"
                                 value={password}
@@ -156,6 +205,90 @@ export default function LoginPage() {
                     </p>
                 </CardFooter>
             </Card>
+
+            {/* ─── Forgot Password Dialog ─────────────────────────────────── */}
+            <Dialog open={forgotOpen} onOpenChange={handleForgotClose}>
+                <DialogContent className="sm:max-w-[420px]">
+                    <DialogHeader>
+                        <div className="flex justify-center mb-3">
+                            <div className={`p-3 rounded-xl ${forgotSent ? 'bg-green-100' : 'bg-indigo-100'}`}>
+                                {forgotSent
+                                    ? <CheckCircle2 className="h-7 w-7 text-green-600" />
+                                    : <KeyRound className="h-7 w-7 text-indigo-600" />
+                                }
+                            </div>
+                        </div>
+                        <DialogTitle className="text-center">
+                            {forgotSent ? "Check your email" : "Reset your password"}
+                        </DialogTitle>
+                        <DialogDescription className="text-center">
+                            {forgotSent
+                                ? "If an account exists for that email, a temporary password has been sent. Use it to sign in — you'll be asked to set a new one immediately."
+                                : "Enter the email associated with your account. We'll send you a temporary password to access the system."
+                            }
+                        </DialogDescription>
+                    </DialogHeader>
+
+                    {!forgotSent ? (
+                        <form onSubmit={handleForgotPassword} className="space-y-4 py-2">
+                            <div className="space-y-2">
+                                <Label htmlFor="forgot-email">Email address</Label>
+                                <div className="relative">
+                                    <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                                    <Input
+                                        id="forgot-email"
+                                        type="email"
+                                        placeholder="name@example.com"
+                                        value={forgotEmail}
+                                        onChange={(e) => setForgotEmail(e.target.value)}
+                                        className="pl-9"
+                                        required
+                                        autoFocus
+                                    />
+                                </div>
+                            </div>
+
+                            {forgotError && (
+                                <div className="text-destructive text-sm bg-destructive/10 p-3 rounded-xl border border-destructive/20 text-center">
+                                    {forgotError}
+                                </div>
+                            )}
+
+                            <DialogFooter className="flex-col gap-2 sm:flex-row">
+                                <Button
+                                    type="button"
+                                    variant="ghost"
+                                    onClick={handleForgotClose}
+                                    className="w-full sm:w-auto"
+                                >
+                                    <ArrowLeft className="h-4 w-4 mr-1" />
+                                    Back to Sign In
+                                </Button>
+                                <Button
+                                    type="submit"
+                                    disabled={forgotLoading || !forgotEmail}
+                                    className="w-full sm:w-auto bg-indigo-600 hover:bg-indigo-700 text-white"
+                                >
+                                    {forgotLoading ? (
+                                        <><Loader2 className="mr-2 h-4 w-4 animate-spin" />Sending...</>
+                                    ) : (
+                                        "Send Temporary Password"
+                                    )}
+                                </Button>
+                            </DialogFooter>
+                        </form>
+                    ) : (
+                        <DialogFooter className="pt-2">
+                            <Button
+                                onClick={handleForgotClose}
+                                className="w-full bg-indigo-600 hover:bg-indigo-700 text-white"
+                            >
+                                Back to Sign In
+                            </Button>
+                        </DialogFooter>
+                    )}
+                </DialogContent>
+            </Dialog>
         </div>
     )
 }
