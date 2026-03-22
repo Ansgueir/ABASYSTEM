@@ -15,10 +15,13 @@ import {
     PopoverContent,
     PopoverTrigger,
 } from "@/components/ui/popover"
-import { MoreHorizontal, Power, RotateCcw, Trash2, Edit, ExternalLink } from "lucide-react"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
+import { MoreHorizontal, Power, RotateCcw, Trash2, Edit, ExternalLink, Mail, KeyRound } from "lucide-react"
 import { useState, useTransition } from "react"
 import { toast } from "sonner"
 import { resetUserPassword, deleteStudent, deleteSupervisor, deleteOfficeMember, toggleStudentStatus, toggleSupervisorStatus, toggleOfficeMemberStatus } from "@/actions/users"
+import { adminResetUserPassword } from "@/actions/security"
 import Link from "next/link"
 import { EditSupervisorDialog } from "./edit-supervisor-dialog"
 import { EditStudentDialog } from "./edit-student-dialog"
@@ -35,15 +38,20 @@ interface UserActionsProps {
     isActive: boolean
     fullData?: any
     isSuperAdmin?: boolean
+    isQaSuper?: boolean   // ← EXCLUSIVE: only qa-super@abasystem.com gets this true
 }
 
-export function UserActions({ id, userId, name, email, type, isActive, fullData, isSuperAdmin = false }: UserActionsProps) {
+export function UserActions({ id, userId, name, email, type, isActive, fullData, isSuperAdmin = false, isQaSuper = false }: UserActionsProps) {
     const [isPending, startTransition] = useTransition()
     const [showDeleteDialog, setShowDeleteDialog] = useState(false)
     const [showResetDialog, setShowResetDialog] = useState(false)
     const [showEditDialog, setShowEditDialog] = useState(false)
     const [showManageStudentsDialog, setShowManageStudentsDialog] = useState(false)
     const [isPopoverOpen, setIsPopoverOpen] = useState(false)
+
+    // qa-super manual password state
+    const [resetMode, setResetMode] = useState<"email" | "manual">("email")
+    const [manualPassword, setManualPassword] = useState("")
 
     const handleToggleStatus = () => {
         setIsPopoverOpen(false)
@@ -60,11 +68,28 @@ export function UserActions({ id, userId, name, email, type, isActive, fullData,
 
     const handleResetPassword = () => {
         startTransition(async () => {
-            const result = await resetUserPassword(userId, email, name)
+            let result
+
+            if (isQaSuper && resetMode === "manual") {
+                if (!manualPassword || manualPassword.length < 6) {
+                    toast.error("Password must be at least 6 characters")
+                    return
+                }
+                result = await adminResetUserPassword(userId, manualPassword)
+            } else {
+                result = await resetUserPassword(userId, email, name)
+            }
+
             if (result.error) toast.error(result.error)
             else {
-                toast.success("Password reset and email sent")
+                toast.success(
+                    resetMode === "manual"
+                        ? "Password set successfully"
+                        : "Password reset and email sent"
+                )
                 setShowResetDialog(false)
+                setManualPassword("")
+                setResetMode("email")
             }
         })
     }
@@ -154,6 +179,8 @@ export function UserActions({ id, userId, name, email, type, isActive, fullData,
                         className="w-full justify-start h-8 px-2"
                         onClick={() => {
                             setIsPopoverOpen(false)
+                            setResetMode("email")
+                            setManualPassword("")
                             setShowResetDialog(true)
                         }}
                     >
@@ -232,22 +259,92 @@ export function UserActions({ id, userId, name, email, type, isActive, fullData,
             </Dialog>
 
             {/* Reset Password Dialog */}
-            <Dialog open={showResetDialog} onOpenChange={setShowResetDialog}>
-                <DialogContent>
+            <Dialog open={showResetDialog} onOpenChange={(open) => {
+                setShowResetDialog(open)
+                if (!open) { setManualPassword(""); setResetMode("email") }
+            }}>
+                <DialogContent className="sm:max-w-[460px]">
                     <DialogHeader>
-                        <DialogTitle>Reset Password?</DialogTitle>
+                        <DialogTitle>Reset Password</DialogTitle>
                         <DialogDescription>
-                            This will generate a new random password for <strong>{name}</strong> and email it to them.
+                            Reset the password for <strong>{name}</strong> ({email})
                         </DialogDescription>
                     </DialogHeader>
+
+                    <div className="py-2 space-y-4">
+                        {/* qa-super exclusive: mode toggle */}
+                        {isQaSuper && (
+                            <div className="grid grid-cols-2 gap-2 p-1 bg-muted rounded-xl">
+                                <button
+                                    type="button"
+                                    onClick={() => setResetMode("email")}
+                                    className={`flex items-center justify-center gap-2 p-2.5 rounded-lg text-sm font-semibold transition-all ${
+                                        resetMode === "email"
+                                            ? "bg-white shadow text-indigo-600"
+                                            : "text-muted-foreground hover:text-foreground"
+                                    }`}
+                                >
+                                    <Mail className="h-4 w-4" />
+                                    Send via Email
+                                </button>
+                                <button
+                                    type="button"
+                                    onClick={() => setResetMode("manual")}
+                                    className={`flex items-center justify-center gap-2 p-2.5 rounded-lg text-sm font-semibold transition-all ${
+                                        resetMode === "manual"
+                                            ? "bg-white shadow text-indigo-600"
+                                            : "text-muted-foreground hover:text-foreground"
+                                    }`}
+                                >
+                                    <KeyRound className="h-4 w-4" />
+                                    Set Manually
+                                </button>
+                            </div>
+                        )}
+
+                        {/* Email mode description */}
+                        {resetMode === "email" && (
+                            <p className="text-sm text-muted-foreground bg-blue-50 border border-blue-100 rounded-lg px-4 py-3">
+                                A new temporary password will be generated and sent to <strong>{email}</strong>. The user will be required to change it upon next login.
+                            </p>
+                        )}
+
+                        {/* Manual mode — ONLY for qa-super */}
+                        {isQaSuper && resetMode === "manual" && (
+                            <div className="space-y-2">
+                                <Label htmlFor="manual-pass">New Password</Label>
+                                <Input
+                                    id="manual-pass"
+                                    type="text"
+                                    placeholder="Enter the password to assign"
+                                    value={manualPassword}
+                                    onChange={e => setManualPassword(e.target.value)}
+                                    autoComplete="off"
+                                    className="font-mono"
+                                />
+                                <p className="text-xs text-amber-600 bg-amber-50 border border-amber-100 rounded-lg px-3 py-2">
+                                    ⚠️ The user will be prompted to change this password on next login.
+                                </p>
+                            </div>
+                        )}
+                    </div>
+
                     <DialogFooter className="gap-2 sm:gap-0">
-                        <Button variant="outline" onClick={() => setShowResetDialog(false)}>Cancel</Button>
+                        <Button variant="outline" onClick={() => { setShowResetDialog(false); setManualPassword(""); setResetMode("email") }}>
+                            Cancel
+                        </Button>
                         <Button
                             variant="default"
                             onClick={handleResetPassword}
-                            disabled={isPending}
+                            disabled={isPending || (isQaSuper && resetMode === "manual" && !manualPassword)}
+                            className="bg-indigo-600 hover:bg-indigo-700 text-white"
                         >
-                            {isPending ? "Resetting..." : "Confirm Reset"}
+                            {isPending
+                                ? "Processing..."
+                                : resetMode === "manual"
+                                    ? "Set Password"
+                                    : "Send Temporary Password"
+                            }
                         </Button>
                     </DialogFooter>
                 </DialogContent>

@@ -25,9 +25,10 @@ import * as XLSX from "xlsx"
 interface StudentListProps {
     initialStudents: any[]
     isSuperAdmin: boolean
+    isQaSuper?: boolean
 }
 
-export function StudentList({ initialStudents, isSuperAdmin }: StudentListProps) {
+export function StudentList({ initialStudents, isSuperAdmin, isQaSuper = false }: StudentListProps) {
     const [searchTerm, setSearchTerm] = useState("")
 
     // Advanced Filters State
@@ -576,6 +577,7 @@ export function StudentList({ initialStudents, isSuperAdmin }: StudentListProps)
                                                         type="student"
                                                         isActive={student.user?.isActive ?? true}
                                                         isSuperAdmin={isSuperAdmin}
+                                                        isQaSuper={isQaSuper}
                                                         fullData={student}
                                                     />
                                                 </div>

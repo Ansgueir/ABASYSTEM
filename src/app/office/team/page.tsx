@@ -18,6 +18,7 @@ export default async function OfficeTeamPage() {
 
     // Check if user is Super Admin for write permissions
     const isSuperAdmin = (session.user as any).officeRole === "SUPER_ADMIN" || role === "QA"
+    const isQaSuper = (session.user as any).email === "qa-super@abasystem.com"
 
     // Fetch team members
     const teamMembers = await prisma.user.findMany({
@@ -111,6 +112,7 @@ export default async function OfficeTeamPage() {
                                                         isActive={member.isActive !== false}
                                                         fullData={member.officeMember}
                                                         isSuperAdmin={isSuperAdmin}
+                                                        isQaSuper={isQaSuper}
                                                     />
                                                 </td>
                                             )}

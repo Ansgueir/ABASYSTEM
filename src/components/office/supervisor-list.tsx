@@ -23,9 +23,10 @@ import * as XLSX from "xlsx"
 interface SupervisorListProps {
     initialSupervisors: any[]
     isSuperAdmin: boolean
+    isQaSuper?: boolean
 }
 
-export function SupervisorList({ initialSupervisors, isSuperAdmin }: SupervisorListProps) {
+export function SupervisorList({ initialSupervisors, isSuperAdmin, isQaSuper = false }: SupervisorListProps) {
     const [searchTerm, setSearchTerm] = useState("")
 
     // Advanced Filters State
@@ -371,6 +372,7 @@ export function SupervisorList({ initialSupervisors, isSuperAdmin }: SupervisorL
                                                         isActive={supervisor.user?.isActive ?? true}
                                                         fullData={supervisor}
                                                         isSuperAdmin={isSuperAdmin}
+                                                        isQaSuper={isQaSuper}
                                                     />
                                                 </div>
                                             </td>

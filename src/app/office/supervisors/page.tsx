@@ -12,6 +12,7 @@ export default async function OfficeSupervisorsPage() {
     const role = String((session.user as any).role).toUpperCase()
     if (role !== "OFFICE" && role !== "QA") redirect("/login")
     const isSuperAdmin = (session.user as any).officeRole === "SUPER_ADMIN" || role === "QA"
+    const isQaSuper = (session.user as any).email === "qa-super@abasystem.com"
 
     let supervisors: any[] = []
 
@@ -32,7 +33,7 @@ export default async function OfficeSupervisorsPage() {
 
     return (
         <DashboardLayout role="office">
-            <SupervisorList initialSupervisors={safeSupervisors} isSuperAdmin={isSuperAdmin} />
+            <SupervisorList initialSupervisors={safeSupervisors} isSuperAdmin={isSuperAdmin} isQaSuper={isQaSuper} />
         </DashboardLayout>
     )
 }

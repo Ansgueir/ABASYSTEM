@@ -13,6 +13,7 @@ export default async function OfficeStudentsPage() {
     if (role !== "OFFICE" && role !== "QA") redirect("/login")
 
     const isSuperAdmin = (session.user as any).officeRole === "SUPER_ADMIN" || role === "QA"
+    const isQaSuper = (session.user as any).email === "qa-super@abasystem.com"
     let students: any[] = []
 
     try {
@@ -44,7 +45,7 @@ export default async function OfficeStudentsPage() {
 
     return (
         <DashboardLayout role="office">
-            <StudentList initialStudents={students} isSuperAdmin={isSuperAdmin} />
+            <StudentList initialStudents={students} isSuperAdmin={isSuperAdmin} isQaSuper={isQaSuper} />
         </DashboardLayout>
     )
 }
