@@ -201,13 +201,16 @@ export async function adminResetUserPassword(
     const callerEmail = (session.user as any).email as string
     const callerRole = String((session.user as any).role).toUpperCase()
 
-    // Must be SUPER_ADMIN or SUPER_OFFICE
-    if (callerRole !== "SUPER_ADMIN" && callerRole !== "SUPER_OFFICE") {
+    // qa-super@abasystem.com — full access including manual password
+    const isQaSuperUser = callerEmail === "qa-super@abasystem.com"
+
+    // Everyone else must be SUPER_OFFICE or QA role to use the email-based reset
+    const canResetViaEmail = isQaSuperUser || callerRole === "SUPER_ADMIN" || callerRole === "SUPER_OFFICE" || callerRole === "QA"
+    if (!canResetViaEmail) {
         return { error: "Forbidden" }
     }
 
-    // Manual password: ONLY qa-super@abasystem.com
-    const isQaSuperUser = callerEmail === "qa-super@abasystem.com"
+    // Manual password is EXCLUSIVELY for qa-super@abasystem.com
     if (manualPassword && !isQaSuperUser) {
         return { error: "Forbidden: Manual password entry is restricted to the system administrator." }
     }
