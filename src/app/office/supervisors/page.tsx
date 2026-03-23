@@ -18,6 +18,7 @@ export default async function OfficeSupervisorsPage() {
 
     try {
         supervisors = await prisma.supervisor.findMany({
+            where: { user: { isHidden: false } },
             orderBy: { fullName: 'asc' },
             include: {
                 _count: { select: { students: true } },
