@@ -18,7 +18,6 @@ export default async function OfficeStudentsPage() {
 
     try {
         const rawStudents = await prisma.student.findMany({
-            where: { user: { isActive: true } },
             orderBy: { fullName: 'asc' },
             include: {
                 supervisor: true,
