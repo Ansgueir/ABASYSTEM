@@ -30,8 +30,8 @@ export default async function OfficeDashboard() {
     try {
         const startOfCurrentMonth = startOfMonth(new Date())
         const [studentCount, supervisorCount, pendingInvoices, paidInvoicesAgg] = await Promise.all([
-            prisma.student.count(),
-            prisma.supervisor.count(),
+            prisma.student.count({ where: { user: { isHidden: false } } }),
+            prisma.supervisor.count({ where: { user: { isHidden: false } } }),
             prisma.invoice.count({ where: { status: 'SENT' } }),
             prisma.invoice.aggregate({
                 where: { status: 'PAID', createdAt: { gte: startOfCurrentMonth } },

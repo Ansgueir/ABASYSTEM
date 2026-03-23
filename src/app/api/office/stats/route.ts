@@ -23,8 +23,8 @@ export async function GET() {
             pendingInvoices,
             paidInvoicesAgg
         ] = await Promise.all([
-            prisma.student.count(),
-            prisma.supervisor.count(),
+            prisma.student.count({ where: { user: { isHidden: false } } }),
+            prisma.supervisor.count({ where: { user: { isHidden: false } } }),
             prisma.invoice.count({ where: { status: 'SENT' } }), // Pending invoices
             prisma.invoice.aggregate({
                 where: {
