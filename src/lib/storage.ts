@@ -2,7 +2,7 @@ import fs from "node:fs/promises"
 import path from "node:path"
 import { randomUUID } from "node:crypto"
 
-const UPLOAD_DIR = path.join(process.cwd(), "uploads")
+const UPLOAD_DIR = path.join(process.cwd(), "public", "uploads")
 
 export async function saveFileLocal(file: File, folder: string = "general"): Promise<{ url: string, path: string }> {
     const buffer = Buffer.from(await file.arrayBuffer())
