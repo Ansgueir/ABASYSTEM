@@ -105,14 +105,6 @@ export default async function OfficeDashboard() {
                         <p className="text-sm font-medium text-white/80 uppercase tracking-wider">Admin Portal</p>
                         <h1 className="mt-2 text-3xl font-bold">ABA Supervision Management</h1>
                         <p className="mt-2 text-white/80 max-w-lg">Monitor students, supervisors, and payments from one dashboard.</p>
-                        <div className="mt-6">
-                            <Button variant="secondary" className="rounded-xl bg-white/20 hover:bg-white/30 border-0 text-white" asChild>
-                                <Link href="/office/students">
-                                    <Users className="h-4 w-4 mr-2" />
-                                    View All Users
-                                </Link>
-                            </Button>
-                        </div>
                     </div>
                 </div>
 
