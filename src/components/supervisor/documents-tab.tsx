@@ -19,9 +19,20 @@ export function DocumentsTab({ documents }: DocumentsTabProps) {
     const [actionId, setActionId] = useState<string | null>(null)
 
     async function handleReview(id: string, status: "APPROVED" | "REJECTED") {
+        let reason = ""
+        if (status === "REJECTED") {
+            const userInput = window.prompt("Reason for rejection:")
+            if (userInput === null) return // Cancelled
+            if (userInput.trim() === "") {
+                alert("A reason is required to reject a document.")
+                return
+            }
+            reason = userInput
+        }
+
         setActionId(id)
         // @ts-ignore
-        await reviewDocument(id, status)
+        await reviewDocument(id, status, reason)
         setActionId(null)
         router.refresh()
     }

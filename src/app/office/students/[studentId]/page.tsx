@@ -226,6 +226,7 @@ export default async function OfficeStudentDetailPage({ params }: { params: Prom
                                                         documentId={doc.id}
                                                         fileUrl={doc.fileUrl}
                                                         fileName={doc.fileName}
+                                                        status={doc.status}
                                                     />
                                                 </div>
                                             </div>

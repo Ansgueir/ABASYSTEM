@@ -292,6 +292,7 @@ model Document {
   uploadedById String?
   uploadedAt   DateTime       @default(now())
   status       DocumentStatus @default(PENDING)
+  rejectionReason String?
   student      Student?       @relation(fields: [studentId], references: [id])
   supervisor   Supervisor?    @relation(fields: [supervisorId], references: [id])
   uploadedBy   User?          @relation(fields: [uploadedById], references: [id])

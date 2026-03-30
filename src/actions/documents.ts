@@ -6,6 +6,7 @@ import { saveFileLocal, deleteFileLocal } from "@/lib/storage"
 import { DocumentType } from "@prisma/client"
 import { revalidatePath } from "next/cache"
 import { z } from "zod"
+import { sendEmail } from "@/lib/email"
 import { logAudit } from "@/lib/audit"
 
 // Max 5MB
@@ -118,24 +119,26 @@ export async function uploadDocument(prevState: UploadState, formData: FormData)
     }
 }
 
-export async function deleteDocument(documentId: string) {
+export async function deleteDocument(documentId: string, reason?: string) {
     const session = await auth()
     if (!session || !session.user) return { error: "Unauthorized" }
 
     try {
         const doc = await prisma.document.findUnique({
-            where: { id: documentId }
+            where: { id: documentId },
+            include: { student: { include: { user: true } } }
         })
 
         if (!doc) return { error: "Document not found" }
 
         const role = String((session.user as any).role).toLowerCase()
-        // Check ownership
-        // Ideally verify user owns the profile linked to the doc
-        // For simplicity allow if logged in user uploaded it or owns profile
-        // But uploadedById is safer
-        if (doc.uploadedById !== session.user.id && role !== "office" && role !== "qa") {
-            // Check role based override (e.g. admin)
+        const officeRole = String((session.user as any).officeRole || "").toLowerCase()
+        
+        // Ownership check: Student can delete their own. Office can delete any.
+        const isOwner = doc.uploadedById === session.user.id
+        const isOffice = role === "office" || role === "qa" || officeRole === "super_admin"
+
+        if (!isOwner && !isOffice) {
             return { error: "Unauthorized to delete this document" }
         }
 
@@ -147,11 +150,43 @@ export async function deleteDocument(documentId: string) {
             where: { id: documentId }
         })
 
+        // Notify Student if it's a student document and handled by Office/Supervisor
+        if (doc.student?.user?.email && (isOffice || role === "supervisor")) {
+            const studentUser = doc.student.user
+            
+            // Notification
+            await (prisma as any).notification.create({
+                data: {
+                    userId: studentUser.id,
+                    title: "Document Deleted",
+                    message: `Your document '${doc.fileName}' (${doc.documentType}) has been deleted by an administrator.${reason ? ` Reason: ${reason}` : ''}`,
+                    type: "DOCUMENT",
+                    link: "/student/documents"
+                }
+            })
+
+            // Email
+            await sendEmail({
+                to: studentUser.email,
+                subject: `Document Deleted: ${doc.fileName}`,
+                html: `
+                    <p>Dear ${doc.student.fullName},</p>
+                    <p>An administrator has deleted a document from your profile:</p>
+                    <ul>
+                        <li><b>File:</b> ${doc.fileName}</li>
+                        <li><b>Type:</b> ${doc.documentType}</li>
+                    </ul>
+                    ${reason ? `<p><b>Reason:</b> ${reason}</p>` : ''}
+                    <p>Please log in to your dashboard to see more details.</p>
+                `
+            })
+        }
+
         await logAudit({
             action: "DELETE",
             entity: "Document",
             entityId: documentId,
-            details: `Deleted ${doc.documentType} document`,
+            details: `Deleted ${doc.documentType} document. Reason: ${reason || 'N/A'}`,
             oldValues: doc
         })
 
@@ -166,34 +201,82 @@ export async function deleteDocument(documentId: string) {
     }
 }
 
-export async function reviewDocument(documentId: string, status: "APPROVED" | "REJECTED") {
+export async function reviewDocument(documentId: string, status: "APPROVED" | "REJECTED", reason?: string) {
     const session = await auth()
     if (!session || !session.user) return { error: "Unauthorized" }
 
     const role = String((session.user as any).role).toLowerCase()
-    // Only supervisor or office can review
-    if (role !== "supervisor" && role !== "office") {
+    
+    // Only supervisor, office, or super admin can review
+    const isSupervisor = role === "supervisor"
+    const isOffice = role === "office" || role === "qa"
+    const isSuperAdmin = (session.user as any).officeRole === "SUPER_ADMIN"
+
+    if (!isSupervisor && !isOffice && !isSuperAdmin) {
         return { error: "Unauthorized role" }
     }
 
     try {
-        const oldDoc = await prisma.document.findUnique({ where: { id: documentId } })
+        const oldDoc = await prisma.document.findUnique({ 
+            where: { id: documentId },
+            include: { student: { include: { user: true } } }
+        })
+
+        if (!oldDoc) return { error: "Document not found" }
+
         const doc = await prisma.document.update({
             where: { id: documentId },
-            data: { status }
+            data: { 
+                status,
+                rejectionReason: status === "REJECTED" ? reason : null
+            }
         })
+
+        // Notify Student
+        if (oldDoc.student?.user?.email) {
+            const studentUser = oldDoc.student.user
+            const statusLabel = status === "APPROVED" ? "Approved" : "Rejected"
+            
+            // Notification
+            await (prisma as any).notification.create({
+                data: {
+                    userId: studentUser.id,
+                    title: `Document ${statusLabel}`,
+                    message: `Your document '${oldDoc.fileName}' (${oldDoc.documentType}) has been ${statusLabel.toLowerCase()}.${reason ? ` Reason: ${reason}` : ''}`,
+                    type: "DOCUMENT",
+                    link: "/student/documents"
+                }
+            })
+
+            // Email
+            await sendEmail({
+                to: studentUser.email,
+                subject: `Document Update: ${statusLabel}`,
+                html: `
+                    <p>Dear ${oldDoc.student.fullName},</p>
+                    <p>Your document update status is now: <b>${statusLabel}</b></p>
+                    <ul>
+                        <li><b>File:</b> ${oldDoc.fileName}</li>
+                        <li><b>Type:</b> ${oldDoc.documentType}</li>
+                    </ul>
+                    ${reason ? `<p><b>Reason:</b> ${reason}</p>` : ''}
+                    <p>Please log in to your dashboard to see more details.</p>
+                `
+            })
+        }
 
         await logAudit({
             action: "UPDATE",
             entity: "Document",
             entityId: documentId,
-            details: `Reviewed document as ${status}`,
+            details: `Reviewed document as ${status}. Reason: ${reason || 'N/A'}`,
             oldValues: oldDoc,
             newValues: doc
         })
 
         if (doc.studentId) {
             revalidatePath(`/supervisor/students/${doc.studentId}`)
+            revalidatePath(`/office/students/${doc.studentId}`)
             revalidatePath("/student/documents")
         }
 
