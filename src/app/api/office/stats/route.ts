@@ -20,34 +20,18 @@ export async function GET() {
         const [
             studentCount,
             supervisorCount,
-            pendingInvoices,
-            paidInvoicesAgg
+            pendingInvoices
         ] = await Promise.all([
             prisma.student.count({ where: { user: { isHidden: false } } }),
             prisma.supervisor.count({ where: { user: { isHidden: false } } }),
-            prisma.invoice.count({ where: { status: 'SENT' } }), // Pending invoices
-            prisma.invoice.aggregate({
-                where: {
-                    status: 'PAID',
-                    // Assuming they want to filter by the current month. If they want all time 'Paid out', remove the date constraint.
-                    // "sumar el total de facturas marcadas como PAID en el mes en curso."
-                    createdAt: { gte: startOfCurrentMonth }
-                },
-                _sum: { amountPaid: true }
-            })
+            prisma.invoice.count({ where: { status: 'SENT' } })
         ])
-
-        const isSuperAdmin = (session.user as any).officeRole === "SUPER_ADMIN" || role === "qa"
 
         const stats: any = {
             totalStudents: studentCount,
             totalSupervisors: supervisorCount,
             pendingPayments: pendingInvoices,
             activeStudents: studentCount
-        }
-
-        if (isSuperAdmin) {
-            stats.totalPaidOut = Number(paidInvoicesAgg._sum?.amountPaid || 0)
         }
 
         return NextResponse.json(stats, { status: 200 })

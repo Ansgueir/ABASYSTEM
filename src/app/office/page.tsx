@@ -22,31 +22,22 @@ export default async function OfficeDashboard() {
         totalStudents: 0,
         totalSupervisors: 0,
         pendingPayments: 0,
-        totalPaidOut: 0,
         activeStudents: 0,
         pendingDocuments: 0
     }
 
     try {
         const startOfCurrentMonth = startOfMonth(new Date())
-        const [studentCount, supervisorCount, pendingInvoices, paidInvoicesAgg] = await Promise.all([
+        const [studentCount, supervisorCount, pendingInvoices] = await Promise.all([
             prisma.student.count({ where: { user: { isHidden: false } } }),
             prisma.supervisor.count({ where: { user: { isHidden: false } } }),
-            prisma.invoice.count({ where: { status: 'SENT' } }),
-            prisma.invoice.aggregate({
-                where: { status: 'PAID', createdAt: { gte: startOfCurrentMonth } },
-                _sum: { amountPaid: true }
-            })
+            prisma.invoice.count({ where: { status: 'SENT' } })
         ])
 
         stats.totalStudents = studentCount
         stats.totalSupervisors = supervisorCount
         stats.pendingPayments = pendingInvoices
         stats.activeStudents = studentCount 
-
-        if (isSuperAdmin) {
-            stats.totalPaidOut = Number(paidInvoicesAgg._sum?.amountPaid || 0)
-        }
     } catch (error) {
         console.error("Error fetching stats:", error)
     }

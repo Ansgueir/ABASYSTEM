@@ -22,7 +22,7 @@ export function OfficeStatsGrid({ initialStats, isSuperAdmin }: { initialStats: 
     const stats = data || initialStats
 
     return (
-        <div className={`grid gap-4 md:grid-cols-2 ${isSuperAdmin ? 'lg:grid-cols-4' : 'lg:grid-cols-3'}`}>
+        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
             <Card className="animate-slide-up" style={{ animationDelay: '0ms' }}>
                 <CardContent className="pt-6">
                     <div className="flex items-center gap-4">
@@ -64,24 +64,6 @@ export function OfficeStatsGrid({ initialStats, isSuperAdmin }: { initialStats: 
                     </div>
                 </CardContent>
             </Card>
-
-            {isSuperAdmin && (
-                <Card className="animate-slide-up" style={{ animationDelay: '300ms' }}>
-                    <CardContent className="pt-6">
-                        <div className="flex items-center gap-4">
-                            <div className="h-12 w-12 rounded-xl bg-accent/30 flex items-center justify-center">
-                                <TrendingUp className="h-6 w-6 text-accent-foreground" />
-                            </div>
-                            <div>
-                                <p className="text-sm text-muted-foreground">Total Paid Out</p>
-                                <p className="text-2xl font-bold">
-                                    ${(stats.totalPaidOut || 0).toFixed(2)}
-                                </p>
-                            </div>
-                        </div>
-                    </CardContent>
-                </Card>
-            )}
         </div>
     )
 }
