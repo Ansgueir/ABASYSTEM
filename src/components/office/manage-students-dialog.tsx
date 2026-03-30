@@ -10,8 +10,9 @@ import {
     DialogDescription,
     DialogTrigger,
 } from "@/components/ui/dialog"
-import { Check, X, Users, Loader2 } from "lucide-react"
+import { Check, X, Users, Loader2, Search } from "lucide-react"
 import { toast } from "sonner"
+import { Input } from "@/components/ui/input"
 import { getManageableStudents, assignStudentToSupervisor } from "@/actions/assignments"
 
 interface ManageStudentsProps {
@@ -26,6 +27,8 @@ export function ManageStudentsForm({ supervisorId, supervisorName }: ManageStude
     const [isLoading, setIsLoading] = useState(false)
     const [unassigned, setUnassigned] = useState<any[]>([])
     const [assigned, setAssigned] = useState<any[]>([])
+    const [searchAssignedTerm, setSearchAssignedTerm] = useState("")
+    const [searchAvailableTerm, setSearchAvailableTerm] = useState("")
 
     const fetchStudents = async () => {
         setIsLoading(true)
@@ -40,6 +43,8 @@ export function ManageStudentsForm({ supervisorId, supervisorName }: ManageStude
     }
 
     useEffect(() => {
+        setSearchAssignedTerm("")
+        setSearchAvailableTerm("")
         fetchStudents()
     }, [supervisorId])
 
@@ -57,6 +62,16 @@ export function ManageStudentsForm({ supervisorId, supervisorName }: ManageStude
         })
     }
 
+    const filteredAssigned = assigned.filter(s => 
+        (s.fullName || "").toLowerCase().includes(searchAssignedTerm.toLowerCase()) || 
+        (s.email || "").toLowerCase().includes(searchAssignedTerm.toLowerCase())
+    )
+
+    const filteredUnassigned = unassigned.filter(s => 
+        (s.fullName || "").toLowerCase().includes(searchAvailableTerm.toLowerCase()) || 
+        (s.email || "").toLowerCase().includes(searchAvailableTerm.toLowerCase())
+    )
+
     return (
         <div className="flex-1 overflow-y-auto pr-2 space-y-6">
             {isLoading ? (
@@ -73,14 +88,23 @@ export function ManageStudentsForm({ supervisorId, supervisorName }: ManageStude
                                 {assigned.length}
                             </span>
                         </h3>
+                        <div className="relative mb-4">
+                            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                            <Input 
+                                placeholder="Search assigned by name or email..." 
+                                className="pl-9 h-10 text-sm"
+                                value={searchAssignedTerm}
+                                onChange={(e) => setSearchAssignedTerm(e.target.value)}
+                            />
+                        </div>
                         <div className="space-y-2">
-                            {assigned.length === 0 ? (
+                            {filteredAssigned.length === 0 ? (
                                 <p className="text-sm text-center py-6 border border-dashed rounded-lg text-muted-foreground bg-muted/20">
-                                    No students currently assigned
+                                    {searchAssignedTerm ? "No matches found" : "No students currently assigned"}
                                 </p>
                             ) : (
-                                assigned.map(student => (
-                                    <div key={student.id} className="flex items-center justify-between p-4 rounded-xl border bg-card hover:shadow-md transition-all">
+                                filteredAssigned.map(student => (
+                                    <div key={student.id} className="flex items-center justify-between p-4 rounded-xl border bg-card hover:shadow-md transition-all group">
                                         <div>
                                             <p className="font-semibold text-sm">{student.fullName}</p>
                                             <p className="text-xs text-muted-foreground tracking-tight">{student.email}</p>
@@ -88,7 +112,7 @@ export function ManageStudentsForm({ supervisorId, supervisorName }: ManageStude
                                         <Button
                                             variant="ghost"
                                             size="sm"
-                                            className="text-destructive hover:text-destructive hover:bg-destructive/10 rounded-full h-8"
+                                            className="text-destructive hover:text-destructive hover:bg-destructive/10 rounded-full h-8 opacity-90 group-hover:opacity-100"
                                             onClick={() => handleAssignToggle(student.id, "assigned")}
                                             disabled={isPending}
                                         >
@@ -109,14 +133,23 @@ export function ManageStudentsForm({ supervisorId, supervisorName }: ManageStude
                                 {unassigned.length}
                             </span>
                         </h3>
+                        <div className="relative mb-4">
+                            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                            <Input 
+                                placeholder="Search available by name or email..." 
+                                className="pl-9 h-10 text-sm"
+                                value={searchAvailableTerm}
+                                onChange={(e) => setSearchAvailableTerm(e.target.value)}
+                            />
+                        </div>
                         <div className="space-y-2">
-                            {unassigned.length === 0 ? (
+                            {filteredUnassigned.length === 0 ? (
                                 <p className="text-sm text-center py-6 border border-dashed rounded-lg text-muted-foreground bg-muted/20">
-                                    No unassigned students available
+                                    {searchAvailableTerm ? "No matches found" : "No unassigned students available"}
                                 </p>
                             ) : (
-                                unassigned.map(student => (
-                                    <div key={student.id} className="flex items-center justify-between p-4 rounded-xl border bg-card hover:shadow-md transition-all">
+                                filteredUnassigned.map(student => (
+                                    <div key={student.id} className="flex items-center justify-between p-4 rounded-xl border bg-card hover:shadow-md transition-all group">
                                         <div>
                                             <p className="font-semibold text-sm">{student.fullName}</p>
                                             <p className="text-xs text-muted-foreground tracking-tight">{student.email}</p>
@@ -124,7 +157,7 @@ export function ManageStudentsForm({ supervisorId, supervisorName }: ManageStude
                                         <Button
                                             variant="secondary"
                                             size="sm"
-                                            className="rounded-full h-8 bg-primary/10 text-primary hover:bg-primary/20 hover:text-primary transition-colors"
+                                            className="rounded-full h-8 bg-primary/10 text-primary hover:bg-primary/20 hover:text-primary transition-colors opacity-90 group-hover:opacity-100"
                                             onClick={() => handleAssignToggle(student.id, "unassigned")}
                                             disabled={isPending}
                                         >
