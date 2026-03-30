@@ -22,7 +22,9 @@ export async function getGeneralSettings() {
                     companyEmail: "office@abasystem.com",
                     companyWebsite: "www.abasystem.com",
                     companyTaxId: "XX-XXXXXXX",
-                    companyLogoUrl: "" // Will be populated with a logo link later
+                    companyLogoUrl: "",
+                    maxHoursPerMonth: 130,
+                    restrictedAlertPercent: 40
                 } as any // Use as any to prevent build failing on local without DB push generated
             })
         }
@@ -55,6 +57,9 @@ export async function updateGeneralSettings(formData: FormData) {
         const companyPhone = formData.get("companyPhone") as string
         const companyAddress = formData.get("companyAddress") as string
 
+        const maxHoursPerMonth = parseInt(formData.get("maxHours") as string) || (settings as any).maxHoursPerMonth || 130
+        const restrictedAlertPercent = parseInt(formData.get("restrictedAlert") as string) || (settings as any).restrictedAlertPercent || 40
+
         const rawBcbaRate = parseFloat(formData.get("bcbaRate") as string)
         const supervisorPaymentPercentage = rawBcbaRate ? rawBcbaRate / 100 : settings.supervisorPaymentPercentage
 
@@ -65,7 +70,9 @@ export async function updateGeneralSettings(formData: FormData) {
                 companyEmail: companyEmail || settings.companyEmail,
                 companyPhone: companyPhone || settings.companyPhone,
                 companyAddress: companyAddress || settings.companyAddress,
-                supervisorPaymentPercentage
+                supervisorPaymentPercentage,
+                maxHoursPerMonth,
+                restrictedAlertPercent
             } as any
         })
 
@@ -80,7 +87,9 @@ export async function updateGeneralSettings(formData: FormData) {
                 companyEmail: companyEmail || settings.companyEmail,
                 companyPhone: companyPhone || settings.companyPhone,
                 companyAddress: companyAddress || settings.companyAddress,
-                supervisorPaymentPercentage
+                supervisorPaymentPercentage,
+                maxHoursPerMonth,
+                restrictedAlertPercent
             }
         })
 

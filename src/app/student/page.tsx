@@ -59,7 +59,7 @@ export default async function StudentDashboard() {
         if (student) {
             const currentMonthStart = startOfMonth(new Date())
 
-            const [indepMonth, supMonth, indepTotal, supTotal, pendingInvoices] = await Promise.all([
+            const [indepMonth, supMonth, indepTotal, supTotal, pendingInvoices, settings] = await Promise.all([
                 prisma.independentHour.aggregate({
                     where: { studentId: student.id, date: { gte: currentMonthStart }, status: { not: 'REJECTED' } },
                     _sum: { hours: true }
@@ -79,7 +79,8 @@ export default async function StudentDashboard() {
                 prisma.invoice.aggregate({
                     where: { studentId: student.id, status: { in: ['SENT', 'OVERDUE'] } },
                     _sum: { amountDue: true }
-                })
+                }),
+                prisma.generalValues.findFirst()
             ])
 
             const independentHours = Number(indepMonth?._sum?.hours) || 0
@@ -89,7 +90,7 @@ export default async function StudentDashboard() {
 
             stats = {
                 hoursThisMonth,
-                maxHours: Number(student.hoursPerMonth || 130),
+                maxHours: (settings as any)?.maxHoursPerMonth || 130,
                 totalProgress,
                 totalRequired: 2000,
                 nextPayment: Number(pendingInvoices?._sum?.amountDue || 0),

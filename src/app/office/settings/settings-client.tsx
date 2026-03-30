@@ -44,6 +44,8 @@ export function SettingsClient({ settings }: SettingsClientProps) {
             data.append("companyPhone", formData.companyPhone)
             data.append("companyAddress", formData.companyAddress)
             data.append("bcbaRate", formData.bcbaRate)
+            data.append("maxHours", formData.maxHours)
+            data.append("restrictedAlert", formData.restrictedAlert)
             // Add other fields when supported by backend or schema DB changes
 
             const result = await updateGeneralSettings(data)

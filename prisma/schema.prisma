@@ -366,6 +366,8 @@ model GeneralValues {
   companyWebsite              String   @default("")
   companyTaxId                String   @default("")
   companyLogoUrl              String   @default("")
+  maxHoursPerMonth            Int      @default(130)
+  restrictedAlertPercent      Int      @default(40)
   updatedAt                   DateTime @updatedAt
 }
 

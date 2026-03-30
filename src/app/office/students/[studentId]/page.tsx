@@ -89,6 +89,8 @@ export default async function OfficeStudentDetailPage({ params }: { params: Prom
     // (the source of the "Objects are not valid as a React child {month, year}" crash).
     const safeStudent = serialize(student)
 
+    const settings = await prisma.generalValues.findFirst()
+    const maxHoursPerMonth = (settings as any)?.maxHoursPerMonth || 130
 
     return (
         <DashboardLayout role="office">
@@ -124,7 +126,7 @@ export default async function OfficeStudentDetailPage({ params }: { params: Prom
                                 <p className="text-xs text-muted-foreground uppercase font-semibold">Total Hours</p>
                                 <p className="text-2xl font-bold">
                                     {typeof totalHours === 'number' && !isNaN(totalHours) ? totalHours.toFixed(1) : "0.0"} 
-                                    <span className="text-sm font-normal text-muted-foreground"> / 130</span>
+                                    <span className="text-sm font-normal text-muted-foreground"> / {maxHoursPerMonth}</span>
                                 </p>
                             </div>
                             <div className="px-6 py-3 text-center hidden sm:block">

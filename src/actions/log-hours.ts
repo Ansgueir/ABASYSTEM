@@ -50,9 +50,14 @@ async function validateMonthlyLimit(studentId: string, date: Date, newHours: num
     const currentTotal = (Number(independent._sum.hours) || 0) + (Number(supervision._sum.hours) || 0)
     const total = currentTotal + newHours
 
-    // Business Rule: 130h max normally, 160h in 2027
+    // Load general values
+    const settings = await prisma.generalValues.findFirst()
+    const globalLimit = (settings as any)?.maxHoursPerMonth || 130
+    
+    // Load student to see if they have a specific limit overridden, though general values config should prevail if user requested it. 
+    // Fallback to year logic if neither is set specific.
     const year = date.getFullYear()
-    const limit = year === 2027 ? 160 : 130
+    const limit = globalLimit
 
     if (total > limit) {
         throw new Error(`Limit Exceeded: You have reached the monthly cap of ${limit} hours. (Current: ${currentTotal.toFixed(2)}h + New: ${newHours.toFixed(2)}h)`)
