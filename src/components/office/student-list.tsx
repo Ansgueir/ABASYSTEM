@@ -75,6 +75,7 @@ export function StudentList({ initialStudents, isSuperAdmin, isQaSuper = false }
             const matchesSearch =
                 student.fullName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
                 student.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                student.bacbId?.toLowerCase().includes(searchTerm.toLowerCase()) ||
                 student.supervisors?.some((s: any) => s.supervisor.fullName?.toLowerCase().includes(searchTerm.toLowerCase())) ||
                 student.supervisor?.fullName?.toLowerCase().includes(searchTerm.toLowerCase())
 
@@ -190,7 +191,7 @@ export function StudentList({ initialStudents, isSuperAdmin, isQaSuper = false }
                 Name: s.fullName,
                 Email: s.email || 'No email',
                 "Assigned Supervisor": s.supervisor?.fullName || 'Not assigned',
-                Degree: s.academicDegree || s.credential || '-',
+                "BACB ID": s.bacbId || '-',
                 Status: !s.user?.isActive ? 'INACTIVE' : (s.status || 'PENDING'),
                 "Start Date": s.startDate ? new Date(s.startDate).toLocaleDateString() : '-',
                 "End Date": s.endDate ? new Date(s.endDate).toLocaleDateString() : '-',
@@ -507,7 +508,7 @@ export function StudentList({ initialStudents, isSuperAdmin, isQaSuper = false }
                                     <tr className="border-b bg-muted/40 text-muted-foreground/80">
                                         <th className="text-left p-4 font-semibold">Student</th>
                                         <th className="text-left p-4 font-semibold hidden md:table-cell">Supervisor</th>
-                                        <th className="text-left p-4 font-semibold hidden lg:table-cell">Degree/Org</th>
+                                        <th className="text-left p-4 font-semibold hidden lg:table-cell">BACB ID</th>
                                         <th className="text-left p-4 font-semibold hidden sm:table-cell">Status</th>
                                         <th className="text-right p-4 font-semibold">Actions</th>
                                     </tr>
@@ -546,11 +547,8 @@ export function StudentList({ initialStudents, isSuperAdmin, isQaSuper = false }
                                             )}
                                                 </div>
                                             </td>
-                                            <td className="p-4 hidden lg:table-cell">
-                                                <div className="flex flex-col">
-                                                    <span className="font-medium">{student.academicDegree || student.credential || '-'}</span>
-                                                    <span className="text-xs text-muted-foreground truncate max-w-[150px]">{student.school}</span>
-                                                </div>
+                                            <td className="p-4 hidden lg:table-cell text-muted-foreground font-medium">
+                                                {student.bacbId || '-'}
                                             </td>
                                             <td className="p-4 hidden sm:table-cell">
                                                 <span className={`text-[11px] font-bold px-2 py-1 rounded-full border ${!student.user?.isActive
