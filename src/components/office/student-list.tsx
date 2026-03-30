@@ -32,7 +32,7 @@ export function StudentList({ initialStudents, isSuperAdmin, isQaSuper = false }
     const [searchTerm, setSearchTerm] = useState("")
 
     // Advanced Filters State
-    const [statusFilter, setStatusFilter] = useState<string[]>([])
+    const [statusFilter, setStatusFilter] = useState<string[]>(["ACTIVE"])
     const [supervisorFilter, setSupervisorFilter] = useState<string[]>([])
     const [startDateRange, setStartDateRange] = useState<{ from?: string, to?: string }>({})
     const [endDateRange, setEndDateRange] = useState<{ from?: string, to?: string }>({})
@@ -170,7 +170,7 @@ export function StudentList({ initialStudents, isSuperAdmin, isQaSuper = false }
         (activityFilter !== 'all' ? 1 : 0) + (financeFilter !== 'all' ? 1 : 0)
 
     const clearFilters = () => {
-        setStatusFilter([])
+        setStatusFilter(["ACTIVE"])
         setSupervisorFilter([])
         setStartDateRange({})
         setEndDateRange({})
