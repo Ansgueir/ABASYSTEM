@@ -239,6 +239,7 @@ export default async function OfficeSupervisorDetailPage({ params }: { params: P
                                                 documentId={doc.id}
                                                 fileUrl={doc.fileUrl}
                                                 fileName={doc.fileName}
+                                                status={doc.status}
                                             />
                                         </div>
                                     </div>
