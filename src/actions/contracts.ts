@@ -24,7 +24,6 @@ import { sendEmail } from "@/lib/email"
 
 export async function createContract(data: {
     studentId: string
-    effectiveDate: string
     supervisorIds: string[]
     mainSupervisorId: string
 }) {
@@ -39,10 +38,12 @@ export async function createContract(data: {
     })
     if (!student) return { error: "Student not found" }
 
+    const contractEffectiveDate = student.startDate || new Date()
+
     const contract = await prisma.contract.create({
         data: {
             studentId: data.studentId,
-            effectiveDate: new Date(data.effectiveDate),
+            effectiveDate: contractEffectiveDate,
             status: "SENT",
             supervisors: {
                 create: data.supervisorIds.map(supId => ({
@@ -71,7 +72,7 @@ export async function createContract(data: {
         html: `
             <h2>New Supervision Contract</h2>
             <p>Hello ${student.fullName},</p>
-            <p>A new ABA supervision contract has been generated for you with an effective date of ${data.effectiveDate}.</p>
+            <p>A new ABA supervision contract has been generated for you with an effective date of ${contractEffectiveDate.toISOString().split('T')[0]}.</p>
             <p>Please log in to your dashboard to review and sign the contract.</p>
             <p><a href="${process.env.NEXTAUTH_URL ?? 'http://localhost:3000'}/student/contracts">Go to My Contracts</a></p>
         `
@@ -85,7 +86,6 @@ export async function updateContract(data: {
     contractId: string
     supervisorIds: string[]
     mainSupervisorId: string
-    effectiveDate: string
 }) {
     const session = await auth()
     if (!session?.user) return { error: "Unauthorized" }
@@ -93,8 +93,13 @@ export async function updateContract(data: {
     if (role !== "office") return { error: "Only Office can edit contracts" }
 
     // Fetch current state
-    const currentContract = await prisma.contract.findUnique({ where: { id: data.contractId } })
+    const currentContract = await prisma.contract.findUnique({ 
+        where: { id: data.contractId },
+        include: { student: true }
+    })
     if (!currentContract) return { error: "Contract not found" }
+
+    const contractEffectiveDate = currentContract.student.startDate || new Date()
 
     // Business Rule: If already ACTIVE, keep it ACTIVE. Do not revert to SENT.
     // If it was REJECTED or SENT, we keep it as SENT (or move to SENT if it was REJECTED).
@@ -106,7 +111,7 @@ export async function updateContract(data: {
     await prisma.contract.update({
         where: { id: data.contractId },
         data: {
-            effectiveDate: new Date(data.effectiveDate),
+            effectiveDate: contractEffectiveDate,
             status: nextStatus,
             rejectionReason: nextStatus === "SENT" ? null : currentContract.rejectionReason,
             supervisors: {

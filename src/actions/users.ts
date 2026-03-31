@@ -567,6 +567,17 @@ export async function updateStudent(studentId: string, data: any) {
                 where: { id: studentId },
                 data: data
             })
+
+            // Propagate startDate changes to the student's active contracts
+            if (data.startDate) {
+                await tx.contract.updateMany({
+                    where: { 
+                        studentId: studentId,
+                        status: "ACTIVE" 
+                    },
+                    data: { effectiveDate: new Date(data.startDate) }
+                })
+            }
         })
 
         revalidatePath(`/office/students/${studentId}`)

@@ -25,7 +25,7 @@ interface Supervisor {
 
 interface ExistingContract {
     id: string
-    effectiveDate: Date
+    effectiveDate?: Date // Made optional just in case it's not strictly needed here anymore, but keeping it helps
     supervisors: { supervisorId: string; isMainSupervisor: boolean }[]
 }
 
@@ -49,7 +49,6 @@ export function ContractFormDialog({ open, onOpenChange, studentId, supervisors,
 
     const [selectedIds, setSelectedIds] = useState<string[]>([])
     const [mainId, setMainId] = useState<string>("")
-    const [effectiveDate, setEffectiveDate] = useState<string>("")
 
     // Reset state whenever the dialog opens or the 'existing' contract changes
     useEffect(() => {
@@ -59,16 +58,9 @@ export function ContractFormDialog({ open, onOpenChange, studentId, supervisors,
         if (existing) {
             setSelectedIds((existing.supervisors || []).map(s => safe(s.supervisorId)))
             setMainId(safe(existing.supervisors.find(s => s.isMainSupervisor)?.supervisorId || ""))
-            try {
-                const d = new Date(existing.effectiveDate as any)
-                setEffectiveDate(!isNaN(d.getTime()) ? d.toISOString().split("T")[0] : new Date().toISOString().split("T")[0])
-            } catch {
-                setEffectiveDate(new Date().toISOString().split("T")[0])
-            }
         } else {
             setSelectedIds([])
             setMainId("")
-            setEffectiveDate(new Date().toISOString().split("T")[0])
         }
     }, [open, existing])
 
@@ -87,7 +79,6 @@ export function ContractFormDialog({ open, onOpenChange, studentId, supervisors,
         setError("")
         if (selectedIds.length === 0) { setError("Select at least one supervisor."); return }
         if (!mainId) { setError("Select a primary supervisor."); return }
-        if (!effectiveDate) { setError("Effective date is required."); return }
 
         startTransition(async () => {
             let result: any
@@ -95,15 +86,13 @@ export function ContractFormDialog({ open, onOpenChange, studentId, supervisors,
                 result = await updateContract({ 
                     contractId: safe(existing!.id), 
                     supervisorIds: selectedIds, 
-                    mainSupervisorId: safe(mainId), 
-                    effectiveDate 
+                    mainSupervisorId: safe(mainId)
                 })
             } else {
                 result = await createContract({ 
                     studentId: safe(studentId), 
                     supervisorIds: selectedIds, 
-                    mainSupervisorId: safe(mainId), 
-                    effectiveDate 
+                    mainSupervisorId: safe(mainId)
                 })
             }
             if (result?.error) { setError(safe(result.error)); return }
@@ -120,16 +109,6 @@ export function ContractFormDialog({ open, onOpenChange, studentId, supervisors,
                 </DialogHeader>
 
                 <div className="space-y-5 py-2">
-                    <div className="space-y-1.5">
-                        <Label htmlFor="effectiveDate">Assignment Effective Date</Label>
-                        <Input
-                            id="effectiveDate"
-                            type="date"
-                            value={safe(effectiveDate)}
-                            onChange={e => setEffectiveDate(e.target.value)}
-                        />
-                    </div>
-
                     <div className="space-y-1.5">
                         <Label>Select Team</Label>
                         <div className="grid gap-2 max-h-60 overflow-y-auto pr-1">
