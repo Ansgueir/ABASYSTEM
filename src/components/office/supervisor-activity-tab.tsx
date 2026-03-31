@@ -4,7 +4,8 @@ import { useState, useEffect } from "react"
 import { format } from "date-fns"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
-import { Eye } from "lucide-react"
+import { Eye, Search } from "lucide-react"
+import { Input } from "@/components/ui/input"
 import {
     Dialog,
     DialogContent,
@@ -15,6 +16,7 @@ import {
 
 export function SupervisorActivityTab({ supervisionHours = [] }: { supervisionHours: any[] }) {
     const [mounted, setMounted] = useState(false)
+    const [searchTerm, setSearchTerm] = useState("")
 
     useEffect(() => {
         setMounted(true)
@@ -24,11 +26,28 @@ export function SupervisorActivityTab({ supervisionHours = [] }: { supervisionHo
         return <div className="p-8 text-center text-muted-foreground">Loading activity history...</div>
     }
 
+    const filteredHours = (supervisionHours || []).filter(hour => 
+        (hour.student?.fullName || "Group Supervision").toLowerCase().includes(searchTerm.toLowerCase())
+    )
+
     return (
-        <div className="rounded-xl border bg-card overflow-hidden">
-            {supervisionHours.length === 0 ? (
-                <div className="p-10 text-center text-muted-foreground">No activity logs found.</div>
-            ) : (
+        <div className="space-y-4">
+            <div className="relative max-w-sm">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                <Input
+                    placeholder="Search by student name..."
+                    className="pl-9"
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                />
+            </div>
+
+            <div className="rounded-xl border bg-card overflow-hidden">
+                {filteredHours.length === 0 ? (
+                    <div className="p-10 text-center text-muted-foreground">
+                        {searchTerm ? "No matches found for this student." : "No activity logs found."}
+                    </div>
+                ) : (
                 <div className="overflow-x-auto">
                     <table className="w-full text-sm">
                         <thead>
@@ -42,7 +61,7 @@ export function SupervisorActivityTab({ supervisionHours = [] }: { supervisionHo
                             </tr>
                         </thead>
                         <tbody className="divide-y">
-                            {supervisionHours.map((hour: any) => {
+                            {filteredHours.map((hour: any) => {
                                 const hourDate = hour?.date ? new Date(hour.date) : null;
                                 const isValidDate = hourDate && !isNaN(hourDate.getTime());
 
@@ -134,7 +153,8 @@ export function SupervisorActivityTab({ supervisionHours = [] }: { supervisionHo
                         )}
                     </table>
                 </div>
-            )}
+                )}
+            </div>
         </div>
     )
 }
