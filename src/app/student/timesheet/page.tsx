@@ -9,6 +9,7 @@ import { format } from "date-fns"
 import { LogHoursDialog } from "@/components/log-hours-dialog"
 import { StudentStats } from "@/components/student-stats"
 import { HourDetailsDialog } from "@/components/student/hour-details-dialog"
+import { TimesheetClientView } from "./timesheet-client-view"
 
 export default async function TimesheetPage() {
     const session = await auth()
@@ -95,70 +96,10 @@ export default async function TimesheetPage() {
                 {/* Monthly Stats */}
                 {student && <StudentStats studentId={student.id} />}
 
-                {/* Hours List */}
-                <Card>
-                    <CardHeader>
-                        <CardTitle className="text-lg">Recent Hours</CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                        {hours.length === 0 ? (
-                            <div className="text-center py-12">
-                                <Clock className="h-12 w-12 mx-auto text-muted-foreground/50 mb-4" />
-                                <p className="text-muted-foreground">No hours logged yet</p>
-                                <p className="text-muted-foreground">No hours logged yet</p>
-                                <div className="mt-4">
-                                    <LogHoursDialog 
-                                        disabled={!student?.supervisors || student.supervisors.length === 0} 
-                                        disabledMessage="You cannot log hours yet. Please contact the Office to have a Supervisor assigned to your profile."
-                                    />
-                                </div>
-                            </div>
-                        ) : (
-                            <div className="space-y-3">
-                                {hours.slice(0, 10).map((hour, index) => (
-                                    <div
-                                        key={index}
-                                        className="flex items-center justify-between p-4 rounded-xl bg-muted/50 hover:bg-muted transition-colors"
-                                    >
-                                        <div className="flex items-center gap-4">
-                                            <div className={`h-10 w-10 rounded-xl flex items-center justify-center ${hour.type === 'supervised'
-                                                ? 'bg-primary/10 text-primary'
-                                                : 'bg-accent/30 text-accent-foreground'
-                                                }`}>
-                                                <Clock className="h-5 w-5" />
-                                            </div>
-                                            <div>
-                                                <p className="font-medium">
-                                                    {hour.type === 'supervised' ? 'Supervised' : 'Independent'} Hours
-                                                </p>
-                                                <p className="text-sm text-muted-foreground">
-                                                    {format(new Date(hour.date), 'MMM d, yyyy')}
-                                                    {hour.type === 'supervised' && hour.supervisor && (
-                                                        <span> • with {hour.supervisor.fullName}</span>
-                                                    )}
-                                                </p>
-                                            </div>
-                                        </div>
-                                        <div className="flex items-center gap-3">
-                                            <div className="text-right">
-                                                <p className="font-semibold">{Number(hour.hours).toFixed(1)}h</p>
-                                                <span className={`text-xs px-2 py-0.5 rounded-full ${hour.status === 'approved'
-                                                    ? 'bg-success/10 text-success'
-                                                    : hour.status === 'pending'
-                                                        ? 'bg-warning/10 text-warning'
-                                                        : 'bg-muted text-muted-foreground'
-                                                    }`}>
-                                                    {hour.status?.toUpperCase() || 'LOGGED'}
-                                                </span>
-                                            </div>
-                                            <HourDetailsDialog hour={hour} />
-                                        </div>
-                                    </div>
-                                ))}
-                            </div>
-                        )}
-                    </CardContent>
-                </Card>
+                {/* Calendar View */}
+                {student && (
+                    <TimesheetClientView hours={hours} />
+                )}
             </div>
         </DashboardLayout>
     )

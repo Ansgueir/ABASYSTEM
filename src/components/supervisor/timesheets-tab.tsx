@@ -17,6 +17,8 @@ import {
     DialogDescription,
     DialogTrigger,
 } from "@/components/ui/dialog"
+import { Label } from "@/components/ui/label"
+import { TimesheetCalendar } from "@/components/shared/timesheet-calendar"
 
 interface TimesheetsTabProps {
     // Using any[] to allow serialized data (number instead of Decimal) without strict type conflicts
@@ -27,6 +29,8 @@ interface TimesheetsTabProps {
 export function TimesheetsTab({ independentHours, supervisionHours }: TimesheetsTabProps) {
     const [isUpdating, setIsUpdating] = useState(false)
     const [rejectReason, setRejectReason] = useState("")
+    const [selectedEntry, setSelectedEntry] = useState<any>(null)
+    const [showRejectInput, setShowRejectInput] = useState(false)
 
     const handleUpdateStatus = async (id: string, type: string, status: "APPROVED" | "REJECTED") => {
         setIsUpdating(true)
@@ -55,12 +59,12 @@ export function TimesheetsTab({ independentHours, supervisionHours }: Timesheets
     ].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
 
     // Safe parsing of hours which might be strings, numbers, or Decimals depending on serialization
-    const getHours = (h: any) => Number(h) || 0
+    const getHours = (h: any) => Number(h.hours) || 0
 
     const validEntries = allEntries.filter(e => e.status !== 'REJECTED')
-    const totalHours = validEntries.reduce((sum, entry) => sum + getHours(entry.hours), 0)
-    const restrictedHours = validEntries.filter(e => e.activityType === 'RESTRICTED').reduce((sum, entry) => sum + getHours(entry.hours), 0)
-    const unrestrictedHours = validEntries.filter(e => e.activityType === 'UNRESTRICTED').reduce((sum, entry) => sum + getHours(entry.hours), 0)
+    const totalHours = validEntries.reduce((sum, entry) => sum + getHours(entry), 0)
+    const restrictedHours = validEntries.filter(e => e.activityType === 'RESTRICTED').reduce((sum, entry) => sum + getHours(entry), 0)
+    const unrestrictedHours = validEntries.filter(e => e.activityType === 'UNRESTRICTED').reduce((sum, entry) => sum + getHours(entry), 0)
 
     // Rule: "Alerta si las horas restringidas superan el 40% (BCBA)"
     const isAlert = totalHours > 0 && (restrictedHours / totalHours) > 0.4
@@ -108,188 +112,170 @@ export function TimesheetsTab({ independentHours, supervisionHours }: Timesheets
                 </div>
             </CardHeader>
             <CardContent>
-                <Table>
-                    <TableHeader>
-                        <TableRow>
-                            <TableHead>Date</TableHead>
-                            <TableHead>Logged At</TableHead>
-                            <TableHead>Type</TableHead>
-                            <TableHead>Activity</TableHead>
-                            <TableHead>Setting</TableHead>
-                            <TableHead className="text-right">Hours</TableHead>
-                            <TableHead className="text-center">Status</TableHead>
-                            <TableHead className="text-right w-[150px]">Actions</TableHead>
-                        </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                        {allEntries.length === 0 ? (
-                            <TableRow>
-                                <TableCell colSpan={7} className="text-center py-8 text-muted-foreground">
-                                    No hours logged yet.
-                                </TableCell>
-                            </TableRow>
-                        ) : (
-                            allEntries.map((entry) => (
-                                <TableRow key={entry.id}>
-                                    <TableCell className="font-medium">{format(new Date(entry.date), "MMM d, yyyy")}</TableCell>
-                                    <TableCell className="text-xs text-muted-foreground">
-                                        {format(new Date(entry.createdAt), "MMM d, HH:mm")}
-                                    </TableCell>
-                                    <TableCell>
-                                        <Badge variant="outline" className="text-[10px]">{entry.type}</Badge>
-                                    </TableCell>
-                                    <TableCell>
-                                        <div className="flex flex-col">
-                                            <span className="text-sm font-medium">{entry.activityType}</span>
-                                            {/* @ts-ignore */}
-                                            {entry.notes && <span className="text-[10px] text-muted-foreground truncate max-w-[150px]">{entry.notes}</span>}
+                {/* Supervisor Calendar View */}
+                <TimesheetCalendar 
+                    hours={allEntries} 
+                    role="supervisor" 
+                    onEventClick={setSelectedEntry} 
+                />
+
+                {/* Shared Modal for selected entry */}
+                <Dialog open={!!selectedEntry} onOpenChange={(open) => {
+                    if (!open) {
+                        setSelectedEntry(null)
+                        setShowRejectInput(false)
+                        setRejectReason("")
+                    }
+                }}>
+                    <DialogContent className="max-w-md max-h-[90vh] overflow-y-auto">
+                        {selectedEntry && (
+                            <>
+                                <DialogHeader>
+                                    <DialogTitle className="flex items-center justify-between">
+                                        <div className="flex items-center gap-2">
+                                            <FileText className="h-5 w-5 text-primary" />
+                                            Activity Details
                                         </div>
-                                    </TableCell>
-                                    <TableCell className="text-sm capitalize">{entry.setting?.toLowerCase().replace(/_/g, ' ') || 'N/A'}</TableCell>
-                                    <TableCell className="text-right font-mono">{getHours(entry.hours).toFixed(2)}</TableCell>
-                                    <TableCell className="text-center">
-                                        {!entry.status || entry.status === "PENDING" ? (
-                                            <Badge variant="outline" className="text-muted-foreground">Pending</Badge>
-                                        ) : entry.status === "APPROVED" ? (
-                                            <Badge variant="default" className="bg-success text-success-foreground border-success">Approved</Badge>
-                                        ) : (
-                                            <Badge variant="destructive">Rejected</Badge>
+                                        <Badge variant={selectedEntry.status === 'APPROVED' ? 'default' : selectedEntry.status === 'REJECTED' ? 'destructive' : 'outline'}
+                                              className={selectedEntry.status === 'APPROVED' ? 'bg-success text-success-foreground hover:bg-success/90' : ''}>
+                                            {selectedEntry.status || "PENDING"}
+                                        </Badge>
+                                    </DialogTitle>
+                                    <DialogDescription>
+                                        Review full entry details for compliance auditing.
+                                    </DialogDescription>
+                                </DialogHeader>
+
+                                <div className="grid gap-4 py-4">
+                                    <div className="flex items-center gap-4 p-3 rounded-lg bg-muted/50 border">
+                                        <div className="bg-background p-2 rounded-md shadow-sm">
+                                            <Calendar className="h-4 w-4 text-primary" />
+                                        </div>
+                                        <div>
+                                            <p className="text-[10px] uppercase font-bold text-muted-foreground tracking-wider">Execution Date</p>
+                                            <p className="text-sm font-semibold">{format(new Date(selectedEntry.date), "EEEE, MMMM do, yyyy")}</p>
+                                        </div>
+                                    </div>
+
+                                    <div className="grid grid-cols-2 gap-3">
+                                        <div className="p-3 rounded-lg border bg-card">
+                                            <div className="flex items-center gap-2 mb-1">
+                                                <Clock className="h-3 w-3 text-muted-foreground" />
+                                                <span className="text-[10px] uppercase font-bold text-muted-foreground">Service Window</span>
+                                            </div>
+                                            <p className="text-sm font-semibold">
+                                                {format(new Date(selectedEntry.startTime || selectedEntry.date), 'h:mm a')} - {
+                                                (() => {
+                                                    const start = new Date(selectedEntry.startTime || selectedEntry.date);
+                                                    const durationMs = (getHours(selectedEntry) || 1) * 3600000;
+                                                    const end = new Date(start.getTime() + durationMs);
+                                                    return format(end, 'h:mm a');
+                                                })()
+                                                }
+                                            </p>
+                                        </div>
+                                        <div className="p-3 rounded-lg border bg-card text-right">
+                                            <div className="flex items-center justify-end gap-2 mb-1">
+                                                <span className="text-[10px] uppercase font-bold text-muted-foreground">Duration</span>
+                                                <Tag className="h-3 w-3 text-muted-foreground" />
+                                            </div>
+                                            <p className="text-sm font-bold text-primary">{getHours(selectedEntry).toFixed(2)} hours</p>
+                                        </div>
+                                    </div>
+
+                                    <div className="space-y-3">
+                                        <div className="grid grid-cols-2 gap-4">
+                                            <div className="space-y-1">
+                                                <p className="text-[10px] uppercase font-bold text-muted-foreground">Type</p>
+                                                <Badge variant="secondary" className="font-mono text-[10px]">{selectedEntry.type}</Badge>
+                                            </div>
+                                            <div className="space-y-1 text-right">
+                                                <p className="text-[10px] uppercase font-bold text-muted-foreground">Category</p>
+                                                <Badge variant={selectedEntry.activityType === 'RESTRICTED' ? 'destructive' : 'default'} className="text-[10px]">
+                                                    {selectedEntry.activityType}
+                                                </Badge>
+                                            </div>
+                                        </div>
+
+                                        <div className="space-y-1">
+                                            <p className="text-[10px] uppercase font-bold text-muted-foreground">Setting</p>
+                                            <div className="flex items-center gap-2 text-sm font-medium">
+                                                <MapPin className="h-4 w-4 text-muted-foreground" />
+                                                <span className="capitalize">{selectedEntry.setting?.toLowerCase().replace(/_/g, ' ') || 'N/A'}</span>
+                                            </div>
+                                        </div>
+                                        
+                                        {(selectedEntry.type === 'SUPERVISION' || selectedEntry.type === 'supervised') && (
+                                            <div className="space-y-1 gap-2 text-sm font-medium">
+                                                <span className="text-[10px] uppercase font-bold text-muted-foreground">Format</span>
+                                                <p className="capitalize">{selectedEntry.supervisionType?.toLowerCase() || 'N/A'}</p>
+                                            </div>
                                         )}
-                                    </TableCell>
-                                    <TableCell className="text-right">
-                                        <div className="flex items-center justify-end gap-1">
-                                            <Dialog>
-                                                <DialogTrigger asChild>
-                                                    <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-primary" disabled={isUpdating}>
-                                                        <Eye className="h-4 w-4" />
-                                                    </Button>
-                                                </DialogTrigger>
-                                                <DialogContent className="max-w-md">
-                                                    <DialogHeader>
-                                                        <DialogTitle className="flex items-center gap-2">
-                                                            <FileText className="h-5 w-5 text-primary" />
-                                                            Activity Details
-                                                        </DialogTitle>
-                                                        <DialogDescription>
-                                                            Review full entry details for compliance auditing.
-                                                        </DialogDescription>
-                                                    </DialogHeader>
 
-                                                    <div className="grid gap-4 py-4">
-                                                        <div className="flex items-center gap-4 p-3 rounded-lg bg-muted/50 border">
-                                                            <div className="bg-background p-2 rounded-md shadow-sm">
-                                                                <Calendar className="h-4 w-4 text-primary" />
-                                                            </div>
-                                                            <div>
-                                                                <p className="text-[10px] uppercase font-bold text-muted-foreground tracking-wider">Execution Date</p>
-                                                                <p className="text-sm font-semibold">{format(new Date(entry.date), "EEEE, MMMM do, yyyy")}</p>
-                                                            </div>
-                                                        </div>
-
-                                                        <div className="grid grid-cols-2 gap-3">
-                                                            <div className="p-3 rounded-lg border bg-card">
-                                                                <div className="flex items-center gap-2 mb-1">
-                                                                    <Clock className="h-3 w-3 text-muted-foreground" />
-                                                                    <span className="text-[10px] uppercase font-bold text-muted-foreground">Logged At</span>
-                                                                </div>
-                                                                <p className="text-xs font-semibold">{format(new Date(entry.createdAt), "MMM d, yyyy • HH:mm")}</p>
-                                                            </div>
-                                                            <div className="p-3 rounded-lg border bg-card text-right">
-                                                                <div className="flex items-center justify-end gap-2 mb-1">
-                                                                    <span className="text-[10px] uppercase font-bold text-muted-foreground">Duration</span>
-                                                                    <Tag className="h-3 w-3 text-muted-foreground" />
-                                                                </div>
-                                                                <p className="text-sm font-bold text-primary">{getHours(entry.hours).toFixed(2)} hours</p>
-                                                            </div>
-                                                        </div>
-
-                                                        <div className="space-y-3">
-                                                            <div className="grid grid-cols-2 gap-4">
-                                                                <div className="space-y-1">
-                                                                    <p className="text-[10px] uppercase font-bold text-muted-foreground">Type</p>
-                                                                    <Badge variant="secondary" className="font-mono text-[10px]">{entry.type}</Badge>
-                                                                </div>
-                                                                <div className="space-y-1 text-right">
-                                                                    <p className="text-[10px] uppercase font-bold text-muted-foreground">Category</p>
-                                                                    <Badge variant={entry.activityType === 'RESTRICTED' ? 'destructive' : 'default'} className="text-[10px]">
-                                                                        {entry.activityType}
-                                                                    </Badge>
-                                                                </div>
-                                                            </div>
-
-                                                            <div className="space-y-1">
-                                                                <p className="text-[10px] uppercase font-bold text-muted-foreground">Setting</p>
-                                                                <div className="flex items-center gap-2 text-sm font-medium">
-                                                                    <MapPin className="h-4 w-4 text-muted-foreground" />
-                                                                    <span className="capitalize">{entry.setting?.toLowerCase().replace(/_/g, ' ') || 'N/A'}</span>
-                                                                </div>
-                                                            </div>
-
-                                                            <div className="space-y-1">
-                                                                <p className="text-[10px] uppercase font-bold text-muted-foreground">Notes / Description</p>
-                                                                <div className="p-4 rounded-lg bg-muted text-sm leading-relaxed border italic text-muted-foreground">
-                                                                    {/* @ts-ignore */}
-                                                                    {entry.notes || "No additional description provided."}
-                                                                </div>
-                                                            </div>
-                                                        </div>
+                                        <div className="space-y-1">
+                                            <p className="text-[10px] uppercase font-bold text-muted-foreground">Notes / Description</p>
+                                            <div className="p-4 rounded-lg bg-muted text-sm leading-relaxed border italic text-muted-foreground">
+                                                {selectedEntry.notes || selectedEntry.groupTopic || "No additional description provided."}
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                    {(!selectedEntry.status || selectedEntry.status === "PENDING") && (
+                                        <div className="pt-4 border-t flex flex-col gap-3">
+                                            {showRejectInput ? (
+                                                <div className="space-y-3 animate-in fade-in slide-in-from-bottom-2">
+                                                    <Label>Reason for rejection</Label>
+                                                    <textarea
+                                                        className="w-full min-h-[100px] p-3 text-sm rounded-md border bg-background"
+                                                        placeholder="This will be visible to the student..."
+                                                        value={rejectReason}
+                                                        onChange={(e) => setRejectReason(e.target.value)}
+                                                    />
+                                                    <div className="flex gap-2 justify-end">
+                                                        <Button variant="ghost" onClick={() => setShowRejectInput(false)} disabled={isUpdating}>
+                                                            Cancel
+                                                        </Button>
+                                                        <Button 
+                                                            variant="destructive" 
+                                                            onClick={async () => {
+                                                                await handleUpdateStatus(selectedEntry.id, selectedEntry.type, "REJECTED")
+                                                                setSelectedEntry(null)
+                                                                setShowRejectInput(false)
+                                                            }}
+                                                            disabled={!rejectReason.trim() || isUpdating}
+                                                        >
+                                                            {isUpdating ? "Rejecting..." : "Confirm Rejection"}
+                                                        </Button>
                                                     </div>
-                                                </DialogContent>
-                                            </Dialog>
-
-                                            {(!entry.status || entry.status === "PENDING") && (
-                                                <>
-                                                    <Button
-                                                        variant="ghost"
-                                                        size="icon"
-                                                        className="h-8 w-8 text-success hover:bg-success/20 hover:text-success"
-                                                        disabled={isUpdating}
-                                                        onClick={() => handleUpdateStatus(entry.id, entry.type, "APPROVED")}
+                                                </div>
+                                            ) : (
+                                                <div className="flex items-center gap-3">
+                                                    <Button 
+                                                        variant="outline" 
+                                                        className="flex-1 text-destructive hover:bg-destructive hover:text-destructive-foreground border-destructive"
+                                                        onClick={() => setShowRejectInput(true)}
                                                     >
-                                                        <Check className="h-4 w-4" />
+                                                        <X className="h-4 w-4 mr-2" /> Reject
                                                     </Button>
-
-                                                    <Dialog>
-                                                        <DialogTrigger asChild>
-                                                            <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive hover:bg-destructive/20 hover:text-destructive" disabled={isUpdating}>
-                                                                <X className="h-4 w-4" />
-                                                            </Button>
-                                                        </DialogTrigger>
-                                                        <DialogContent>
-                                                            <DialogHeader>
-                                                                <DialogTitle>Reject Hours</DialogTitle>
-                                                                <DialogDescription>
-                                                                    Please provide a reason for rejecting these hours. This will be visible to the student.
-                                                                </DialogDescription>
-                                                            </DialogHeader>
-                                                            <div className="py-4">
-                                                                <textarea
-                                                                    className="w-full min-h-[100px] p-3 text-sm rounded-md border bg-background"
-                                                                    placeholder="Reason for rejection..."
-                                                                    value={rejectReason}
-                                                                    onChange={(e) => setRejectReason(e.target.value)}
-                                                                />
-                                                            </div>
-                                                            <div className="flex justify-end gap-2">
-                                                                <Button
-                                                                    variant="destructive"
-                                                                    disabled={!rejectReason.trim() || isUpdating}
-                                                                    onClick={() => handleUpdateStatus(entry.id, entry.type, "REJECTED")}
-                                                                >
-                                                                    Confirm Rejection
-                                                                </Button>
-                                                            </div>
-                                                        </DialogContent>
-                                                    </Dialog>
-                                                </>
+                                                    <Button 
+                                                        className="flex-1 bg-success hover:bg-success/90 text-success-foreground"
+                                                        onClick={async () => {
+                                                            await handleUpdateStatus(selectedEntry.id, selectedEntry.type, "APPROVED")
+                                                            setSelectedEntry(null)
+                                                        }}
+                                                        disabled={isUpdating}
+                                                    >
+                                                        <Check className="h-4 w-4 mr-2" /> Approve
+                                                    </Button>
+                                                </div>
                                             )}
                                         </div>
-                                    </TableCell>
-                                </TableRow>
-                            ))
+                                    )}
+                                </div>
+                            </>
                         )}
-                    </TableBody>
-                </Table>
+                    </DialogContent>
+                </Dialog>
             </CardContent>
         </Card >
     )
