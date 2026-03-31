@@ -154,3 +154,113 @@
     }
   }
 }
+
+  /* ------------------------------------- */
+  /* REACT BIG CALENDAR GLOBAL OVERRIDES  */
+  /* ------------------------------------- */
+  .rbc-calendar {
+      font-family: inherit;
+      min-height: 800px;
+      width: 100% !important;
+      box-sizing: border-box;
+  }
+  .rbc-toolbar {
+      margin-bottom: 24px !important;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      width: 100%;
+  }
+  .rbc-toolbar-label {
+      font-size: 1.25rem;
+      font-weight: 700;
+      color: hsl(var(--foreground));
+      text-align: center;
+      flex: 1;
+  }
+  .rbc-btn-group {
+      display: inline-flex;
+      border-radius: 0.5rem;
+      box-shadow: var(--shadow-sm);
+  }
+  .rbc-btn-group button {
+      color: hsl(var(--foreground));
+      border: 1px solid hsl(var(--border)) !important;
+      background-color: transparent;
+      padding: 0.5rem 1rem !important;
+      font-size: 0.875rem !important;
+      font-weight: 500 !important;
+      transition: all 0.2s;
+  }
+  .rbc-btn-group button:hover {
+      background-color: hsl(var(--accent));
+      color: hsl(var(--accent-foreground));
+  }
+  .rbc-btn-group button.rbc-active {
+      background-color: hsl(var(--primary)) !important;
+      color: hsl(var(--primary-foreground)) !important;
+      box-shadow: inset 0 2px 4px 0 rgb(0 0 0 / 0.1);
+      border-color: hsl(var(--primary)) !important;
+      z-index: 10;
+  }
+  /* Border Radius trick for the button groups */
+  .rbc-btn-group button:first-child {
+      border-top-left-radius: 0.5rem !important;
+      border-bottom-left-radius: 0.5rem !important;
+  }
+  .rbc-btn-group button:last-child {
+      border-top-right-radius: 0.5rem !important;
+      border-bottom-right-radius: 0.5rem !important;
+  }
+  .rbc-btn-group button + button {
+      margin-left: -1px;
+  }
+
+  .rbc-today {
+      background-color: hsl(var(--accent) / 0.15) !important;
+  }
+  .rbc-header {
+      padding: 12px 8px !important;
+      font-weight: 600 !important;
+      text-transform: uppercase !important;
+      font-size: 0.75rem !important;
+      letter-spacing: 0.05em;
+      color: hsl(var(--muted-foreground));
+      border-bottom: 2px solid hsl(var(--border)) !important;
+      text-align: center;
+  }
+  
+  /* Grid borders */
+  .rbc-month-view, .rbc-time-view, .rbc-agenda-view {
+      border: 1px solid hsl(var(--border)) !important;
+      border-radius: 0.5rem;
+      overflow: hidden;
+      box-shadow: var(--shadow-sm);
+      width: 100% !important;
+      background: hsl(var(--card));
+  }
+  .rbc-day-bg, .rbc-month-row, .rbc-time-content, .rbc-time-header-cell {
+      border-color: hsl(var(--border)) !important;
+  }
+  .rbc-time-slot {
+      border-bottom-color: hsl(var(--border) / 0.3) !important;
+  }
+  .rbc-event {
+      box-shadow: 0 1px 2px 0 rgb(0 0 0 / 0.1) !important;
+      transition: transform 0.1s;
+      border-radius: 4px !important;
+  }
+  .rbc-event:hover {
+      transform: scale(1.02);
+      z-index: 20 !important;
+  }
+  .rbc-show-more {
+      color: hsl(var(--primary)) !important;
+      font-weight: 600 !important;
+      font-size: 0.75rem !important;
+      background: transparent !important;
+      padding: 4px !important;
+  }
+  .rbc-show-more:hover {
+      text-decoration: underline !important;
+  }
