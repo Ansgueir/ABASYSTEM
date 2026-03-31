@@ -3,20 +3,19 @@
 import { useState } from "react"
 import { TimesheetCalendar } from "@/components/shared/timesheet-calendar"
 import { CalendarStudentHourModal } from "@/components/student/calendar-student-hour-modal"
-import { Card, CardContent } from "@/components/ui/card"
 
 export function TimesheetClientView({ hours }: { hours: any[] }) {
     const [selectedHour, setSelectedHour] = useState<any>(null)
 
     return (
-        <Card className="border shadow-sm">
-            <CardContent className="p-6 flex flex-col relative">
+        <div className="w-full flex justify-center items-center mt-6">
+            <div className="w-full relative">
                 <TimesheetCalendar 
                     hours={hours} 
                     role="student" 
                     onEventClick={(hour) => setSelectedHour(hour)} 
                 />
-            </CardContent>
+            </div>
             {selectedHour && (
                 <CalendarStudentHourModal 
                     hour={selectedHour} 
@@ -24,6 +23,6 @@ export function TimesheetClientView({ hours }: { hours: any[] }) {
                     onOpenChange={(open) => !open && setSelectedHour(null)} 
                 />
             )}
-        </Card>
+        </div>
     )
 }
