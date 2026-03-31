@@ -142,8 +142,10 @@ export function OfficeContractsTab({ studentId, contracts, allSupervisors }: Off
                                                 <span className="font-semibold text-sm">
                                                     Effective: {(() => {
                                                         try {
-                                                            const d = new Date(contract.effectiveDate as any)
-                                                            return !isNaN(d.getTime()) ? format(d, "MMMM d, yyyy") : "N/A"
+                                                            const dt = new Date(contract.effectiveDate as any)
+                                                            if (isNaN(dt.getTime())) return "N/A"
+                                                            const utcDate = new Date(dt.getUTCFullYear(), dt.getUTCMonth(), dt.getUTCDate())
+                                                            return format(utcDate, "MMMM d, yyyy")
                                                         } catch { return "N/A" }
                                                     })()}
                                                 </span>

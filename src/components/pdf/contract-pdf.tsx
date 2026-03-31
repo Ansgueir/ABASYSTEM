@@ -375,7 +375,11 @@ function SigCard({ party, dateStr }: { party: SigningParty; dateStr: string }) {
 // ─────────────────────────────────────────────────────────────────────────────
 export function ContractPDF({ trainee, supervisors, effectiveDate, clinic }: ContractPDFProps) {
     const primarySupervisor = supervisors.find(s => s.isMain) ?? supervisors[0]
-    const effectiveDateStr = format(effectiveDate, "MMMM d, yyyy")
+    
+    // Force format to use the UTC date components to prevent +/- 1 day timezone shifts
+    const utcDate = new Date(effectiveDate.getUTCFullYear(), effectiveDate.getUTCMonth(), effectiveDate.getUTCDate())
+    const effectiveDateStr = format(utcDate, "MMMM d, yyyy")
+    
     const allParties = [...supervisors, trainee]
 
     return (
