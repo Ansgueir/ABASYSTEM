@@ -210,7 +210,7 @@ export function HourDetailsDialog({ hour }: HourDetailsDialogProps) {
                                             <Input
                                                 id="edit-starttime"
                                                 type="time"
-                                                className="pt-4 pr-10"
+                                                className="pt-4 pr-10 relative [&::-webkit-calendar-picker-indicator]:absolute [&::-webkit-calendar-picker-indicator]:right-0 [&::-webkit-calendar-picker-indicator]:w-12 [&::-webkit-calendar-picker-indicator]:h-full [&::-webkit-calendar-picker-indicator]:opacity-0 [&::-webkit-calendar-picker-indicator]:cursor-pointer"
                                                 value={startTimeStr}
                                                 onChange={e => {
                                                     const newStart = e.target.value
@@ -230,7 +230,7 @@ export function HourDetailsDialog({ hour }: HourDetailsDialogProps) {
                                             <Input
                                                 id="edit-endtime"
                                                 type="time"
-                                                className="pt-4 pr-10"
+                                                className="pt-4 pr-10 relative [&::-webkit-calendar-picker-indicator]:absolute [&::-webkit-calendar-picker-indicator]:right-0 [&::-webkit-calendar-picker-indicator]:w-12 [&::-webkit-calendar-picker-indicator]:h-full [&::-webkit-calendar-picker-indicator]:opacity-0 [&::-webkit-calendar-picker-indicator]:cursor-pointer"
                                                 value={endTimeStr}
                                                 onChange={e => {
                                                     const newEnd = e.target.value

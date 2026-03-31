@@ -389,9 +389,9 @@ export function LogHoursDialog({ disabled = false, disabledMessage, students }: 
                                                     <FormItem className="flex flex-col justify-end">
                                                         <FormLabel>Start</FormLabel>
                                                         <FormControl>
-                                                            <div className="relative">
-                                                                <Clock className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none opacity-60" />
-                                                                <Input type="time" className="pr-10" {...field} />
+                                                            <div className="relative flex items-center">
+                                                                <Clock className="absolute right-3 h-4 w-4 text-muted-foreground pointer-events-none opacity-60" />
+                                                                <Input type="time" className="pr-10 relative [&::-webkit-calendar-picker-indicator]:absolute [&::-webkit-calendar-picker-indicator]:right-0 [&::-webkit-calendar-picker-indicator]:w-12 [&::-webkit-calendar-picker-indicator]:h-full [&::-webkit-calendar-picker-indicator]:opacity-0 [&::-webkit-calendar-picker-indicator]:cursor-pointer" {...field} />
                                                             </div>
                                                         </FormControl>
                                                         <FormMessage />
@@ -405,9 +405,9 @@ export function LogHoursDialog({ disabled = false, disabledMessage, students }: 
                                                     <FormItem className="flex flex-col justify-end">
                                                         <FormLabel>End</FormLabel>
                                                         <FormControl>
-                                                            <div className="relative">
-                                                                <Clock className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none opacity-60" />
-                                                                <Input type="time" className="pr-10" {...field} />
+                                                            <div className="relative flex items-center">
+                                                                <Clock className="absolute right-3 h-4 w-4 text-muted-foreground pointer-events-none opacity-60" />
+                                                                <Input type="time" className="pr-10 relative [&::-webkit-calendar-picker-indicator]:absolute [&::-webkit-calendar-picker-indicator]:right-0 [&::-webkit-calendar-picker-indicator]:w-12 [&::-webkit-calendar-picker-indicator]:h-full [&::-webkit-calendar-picker-indicator]:opacity-0 [&::-webkit-calendar-picker-indicator]:cursor-pointer" {...field} />
                                                             </div>
                                                         </FormControl>
                                                         <FormMessage />
@@ -481,9 +481,9 @@ export function LogHoursDialog({ disabled = false, disabledMessage, students }: 
                                                     <FormItem>
                                                         <FormLabel>Start Time</FormLabel>
                                                         <FormControl>
-                                                            <div className="relative">
-                                                                <Clock className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none opacity-60" />
-                                                                <Input type="time" className="pr-10" {...field} />
+                                                            <div className="relative flex items-center">
+                                                                <Clock className="absolute right-3 h-4 w-4 text-muted-foreground pointer-events-none opacity-60" />
+                                                                <Input type="time" className="pr-10 relative [&::-webkit-calendar-picker-indicator]:absolute [&::-webkit-calendar-picker-indicator]:right-0 [&::-webkit-calendar-picker-indicator]:w-12 [&::-webkit-calendar-picker-indicator]:h-full [&::-webkit-calendar-picker-indicator]:opacity-0 [&::-webkit-calendar-picker-indicator]:cursor-pointer" {...field} />
                                                             </div>
                                                         </FormControl>
                                                         <FormMessage />
@@ -497,9 +497,9 @@ export function LogHoursDialog({ disabled = false, disabledMessage, students }: 
                                                     <FormItem>
                                                         <FormLabel>End Time</FormLabel>
                                                         <FormControl>
-                                                            <div className="relative">
-                                                                <Clock className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none opacity-60" />
-                                                                <Input type="time" className="pr-10" {...field} />
+                                                            <div className="relative flex items-center">
+                                                                <Clock className="absolute right-3 h-4 w-4 text-muted-foreground pointer-events-none opacity-60" />
+                                                                <Input type="time" className="pr-10 relative [&::-webkit-calendar-picker-indicator]:absolute [&::-webkit-calendar-picker-indicator]:right-0 [&::-webkit-calendar-picker-indicator]:w-12 [&::-webkit-calendar-picker-indicator]:h-full [&::-webkit-calendar-picker-indicator]:opacity-0 [&::-webkit-calendar-picker-indicator]:cursor-pointer" {...field} />
                                                             </div>
                                                         </FormControl>
                                                         <FormMessage />
