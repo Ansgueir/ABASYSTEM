@@ -53,7 +53,11 @@ export function SupervisorContractsTab({ contracts }: SupervisorContractsTabProp
                                         <div className="flex items-center gap-2">
                                             <Calendar className="h-4 w-4 text-primary" />
                                             <span className="font-semibold text-sm">
-                                                Effective: {format(new Date(contract.effectiveDate), "MMMM d, yyyy")}
+                                                Effective: {(() => {
+                                                    const dt = new Date(contract.effectiveDate)
+                                                    const utcDate = new Date(dt.getUTCFullYear(), dt.getUTCMonth(), dt.getUTCDate())
+                                                    return format(utcDate, "MMMM d, yyyy")
+                                                })()}
                                             </span>
                                             <Badge variant={STATUS_COLORS[contract.status] as any ?? "secondary"}>
                                                 {contract.status}

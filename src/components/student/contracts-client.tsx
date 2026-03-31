@@ -67,7 +67,11 @@ export function StudentContractsClient({ contracts }: { contracts: StudentContra
                                 </Badge>
                             </CardTitle>
                             <CardDescription className="mt-1">
-                                Effective Date: {format(new Date(contract.effectiveDate), "MMMM d, yyyy")}
+                                Effective Date: {(() => {
+                                    const dt = new Date(contract.effectiveDate)
+                                    const utcDate = new Date(dt.getUTCFullYear(), dt.getUTCMonth(), dt.getUTCDate())
+                                    return format(utcDate, "MMMM d, yyyy")
+                                })()}
                             </CardDescription>
                         </div>
                         <Button variant="outline" size="sm" asChild className="gap-2">
