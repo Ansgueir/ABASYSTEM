@@ -8,7 +8,7 @@ import { redirect } from "next/navigation"
 import { format } from "date-fns"
 import { LogHoursDialog } from "@/components/log-hours-dialog"
 import { serialize } from "@/lib/serialize"
-import { SupervisorSessionsList } from "@/components/supervisor/sessions-list"
+import { SupervisorTimesheetClientView } from "./supervisor-timesheet-client-view"
 
 export default async function SupervisorTimesheetPage() {
     const session = await auth()
@@ -100,34 +100,11 @@ export default async function SupervisorTimesheetPage() {
                         <p className="text-muted-foreground">Log and manage your supervision hours</p>
                     </div>
                     <div className="flex gap-2">
-                        <Button variant="outline" className="rounded-xl">
-                            <Filter className="h-4 w-4 mr-2" />
-                            Filter
-                        </Button>
                         <LogHoursDialog students={serializedStudents} />
                     </div>
                 </div>
 
-                {/* Hours List */}
-                <Card>
-                    <CardHeader>
-                        <CardTitle className="text-lg">Recent Sessions</CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                        {hours.length === 0 ? (
-                            <div className="text-center py-12">
-                                <Clock className="h-12 w-12 mx-auto text-muted-foreground/50 mb-4" />
-                                <p className="text-muted-foreground">No supervision hours logged yet</p>
-                                <p className="text-muted-foreground">No supervision hours logged yet</p>
-                                <div className="mt-4">
-                                    <LogHoursDialog students={serializedStudents} />
-                                </div>
-                            </div>
-                        ) : (
-                            <SupervisorSessionsList hours={hours} />
-                        )}
-                    </CardContent>
-                </Card>
+                <SupervisorTimesheetClientView hours={hours} students={allStudents} />
             </div>
         </DashboardLayout>
     )

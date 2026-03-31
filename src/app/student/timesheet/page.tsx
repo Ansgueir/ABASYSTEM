@@ -76,10 +76,6 @@ export default async function TimesheetPage() {
                         <p className="text-muted-foreground">Track and manage your logged hours</p>
                     </div>
                     <div className="flex gap-2">
-                        <Button variant="outline" className="rounded-xl">
-                            <Filter className="h-4 w-4 mr-2" />
-                            Filter
-                        </Button>
                         <LogHoursDialog 
                             disabled={!student?.supervisors || student.supervisors.length === 0} 
                             disabledMessage="You cannot log hours yet. Please contact the Office to have a Supervisor assigned to your profile."
