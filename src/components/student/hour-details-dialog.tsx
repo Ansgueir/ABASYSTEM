@@ -45,6 +45,14 @@ export function HourDetailsDialog({ hour }: HourDetailsDialogProps) {
     const [startTimeStr, setStartTimeStr] = useState(
         hour?.startTime ? format(new Date(hour.startTime), 'HH:mm') : '09:00'
     )
+    // EndTime as HH:MM string (calculated from startTime + minutes)
+    const [endTimeStr, setEndTimeStr] = useState(() => {
+        if (!hour?.startTime) return '10:00'
+        const start = new Date(hour.startTime)
+        const duration = Math.round((Number(hour?.hours) || 1) * 60)
+        const end = new Date(start.getTime() + duration * 60000)
+        return format(end, 'HH:mm')
+    })
 
     if (!hour) return null
 
@@ -109,10 +117,15 @@ export function HourDetailsDialog({ hour }: HourDetailsDialogProps) {
                             </div>
                             <div className="space-y-1">
                                 <span className="text-muted-foreground flex items-center gap-1">
-                                    <Clock className="h-3 w-3" /> Time / Duration
+                                    <Clock className="h-3 w-3" /> Time Range / Duration
                                 </span>
                                 <p className="font-medium">
-                                    {format(new Date(hour.startTime), 'h:mm a')} <span className="text-muted-foreground">({Number(hour.hours).toFixed(1)}h)</span>
+                                    {format(new Date(hour.startTime), 'h:mm a')} - {(() => {
+                                        const start = new Date(hour.startTime)
+                                        const end = new Date(start.getTime() + Number(hour.hours) * 3600000)
+                                        return format(end, 'h:mm a')
+                                    })()}
+                                    <span className="text-muted-foreground ml-1">({Number(hour.hours).toFixed(1)}h)</span>
                                 </p>
                             </div>
                             {(hour.type === 'supervised' || hour.type === 'SUPERVISED') && hour.supervisor && (
@@ -189,14 +202,52 @@ export function HourDetailsDialog({ hour }: HourDetailsDialogProps) {
                                     />
                                 </div>
                                 <div className="space-y-2">
-                                    <Label htmlFor="edit-starttime">Start Time</Label>
-                                    <Input
-                                        id="edit-starttime"
-                                        type="time"
-                                        value={startTimeStr}
-                                        onChange={e => setStartTimeStr(e.target.value)}
-                                    />
+                                    <Label htmlFor="edit-times">Service Window</Label>
+                                    <div className="grid grid-cols-2 gap-2">
+                                        <div className="relative">
+                                            <span className="absolute left-2 top-0.5 text-[8px] uppercase text-muted-foreground font-bold">Start</span>
+                                            <Input
+                                                id="edit-starttime"
+                                                type="time"
+                                                className="pt-4"
+                                                value={startTimeStr}
+                                                onChange={e => {
+                                                    const newStart = e.target.value
+                                                    setStartTimeStr(newStart)
+                                                    // Sync minutes
+                                                    const [h1, m1] = newStart.split(':').map(Number)
+                                                    const [h2, m2] = endTimeStr.split(':').map(Number)
+                                                    let diff = (h2 * 60 + m2) - (h1 * 60 + m1)
+                                                    if (diff < 0) diff += 1440
+                                                    setMinutes(diff)
+                                                }}
+                                            />
+                                        </div>
+                                        <div className="relative">
+                                            <span className="absolute left-2 top-0.5 text-[8px] uppercase text-muted-foreground font-bold">End</span>
+                                            <Input
+                                                id="edit-endtime"
+                                                type="time"
+                                                className="pt-4"
+                                                value={endTimeStr}
+                                                onChange={e => {
+                                                    const newEnd = e.target.value
+                                                    setEndTimeStr(newEnd)
+                                                    // Sync minutes
+                                                    const [h1, m1] = startTimeStr.split(':').map(Number)
+                                                    const [h2, m2] = newEnd.split(':').map(Number)
+                                                    let diff = (h2 * 60 + m2) - (h1 * 60 + m1)
+                                                    if (diff < 0) diff += 1440
+                                                    setMinutes(diff)
+                                                }}
+                                            />
+                                        </div>
+                                    </div>
                                 </div>
+                            </div>
+                            <div className="p-3 rounded-lg bg-indigo-50 border border-indigo-100 flex items-center justify-between">
+                                <span className="text-xs font-semibold text-indigo-700 uppercase">Calculated Duration</span>
+                                <span className="text-sm font-bold text-indigo-900">{(minutes / 60).toFixed(2)} hours</span>
                             </div>
                             {/* Type — full width row */}
                             <div className="space-y-2">
@@ -239,16 +290,7 @@ export function HourDetailsDialog({ hour }: HourDetailsDialogProps) {
                                     </Select>
                                 </div>
                             </div>
-                            <div className="space-y-2">
-                                <Label htmlFor="edit-minutes">Duration (Minutes)</Label>
-                                <Input
-                                    id="edit-minutes"
-                                    type="number"
-                                    value={minutes}
-                                    onChange={e => setMinutes(Number(e.target.value))}
-                                    min={1}
-                                />
-                            </div>
+
                             <div className="space-y-2">
                                 <Label htmlFor="edit-notes">Notes</Label>
                                 <Input

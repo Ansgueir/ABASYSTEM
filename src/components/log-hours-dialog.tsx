@@ -67,6 +67,7 @@ const formSchema = z.object({
     weekdays: z.array(z.number()).optional(),
     // Shared
     startTime: z.string().min(1, "Start time is required"),
+    endTime: z.string().min(1, "End time is required"),
     minutes: z.coerce.number().min(1, "Duration must be at least 1 minute"),
     setting: z.enum(SettingTypeOptions),
     activityType: z.enum(ActivityTypeOptions),
@@ -97,6 +98,7 @@ export function LogHoursDialog({ disabled = false, disabledMessage, students }: 
             endDate: addDays(new Date(), 7),
             weekdays: [1, 2, 3, 4, 5], // Mon-Fri default
             startTime: "09:00",
+            endTime: "10:00",
             minutes: 60,
             setting: "CLIENTS_HOME",
             activityType: "UNRESTRICTED",
@@ -108,7 +110,27 @@ export function LogHoursDialog({ disabled = false, disabledMessage, students }: 
     const watchStartDate = form.watch("startDate")
     const watchEndDate = form.watch("endDate")
     const watchWeekdays = form.watch("weekdays") || []
+    const watchStartTime = form.watch("startTime")
+    const watchEndTime = form.watch("endTime")
     const watchMinutes = form.watch("minutes")
+
+    // Auto-calculate minutes from Start/End Time
+    useMemo(() => {
+        if (watchStartTime && watchEndTime) {
+            const [h1, m1] = watchStartTime.split(':').map(Number)
+            const [h2, m2] = watchEndTime.split(':').map(Number)
+            
+            const startTotal = h1 * 60 + m1
+            const endTotal = h2 * 60 + m2
+            
+            let diff = endTotal - startTotal
+            if (diff < 0) diff += 1440 // Handle overnight shifts if needed (though usually same day)
+            
+            if (diff !== watchMinutes) {
+                form.setValue("minutes", diff)
+            }
+        }
+    }, [watchStartTime, watchEndTime, form, watchMinutes])
 
     // Preview: count matching days
     const previewCount = useMemo(() => {
@@ -359,19 +381,34 @@ export function LogHoursDialog({ disabled = false, disabledMessage, students }: 
                                                 </FormItem>
                                             )}
                                         />
-                                        <FormField
-                                            control={form.control}
-                                            name="startTime"
-                                            render={({ field }) => (
-                                                <FormItem className="flex flex-col justify-end">
-                                                    <FormLabel>Start Time</FormLabel>
-                                                    <FormControl>
-                                                        <Input type="time" {...field} />
-                                                    </FormControl>
-                                                    <FormMessage />
-                                                </FormItem>
-                                            )}
-                                        />
+                                        <div className="grid grid-cols-2 gap-2">
+                                            <FormField
+                                                control={form.control}
+                                                name="startTime"
+                                                render={({ field }) => (
+                                                    <FormItem className="flex flex-col justify-end">
+                                                        <FormLabel>Start</FormLabel>
+                                                        <FormControl>
+                                                            <Input type="time" {...field} />
+                                                        </FormControl>
+                                                        <FormMessage />
+                                                    </FormItem>
+                                                )}
+                                            />
+                                            <FormField
+                                                control={form.control}
+                                                name="endTime"
+                                                render={({ field }) => (
+                                                    <FormItem className="flex flex-col justify-end">
+                                                        <FormLabel>End</FormLabel>
+                                                        <FormControl>
+                                                            <Input type="time" {...field} />
+                                                        </FormControl>
+                                                        <FormMessage />
+                                                    </FormItem>
+                                                )}
+                                            />
+                                        </div>
                                     </div>
                                 )}
 
@@ -429,20 +466,35 @@ export function LogHoursDialog({ disabled = false, disabledMessage, students }: 
                                             />
                                         </div>
 
-                                        {/* Start Time (bulk) */}
-                                        <FormField
-                                            control={form.control}
-                                            name="startTime"
-                                            render={({ field }) => (
-                                                <FormItem>
-                                                    <FormLabel>Start Time (each session)</FormLabel>
-                                                    <FormControl>
-                                                        <Input type="time" {...field} />
-                                                    </FormControl>
-                                                    <FormMessage />
-                                                </FormItem>
-                                            )}
-                                        />
+                                        {/* Start & End Time (bulk) */}
+                                        <div className="grid grid-cols-2 gap-4">
+                                            <FormField
+                                                control={form.control}
+                                                name="startTime"
+                                                render={({ field }) => (
+                                                    <FormItem>
+                                                        <FormLabel>Start Time</FormLabel>
+                                                        <FormControl>
+                                                            <Input type="time" {...field} />
+                                                        </FormControl>
+                                                        <FormMessage />
+                                                    </FormItem>
+                                                )}
+                                            />
+                                            <FormField
+                                                control={form.control}
+                                                name="endTime"
+                                                render={({ field }) => (
+                                                    <FormItem>
+                                                        <FormLabel>End Time</FormLabel>
+                                                        <FormControl>
+                                                            <Input type="time" {...field} />
+                                                        </FormControl>
+                                                        <FormMessage />
+                                                    </FormItem>
+                                                )}
+                                            />
+                                        </div>
 
                                         {/* Weekday selector */}
                                         <div>
@@ -479,23 +531,16 @@ export function LogHoursDialog({ disabled = false, disabledMessage, students }: 
                                     </div>
                                 )}
 
-                                {/* Duration */}
-                                <FormField
-                                    control={form.control}
-                                    name="minutes"
-                                    render={({ field }) => (
-                                        <FormItem>
-                                            <FormLabel>Duration per Session (Minutes)</FormLabel>
-                                            <FormControl>
-                                                <div className="flex items-center space-x-2">
-                                                    <Input type="number" {...field} />
-                                                    <span className="text-sm text-muted-foreground shrink-0">min = {((field.value || 0) / 60).toFixed(2)}h</span>
-                                                </div>
-                                            </FormControl>
-                                            <FormMessage />
-                                        </FormItem>
-                                    )}
-                                />
+                                {/* Duration (Calculated) */}
+                                <div className="flex items-center justify-between p-3 rounded-xl bg-muted border">
+                                    <div className="flex items-center gap-2">
+                                        <Clock className="h-4 w-4 text-muted-foreground" />
+                                        <span className="text-sm font-medium">Session Duration</span>
+                                    </div>
+                                    <span className="text-sm font-bold text-indigo-600">
+                                        {watchMinutes} min / {(watchMinutes / 60).toFixed(2)} hrs
+                                    </span>
+                                </div>
 
                                 <div className="grid grid-cols-2 gap-4">
                                     <FormField
