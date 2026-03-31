@@ -389,7 +389,10 @@ export function LogHoursDialog({ disabled = false, disabledMessage, students }: 
                                                     <FormItem className="flex flex-col justify-end">
                                                         <FormLabel>Start</FormLabel>
                                                         <FormControl>
-                                                            <Input type="time" {...field} />
+                                                            <div className="relative">
+                                                                <Clock className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none opacity-60" />
+                                                                <Input type="time" className="pr-10" {...field} />
+                                                            </div>
                                                         </FormControl>
                                                         <FormMessage />
                                                     </FormItem>
@@ -402,7 +405,10 @@ export function LogHoursDialog({ disabled = false, disabledMessage, students }: 
                                                     <FormItem className="flex flex-col justify-end">
                                                         <FormLabel>End</FormLabel>
                                                         <FormControl>
-                                                            <Input type="time" {...field} />
+                                                            <div className="relative">
+                                                                <Clock className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none opacity-60" />
+                                                                <Input type="time" className="pr-10" {...field} />
+                                                            </div>
                                                         </FormControl>
                                                         <FormMessage />
                                                     </FormItem>
@@ -475,7 +481,10 @@ export function LogHoursDialog({ disabled = false, disabledMessage, students }: 
                                                     <FormItem>
                                                         <FormLabel>Start Time</FormLabel>
                                                         <FormControl>
-                                                            <Input type="time" {...field} />
+                                                            <div className="relative">
+                                                                <Clock className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none opacity-60" />
+                                                                <Input type="time" className="pr-10" {...field} />
+                                                            </div>
                                                         </FormControl>
                                                         <FormMessage />
                                                     </FormItem>
@@ -488,7 +497,10 @@ export function LogHoursDialog({ disabled = false, disabledMessage, students }: 
                                                     <FormItem>
                                                         <FormLabel>End Time</FormLabel>
                                                         <FormControl>
-                                                            <Input type="time" {...field} />
+                                                            <div className="relative">
+                                                                <Clock className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none opacity-60" />
+                                                                <Input type="time" className="pr-10" {...field} />
+                                                            </div>
                                                         </FormControl>
                                                         <FormMessage />
                                                     </FormItem>

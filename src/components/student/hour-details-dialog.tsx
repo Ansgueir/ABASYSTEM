@@ -206,10 +206,11 @@ export function HourDetailsDialog({ hour }: HourDetailsDialogProps) {
                                     <div className="grid grid-cols-2 gap-2">
                                         <div className="relative">
                                             <span className="absolute left-2 top-0.5 text-[8px] uppercase text-muted-foreground font-bold">Start</span>
+                                            <Clock className="absolute right-3 bottom-3 h-4 w-4 text-muted-foreground pointer-events-none opacity-60" />
                                             <Input
                                                 id="edit-starttime"
                                                 type="time"
-                                                className="pt-4"
+                                                className="pt-4 pr-10"
                                                 value={startTimeStr}
                                                 onChange={e => {
                                                     const newStart = e.target.value
@@ -225,10 +226,11 @@ export function HourDetailsDialog({ hour }: HourDetailsDialogProps) {
                                         </div>
                                         <div className="relative">
                                             <span className="absolute left-2 top-0.5 text-[8px] uppercase text-muted-foreground font-bold">End</span>
+                                            <Clock className="absolute right-3 bottom-3 h-4 w-4 text-muted-foreground pointer-events-none opacity-60" />
                                             <Input
                                                 id="edit-endtime"
                                                 type="time"
-                                                className="pt-4"
+                                                className="pt-4 pr-10"
                                                 value={endTimeStr}
                                                 onChange={e => {
                                                     const newEnd = e.target.value
