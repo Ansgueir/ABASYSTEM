@@ -123,17 +123,26 @@ export function AddressAutocomplete({
     }
 
     function handleSelect(feature: any) {
-        // Map Photon GeoJSON to our format
+        // Map Photon GeoJSON to our format with more aggressive field detection
         const p = feature.properties || {}
         
+        // 1. Street Detection
         const parsedStreet = p.street || p.name || ""
         const parsedNumber = p.housenumber || ""
-        const parsedCity = p.city || p.town || p.district || ""
+        
+        // 2. City Detection (Aggressive check across different mapping labels)
+        const parsedCity = p.city || p.town || p.village || p.locality || p.municipality || p.district || ""
+        
+        // 3. State/Region
         const parsedState = p.state || ""
+        
+        // 4. Zip/Postcode
         const parsedZip = p.postcode || ""
+        
+        // 5. Country
         const parsedCountry = p.country || ""
         
-        // Build display name
+        // Build display name for the search bar
         const displayName = [
             [parsedNumber, parsedStreet].filter(Boolean).join(" "),
             parsedCity,
@@ -151,6 +160,7 @@ export function AddressAutocomplete({
         setHasSelected(true)
         setShowSuggestions(false)
 
+        // Sync with the form hidden fields and parent state
         notifyParent({
             street: parsedStreet,
             number: parsedNumber,
