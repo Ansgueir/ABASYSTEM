@@ -126,7 +126,7 @@ export async function registerStudentToGroup(sessionId: string, studentId: strin
     }
 }
 
-export async function updateGroupSession(sessionId: string, date: Date, time: string, topic: string, maxStudents: number, supervisorId: string, studentIds: string[] = []) {
+export async function updateGroupSession(sessionId: string, date: Date, time: string, topic: string, maxStudents: number, supervisorId: string, studentIds: string[] = [], durationMin: number = 60) {
     const session = await auth()
     if (!session || !session.user) return { error: "Unauthorized" }
 
@@ -182,7 +182,7 @@ export async function updateGroupSession(sessionId: string, date: Date, time: st
                         supervisorId: supervisorId,
                         date: date,
                         startTime: startDateTime,
-                        hours: 1, // Defaulted to 1 hr sync
+                        hours: durationMin / 60,
                         supervisionType: "GROUP",
                         setting: "OFFICE_CLINIC",
                         activityType: "RESTRICTED",

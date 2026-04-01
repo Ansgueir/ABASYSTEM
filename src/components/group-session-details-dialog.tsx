@@ -20,7 +20,7 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { updateGroupSession, deleteGroupSession } from "@/actions/groups"
 import { useRouter } from "next/navigation"
-import { CalendarIcon, Edit, Trash2 } from "lucide-react"
+import { CalendarIcon, Edit, Trash2, Clock } from "lucide-react"
 import { toast } from "sonner"
 import { format } from "date-fns"
 import { cn } from "@/lib/utils"
@@ -44,7 +44,15 @@ export function GroupSessionDetailsDialog({ session, supervisors, students, chil
     const sessionTimeObj = new Date(session.startTime)
     const hours = sessionTimeObj.getHours().toString().padStart(2, '0')
     const mins = sessionTimeObj.getMinutes().toString().padStart(2, '0')
-    const [time, setTime] = useState(`${hours}:${mins}`)
+    
+    const [startTimeStr, setStartTimeStr] = useState(`${hours}:${mins}`)
+    const [endTimeStr, setEndTimeStr] = useState(() => {
+        const start = new Date(session.startTime)
+        // If there's attendance, we can guess the length from the SupervisionHours logged, but to simplify, we default to +1 hour.
+        const end = new Date(start.getTime() + 60 * 60000)
+        return `${end.getHours().toString().padStart(2, '0')}:${end.getMinutes().toString().padStart(2, '0')}`
+    })
+    const [durationMin, setDurationMin] = useState(60)
 
     const [maxStudents, setMaxStudents] = useState(session.maxStudents.toString())
     const [supervisorId, setSupervisorId] = useState(session.supervisorId)
@@ -70,7 +78,13 @@ export function GroupSessionDetailsDialog({ session, supervisors, students, chil
             return
         }
 
-        const res = await updateGroupSession(session.id, date, time, topic, parseInt(maxStudents), supervisorId, selectedStudents)
+        if (durationMin <= 0) {
+            toast.error("End time must be after start time.")
+            setIsPending(false)
+            return
+        }
+
+        const res = await updateGroupSession(session.id, date, startTimeStr, topic, parseInt(maxStudents), supervisorId, selectedStudents, durationMin)
         setIsPending(false)
         if (res.success) {
             setIsEditing(false)
@@ -99,7 +113,12 @@ export function GroupSessionDetailsDialog({ session, supervisors, students, chil
     const resetForm = () => {
         setTopic(session.topic)
         setDate(new Date(session.date))
-        setTime(`${hours}:${mins}`)
+        setStartTimeStr(`${hours}:${mins}`)
+        
+        const end = new Date(sessionTimeObj.getTime() + 60 * 60000)
+        setEndTimeStr(`${end.getHours().toString().padStart(2, '0')}:${end.getMinutes().toString().padStart(2, '0')}`)
+        setDurationMin(60)
+
         setMaxStudents(session.maxStudents.toString())
         setSupervisorId(session.supervisorId)
         setSelectedStudents(session.participants?.map((p: any) => p.studentId) || [])
@@ -115,7 +134,7 @@ export function GroupSessionDetailsDialog({ session, supervisors, students, chil
             <DialogTrigger asChild>
                 {children}
             </DialogTrigger>
-            <DialogContent className="max-w-md">
+            <DialogContent className="max-w-md max-h-[90vh] overflow-y-auto">
                 <DialogHeader>
                     <div className="flex justify-between items-center pr-8">
                         <DialogTitle>{isEditing ? "Edit Session" : "Session Details"}</DialogTitle>
@@ -159,6 +178,7 @@ export function GroupSessionDetailsDialog({ session, supervisors, students, chil
                             <div className="p-2 border rounded-md bg-muted/30 font-medium">{session.topic}</div>
                         )}
                     </div>
+                    
                     <div className="grid grid-cols-2 gap-4">
                         <div className="space-y-2 flex flex-col pt-2 max-w-full overflow-hidden">
                             <Label>Date</Label>
@@ -193,22 +213,70 @@ export function GroupSessionDetailsDialog({ session, supervisors, students, chil
                                 </div>
                             )}
                         </div>
-                        <div className="space-y-2">
-                            <Label>Time</Label>
+
+                        <div className="space-y-2 flex flex-col pt-2 max-w-full overflow-hidden">
+                            <Label>Max Students (Limit 10)</Label>
                             {isEditing ? (
-                                <Input type="time" value={time} onChange={e => setTime(e.target.value)} required />
+                                <Input type="number" value={maxStudents} onChange={e => setMaxStudents(e.target.value)} max={10} min={1} required />
                             ) : (
-                                <div className="p-2 border rounded-md bg-muted/30">{time}</div>
+                                <div className="p-2 border rounded-md bg-muted/30">{session.maxStudents}</div>
                             )}
                         </div>
                     </div>
-                    <div className="space-y-2">
-                        <Label>Max Students (Limit 10)</Label>
-                        {isEditing ? (
-                            <Input type="number" value={maxStudents} onChange={e => setMaxStudents(e.target.value)} max={10} min={1} required />
-                        ) : (
-                            <div className="p-2 border rounded-md bg-muted/30">{session.maxStudents}</div>
-                        )}
+
+                    <div className="space-y-2 pt-2">
+                        <Label>Service Window</Label>
+                        <div className="grid grid-cols-2 gap-2">
+                            <div className="relative flex items-center">
+                                <span className="absolute left-2 top-0.5 text-[8px] uppercase text-muted-foreground font-bold pointer-events-none z-10">Start</span>
+                                {isEditing ? (
+                                    <Input
+                                        type="time"
+                                        required
+                                        className="pt-4 pr-10 relative [&::-webkit-calendar-picker-indicator]:absolute [&::-webkit-calendar-picker-indicator]:right-0 [&::-webkit-calendar-picker-indicator]:w-12 [&::-webkit-calendar-picker-indicator]:h-full [&::-webkit-calendar-picker-indicator]:opacity-0 [&::-webkit-calendar-picker-indicator]:cursor-pointer"
+                                        value={startTimeStr}
+                                        onChange={e => {
+                                            const newStart = e.target.value
+                                            setStartTimeStr(newStart)
+                                            const [h1, m1] = newStart.split(':').map(Number)
+                                            const [h2, m2] = endTimeStr.split(':').map(Number)
+                                            let diff = (h2 * 60 + m2) - (h1 * 60 + m1)
+                                            if (diff < 0) diff += 1440
+                                            setDurationMin(diff)
+                                        }}
+                                    />
+                                ) : (
+                                    <div className="p-2 pt-4 border rounded-md bg-muted/30">{startTimeStr}</div>
+                                )}
+                            </div>
+                            <div className="relative flex items-center">
+                                <span className="absolute left-2 top-0.5 text-[8px] uppercase text-muted-foreground font-bold pointer-events-none z-10">End</span>
+                                {isEditing ? (
+                                    <Input
+                                        type="time"
+                                        required
+                                        className="pt-4 pr-10 relative [&::-webkit-calendar-picker-indicator]:absolute [&::-webkit-calendar-picker-indicator]:right-0 [&::-webkit-calendar-picker-indicator]:w-12 [&::-webkit-calendar-picker-indicator]:h-full [&::-webkit-calendar-picker-indicator]:opacity-0 [&::-webkit-calendar-picker-indicator]:cursor-pointer"
+                                        value={endTimeStr}
+                                        onChange={e => {
+                                            const newEnd = e.target.value
+                                            setEndTimeStr(newEnd)
+                                            const [h1, m1] = startTimeStr.split(':').map(Number)
+                                            const [h2, m2] = newEnd.split(':').map(Number)
+                                            let diff = (h2 * 60 + m2) - (h1 * 60 + m1)
+                                            if (diff < 0) diff += 1440
+                                            setDurationMin(diff)
+                                        }}
+                                    />
+                                ) : (
+                                    <div className="p-2 pt-4 border rounded-md bg-muted/30">{endTimeStr}</div>
+                                )}
+                            </div>
+                        </div>
+                    </div>
+
+                    <div className="p-3 rounded-lg bg-indigo-50 border border-indigo-100 flex items-center justify-between">
+                        <span className="text-xs font-semibold text-indigo-700 uppercase">Calculated Duration</span>
+                        <span className="text-sm font-bold text-indigo-900">{(durationMin / 60).toFixed(2)} hours</span>
                     </div>
 
                     {isEditing && students && students.length > 0 && (

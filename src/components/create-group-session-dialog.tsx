@@ -20,7 +20,7 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { createGroupSession } from "@/actions/groups"
 import { useRouter } from "next/navigation"
-import { Plus, CalendarIcon } from "lucide-react"
+import { Plus, CalendarIcon, Clock } from "lucide-react"
 import { toast } from "sonner"
 import { format } from "date-fns"
 import { cn } from "@/lib/utils"
@@ -37,9 +37,10 @@ export function CreateGroupSessionDialog({ supervisors, students }: CreateGroupS
     const [open, setOpen] = useState(false)
     const [topic, setTopic] = useState("")
     const [date, setDate] = useState<Date | undefined>(undefined)
-    const [time, setTime] = useState("09:00")
+    const [startTimeStr, setStartTimeStr] = useState("09:00")
+    const [endTimeStr, setEndTimeStr] = useState("10:00")
     const [maxStudents, setMaxStudents] = useState("10")
-    const [durationMin, setDurationMin] = useState("60")
+    const [durationMin, setDurationMin] = useState(60)
     const [selectedStudents, setSelectedStudents] = useState<string[]>([])
     const [studentSearch, setStudentSearch] = useState("")
     const [supervisorId, setSupervisorId] = useState("")
@@ -54,13 +55,20 @@ export function CreateGroupSessionDialog({ supervisors, students }: CreateGroupS
             setIsPending(false)
             return
         }
-        const res = await createGroupSession(date, time, topic, parseInt(maxStudents), supervisorId || undefined, parseInt(durationMin), selectedStudents)
+        if (durationMin <= 0) {
+            toast.error("End time must be after start time.")
+            setIsPending(false)
+            return
+        }
+        const res = await createGroupSession(date, startTimeStr, topic, parseInt(maxStudents), supervisorId || undefined, durationMin, selectedStudents)
         setIsPending(false)
         if (res.success) {
             setOpen(false)
             setTopic("")
             setDate(undefined)
-            setDurationMin("60")
+            setStartTimeStr("09:00")
+            setEndTimeStr("10:00")
+            setDurationMin(60)
             setSelectedStudents([])
             setStudentSearch("")
             toast.success("Session created!")
@@ -129,19 +137,59 @@ export function CreateGroupSessionDialog({ supervisors, students }: CreateGroupS
                                 </PopoverContent>
                             </Popover>
                         </div>
-                        <div className="space-y-2">
-                            <Label>Time</Label>
-                            <Input type="time" value={time} onChange={e => setTime(e.target.value)} required />
+                    </div>
+                    
+                    <div className="space-y-2">
+                        <Label>Service Window</Label>
+                        <div className="grid grid-cols-2 gap-2">
+                            <div className="relative flex items-center">
+                                <span className="absolute left-2 top-0.5 text-[8px] uppercase text-muted-foreground font-bold pointer-events-none z-10">Start</span>
+                                <Input
+                                    type="time"
+                                    required
+                                    className="pt-4 pr-10 relative [&::-webkit-calendar-picker-indicator]:absolute [&::-webkit-calendar-picker-indicator]:right-0 [&::-webkit-calendar-picker-indicator]:w-12 [&::-webkit-calendar-picker-indicator]:h-full [&::-webkit-calendar-picker-indicator]:opacity-0 [&::-webkit-calendar-picker-indicator]:cursor-pointer"
+                                    value={startTimeStr}
+                                    onChange={e => {
+                                        const newStart = e.target.value
+                                        setStartTimeStr(newStart)
+                                        const [h1, m1] = newStart.split(':').map(Number)
+                                        const [h2, m2] = endTimeStr.split(':').map(Number)
+                                        let diff = (h2 * 60 + m2) - (h1 * 60 + m1)
+                                        if (diff < 0) diff += 1440
+                                        setDurationMin(diff)
+                                    }}
+                                />
+                            </div>
+                            <div className="relative flex items-center">
+                                <span className="absolute left-2 top-0.5 text-[8px] uppercase text-muted-foreground font-bold pointer-events-none z-10">End</span>
+                                <Input
+                                    type="time"
+                                    required
+                                    className="pt-4 pr-10 relative [&::-webkit-calendar-picker-indicator]:absolute [&::-webkit-calendar-picker-indicator]:right-0 [&::-webkit-calendar-picker-indicator]:w-12 [&::-webkit-calendar-picker-indicator]:h-full [&::-webkit-calendar-picker-indicator]:opacity-0 [&::-webkit-calendar-picker-indicator]:cursor-pointer"
+                                    value={endTimeStr}
+                                    onChange={e => {
+                                        const newEnd = e.target.value
+                                        setEndTimeStr(newEnd)
+                                        const [h1, m1] = startTimeStr.split(':').map(Number)
+                                        const [h2, m2] = newEnd.split(':').map(Number)
+                                        let diff = (h2 * 60 + m2) - (h1 * 60 + m1)
+                                        if (diff < 0) diff += 1440
+                                        setDurationMin(diff)
+                                    }}
+                                />
+                            </div>
                         </div>
                     </div>
-                    <div className="grid grid-cols-2 gap-4">
+
+                    <div className="p-3 rounded-lg bg-indigo-50 border border-indigo-100 flex items-center justify-between">
+                        <span className="text-xs font-semibold text-indigo-700 uppercase">Calculated Duration</span>
+                        <span className="text-sm font-bold text-indigo-900">{(durationMin / 60).toFixed(2)} hours</span>
+                    </div>
+
+                    <div className="grid grid-cols-1 gap-4">
                         <div className="space-y-2">
                             <Label>Max Students (Limit 10)</Label>
                             <Input type="number" value={maxStudents} onChange={e => setMaxStudents(e.target.value)} max={10} min={1} required />
-                        </div>
-                        <div className="space-y-2">
-                            <Label>Duration (Min)</Label>
-                            <Input type="number" value={durationMin} onChange={e => setDurationMin(e.target.value)} min={1} required />
                         </div>
                     </div>
                     {students && students.length > 0 && (
