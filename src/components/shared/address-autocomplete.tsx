@@ -83,7 +83,6 @@ export function AddressAutocomplete({
                 format: "json",
                 addressdetails: "1",
                 q: query,
-                countrycodes: "us",
                 limit: "5"
             })
 
