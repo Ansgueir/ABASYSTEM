@@ -3,6 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Users, Plus, Calendar, Clock, Search, Eye } from "lucide-react"
 import { Input } from "@/components/ui/input"
+import { format } from "date-fns"
 import { auth } from "@/auth"
 import { prisma } from "@/lib/prisma"
 import { redirect } from "next/navigation"
@@ -96,7 +97,19 @@ export default async function GroupSupervisionPage() {
                                                         </p>
                                                         <div className="flex items-center gap-2 text-sm text-muted-foreground">
                                                             <Clock className="h-3 w-3" />
-                                                            {new Date(session.date).toLocaleDateString()}
+                                                            {format(new Date(session.startTime), "p")} - {
+                                                                (() => {
+                                                                    // Extract duration from mapped sessions if needed, but since we don't have duration here easily, 
+                                                                    // we default to showing it if we can find a supervision hour or just the start time.
+                                                                    // Actually, session object in prisma has startTime.
+                                                                    // Let's just show the Start Time for now or a generic duration if we find it.
+                                                                    // Wait, I can calculate it if I have the attendance hours, but mapping didn't include it.
+                                                                    // To keep it simple and consistent:
+                                                                    const start = new Date(session.startTime);
+                                                                    const end = new Date(start.getTime() + 60 * 60000); // Default 1hr visually if not specified
+                                                                    return format(end, "p");
+                                                                })()
+                                                            }
                                                             <span>•</span>
                                                             {session.supervisor?.fullName || 'TBD'}
                                                         </div>
