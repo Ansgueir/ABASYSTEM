@@ -217,8 +217,10 @@ model SupervisionHour {
   amountBilled        Decimal?           @db.Decimal(10, 2)
   supervisorPay       Decimal?           @db.Decimal(10, 2)
   invoiceId           String?
+  groupSessionId      String?
   createdAt           DateTime           @default(now())
   invoice             Invoice?           @relation(fields: [invoiceId], references: [id])
+  groupSession        GroupSupervisionSession? @relation(fields: [groupSessionId], references: [id], onDelete: SetNull)
   repeatingSchedule   RepeatingSchedule? @relation(fields: [repeatingScheduleId], references: [id])
   student             Student            @relation(fields: [studentId], references: [id])
   supervisor          Supervisor         @relation(fields: [supervisorId], references: [id])
@@ -307,6 +309,7 @@ model GroupSupervisionSession {
   maxStudents  Int                          @default(10)
   createdAt    DateTime                     @default(now())
   attendance   GroupSupervisionAttendance[]
+  supervisionHours SupervisionHour[]
   supervisor   Supervisor                   @relation(fields: [supervisorId], references: [id])
 }
 

@@ -108,12 +108,30 @@ export async function registerStudentToGroup(sessionId: string, studentId: strin
 
         if (existing) return { error: "Student already registered" }
 
-        await prisma.groupSupervisionAttendance.create({
-            data: {
-                sessionId: sessionId,
-                studentId: studentId,
-                attended: true // Default to true or pending? Schema says default true
-            }
+        await prisma.$transaction(async (tx) => {
+            await tx.groupSupervisionAttendance.create({
+                data: {
+                    sessionId: sessionId,
+                    studentId: studentId,
+                    attended: true
+                }
+            })
+
+            await tx.supervisionHour.create({
+                data: {
+                    studentId,
+                    supervisorId: groupSession.supervisorId,
+                    date: groupSession.date,
+                    startTime: groupSession.startTime,
+                    hours: 1.0, // Default for single registrations if duration not stored
+                    supervisionType: "GROUP",
+                    setting: "OFFICE_CLINIC",
+                    activityType: "RESTRICTED",
+                    notes: `Group Session: ${groupSession.topic}`,
+                    groupTopic: groupSession.topic,
+                    status: "PENDING"
+                }
+            })
         })
 
         revalidatePath("/supervisor/groups")
@@ -165,6 +183,16 @@ export async function updateGroupSession(sessionId: string, date: Date, time: st
                 await tx.groupSupervisionAttendance.deleteMany({
                     where: { sessionId, studentId: { in: toRemove } }
                 })
+                
+                // Cleanup their hours too using same time/date/student matching
+                await tx.supervisionHour.deleteMany({
+                    where: { 
+                        studentId: { in: toRemove },
+                        date: currentGroup.date,
+                        startTime: currentGroup.startTime,
+                        supervisionType: "GROUP"
+                    }
+                })
             }
 
             for (const sId of toAdd) {
@@ -208,12 +236,31 @@ export async function deleteGroupSession(sessionId: string) {
     if (!session || !session.user) return { error: "Unauthorized" }
 
     try {
-        await prisma.groupSupervisionAttendance.deleteMany({
-            where: { sessionId }
-        })
+        await prisma.$transaction(async (tx) => {
+            const session = await tx.groupSupervisionSession.findUnique({
+                where: { id: sessionId },
+                include: { attendance: true }
+            })
 
-        await prisma.groupSupervisionSession.delete({
-            where: { id: sessionId }
+            if (session) {
+                const studentIds = session.attendance.map(a => a.studentId)
+                await tx.supervisionHour.deleteMany({
+                    where: {
+                        studentId: { in: studentIds },
+                        date: session.date,
+                        startTime: session.startTime,
+                        supervisionType: "GROUP"
+                    }
+                })
+            }
+
+            await tx.groupSupervisionAttendance.deleteMany({
+                where: { sessionId }
+            })
+
+            await tx.groupSupervisionSession.delete({
+                where: { id: sessionId }
+            })
         })
 
         revalidatePath("/office/group-supervision")

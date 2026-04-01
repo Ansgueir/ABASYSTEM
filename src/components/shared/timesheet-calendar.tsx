@@ -38,7 +38,10 @@ export function TimesheetCalendar({ hours, onEventClick, role }: TimesheetCalend
             const durationMs = (Number(hour.hours) || 1) * 3600000
             const end = new Date(start.getTime() + durationMs)
 
-            let title = hour.activityType || (hour.type === 'SUPERVISION' || hour.type === 'supervised' ? "Supervised" : "Independent")
+            let title = hour.activityType || (hour.type === 'SUPERVISION' || hour.type === 'supervised' ? (hour.supervisionType === 'GROUP' ? "Group Supervision" : "Supervised") : "Independent")
+            if (hour.groupTopic) title = `${title}: ${hour.groupTopic}`
+            else if (hour.supervisionType === 'GROUP' && !title.includes("Group")) title = `Group Supervision: ${title}`
+            
             if (role === 'supervisor') {
                 const studentName = hour.student ? `${hour.student.firstName} ${hour.student.lastName}` : (hour.student?.fullName || 'Student')
                 title = `${title} (${studentName})`
