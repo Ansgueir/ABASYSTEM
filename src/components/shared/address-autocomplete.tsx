@@ -31,7 +31,7 @@ interface AddressAutocompleteProps {
 }
 
 const USER_AGENT = "ABA-System-App/1.0 (admin@abasupervision.com)"
-const NOMINATIM_URL = "https://nominatim.openstreetmap.org/search"
+const PHOTON_URL = "https://photon.komoot.io/api/"
 
 export function AddressAutocomplete({
     initialStreet = "",
@@ -85,56 +85,21 @@ export function AddressAutocomplete({
 
         setIsLoading(true)
         try {
-            // 1. Expand abbreviations for OSM to handle queries like Google (e.g. Ct -> Court)
-            let cleanedQuery = query
-                .replace(/\bCt\b/gi, "Court")
-                .replace(/\bSt\b/gi, "Street")
-                .replace(/\bAv\b/gi, "Avenue")
-                .replace(/\bRd\b/gi, "Road")
-                .replace(/\bDr\b/gi, "Drive")
-                .replace(/\bBlvd\b/gi, "Boulevard")
-                .replace(/,/g, " ") // Comma-less queries often work better for OSM
-
+            // Photon API is much more fuzzy and handles abbreviations like Google
             const params = new URLSearchParams({
-                format: "json",
-                addressdetails: "1",
-                q: cleanedQuery,
-                limit: "10",
-                "accept-language": "en,es" // Better results for US/Latam
+                q: query,
+                limit: "10"
             })
 
-            const res = await fetch(`${NOMINATIM_URL}?${params.toString()}`, {
-                headers: { 
-                    "User-Agent": USER_AGENT,
-                    "Accept-Language": "en,es,pt"
-                }
-            })
-
-            if (!res.ok) throw new Error("Nominatim request failed")
+            const res = await fetch(`${PHOTON_URL}?${params.toString()}`)
+            if (!res.ok) throw new Error("Photon request failed")
 
             const data = await res.json()
-            
-            // 2. If NO results found with original query, try a fallback with less noise
-            if (!Array.isArray(data) || data.length === 0) {
-                // Simplified fallback: just take the first part
-                const fallbackQuery = cleanedQuery.split(" ").slice(0, 3).join(" ")
-                if (fallbackQuery !== cleanedQuery) {
-                    const fallbackRes = await fetch(`${NOMINATIM_URL}?q=${encodeURIComponent(fallbackQuery)}&format=json&limit=5`, {
-                        headers: { "User-Agent": USER_AGENT }
-                    })
-                    const fallbackData = await fallbackRes.json()
-                    if (Array.isArray(fallbackData)) {
-                        setSuggestions(fallbackData)
-                        setShowSuggestions(fallbackData.length > 0)
-                        return
-                    }
-                }
-            }
-
-            setSuggestions(Array.isArray(data) ? data : [])
-            setShowSuggestions(Array.isArray(data) && data.length > 0)
+            const features = data.features || []
+            setSuggestions(features)
+            setShowSuggestions(features.length > 0)
         } catch (err) {
-            console.error("Nominatim fetch error:", err)
+            console.error("Address fetch error:", err)
             setSuggestions([])
         } finally {
             setIsLoading(false)
@@ -145,7 +110,7 @@ export function AddressAutocomplete({
         setSearchQuery(value)
         setHasSelected(false)
         if (debounceRef.current) clearTimeout(debounceRef.current)
-        debounceRef.current = setTimeout(() => fetchSuggestions(value), 1000)
+        debounceRef.current = setTimeout(() => fetchSuggestions(value), 600) // Photon is faster, we can use 600ms
     }
 
     const notifyParent = (d: { street: string, number: string, city: string, state: string, zipCode: string, country: string }) => {
@@ -157,14 +122,24 @@ export function AddressAutocomplete({
         })
     }
 
-    function handleSelect(result: any) {
-        const addr = result.address || {}
-        const parsedStreet = addr.road || addr.pedestrian || addr.neighbourhood || addr.suburb || addr.path || addr.footway || addr.cycleway || addr.square || ""
-        const parsedNumber = addr.house_number || ""
-        const parsedCity = addr.city || addr.town || addr.village || addr.hamlet || addr.municipality || addr.city_district || addr.county || addr.suburb || ""
-        const parsedState = addr.state || addr.region || addr.state_district || ""
-        const parsedZip = addr.postcode || ""
-        const parsedCountry = addr.country || ""
+    function handleSelect(feature: any) {
+        // Map Photon GeoJSON to our format
+        const p = feature.properties || {}
+        
+        const parsedStreet = p.street || p.name || ""
+        const parsedNumber = p.housenumber || ""
+        const parsedCity = p.city || p.town || p.district || ""
+        const parsedState = p.state || ""
+        const parsedZip = p.postcode || ""
+        const parsedCountry = p.country || ""
+        
+        // Build display name
+        const displayName = [
+            [parsedNumber, parsedStreet].filter(Boolean).join(" "),
+            parsedCity,
+            parsedState,
+            parsedCountry
+        ].filter(Boolean).join(", ")
 
         setStreet(parsedStreet)
         setNumber(parsedNumber)
@@ -172,7 +147,7 @@ export function AddressAutocomplete({
         setState(parsedState)
         setZipCode(parsedZip)
         setCountry(parsedCountry)
-        setSearchQuery(result.display_name)
+        setSearchQuery(displayName)
         setHasSelected(true)
         setShowSuggestions(false)
 
