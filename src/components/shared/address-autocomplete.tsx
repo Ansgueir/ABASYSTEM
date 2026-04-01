@@ -85,22 +85,52 @@ export function AddressAutocomplete({
 
         setIsLoading(true)
         try {
+            // 1. Expand abbreviations for OSM to handle queries like Google (e.g. Ct -> Court)
+            let cleanedQuery = query
+                .replace(/\bCt\b/gi, "Court")
+                .replace(/\bSt\b/gi, "Street")
+                .replace(/\bAv\b/gi, "Avenue")
+                .replace(/\bRd\b/gi, "Road")
+                .replace(/\bDr\b/gi, "Drive")
+                .replace(/\bBlvd\b/gi, "Boulevard")
+                .replace(/,/g, " ") // Comma-less queries often work better for OSM
+
             const params = new URLSearchParams({
                 format: "json",
                 addressdetails: "1",
-                q: query,
+                q: cleanedQuery,
                 limit: "10",
-                namedetails: "1",
-                extratags: "1"
+                "accept-language": "en,es" // Better results for US/Latam
             })
 
             const res = await fetch(`${NOMINATIM_URL}?${params.toString()}`, {
-                headers: { "User-Agent": USER_AGENT }
+                headers: { 
+                    "User-Agent": USER_AGENT,
+                    "Accept-Language": "en,es,pt"
+                }
             })
 
             if (!res.ok) throw new Error("Nominatim request failed")
 
             const data = await res.json()
+            
+            // 2. If NO results found with original query, try a fallback with less noise
+            if (!Array.isArray(data) || data.length === 0) {
+                // Simplified fallback: just take the first part
+                const fallbackQuery = cleanedQuery.split(" ").slice(0, 3).join(" ")
+                if (fallbackQuery !== cleanedQuery) {
+                    const fallbackRes = await fetch(`${NOMINATIM_URL}?q=${encodeURIComponent(fallbackQuery)}&format=json&limit=5`, {
+                        headers: { "User-Agent": USER_AGENT }
+                    })
+                    const fallbackData = await fallbackRes.json()
+                    if (Array.isArray(fallbackData)) {
+                        setSuggestions(fallbackData)
+                        setShowSuggestions(fallbackData.length > 0)
+                        return
+                    }
+                }
+            }
+
             setSuggestions(Array.isArray(data) ? data : [])
             setShowSuggestions(Array.isArray(data) && data.length > 0)
         } catch (err) {
