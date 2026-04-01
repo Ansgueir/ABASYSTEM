@@ -8,6 +8,7 @@ import { Edit2, Save, X, Loader2, Mail, Phone, MapPin, Award, Calendar, Clock, D
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { updateStudent, updateSupervisor } from "@/actions/users"
 import { useSession } from "next-auth/react"
+import { AddressAutocomplete } from "@/components/shared/address-autocomplete"
 
 /* ───────────────────────────────────────────
    STUDENT – Contact Information (Card 1)
@@ -24,6 +25,7 @@ export function EditableStudentContactInfo({ student, isSuperAdmin: isSuperAdmin
     const [phone, setPhone] = useState(student.phone || "")
     const [city, setCity] = useState(student.city || "")
     const [state, setState] = useState(student.state || "")
+    const [address, setAddress] = useState(student.address || "")
 
     useEffect(() => {
         setMounted(true)
@@ -56,7 +58,7 @@ export function EditableStudentContactInfo({ student, isSuperAdmin: isSuperAdmin
     const handleSave = () => {
         startTransition(async () => {
             const res = await updateStudent(student.id, {
-                fullName, email, phone, city, state
+                fullName, email, phone, city, state, address
             })
             if (res.error) {
                 toast.error(res.error)
@@ -73,6 +75,7 @@ export function EditableStudentContactInfo({ student, isSuperAdmin: isSuperAdmin
         setPhone(student.phone || "")
         setCity(student.city || "")
         setState(student.state || "")
+        setAddress(student.address || "")
         setIsEditing(false)
     }
 
@@ -145,17 +148,25 @@ export function EditableStudentContactInfo({ student, isSuperAdmin: isSuperAdmin
                     </div>
                 </div>
 
-                <div className="flex items-center gap-3 p-3 rounded-lg bg-muted/30">
-                    <MapPin className="h-5 w-5 text-primary/70 shrink-0" />
+                <div className="flex items-start gap-3 p-3 rounded-lg bg-muted/30">
+                    <MapPin className="h-5 w-5 text-primary/70 shrink-0 mt-1" />
                     <div className="flex-1">
                         <p className="text-xs text-muted-foreground mb-0.5">Location</p>
                         {isEditing ? (
-                            <div className="flex gap-2 mt-1">
-                                <Input value={city} onChange={(e) => setCity(e.target.value)} placeholder="City" className="w-1/2 h-8" />
-                                <Input value={state} onChange={(e) => setState(e.target.value)} placeholder="State" className="w-1/2 h-8" />
+                            <div className="mt-1">
+                                <AddressAutocomplete
+                                    initialStreet={address}
+                                    initialCity={city}
+                                    initialState={state}
+                                    onAddressChange={(fields) => {
+                                        setAddress(fields.street)
+                                        setCity(fields.city)
+                                        setState(fields.state)
+                                    }}
+                                />
                             </div>
                         ) : (
-                            <p className="font-medium">{city && state ? `${city}, ${state}` : city || state || "—"}</p>
+                            <p className="font-medium">{[address, city, state].filter(Boolean).join(", ") || "—"}</p>
                         )}
                     </div>
                 </div>
@@ -703,12 +714,19 @@ export function EditableSupervisorContactInfo({ supervisor, isSuperAdmin: isSupe
                 </div>
 
                 {/* Address */}
-                <div className="flex items-center gap-3 p-3 rounded-lg bg-muted/30">
-                    <MapPin className="h-5 w-5 text-primary/70 shrink-0" />
+                <div className="flex items-start gap-3 p-3 rounded-lg bg-muted/30">
+                    <MapPin className="h-5 w-5 text-primary/70 shrink-0 mt-1" />
                     <div className="flex-1">
                         <p className="text-xs text-muted-foreground mb-0.5">Address</p>
                         {isEditing ? (
-                            <Input value={address} onChange={(e) => setAddress(e.target.value)} className="w-full h-8 mt-1" />
+                            <div className="mt-1">
+                                <AddressAutocomplete
+                                    initialStreet={address}
+                                    onAddressChange={(fields) => {
+                                        setAddress(fields.street)
+                                    }}
+                                />
+                            </div>
                         ) : (
                             <p className="font-medium">{address || "—"}</p>
                         )}
