@@ -178,9 +178,16 @@ export function AddressAutocomplete({
         <div ref={containerRef} className="space-y-8 pt-4">
             {/* SECTION 1: SEARCH */}
             <div className="space-y-4">
-                <Label className="text-[11px] font-bold text-gray-400 uppercase tracking-[0.2em] pl-1">
-                    1. Search Location
-                </Label>
+                <div className="flex justify-between items-end">
+                    <Label className="text-[11px] font-bold text-gray-400 uppercase tracking-[0.2em] pl-1">
+                        1. Search Location
+                    </Label>
+                    {isLoading && (
+                        <span className="text-[9px] font-bold text-indigo-500 uppercase animate-pulse">
+                            Searching on Photon...
+                        </span>
+                    )}
+                </div>
                 <div className="relative group">
                     <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-300 group-focus-within:text-indigo-500 transition-colors" />
                     <Input
@@ -189,23 +196,29 @@ export function AddressAutocomplete({
                         placeholder="Search street, avenue..."
                         className="pl-12 h-12 rounded-xl border-gray-200 focus-visible:ring-indigo-500 shadow-sm transition-all text-base bg-white"
                     />
-                    <div className="absolute right-4 top-1/2 -translate-y-1/2">
-                        {isLoading && <Loader2 className="h-5 w-5 animate-spin text-indigo-500" />}
-                    </div>
                     
                     {showSuggestions && (
                         <div className="absolute top-full left-0 right-0 z-[100] mt-2 bg-white border border-gray-100 rounded-2xl shadow-2xl overflow-hidden max-h-[300px] overflow-y-auto animate-in fade-in slide-in-from-top-4 duration-300">
-                            {suggestions.map((result, idx) => (
-                                <button
-                                    key={result.place_id || idx}
-                                    type="button"
-                                    className="w-full text-left px-6 py-4 hover:bg-indigo-50/50 transition-colors text-sm border-b border-gray-50 last:border-b-0"
-                                    onClick={() => handleSelect(result)}
-                                >
-                                    <div className="font-semibold text-gray-800 line-clamp-1">{result.display_name}</div>
-                                    <div className="text-[10px] text-indigo-400 font-bold uppercase mt-1 tracking-widest">{result.type}</div>
-                                </button>
-                            ))}
+                            {suggestions.map((feature: any, idx: number) => {
+                                const p = feature.properties || {}
+                                const title = [[p.housenumber, p.street].filter(Boolean).join(" "), p.name].filter(Boolean)[0] || "Unknown"
+                                const subtitle = [p.city, p.state, p.country].filter(Boolean).join(", ")
+                                
+                                return (
+                                    <button
+                                        key={idx}
+                                        type="button"
+                                        className="w-full text-left px-6 py-4 hover:bg-indigo-50/50 transition-colors text-sm border-b border-gray-50 last:border-b-0"
+                                        onClick={() => handleSelect(feature)}
+                                    >
+                                        <div className="font-semibold text-gray-800 line-clamp-1">{title}</div>
+                                        <div className="text-[11px] text-gray-500 line-clamp-1">{subtitle}</div>
+                                        <div className="text-[9px] text-indigo-400 font-bold uppercase mt-1 tracking-widest">
+                                            {p.osm_value || p.type || "Location"}
+                                        </div>
+                                    </button>
+                                )
+                            })}
                         </div>
                     )}
                 </div>
@@ -290,8 +303,8 @@ export function AddressAutocomplete({
             {/* CONTROLS & FOOTER */}
             <div className="flex justify-between items-center pt-4 border-t border-gray-50 mt-4 opacity-70">
                 <div className="flex items-center gap-3 text-[10px] text-gray-300 font-bold uppercase tracking-widest">
-                    <div className="h-2 w-2 rounded-full bg-green-400" />
-                    <span>Nominatim OSM API</span>
+                    <div className="h-2 w-2 rounded-full bg-indigo-500 animate-pulse" />
+                    <span>Photon / OpenStreetMap</span>
                 </div>
                 <Button
                     type="button"
