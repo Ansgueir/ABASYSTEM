@@ -20,7 +20,6 @@ interface AddressAutocompleteProps {
     initialState?: string
     initialZipCode?: string
     onAddressChange: (fields: AddressFields) => void
-    /** Field names for hidden inputs in forms */
     fieldNames?: {
         address?: string
         city?: string
@@ -28,6 +27,9 @@ interface AddressAutocompleteProps {
         zipCode?: string
     }
 }
+
+const USER_AGENT = "ABA-System-App/1.0 (admin@abasupervision.com)"
+const NOMINATIM_URL = "https://nominatim.openstreetmap.org/search"
 
 export function AddressAutocomplete({
     initialStreet = "",
@@ -46,13 +48,11 @@ export function AddressAutocomplete({
     const debounceRef = useRef<NodeJS.Timeout | null>(null)
     const containerRef = useRef<HTMLDivElement>(null)
 
-    // Individual field state
     const [street, setStreet] = useState(initialStreet)
     const [city, setCity] = useState(initialCity)
     const [state, setState] = useState(initialState)
     const [zipCode, setZipCode] = useState(initialZipCode)
 
-    // If we have initial values, consider it selected
     useEffect(() => {
         if (initialStreet || initialCity || initialState) {
             setHasSelected(true)
@@ -60,7 +60,6 @@ export function AddressAutocomplete({
         }
     }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
-    // Close suggestions on outside click
     useEffect(() => {
         function handleClickOutside(e: MouseEvent) {
             if (containerRef.current && !containerRef.current.contains(e.target as Node)) {
@@ -74,29 +73,37 @@ export function AddressAutocomplete({
     const fetchSuggestions = useCallback(async (query: string) => {
         if (query.length < 3) {
             setSuggestions([])
-            return
-        }
-
-        const token = process.env.NEXT_PUBLIC_MAPBOX_TOKEN
-        if (!token || token === "pk.YOUR_MAPBOX_PUBLIC_TOKEN") {
-            // No valid token → fallback to manual
-            setManualMode(true)
+            setShowSuggestions(false)
             return
         }
 
         setIsLoading(true)
         try {
-            const res = await fetch(
-                `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(query)}.json?` +
-                `access_token=${token}&country=us&types=address&limit=5&language=en`
-            )
+            const params = new URLSearchParams({
+                format: "json",
+                addressdetails: "1",
+                q: query,
+                countrycodes: "us",
+                limit: "5"
+            })
+
+            const res = await fetch(`${NOMINATIM_URL}?${params.toString()}`, {
+                headers: { "User-Agent": USER_AGENT }
+            })
+
+            if (!res.ok) throw new Error("Nominatim request failed")
+
             const data = await res.json()
-            if (data.features) {
-                setSuggestions(data.features)
+            if (Array.isArray(data) && data.length > 0) {
+                setSuggestions(data)
                 setShowSuggestions(true)
+            } else {
+                setSuggestions([])
+                setShowSuggestions(false)
             }
         } catch (err) {
-            console.error("Mapbox fetch error:", err)
+            console.error("Nominatim fetch error:", err)
+            setSuggestions([])
         } finally {
             setIsLoading(false)
         }
@@ -107,43 +114,29 @@ export function AddressAutocomplete({
         setHasSelected(false)
 
         if (debounceRef.current) clearTimeout(debounceRef.current)
-        debounceRef.current = setTimeout(() => fetchSuggestions(value), 350)
+        debounceRef.current = setTimeout(() => fetchSuggestions(value), 1000)
     }
 
-    function parseMapboxFeature(feature: any): AddressFields {
-        const context = feature.context || []
-        let parsedStreet = ""
-        let parsedCity = ""
-        let parsedState = ""
-        let parsedZip = ""
+    function parseNominatimResult(result: any): AddressFields {
+        const addr = result.address || {}
 
-        // The place_name has the full address
-        const placeName = feature.place_name || ""
-
-        // street = address number + text
-        parsedStreet = feature.address
-            ? `${feature.address} ${feature.text}`
-            : feature.text || ""
-
-        for (const c of context) {
-            const id = c.id || ""
-            if (id.startsWith("place")) parsedCity = c.text
-            else if (id.startsWith("region")) parsedState = c.short_code?.replace("US-", "") || c.text
-            else if (id.startsWith("postcode")) parsedZip = c.text
-            else if (id.startsWith("locality") && !parsedCity) parsedCity = c.text
-        }
+        const parsedStreet = [addr.house_number, addr.road].filter(Boolean).join(" ")
+        const parsedCity = addr.city || addr.town || addr.village || addr.hamlet || addr.municipality || ""
+        const parsedState = addr.state || ""
+        const parsedZip = addr.postcode || ""
+        const fullAddress = result.display_name || ""
 
         return {
             street: parsedStreet,
             city: parsedCity,
             state: parsedState,
             zipCode: parsedZip,
-            fullAddress: placeName
+            fullAddress
         }
     }
 
-    function handleSelect(feature: any) {
-        const parsed = parseMapboxFeature(feature)
+    function handleSelect(result: any) {
+        const parsed = parseNominatimResult(result)
         setStreet(parsed.street)
         setCity(parsed.city)
         setState(parsed.state)
@@ -189,18 +182,20 @@ export function AddressAutocomplete({
 
                 {/* Suggestions Dropdown */}
                 {showSuggestions && suggestions.length > 0 && (
-                    <div className="absolute z-50 mt-1 w-full max-w-md bg-white dark:bg-gray-900 border rounded-xl shadow-lg overflow-hidden">
-                        {suggestions.map((feat) => (
-                            <button
-                                key={feat.id}
-                                type="button"
-                                className="w-full text-left px-4 py-2.5 hover:bg-indigo-50 dark:hover:bg-indigo-950 transition-colors text-sm flex items-start gap-2 border-b last:border-b-0"
-                                onClick={() => handleSelect(feat)}
-                            >
-                                <MapPin className="h-4 w-4 text-indigo-500 mt-0.5 shrink-0" />
-                                <span className="line-clamp-2">{feat.place_name}</span>
-                            </button>
-                        ))}
+                    <div className="relative z-50">
+                        <div className="absolute top-0 left-0 right-0 bg-white dark:bg-gray-900 border rounded-xl shadow-lg overflow-hidden max-h-60 overflow-y-auto">
+                            {suggestions.map((result, idx) => (
+                                <button
+                                    key={result.place_id || idx}
+                                    type="button"
+                                    className="w-full text-left px-4 py-2.5 hover:bg-indigo-50 dark:hover:bg-indigo-950 transition-colors text-sm flex items-start gap-2 border-b last:border-b-0"
+                                    onClick={() => handleSelect(result)}
+                                >
+                                    <MapPin className="h-4 w-4 text-indigo-500 mt-0.5 shrink-0" />
+                                    <span className="line-clamp-2">{result.display_name}</span>
+                                </button>
+                            ))}
+                        </div>
                     </div>
                 )}
             </div>
@@ -267,7 +262,7 @@ export function AddressAutocomplete({
                 </Button>
             </div>
 
-            {/* Hidden form fields for form submission */}
+            {/* Hidden form fields */}
             <input type="hidden" name={fieldNames.address} value={street} />
             <input type="hidden" name={fieldNames.city} value={city} />
             <input type="hidden" name={fieldNames.state} value={state} />
