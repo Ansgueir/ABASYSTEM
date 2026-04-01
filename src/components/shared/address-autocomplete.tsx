@@ -11,6 +11,7 @@ interface AddressFields {
     city: string
     state: string
     zipCode: string
+    country: string
     fullAddress: string
 }
 
@@ -52,6 +53,7 @@ export function AddressAutocomplete({
     const [city, setCity] = useState(initialCity)
     const [state, setState] = useState(initialState)
     const [zipCode, setZipCode] = useState(initialZipCode)
+    const [country, setCountry] = useState("")
 
     useEffect(() => {
         if (initialStreet || initialCity || initialState) {
@@ -119,10 +121,24 @@ export function AddressAutocomplete({
     function parseNominatimResult(result: any): AddressFields {
         const addr = result.address || {}
 
-        const parsedStreet = [addr.house_number, addr.road].filter(Boolean).join(" ")
-        const parsedCity = addr.city || addr.town || addr.village || addr.hamlet || addr.municipality || ""
-        const parsedState = addr.state || ""
+        // Street: house_number + road (or neighbourhood/suburb as fallback)
+        const road = addr.road || addr.pedestrian || addr.neighbourhood || ""
+        const parsedStreet = [addr.house_number, road].filter(Boolean).join(" ")
+
+        // City: different countries use different fields
+        const parsedCity = addr.city || addr.town || addr.village || addr.hamlet 
+            || addr.municipality || addr.city_district || addr.county 
+            || addr.suburb || ""
+
+        // State/Region
+        const parsedState = addr.state || addr.region || addr.state_district || ""
+
+        // Zip/Postcode
         const parsedZip = addr.postcode || ""
+
+        // Country
+        const parsedCountry = addr.country || ""
+
         const fullAddress = result.display_name || ""
 
         return {
@@ -130,6 +146,7 @@ export function AddressAutocomplete({
             city: parsedCity,
             state: parsedState,
             zipCode: parsedZip,
+            country: parsedCountry,
             fullAddress
         }
     }
@@ -140,6 +157,7 @@ export function AddressAutocomplete({
         setCity(parsed.city)
         setState(parsed.state)
         setZipCode(parsed.zipCode)
+        setCountry(parsed.country)
         setSearchQuery(parsed.fullAddress)
         setHasSelected(true)
         setShowSuggestions(false)
@@ -147,12 +165,13 @@ export function AddressAutocomplete({
     }
 
     function handleManualChange(field: string, value: string) {
-        const updated = { street, city, state, zipCode, fullAddress: "" }
+        const updated = { street, city, state, zipCode, country, fullAddress: "" }
         if (field === "street") { setStreet(value); updated.street = value }
         if (field === "city") { setCity(value); updated.city = value }
         if (field === "state") { setState(value); updated.state = value }
         if (field === "zipCode") { setZipCode(value); updated.zipCode = value }
-        updated.fullAddress = [updated.street, updated.city, updated.state, updated.zipCode].filter(Boolean).join(", ")
+        if (field === "country") { setCountry(value); updated.country = value }
+        updated.fullAddress = [updated.street, updated.city, updated.state, updated.zipCode, updated.country].filter(Boolean).join(", ")
         onAddressChange(updated)
     }
 
@@ -249,6 +268,17 @@ export function AddressAutocomplete({
                         disabled={fieldsLocked}
                         className={fieldsLocked ? "bg-gray-50 dark:bg-gray-800/50 cursor-not-allowed" : ""}
                         placeholder="Zip"
+                    />
+                </div>
+                <div className="space-y-1">
+                    <Label htmlFor="addr-country" className="text-xs text-muted-foreground">Country</Label>
+                    <Input
+                        id="addr-country"
+                        value={country}
+                        onChange={(e) => handleManualChange("country", e.target.value)}
+                        disabled={fieldsLocked}
+                        className={fieldsLocked ? "bg-gray-50 dark:bg-gray-800/50 cursor-not-allowed" : ""}
+                        placeholder="Country"
                     />
                 </div>
             </div>
