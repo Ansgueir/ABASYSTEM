@@ -50,7 +50,7 @@ export function AddressAutocomplete({
     const debounceRef = useRef<NodeJS.Timeout | null>(null)
     const containerRef = useRef<HTMLDivElement>(null)
 
-    // Separate states for UI editing
+    // Separate states
     const [street, setStreet] = useState(initialStreet)
     const [number, setNumber] = useState("")
     const [city, setCity] = useState(initialCity)
@@ -118,12 +118,11 @@ export function AddressAutocomplete({
         debounceRef.current = setTimeout(() => fetchSuggestions(value), 1000)
     }
 
-    // Crucial: Combines number + road and notifies parent
     const notifyParent = (d: { street: string, number: string, city: string, state: string, zipCode: string, country: string }) => {
         const fullStreet = [d.number, d.street].filter(Boolean).join(" ")
         onAddressChange({
             ...d,
-            street: fullStreet, // The parent expects the full address here
+            street: fullStreet,
             fullAddress: [fullStreet, d.city, d.state, d.zipCode, d.country].filter(Boolean).join(", ")
         })
     }
@@ -171,35 +170,35 @@ export function AddressAutocomplete({
     const fieldsLocked = !manualMode
 
     return (
-        <div ref={containerRef} className="space-y-6 pt-2">
-            {/* SEARCH SECTION */}
-            <div className="space-y-3">
-                <Label className="text-[11px] font-bold text-gray-400 uppercase tracking-widest pl-1">
-                    Search Location
+        <div ref={containerRef} className="space-y-8 pt-4">
+            {/* SECTION 1: SEARCH */}
+            <div className="space-y-4">
+                <Label className="text-[11px] font-bold text-gray-400 uppercase tracking-[0.2em] pl-1">
+                    1. Search Location
                 </Label>
                 <div className="relative group">
                     <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-300 group-focus-within:text-indigo-500 transition-colors" />
                     <Input
                         value={searchQuery}
                         onChange={(e) => handleSearchChange(e.target.value)}
-                        placeholder="Type street name..."
-                        className="pl-11 h-12 rounded-xl border-gray-200 focus-visible:ring-indigo-500 shadow-sm transition-all text-base"
+                        placeholder="Search street, avenue..."
+                        className="pl-12 h-12 rounded-xl border-gray-200 focus-visible:ring-indigo-500 shadow-sm transition-all text-base bg-white"
                     />
                     <div className="absolute right-4 top-1/2 -translate-y-1/2">
                         {isLoading && <Loader2 className="h-5 w-5 animate-spin text-indigo-500" />}
                     </div>
                     
                     {showSuggestions && (
-                        <div className="absolute top-full left-0 right-0 z-[100] mt-2 bg-white border border-gray-100 rounded-2xl shadow-2xl overflow-hidden max-h-[300px] overflow-y-auto animate-in fade-in slide-in-from-top-2 duration-300">
+                        <div className="absolute top-full left-0 right-0 z-[100] mt-2 bg-white border border-gray-100 rounded-2xl shadow-2xl overflow-hidden max-h-[300px] overflow-y-auto animate-in fade-in slide-in-from-top-4 duration-300">
                             {suggestions.map((result, idx) => (
                                 <button
                                     key={result.place_id || idx}
                                     type="button"
-                                    className="w-full text-left px-5 py-4 hover:bg-indigo-50 transition-colors text-sm border-b border-gray-50 last:border-b-0"
+                                    className="w-full text-left px-6 py-4 hover:bg-indigo-50/50 transition-colors text-sm border-b border-gray-50 last:border-b-0"
                                     onClick={() => handleSelect(result)}
                                 >
                                     <div className="font-semibold text-gray-800 line-clamp-1">{result.display_name}</div>
-                                    <div className="text-[10px] text-indigo-400 font-bold uppercase mt-1 tracking-wider">{result.type}</div>
+                                    <div className="text-[10px] text-indigo-400 font-bold uppercase mt-1 tracking-widest">{result.type}</div>
                                 </button>
                             ))}
                         </div>
@@ -207,86 +206,96 @@ export function AddressAutocomplete({
                 </div>
             </div>
 
-            {/* REFINED FIELDS GRID */}
-            <div className="grid grid-cols-12 gap-x-4 gap-y-5">
-                {/* ROW 1: Number + Street + City */}
-                <div className="col-span-12 sm:col-span-2 space-y-2">
-                    <Label className="text-xs font-medium text-gray-500 ml-1">Number</Label>
-                    <Input
-                        value={number}
-                        onChange={(e) => handleManualChange("number", e.target.value)}
-                        placeholder="6075"
-                        className="h-11 border-gray-200 rounded-xl focus:border-indigo-300 transition-all font-medium"
-                    />
-                </div>
-                <div className="col-span-12 sm:col-span-6 space-y-2">
-                    <Label className="text-xs font-medium text-gray-500 ml-1">Street / Avenue</Label>
-                    <Input
-                        value={street}
-                        onChange={(e) => handleManualChange("street", e.target.value)}
-                        disabled={fieldsLocked}
-                        className={fieldsLocked ? "h-11 bg-gray-50/70 border-gray-100 text-gray-400 cursor-not-allowed" : "h-11 border-gray-200"}
-                        placeholder="Street"
-                    />
-                </div>
-                <div className="col-span-12 sm:col-span-4 space-y-2">
-                    <Label className="text-xs font-medium text-gray-500 ml-1">City</Label>
-                    <Input
-                        value={city}
-                        onChange={(e) => handleManualChange("city", e.target.value)}
-                        disabled={fieldsLocked}
-                        className={fieldsLocked ? "h-11 bg-gray-50/70 border-gray-100 text-gray-400 cursor-not-allowed" : "h-11 border-gray-200"}
-                        placeholder="City"
-                    />
-                </div>
+            {/* SECTION 2: REFINED DETAILS (Vertical and organized) */}
+            <div className="pt-6 border-t border-gray-50 space-y-8">
+                <Label className="text-[11px] font-bold text-gray-400 uppercase tracking-[0.2em] pl-1">
+                    2. Address Details
+                </Label>
 
-                {/* ROW 2: State + Zip + Country */}
-                <div className="col-span-12 sm:col-span-5 space-y-2">
-                    <Label className="text-xs font-medium text-gray-500 ml-1">State / Province</Label>
-                    <Input
-                        value={state}
-                        onChange={(e) => handleManualChange("state", e.target.value)}
-                        disabled={fieldsLocked}
-                        className={fieldsLocked ? "h-11 bg-gray-50/70 border-gray-100 text-gray-400 cursor-not-allowed" : "h-11 border-gray-200"}
-                        placeholder="State"
-                    />
-                </div>
-                <div className="col-span-12 sm:col-span-3 space-y-2">
-                    <Label className="text-xs font-medium text-gray-500 ml-1">Zip Code</Label>
-                    <Input
-                        value={zipCode}
-                        onChange={(e) => handleManualChange("zipCode", e.target.value)}
-                        disabled={fieldsLocked}
-                        className={fieldsLocked ? "h-11 bg-gray-50/70 border-gray-100 text-gray-400 cursor-not-allowed" : "h-11 border-gray-200"}
-                        placeholder="Zip"
-                    />
-                </div>
-                <div className="col-span-12 sm:col-span-4 space-y-2">
-                    <Label className="text-xs font-medium text-gray-500 ml-1">Country</Label>
-                    <Input
-                        value={country}
-                        onChange={(e) => handleManualChange("country", e.target.value)}
-                        disabled={fieldsLocked}
-                        className={fieldsLocked ? "h-11 bg-gray-50/70 border-gray-100 text-gray-400 cursor-not-allowed" : "h-11 border-gray-200"}
-                        placeholder="Country"
-                    />
+                <div className="grid grid-cols-2 gap-x-6 gap-y-8">
+                    {/* STREET - FULL WIDTH */}
+                    <div className="col-span-2 space-y-2.5">
+                        <Label className="text-xs font-semibold text-gray-600 ml-1">Street / Avenue</Label>
+                        <Input
+                            value={street}
+                            onChange={(e) => handleManualChange("street", e.target.value)}
+                            disabled={fieldsLocked}
+                            className={fieldsLocked ? "h-11 bg-gray-50/50 border-gray-100 text-gray-400 cursor-not-allowed" : "h-11 border-gray-200 rounded-xl focus:border-indigo-300 font-medium"}
+                            placeholder="Street"
+                        />
+                    </div>
+
+                    {/* NUMBER + CITY */}
+                    <div className="col-span-1 space-y-2.5">
+                        <Label className="text-xs font-semibold text-gray-600 ml-1">Number / Casa #</Label>
+                        <Input
+                            value={number}
+                            onChange={(e) => handleManualChange("number", e.target.value)}
+                            placeholder="6075"
+                            className="h-11 border-gray-200 rounded-xl focus:border-indigo-300 font-bold text-indigo-600"
+                        />
+                    </div>
+                    <div className="col-span-1 space-y-2.5">
+                        <Label className="text-xs font-semibold text-gray-600 ml-1">City</Label>
+                        <Input
+                            value={city}
+                            onChange={(e) => handleManualChange("city", e.target.value)}
+                            disabled={fieldsLocked}
+                            className={fieldsLocked ? "h-11 bg-gray-50/50 border-gray-100 text-gray-400 cursor-not-allowed" : "h-11 border-gray-200 rounded-xl focus:border-indigo-300 font-medium"}
+                            placeholder="City"
+                        />
+                    </div>
+
+                    {/* STATE + ZIP */}
+                    <div className="col-span-1 space-y-2.5">
+                        <Label className="text-xs font-semibold text-gray-600 ml-1">State / Region</Label>
+                        <Input
+                            value={state}
+                            onChange={(e) => handleManualChange("state", e.target.value)}
+                            disabled={fieldsLocked}
+                            className={fieldsLocked ? "h-11 bg-gray-50/50 border-gray-100 text-gray-400 cursor-not-allowed" : "h-11 border-gray-200 rounded-xl"}
+                            placeholder="State"
+                        />
+                    </div>
+                    <div className="col-span-1 space-y-2.5">
+                        <Label className="text-xs font-semibold text-gray-600 ml-1">Zip Code</Label>
+                        <Input
+                            value={zipCode}
+                            onChange={(e) => handleManualChange("zipCode", e.target.value)}
+                            disabled={fieldsLocked}
+                            className={fieldsLocked ? "h-11 bg-gray-50/50 border-gray-100 text-gray-400 cursor-not-allowed" : "h-11 border-gray-200 rounded-xl"}
+                            placeholder="Zip"
+                        />
+                    </div>
+
+                    {/* COUNTRY - FULL WIDTH AS FALLBACK */}
+                    <div className="col-span-2 space-y-2.5">
+                        <Label className="text-xs font-semibold text-gray-600 ml-1">Country</Label>
+                        <Input
+                            value={country}
+                            onChange={(e) => handleManualChange("country", e.target.value)}
+                            disabled={fieldsLocked}
+                            className={fieldsLocked ? "h-11 bg-gray-50/50 border-gray-100 text-gray-400 cursor-not-allowed" : "h-11 border-gray-200 rounded-xl"}
+                            placeholder="Country"
+                        />
+                    </div>
                 </div>
             </div>
 
             {/* CONTROLS & FOOTER */}
-            <div className="flex justify-between items-center pt-2 border-t border-gray-50 mt-2">
-                <div className="flex items-center gap-2 text-[10px] text-gray-300">
-                    <div className="h-1.5 w-1.5 rounded-full bg-indigo-400 animate-pulse" />
-                    <span>Powered by OpenStreetMap</span>
+            <div className="flex justify-between items-center pt-4 border-t border-gray-50 mt-4 opacity-70">
+                <div className="flex items-center gap-3 text-[10px] text-gray-300 font-bold uppercase tracking-widest">
+                    <div className="h-2 w-2 rounded-full bg-green-400" />
+                    <span>Nominatim OSM API</span>
                 </div>
                 <Button
                     type="button"
                     variant="ghost"
-                    className="h-8 px-3 text-[11px] text-gray-400 hover:text-indigo-600 hover:bg-indigo-50/50 rounded-lg transition-all gap-2"
+                    className="h-8 px-3 text-[11px] text-gray-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition-all gap-2"
                     onClick={() => setManualMode(!manualMode)}
                 >
                     <Pencil className="h-3.5 w-3.5" />
-                    {manualMode ? "Lock Edits" : "Edit Fields Manually"}
+                    {manualMode ? "Lock Edits" : "Edit All Manually"}
                 </Button>
             </div>
 
@@ -299,4 +308,3 @@ export function AddressAutocomplete({
         </div>
     )
 }
-
