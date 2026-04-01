@@ -5,9 +5,11 @@ import { Button } from "@/components/ui/button"
 import {
     Dialog,
     DialogContent,
+    DialogDescription,
     DialogHeader,
     DialogTitle,
     DialogTrigger,
+    DialogFooter
 } from "@/components/ui/dialog"
 import {
     Select,
@@ -20,7 +22,7 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { updateGroupSession, deleteGroupSession } from "@/actions/groups"
 import { useRouter } from "next/navigation"
-import { CalendarIcon, Edit, Trash2, Clock } from "lucide-react"
+import { CalendarIcon, Edit, Trash2, Clock, Users, Loader2, CheckCircle2 } from "lucide-react"
 import { toast } from "sonner"
 import { format } from "date-fns"
 import { cn } from "@/lib/utils"
@@ -88,7 +90,7 @@ export function GroupSessionDetailsDialog({ session, supervisors, students, chil
         setIsPending(false)
         if (res.success) {
             setIsEditing(false)
-            toast.success("Session updated!")
+            toast.success("✅ Session updated!")
             router.refresh()
         } else {
             toast.error(res.error)
@@ -103,7 +105,7 @@ export function GroupSessionDetailsDialog({ session, supervisors, students, chil
         setIsPending(false)
         if (res.success) {
             setOpen(false)
-            toast.success("Session deleted successfully")
+            toast.success("✅ Session deleted successfully")
             router.refresh()
         } else {
             toast.error(res.error)
@@ -134,29 +136,33 @@ export function GroupSessionDetailsDialog({ session, supervisors, students, chil
             <DialogTrigger asChild>
                 {children}
             </DialogTrigger>
-            <DialogContent className="max-w-md max-h-[90vh] overflow-y-auto">
-                <DialogHeader>
+            <DialogContent className="sm:max-w-[560px] max-h-[90vh] overflow-y-auto">
+                <DialogHeader className="mb-2">
                     <div className="flex justify-between items-center pr-8">
-                        <DialogTitle>{isEditing ? "Edit Session" : "Session Details"}</DialogTitle>
+                        <DialogTitle className="flex items-center gap-2 text-indigo-600">
+                            {isEditing ? <CheckCircle2 className="h-5 w-5" /> : <Users className="h-5 w-5" />}
+                            {isEditing ? "Edit Session" : "Session Details"}
+                        </DialogTitle>
                         {!isEditing && (
                             <div className="flex space-x-2">
-                                <Button variant="ghost" size="icon" onClick={() => setIsEditing(true)}>
+                                <Button variant="ghost" size="icon" onClick={() => setIsEditing(true)} className="h-8 w-8 text-indigo-600 bg-indigo-50 hover:bg-indigo-100 rounded-full">
                                     <Edit className="h-4 w-4" />
                                 </Button>
-                                <Button variant="ghost" size="icon" className="text-destructive hover:text-destructive hover:bg-destructive/10" onClick={handleDelete}>
+                                <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive bg-destructive/5 hover:bg-destructive/10 rounded-full" onClick={handleDelete}>
                                     <Trash2 className="h-4 w-4" />
                                 </Button>
                             </div>
                         )}
                     </div>
                 </DialogHeader>
+
                 <form onSubmit={handleUpdate} className="space-y-4">
                     {supervisors && supervisors.length > 0 && (
-                        <div className="space-y-2">
-                            <Label>Supervisor</Label>
+                        <div className="space-y-1">
+                            <Label className="text-muted-foreground text-xs font-bold uppercase ml-1">Supervisor</Label>
                             {isEditing ? (
                                 <Select onValueChange={setSupervisorId} value={supervisorId} required>
-                                    <SelectTrigger>
+                                    <SelectTrigger className="rounded-xl border-indigo-100 bg-indigo-50/20">
                                         <SelectValue placeholder="Select supervisor..." />
                                     </SelectTrigger>
                                     <SelectContent>
@@ -166,33 +172,39 @@ export function GroupSessionDetailsDialog({ session, supervisors, students, chil
                                     </SelectContent>
                                 </Select>
                             ) : (
-                                <div className="p-2 border rounded-md bg-muted/30">{session.supervisor?.fullName || "Not assigned"}</div>
+                                <div className="p-3 border rounded-xl bg-muted/20 font-medium text-sm">{session.supervisor?.fullName || "Not assigned"}</div>
                             )}
                         </div>
                     )}
-                    <div className="space-y-2">
-                        <Label>Topic</Label>
+                    
+                    <div className="space-y-1">
+                        <Label className="text-muted-foreground text-xs font-bold uppercase ml-1">Topic / Description</Label>
                         {isEditing ? (
-                            <Input value={topic} onChange={e => setTopic(e.target.value)} required />
+                            <Input 
+                                value={topic} 
+                                onChange={e => setTopic(e.target.value)} 
+                                required 
+                                className="rounded-xl bg-muted/20 border-indigo-100 focus:bg-background transition-all"
+                            />
                         ) : (
-                            <div className="p-2 border rounded-md bg-muted/30 font-medium">{session.topic}</div>
+                            <div className="p-3 border rounded-xl bg-indigo-50/30 font-semibold text-indigo-900">{session.topic}</div>
                         )}
                     </div>
                     
-                    <div className="grid grid-cols-2 gap-4">
-                        <div className="space-y-2 flex flex-col pt-2 max-w-full overflow-hidden">
-                            <Label>Date</Label>
+                    <div className="grid grid-cols-2 gap-4 pt-1">
+                        <div className="space-y-1">
+                            <Label className="text-muted-foreground text-xs font-bold uppercase ml-1">Date of Service</Label>
                             {isEditing ? (
                                 <Popover>
                                     <PopoverTrigger asChild>
                                         <Button
                                             variant={"outline"}
                                             className={cn(
-                                                "w-full justify-start text-left font-normal",
+                                                "w-full justify-start text-left font-normal rounded-xl border-indigo-100",
                                                 !date && "text-muted-foreground"
                                             )}
                                         >
-                                            <CalendarIcon className="mr-2 h-4 w-4 shrink-0" />
+                                            <CalendarIcon className="mr-2 h-4 w-4 shrink-0 text-indigo-500" />
                                             {date ? format(date, "PPP") : <span>Pick a date</span>}
                                         </Button>
                                     </PopoverTrigger>
@@ -207,95 +219,122 @@ export function GroupSessionDetailsDialog({ session, supervisors, students, chil
                                     </PopoverContent>
                                 </Popover>
                             ) : (
-                                <div className="p-2 border rounded-md bg-muted/30 flex items-center">
-                                    <CalendarIcon className="mr-2 h-4 w-4 text-muted-foreground" />
+                                <div className="p-3 border rounded-xl bg-muted/20 flex items-center text-sm">
+                                    <CalendarIcon className="mr-2 h-4 w-4 text-indigo-400" />
                                     {format(new Date(session.date), "PPP")}
                                 </div>
                             )}
                         </div>
 
-                        <div className="space-y-2 flex flex-col pt-2 max-w-full overflow-hidden">
-                            <Label>Max Students (Limit 10)</Label>
+                        <div className="space-y-1">
+                            <Label className="text-muted-foreground text-xs font-bold uppercase ml-1">Capacity</Label>
                             {isEditing ? (
-                                <Input type="number" value={maxStudents} onChange={e => setMaxStudents(e.target.value)} max={10} min={1} required />
+                                <div className="relative">
+                                    <Input 
+                                        type="number" 
+                                        value={maxStudents} 
+                                        onChange={e => setMaxStudents(e.target.value)} 
+                                        max={10} 
+                                        min={1} 
+                                        required 
+                                        className="rounded-xl pl-9"
+                                    />
+                                    <Users className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground opacity-60" />
+                                </div>
                             ) : (
-                                <div className="p-2 border rounded-md bg-muted/30">{session.maxStudents}</div>
+                                <div className="p-3 border rounded-xl bg-muted/20 flex items-center text-sm font-bold">
+                                    <Users className="mr-2 h-4 w-4 text-indigo-400" />
+                                    Max {session.maxStudents} Students
+                                </div>
                             )}
                         </div>
                     </div>
 
-                    <div className="space-y-2 pt-2">
-                        <Label>Service Window</Label>
+                    <div className="space-y-1 pt-1">
+                        <Label className="text-muted-foreground text-xs font-bold uppercase ml-1">Service Window</Label>
                         <div className="grid grid-cols-2 gap-2">
-                            <div className="relative flex items-center">
-                                <span className="absolute left-2 top-0.5 text-[8px] uppercase text-muted-foreground font-bold pointer-events-none z-10">Start</span>
+                            <div className="space-y-1">
+                                <span className={cn("text-[10px] font-bold uppercase ml-2", isEditing ? "text-indigo-400" : "text-muted-foreground")}>Start</span>
                                 {isEditing ? (
-                                    <Input
-                                        type="time"
-                                        required
-                                        className="pt-4 pr-10 relative [&::-webkit-calendar-picker-indicator]:absolute [&::-webkit-calendar-picker-indicator]:right-0 [&::-webkit-calendar-picker-indicator]:w-12 [&::-webkit-calendar-picker-indicator]:h-full [&::-webkit-calendar-picker-indicator]:opacity-0 [&::-webkit-calendar-picker-indicator]:cursor-pointer"
-                                        value={startTimeStr}
-                                        onChange={e => {
-                                            const newStart = e.target.value
-                                            setStartTimeStr(newStart)
-                                            const [h1, m1] = newStart.split(':').map(Number)
-                                            const [h2, m2] = endTimeStr.split(':').map(Number)
-                                            let diff = (h2 * 60 + m2) - (h1 * 60 + m1)
-                                            if (diff < 0) diff += 1440
-                                            setDurationMin(diff)
-                                        }}
-                                    />
+                                    <div className="relative flex items-center">
+                                        <Input
+                                            type="time"
+                                            required
+                                            className="rounded-xl pr-10 pt-1 relative [&::-webkit-calendar-picker-indicator]:absolute [&::-webkit-calendar-picker-indicator]:right-0 [&::-webkit-calendar-picker-indicator]:w-10 [&::-webkit-calendar-picker-indicator]:h-full [&::-webkit-calendar-picker-indicator]:opacity-0 [&::-webkit-calendar-picker-indicator]:cursor-pointer"
+                                            value={startTimeStr}
+                                            onChange={e => {
+                                                const newStart = e.target.value
+                                                setStartTimeStr(newStart)
+                                                const [h1, m1] = newStart.split(':').map(Number)
+                                                const [h2, m2] = endTimeStr.split(':').map(Number)
+                                                let diff = (h2 * 60 + m2) - (h1 * 60 + m1)
+                                                if (diff < 0) diff += 1440
+                                                setDurationMin(diff)
+                                            }}
+                                        />
+                                        <Clock className="absolute right-3 h-4 w-4 text-muted-foreground pointer-events-none opacity-60" />
+                                    </div>
                                 ) : (
-                                    <div className="p-2 pt-4 border rounded-md bg-muted/30">{startTimeStr}</div>
+                                    <div className="p-3 border rounded-xl bg-indigo-50/20 text-sm font-semibold">{startTimeStr}</div>
                                 )}
                             </div>
-                            <div className="relative flex items-center">
-                                <span className="absolute left-2 top-0.5 text-[8px] uppercase text-muted-foreground font-bold pointer-events-none z-10">End</span>
+                            <div className="space-y-1">
+                                <span className={cn("text-[10px] font-bold uppercase ml-2", isEditing ? "text-indigo-400" : "text-muted-foreground")}>End</span>
                                 {isEditing ? (
-                                    <Input
-                                        type="time"
-                                        required
-                                        className="pt-4 pr-10 relative [&::-webkit-calendar-picker-indicator]:absolute [&::-webkit-calendar-picker-indicator]:right-0 [&::-webkit-calendar-picker-indicator]:w-12 [&::-webkit-calendar-picker-indicator]:h-full [&::-webkit-calendar-picker-indicator]:opacity-0 [&::-webkit-calendar-picker-indicator]:cursor-pointer"
-                                        value={endTimeStr}
-                                        onChange={e => {
-                                            const newEnd = e.target.value
-                                            setEndTimeStr(newEnd)
-                                            const [h1, m1] = startTimeStr.split(':').map(Number)
-                                            const [h2, m2] = newEnd.split(':').map(Number)
-                                            let diff = (h2 * 60 + m2) - (h1 * 60 + m1)
-                                            if (diff < 0) diff += 1440
-                                            setDurationMin(diff)
-                                        }}
-                                    />
+                                    <div className="relative flex items-center">
+                                        <Input
+                                            type="time"
+                                            required
+                                            className="rounded-xl pr-10 pt-1 relative [&::-webkit-calendar-picker-indicator]:absolute [&::-webkit-calendar-picker-indicator]:right-0 [&::-webkit-calendar-picker-indicator]:w-10 [&::-webkit-calendar-picker-indicator]:h-full [&::-webkit-calendar-picker-indicator]:opacity-0 [&::-webkit-calendar-picker-indicator]:cursor-pointer"
+                                            value={endTimeStr}
+                                            onChange={e => {
+                                                const newEnd = e.target.value
+                                                setEndTimeStr(newEnd)
+                                                const [h1, m1] = startTimeStr.split(':').map(Number)
+                                                const [h2, m2] = newEnd.split(':').map(Number)
+                                                let diff = (h2 * 60 + m2) - (h1 * 60 + m1)
+                                                if (diff < 0) diff += 1440
+                                                setDurationMin(diff)
+                                            }}
+                                        />
+                                        <Clock className="absolute right-3 h-4 w-4 text-muted-foreground pointer-events-none opacity-60" />
+                                    </div>
                                 ) : (
-                                    <div className="p-2 pt-4 border rounded-md bg-muted/30">{endTimeStr}</div>
+                                    <div className="p-3 border rounded-xl bg-indigo-50/20 text-sm font-semibold">{endTimeStr}</div>
                                 )}
                             </div>
                         </div>
                     </div>
 
-                    <div className="p-3 rounded-lg bg-indigo-50 border border-indigo-100 flex items-center justify-between">
-                        <span className="text-xs font-semibold text-indigo-700 uppercase">Calculated Duration</span>
-                        <span className="text-sm font-bold text-indigo-900">{(durationMin / 60).toFixed(2)} hours</span>
+                    <div className="flex items-center justify-between p-3 rounded-xl bg-indigo-600/5 border border-indigo-200">
+                        <div className="flex items-center gap-2 text-indigo-700">
+                            <Clock className="h-4 w-4" />
+                            <span className="text-xs font-bold uppercase">Calculated duration</span>
+                        </div>
+                        <span className="text-sm font-black text-indigo-700">
+                            {durationMin} min / {(durationMin / 60).toFixed(2)} hrs
+                        </span>
                     </div>
 
                     {isEditing && students && students.length > 0 && (
-                        <div className="space-y-2">
+                        <div className="space-y-2 pt-2 border-t">
                             <div className="flex justify-between items-center mb-1">
-                                <Label>Select Students</Label>
-                                <span className="text-xs text-muted-foreground">{selectedStudents.length} / {maxStudents}</span>
+                                <Label className="text-xs font-bold uppercase text-muted-foreground ml-1">Update Attendees</Label>
+                                <span className="text-[10px] bg-indigo-600 text-white px-2 py-0.5 rounded-full font-bold">
+                                    {selectedStudents.length} / {maxStudents}
+                                </span>
                             </div>
                             <Input
-                                placeholder="Search students..."
+                                placeholder="Filter students..."
                                 value={studentSearch}
                                 onChange={e => setStudentSearch(e.target.value)}
-                                className="mb-2 h-8"
+                                className="mb-2 h-8 rounded-xl border-dashed"
                             />
-                            <div className="max-h-40 overflow-y-auto border rounded-md p-3 space-y-3">
+                            <div className="max-h-40 overflow-y-auto border border-indigo-50 rounded-xl p-3 space-y-2 bg-indigo-50/10">
                                 {students
                                     .filter(s => s.fullName.toLowerCase().includes(studentSearch.toLowerCase()))
                                     .map(student => (
-                                        <div key={student.id} className="flex items-center space-x-2">
+                                        <div key={student.id} className="flex items-center space-x-2 p-1.5 rounded-lg hover:bg-indigo-50/50 transition-all">
                                             <input
                                                 type="checkbox"
                                                 id={`edit-student-${student.id}`}
@@ -310,40 +349,51 @@ export function GroupSessionDetailsDialog({ session, supervisors, students, chil
                                                         setSelectedStudents(selectedStudents.filter(id => id !== student.id))
                                                     }
                                                 }}
-                                                className="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary"
+                                                className="h-4 w-4 rounded-md border-indigo-300 text-indigo-600 accent-indigo-600 focus:ring-0 cursor-pointer"
                                             />
-                                            <Label htmlFor={`edit-student-${student.id}`} className="font-normal cursor-pointer leading-none">{student.fullName}</Label>
+                                            <Label htmlFor={`edit-student-${student.id}`} className="font-normal cursor-pointer text-sm flex-1">{student.fullName}</Label>
                                         </div>
                                     ))}
-                                {students.filter(s => s.fullName.toLowerCase().includes(studentSearch.toLowerCase())).length === 0 && (
-                                    <div className="text-sm text-muted-foreground text-center py-2">No students found</div>
-                                )}
                             </div>
                         </div>
                     )}
 
                     {!isEditing && (
-                        <div className="space-y-2">
-                            <Label>Attendees ({session.participants?.length || 0} / {session.maxStudents})</Label>
-                            <div className="max-h-40 overflow-y-auto border rounded-md p-3 space-y-2">
+                        <div className="space-y-2 pt-2 border-t">
+                            <div className="flex justify-between items-center mb-1">
+                                <Label className="text-xs font-bold uppercase text-muted-foreground ml-1">Current Attendees</Label>
+                                <span className="text-[10px] bg-indigo-100 text-indigo-700 px-2 py-0.5 rounded-full font-bold">
+                                    {session.participants?.length || 0} / {session.maxStudents}
+                                </span>
+                            </div>
+                            <div className="max-h-32 overflow-y-auto border rounded-xl p-3 space-y-1.5 bg-muted/10">
                                 {session.participants && session.participants.length > 0 ? (
                                     session.participants.map((p: any) => (
-                                        <div key={p.id} className="flex justify-between items-center text-sm">
-                                            <span>{p.student?.fullName || "Unknown Student"}</span>
+                                        <div key={p.id} className="flex items-center gap-2 p-1 text-sm bg-white border border-indigo-50/50 rounded-lg shadow-sm">
+                                            <div className="h-6 w-6 rounded-full bg-indigo-100 text-indigo-600 flex items-center justify-center text-[10px] font-bold">
+                                                {p.student?.fullName?.charAt(0) || "U"}
+                                            </div>
+                                            <span className="font-medium text-gray-700">{p.student?.fullName || "Unknown Student"}</span>
                                         </div>
                                     ))
                                 ) : (
-                                    <div className="text-sm text-muted-foreground text-center">No students registered.</div>
+                                    <div className="text-xs text-muted-foreground text-center py-4">No students registered yet.</div>
                                 )}
                             </div>
                         </div>
                     )}
 
                     {isEditing && (
-                        <div className="pt-4 flex justify-end">
-                            <Button type="button" variant="ghost" onClick={resetForm} className="mr-2">Cancel</Button>
-                            <Button type="submit" disabled={isPending}>{isPending ? "Saving..." : "Save Changes"}</Button>
-                        </div>
+                        <DialogFooter className="pt-2">
+                            <Button type="button" variant="ghost" onClick={resetForm} className="rounded-xl">Cancel</Button>
+                            <Button type="submit" disabled={isPending} className="bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl shadow-md font-semibold">
+                                {isPending ? (
+                                    <><Loader2 className="mr-2 h-4 w-4 animate-spin" />Saving...</>
+                                ) : (
+                                    <><CheckCircle2 className="mr-2 h-4 w-4" />Save Changes</>
+                                )}
+                            </Button>
+                        </DialogFooter>
                     )}
                 </form>
             </DialogContent>
