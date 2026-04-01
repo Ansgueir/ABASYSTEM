@@ -34,7 +34,8 @@ export function GroupSupervisionClientView({ sessions, supervisors, students }: 
         startTime: s.startTime,
         hours: (s.durationMin || 60) / 60,
         activityType: s.topic,
-        status: 'GROUP', // Custom status that will default to primary color
+        supervisionType: 'GROUP',
+        status: 'GROUP', // Custom status for color
     }))
 
     return (
