@@ -171,32 +171,35 @@ export function AddressAutocomplete({
     const fieldsLocked = !manualMode
 
     return (
-        <div ref={containerRef} className="space-y-4">
-            <div className="space-y-2">
-                <Label className="text-[11px] font-bold text-muted-foreground uppercase tracking-tight">
-                    Search your location
+        <div ref={containerRef} className="space-y-6 pt-2">
+            {/* SEARCH SECTION */}
+            <div className="space-y-3">
+                <Label className="text-[11px] font-bold text-gray-400 uppercase tracking-widest pl-1">
+                    Search Location
                 </Label>
-                <div className="relative">
-                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                <div className="relative group">
+                    <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-300 group-focus-within:text-indigo-500 transition-colors" />
                     <Input
                         value={searchQuery}
                         onChange={(e) => handleSearchChange(e.target.value)}
-                        placeholder="Search address..."
-                        className="pl-9 h-10 rounded-lg border-gray-200"
+                        placeholder="Type street name..."
+                        className="pl-11 h-12 rounded-xl border-gray-200 focus-visible:ring-indigo-500 shadow-sm transition-all text-base"
                     />
-                    {isLoading && <Loader2 className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 animate-spin text-indigo-500" />}
+                    <div className="absolute right-4 top-1/2 -translate-y-1/2">
+                        {isLoading && <Loader2 className="h-5 w-5 animate-spin text-indigo-500" />}
+                    </div>
                     
                     {showSuggestions && (
-                        <div className="absolute top-full left-0 right-0 z-[100] mt-1 bg-white border rounded-xl shadow-xl overflow-hidden max-h-[250px] overflow-y-auto">
+                        <div className="absolute top-full left-0 right-0 z-[100] mt-2 bg-white border border-gray-100 rounded-2xl shadow-2xl overflow-hidden max-h-[300px] overflow-y-auto animate-in fade-in slide-in-from-top-2 duration-300">
                             {suggestions.map((result, idx) => (
                                 <button
                                     key={result.place_id || idx}
                                     type="button"
-                                    className="w-full text-left px-4 py-3 hover:bg-gray-50 transition-colors text-sm border-b last:border-b-0"
+                                    className="w-full text-left px-5 py-4 hover:bg-indigo-50 transition-colors text-sm border-b border-gray-50 last:border-b-0"
                                     onClick={() => handleSelect(result)}
                                 >
-                                    <div className="font-medium text-gray-900">{result.display_name}</div>
-                                    <div className="text-[10px] text-gray-400 font-bold uppercase">{result.type}</div>
+                                    <div className="font-semibold text-gray-800 line-clamp-1">{result.display_name}</div>
+                                    <div className="text-[10px] text-indigo-400 font-bold uppercase mt-1 tracking-wider">{result.type}</div>
                                 </button>
                             ))}
                         </div>
@@ -204,77 +207,90 @@ export function AddressAutocomplete({
                 </div>
             </div>
 
-            <div className="grid grid-cols-6 gap-3">
-                <div className="col-span-2 sm:col-span-1 space-y-1.5">
-                    <Label className="text-[11px] text-muted-foreground">Number</Label>
+            {/* REFINED FIELDS GRID */}
+            <div className="grid grid-cols-12 gap-x-4 gap-y-5">
+                {/* ROW 1: Number + Street + City */}
+                <div className="col-span-12 sm:col-span-2 space-y-2">
+                    <Label className="text-xs font-medium text-gray-500 ml-1">Number</Label>
                     <Input
                         value={number}
                         onChange={(e) => handleManualChange("number", e.target.value)}
                         placeholder="6075"
-                        className="h-9 border-gray-200"
+                        className="h-11 border-gray-200 rounded-xl focus:border-indigo-300 transition-all font-medium"
                     />
                 </div>
-                <div className="col-span-4 sm:col-span-3 space-y-1.5">
-                    <Label className="text-[11px] text-muted-foreground">Street</Label>
+                <div className="col-span-12 sm:col-span-6 space-y-2">
+                    <Label className="text-xs font-medium text-gray-500 ml-1">Street / Avenue</Label>
                     <Input
                         value={street}
                         onChange={(e) => handleManualChange("street", e.target.value)}
                         disabled={fieldsLocked}
-                        className={fieldsLocked ? "h-9 bg-gray-50/50" : "h-9"}
+                        className={fieldsLocked ? "h-11 bg-gray-50/70 border-gray-100 text-gray-400 cursor-not-allowed" : "h-11 border-gray-200"}
                         placeholder="Street"
                     />
                 </div>
-                <div className="col-span-3 sm:col-span-2 space-y-1.5">
-                    <Label className="text-[11px] text-muted-foreground">City</Label>
+                <div className="col-span-12 sm:col-span-4 space-y-2">
+                    <Label className="text-xs font-medium text-gray-500 ml-1">City</Label>
                     <Input
                         value={city}
                         onChange={(e) => handleManualChange("city", e.target.value)}
                         disabled={fieldsLocked}
-                        className={fieldsLocked ? "h-9 bg-gray-50/50" : "h-9"}
+                        className={fieldsLocked ? "h-11 bg-gray-50/70 border-gray-100 text-gray-400 cursor-not-allowed" : "h-11 border-gray-200"}
+                        placeholder="City"
                     />
                 </div>
-                <div className="col-span-2 space-y-1.5">
-                    <Label className="text-[11px] text-muted-foreground">State</Label>
+
+                {/* ROW 2: State + Zip + Country */}
+                <div className="col-span-12 sm:col-span-5 space-y-2">
+                    <Label className="text-xs font-medium text-gray-500 ml-1">State / Province</Label>
                     <Input
                         value={state}
                         onChange={(e) => handleManualChange("state", e.target.value)}
                         disabled={fieldsLocked}
-                        className={fieldsLocked ? "h-9 bg-gray-50/50" : "h-9"}
+                        className={fieldsLocked ? "h-11 bg-gray-50/70 border-gray-100 text-gray-400 cursor-not-allowed" : "h-11 border-gray-200"}
+                        placeholder="State"
                     />
                 </div>
-                <div className="col-span-2 space-y-1.5">
-                    <Label className="text-[11px] text-muted-foreground">Zip</Label>
+                <div className="col-span-12 sm:col-span-3 space-y-2">
+                    <Label className="text-xs font-medium text-gray-500 ml-1">Zip Code</Label>
                     <Input
                         value={zipCode}
                         onChange={(e) => handleManualChange("zipCode", e.target.value)}
                         disabled={fieldsLocked}
-                        className={fieldsLocked ? "h-9 bg-gray-50/50" : "h-9"}
+                        className={fieldsLocked ? "h-11 bg-gray-50/70 border-gray-100 text-gray-400 cursor-not-allowed" : "h-11 border-gray-200"}
+                        placeholder="Zip"
                     />
                 </div>
-                <div className="col-span-2 space-y-1.5">
-                    <Label className="text-[11px] text-muted-foreground">Country</Label>
+                <div className="col-span-12 sm:col-span-4 space-y-2">
+                    <Label className="text-xs font-medium text-gray-500 ml-1">Country</Label>
                     <Input
                         value={country}
                         onChange={(e) => handleManualChange("country", e.target.value)}
                         disabled={fieldsLocked}
-                        className={fieldsLocked ? "h-9 bg-gray-50/50" : "h-9"}
+                        className={fieldsLocked ? "h-11 bg-gray-50/70 border-gray-100 text-gray-400 cursor-not-allowed" : "h-11 border-gray-200"}
+                        placeholder="Country"
                     />
                 </div>
             </div>
 
-            <div className="flex justify-between items-center pt-1">
-                <span className="text-[10px] text-gray-400 italic">Nominatim OSM</span>
+            {/* CONTROLS & FOOTER */}
+            <div className="flex justify-between items-center pt-2 border-t border-gray-50 mt-2">
+                <div className="flex items-center gap-2 text-[10px] text-gray-300">
+                    <div className="h-1.5 w-1.5 rounded-full bg-indigo-400 animate-pulse" />
+                    <span>Powered by OpenStreetMap</span>
+                </div>
                 <Button
                     type="button"
                     variant="ghost"
-                    className="h-7 px-2 text-[11px] text-gray-500 hover:text-indigo-600 gap-1.5"
+                    className="h-8 px-3 text-[11px] text-gray-400 hover:text-indigo-600 hover:bg-indigo-50/50 rounded-lg transition-all gap-2"
                     onClick={() => setManualMode(!manualMode)}
                 >
-                    <Pencil className="h-3 w-3" />
-                    {manualMode ? "Lock manual editing" : "Edit all fields"}
+                    <Pencil className="h-3.5 w-3.5" />
+                    {manualMode ? "Lock Edits" : "Edit Fields Manually"}
                 </Button>
             </div>
 
+            {/* HIDDEN INPUTS */}
             <input type="hidden" name={fieldNames.address} value={[number, street].filter(Boolean).join(" ")} />
             <input type="hidden" name={fieldNames.city} value={city} />
             <input type="hidden" name={fieldNames.state} value={state} />
@@ -283,3 +299,4 @@ export function AddressAutocomplete({
         </div>
     )
 }
+
