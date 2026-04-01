@@ -24,7 +24,7 @@ const localizer = dateFnsLocalizer({
 interface TimesheetCalendarProps {
     hours: any[]
     onEventClick?: (hour: any) => void
-    role: 'student' | 'supervisor'
+    role: 'student' | 'supervisor' | 'office'
 }
 
 export function TimesheetCalendar({ hours, onEventClick, role }: TimesheetCalendarProps) {
@@ -40,8 +40,12 @@ export function TimesheetCalendar({ hours, onEventClick, role }: TimesheetCalend
 
             let title = hour.activityType || (hour.type === 'SUPERVISION' || hour.type === 'supervised' ? "Supervised" : "Independent")
             if (role === 'supervisor') {
-                const studentName = hour.student ? `${hour.student.firstName} ${hour.student.lastName}` : 'Student'
+                const studentName = hour.student ? `${hour.student.firstName} ${hour.student.lastName}` : (hour.student?.fullName || 'Student')
                 title = `${title} (${studentName})`
+            } else if (role === 'office') {
+                const supervisorName = hour.supervisor?.fullName || 'Supervisor'
+                const studentsCount = hour.participants?.length || hour.studentsCount || 0
+                title = `${title} - ${supervisorName} (${studentsCount}/10)`
             }
 
             return {

@@ -33,11 +33,15 @@ interface GroupSessionDetailsDialogProps {
     session: any
     supervisors?: { id: string, fullName: string }[]
     students?: { id: string, fullName: string }[]
-    children: React.ReactNode
+    children?: React.ReactNode
+    open?: boolean
+    onOpenChange?: (open: boolean) => void
 }
 
-export function GroupSessionDetailsDialog({ session, supervisors, students, children }: GroupSessionDetailsDialogProps) {
-    const [open, setOpen] = useState(false)
+export function GroupSessionDetailsDialog({ session, supervisors, students, children, open: externalOpen, onOpenChange }: GroupSessionDetailsDialogProps) {
+    const [internalOpen, setInternalOpen] = useState(false)
+    const open = externalOpen !== undefined ? externalOpen : internalOpen
+    const setOpen = onOpenChange !== undefined ? onOpenChange : setInternalOpen
     const [isEditing, setIsEditing] = useState(false)
     const [topic, setTopic] = useState(session.topic)
     const [date, setDate] = useState<Date | undefined>(new Date(session.date))
@@ -131,9 +135,11 @@ export function GroupSessionDetailsDialog({ session, supervisors, students, chil
             if (!v) resetForm()
             setOpen(v)
         }}>
-            <DialogTrigger asChild>
-                {children}
-            </DialogTrigger>
+            {children && (
+                <DialogTrigger asChild>
+                    {children}
+                </DialogTrigger>
+            )}
             <DialogContent className="sm:max-w-[560px] p-0 overflow-hidden flex flex-col max-h-[90vh]">
                 <DialogHeader className="p-6 pb-2">
                     <div className="flex justify-between items-center pr-8">
