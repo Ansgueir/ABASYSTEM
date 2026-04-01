@@ -63,10 +63,12 @@ export function TimesheetCalendar({ hours, onEventClick, role }: TimesheetCalend
         const resource = event.resource
         const status = resource.status?.toUpperCase() || 'PENDING'
         
-        let backgroundColor = 'var(--primary)'
+        let backgroundColor = '#6366f1' // Indigo default
         if (status === 'APPROVED' || status === 'BILLED') backgroundColor = '#10b981' // success/emerald
-        if (status === 'PENDING' || status === 'LOGGED') backgroundColor = '#eab308' // warning/yellow
+        if (status === 'PENDING' || status === 'LOGGED') backgroundColor = '#f59e0b' // warning/amber
         if (status === 'REJECTED') backgroundColor = '#ef4444' // destructive/red
+        if (status === 'GROUP' || status === 'GROUPED') backgroundColor = '#4f46e5' // Indigo-600
+        if (status === 'INDEPENDENT') backgroundColor = '#8b5cf6' // Violet for independent
 
         return {
             style: {
