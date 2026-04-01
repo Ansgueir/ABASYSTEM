@@ -182,17 +182,23 @@ export function AddressAutocomplete({
 
                 {/* Suggestions Dropdown */}
                 {showSuggestions && suggestions.length > 0 && (
-                    <div className="relative z-50">
-                        <div className="absolute top-0 left-0 right-0 bg-white dark:bg-gray-900 border rounded-xl shadow-lg overflow-hidden max-h-60 overflow-y-auto">
+                    <div className="relative z-[9999]">
+                        <div
+                            className="absolute top-0 left-0 right-0 rounded-xl shadow-2xl overflow-hidden max-h-60 overflow-y-auto border border-gray-200"
+                            style={{ backgroundColor: "#ffffff" }}
+                        >
                             {suggestions.map((result, idx) => (
                                 <button
                                     key={result.place_id || idx}
                                     type="button"
-                                    className="w-full text-left px-4 py-2.5 hover:bg-indigo-50 dark:hover:bg-indigo-950 transition-colors text-sm flex items-start gap-2 border-b last:border-b-0"
+                                    className="w-full text-left px-4 py-3 transition-colors text-sm flex items-start gap-2.5 border-b border-gray-100 last:border-b-0"
+                                    style={{ color: "#1f2937" }}
+                                    onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = "#eef2ff" }}
+                                    onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = "#ffffff" }}
                                     onClick={() => handleSelect(result)}
                                 >
                                     <MapPin className="h-4 w-4 text-indigo-500 mt-0.5 shrink-0" />
-                                    <span className="line-clamp-2">{result.display_name}</span>
+                                    <span className="line-clamp-2 leading-snug">{result.display_name}</span>
                                 </button>
                             ))}
                         </div>
