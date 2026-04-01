@@ -212,7 +212,7 @@ export function GroupSessionDetailsDialog({ session, supervisors, students, chil
                                                 {date ? format(date, "PPP") : <span>Pick a date</span>}
                                             </Button>
                                         </PopoverTrigger>
-                                        <PopoverContent className="w-auto p-0" align="start" portal={false}>
+                                        <PopoverContent className="w-auto p-0" align="start">
                                             <Calendar
                                                 mode="single"
                                                 selected={date}

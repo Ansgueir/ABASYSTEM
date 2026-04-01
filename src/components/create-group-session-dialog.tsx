@@ -236,7 +236,7 @@ export function CreateGroupSessionDialog({ supervisors, students }: CreateGroupS
                                                 <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
                                             </Button>
                                         </PopoverTrigger>
-                                        <PopoverContent className="w-auto p-0" align="start" portal={false}>
+                                            <PopoverContent className="w-auto p-0" align="start">
                                             <Calendar
                                                 mode="single"
                                                 selected={date}
@@ -304,7 +304,7 @@ export function CreateGroupSessionDialog({ supervisors, students }: CreateGroupS
                                                     <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
                                                 </Button>
                                             </PopoverTrigger>
-                                            <PopoverContent className="w-auto p-0" align="start" portal={false}>
+                                                <PopoverContent className="w-auto p-0" align="start">
                                                 <Calendar mode="single" selected={startDate} onSelect={setStartDate} initialFocus />
                                             </PopoverContent>
                                         </Popover>
@@ -318,7 +318,7 @@ export function CreateGroupSessionDialog({ supervisors, students }: CreateGroupS
                                                     <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
                                                 </Button>
                                             </PopoverTrigger>
-                                            <PopoverContent className="w-auto p-0" align="start" portal={false}>
+                                                <PopoverContent className="w-auto p-0" align="start">
                                                 <Calendar mode="single" selected={endDate} onSelect={setEndDate} initialFocus />
                                             </PopoverContent>
                                         </Popover>
