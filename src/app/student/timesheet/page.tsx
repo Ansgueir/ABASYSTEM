@@ -33,19 +33,27 @@ export default async function TimesheetPage() {
         })
 
         if (student) {
-            const [indepHours, supHours] = await Promise.all([
+            const [indepHours, supHours, groupAtt] = await Promise.all([
                 prisma.independentHour.findMany({
                     where: { studentId: student.id },
                     orderBy: { date: 'desc' },
-                    take: 20
+                    take: 100
                 }),
                 prisma.supervisionHour.findMany({
                     where: { studentId: student.id },
                     orderBy: { date: 'desc' },
-                    take: 20,
+                    take: 100,
                     include: { supervisor: true }
+                }),
+                prisma.groupSupervisionAttendance.findMany({
+                    where: { studentId: student.id, attended: true },
+                    include: { session: { include: { supervisor: true } } },
+                    orderBy: { session: { date: 'desc' } },
+                    take: 50
                 })
             ])
+            
+            const existingHourDates = new Set(supHours.map(h => `${h.date.toISOString()}-${h.startTime.toISOString()}-${h.supervisionType}`))
 
             hours = [
                 ...indepHours.map(h => ({
@@ -59,7 +67,20 @@ export default async function TimesheetPage() {
                     amountBilled: h.amountBilled ? Number(h.amountBilled) : null,
                     supervisorPay: h.supervisorPay ? Number(h.supervisorPay) : null,
                     type: 'supervised' as const
-                }))
+                })),
+                ...groupAtt
+                    .filter(a => !existingHourDates.has(`${a.session.date.toISOString()}-${a.session.startTime.toISOString()}-GROUP`))
+                    .map(a => ({
+                        id: a.id,
+                        date: a.session.date,
+                        startTime: a.session.startTime,
+                        hours: 1, // Default for historical
+                        supervisionType: 'GROUP',
+                        groupTopic: a.session.topic,
+                        status: 'PENDING',
+                        supervisor: a.session.supervisor,
+                        type: 'supervised' as const
+                    }))
             ].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
         }
     } catch (error) {

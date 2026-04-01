@@ -34,14 +34,14 @@ export default async function SupervisorTimesheetPage() {
             const legacyIds = (supervisor as any).students.map((s: any) => s.id)
             const allAssignedIds = Array.from(new Set([...nmIds, ...legacyIds]))
             
-            const [superLogs, indepLogs] = await Promise.all([
+            const [superLogs, indepLogs, groupOwnerSessions] = await Promise.all([
                 prisma.supervisionHour.findMany({
                     where: { 
-                        studentId: { in: allAssignedIds },
+                        supervisorId: supervisor.id,
                         status: { not: 'REJECTED' }
                     },
                     orderBy: { date: 'desc' },
-                    take: 50,
+                    take: 100,
                     include: { student: true }
                 }),
                 prisma.independentHour.findMany({
@@ -52,12 +52,42 @@ export default async function SupervisorTimesheetPage() {
                     orderBy: { date: 'desc' },
                     take: 50,
                     include: { student: true }
+                }),
+                prisma.groupSupervisionSession.findMany({
+                    where: { supervisorId: supervisor.id },
+                    include: { attendance: { include: { student: true } } },
+                    orderBy: { date: 'desc' },
+                    take: 20
                 })
             ])
 
+            const existingLogs = new Set(superLogs.map(l => `${l.studentId}-${l.date.toISOString()}-${l.startTime.toISOString()}`))
+
+            const groupFallbacks: any[] = []
+            for (const session of groupOwnerSessions) {
+                for (const att of session.attendance) {
+                    const key = `${att.studentId}-${session.date.toISOString()}-${session.startTime.toISOString()}`
+                    if (!existingLogs.has(key)) {
+                        groupFallbacks.push({
+                            id: att.id,
+                            studentId: att.studentId,
+                            date: session.date,
+                            startTime: session.startTime,
+                            hours: 1,
+                            supervisionType: 'GROUP',
+                            groupTopic: session.topic,
+                            status: 'PENDING',
+                            student: att.student,
+                            type: 'SUPERVISED'
+                        })
+                    }
+                }
+            }
+
             const combined = [
                 ...superLogs.map(l => ({ ...l, type: 'SUPERVISED' })),
-                ...indepLogs.map(l => ({ ...l, type: 'INDEPENDENT', supervisionType: 'N/A' }))
+                ...indepLogs.map(l => ({ ...l, type: 'INDEPENDENT', supervisionType: 'N/A' })),
+                ...groupFallbacks
             ]
 
             const raw = combined
