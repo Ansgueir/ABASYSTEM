@@ -185,131 +185,145 @@ export function AddressAutocomplete({
     const fieldsLocked = !manualMode
 
     return (
-        <div ref={containerRef} className="space-y-3">
-            {/* Search Input */}
+        <div ref={containerRef} className="space-y-4 p-4 border-2 border-indigo-50 rounded-2xl bg-indigo-50/10">
+            {/* SEARCH SECTION */}
             <div className="space-y-2">
-                <Label className="flex items-center gap-1.5">
-                    <MapPin className="h-3.5 w-3.5 text-indigo-500" />
-                    Address / Location <span className="text-red-500">*</span>
+                <Label className="flex items-center gap-1.5 text-indigo-700 font-bold">
+                    <Search className="h-4 w-4" />
+                    1. Search for Street / Avenida / Calle
                 </Label>
                 <div className="relative">
-                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                     <Input
                         value={searchQuery}
                         onChange={(e) => handleSearchChange(e.target.value)}
-                        placeholder="Search your address..."
-                        className="pl-9 pr-8 rounded-xl"
+                        placeholder="Type street name (e.g. Avenida Pablo Neruda)..."
+                        className="pl-4 pr-10 h-12 rounded-xl border-indigo-100 focus-visible:ring-indigo-500 shadow-sm"
                     />
-                    {isLoading && (
-                        <Loader2 className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 animate-spin text-indigo-500" />
+                    <div className="absolute right-3 top-1/2 -translate-y-1/2 flex items-center gap-2">
+                        {isLoading ? (
+                            <Loader2 className="h-5 w-5 animate-spin text-indigo-500" />
+                        ) : (
+                            <MapPin className="h-5 w-5 text-indigo-300" />
+                        )}
+                    </div>
+
+                    {/* Suggestions Dropdown - Positioned absolute but avoiding overlap */}
+                    {showSuggestions && suggestions.length > 0 && (
+                        <div className="absolute top-full left-0 right-0 z-[9999] mt-2">
+                            <div
+                                className="bg-white rounded-xl shadow-2xl border border-indigo-100 overflow-hidden max-h-[250px] overflow-y-auto"
+                            >
+                                {suggestions.map((result, idx) => (
+                                    <button
+                                        key={result.place_id || idx}
+                                        type="button"
+                                        className="w-full text-left px-4 py-3 transition-colors text-sm flex items-start gap-3 border-b border-gray-50 last:border-b-0 hover:bg-indigo-50"
+                                        style={{ color: "#1f2937" }}
+                                        onClick={() => handleSelect(result)}
+                                    >
+                                        <MapPin className="h-4 w-4 text-indigo-500 mt-0.5 shrink-0" />
+                                        <div className="flex flex-col">
+                                            <span className="font-medium">{result.display_name}</span>
+                                            <span className="text-[10px] text-muted-foreground uppercase">{result.type}</span>
+                                        </div>
+                                    </button>
+                                ))}
+                            </div>
+                        </div>
                     )}
                 </div>
-
-                {showSuggestions && suggestions.length > 0 && (
-                    <div className="relative z-[9999]">
-                        <div
-                            className="absolute top-0 left-0 right-0 rounded-xl shadow-2xl overflow-hidden max-h-[300px] overflow-y-auto border border-gray-200"
-                            style={{ backgroundColor: "#ffffff" }}
-                        >
-                            {suggestions.map((result, idx) => (
-                                <button
-                                    key={result.place_id || idx}
-                                    type="button"
-                                    className="w-full text-left px-4 py-3 transition-colors text-sm flex items-start gap-2.5 border-b border-gray-100 last:border-b-0"
-                                    style={{ color: "#1f2937" }}
-                                    onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = "#eef2ff" }}
-                                    onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = "#ffffff" }}
-                                    onClick={() => handleSelect(result)}
-                                >
-                                    <MapPin className="h-4 w-4 text-indigo-500 mt-0.5 shrink-0" />
-                                    <span className="line-clamp-2 leading-snug">{result.display_name}</span>
-                                </button>
-                            ))}
-                        </div>
-                    </div>
-                )}
             </div>
 
-            {/* Parsed Fields (locked by default) */}
-            <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-                <div className="col-span-2 sm:col-span-2 space-y-1">
-                    <Label htmlFor="addr-street" className="text-xs text-muted-foreground">Street / Road</Label>
-                    <Input
-                        id="addr-street"
-                        value={street}
-                        onChange={(e) => handleManualChange("street", e.target.value)}
-                        disabled={fieldsLocked}
-                        className={fieldsLocked ? "bg-gray-50 dark:bg-gray-800/50 cursor-not-allowed" : ""}
-                        placeholder="Street name"
-                    />
-                </div>
-                <div className="space-y-1">
-                    <Label htmlFor="addr-number" className="text-xs text-muted-foreground">Number / Unit <span className="text-red-500">*</span></Label>
-                    <Input
-                        id="addr-number"
-                        value={number}
-                        onChange={(e) => handleManualChange("number", e.target.value)}
-                        placeholder="e.g. 6075"
-                        className="border-indigo-200 focus-visible:ring-indigo-500"
-                    />
-                </div>
-                <div className="space-y-1">
-                    <Label htmlFor="addr-city" className="text-xs text-muted-foreground">City</Label>
-                    <Input
-                        id="addr-city"
-                        value={city}
-                        onChange={(e) => handleManualChange("city", e.target.value)}
-                        disabled={fieldsLocked}
-                        className={fieldsLocked ? "bg-gray-50 dark:bg-gray-800/50 cursor-not-allowed" : ""}
-                        placeholder="City"
-                    />
-                </div>
-                <div className="space-y-1">
-                    <Label htmlFor="addr-state" className="text-xs text-muted-foreground">State</Label>
-                    <Input
-                        id="addr-state"
-                        value={state}
-                        onChange={(e) => handleManualChange("state", e.target.value)}
-                        disabled={fieldsLocked}
-                        className={fieldsLocked ? "bg-gray-50 dark:bg-gray-800/50 cursor-not-allowed" : ""}
-                        placeholder="State"
-                    />
-                </div>
-                <div className="space-y-1">
-                    <Label htmlFor="addr-zip" className="text-xs text-muted-foreground">Zip Code</Label>
-                    <Input
-                        id="addr-zip"
-                        value={zipCode}
-                        onChange={(e) => handleManualChange("zipCode", e.target.value)}
-                        disabled={fieldsLocked}
-                        className={fieldsLocked ? "bg-gray-50 dark:bg-gray-800/50 cursor-not-allowed" : ""}
-                        placeholder="Zip"
-                    />
-                </div>
-                <div className="space-y-1">
-                    <Label htmlFor="addr-country" className="text-xs text-muted-foreground">Country</Label>
-                    <Input
-                        id="addr-country"
-                        value={country}
-                        onChange={(e) => handleManualChange("country", e.target.value)}
-                        disabled={fieldsLocked}
-                        className={fieldsLocked ? "bg-gray-50 dark:bg-gray-800/50 cursor-not-allowed" : ""}
-                        placeholder="Country"
-                    />
+            {/* MANUAL REFINEMENT SECTION */}
+            <div className="pt-2 border-t border-indigo-100">
+                <p className="text-[11px] font-bold text-indigo-600 uppercase mb-3 tracking-wider">2. Refine Address Details</p>
+                
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                    {/* HOUSE NUMBER - ALWAYS EDITABLE */}
+                    <div className="col-span-2 sm:col-span-1 space-y-1.5">
+                        <Label htmlFor="addr-number" className="text-xs font-semibold text-indigo-900 leading-none">
+                            Number / Casa #
+                        </Label>
+                        <Input
+                            id="addr-number"
+                            value={number}
+                            onChange={(e) => handleManualChange("number", e.target.value)}
+                            placeholder="6075"
+                            className="h-10 border-indigo-300 bg-indigo-50/50 focus-visible:ring-indigo-600 font-bold text-indigo-900"
+                        />
+                    </div>
+
+                    {/* STREET - AUTO-FILLED */}
+                    <div className="col-span-2 sm:col-span-3 space-y-1.5">
+                        <Label htmlFor="addr-street" className="text-xs text-muted-foreground leading-none">Street name</Label>
+                        <Input
+                            id="addr-street"
+                            value={street}
+                            onChange={(e) => handleManualChange("street", e.target.value)}
+                            disabled={fieldsLocked}
+                            className={fieldsLocked ? "h-10 bg-gray-50 cursor-not-allowed text-gray-500" : "h-10 border-indigo-100"}
+                            placeholder="Street"
+                        />
+                    </div>
+
+                    {/* CITY, STATE, COUNTRY */}
+                    <div className="space-y-1.5">
+                        <Label htmlFor="addr-city" className="text-xs text-muted-foreground leading-none">City</Label>
+                        <Input
+                            id="addr-city"
+                            value={city}
+                            onChange={(e) => handleManualChange("city", e.target.value)}
+                            disabled={fieldsLocked}
+                            className={fieldsLocked ? "h-10 bg-gray-50 cursor-not-allowed" : "h-10"}
+                        />
+                    </div>
+                    <div className="space-y-1.5">
+                        <Label htmlFor="addr-state" className="text-xs text-muted-foreground leading-none">State/Region</Label>
+                        <Input
+                            id="addr-state"
+                            value={state}
+                            onChange={(e) => handleManualChange("state", e.target.value)}
+                            disabled={fieldsLocked}
+                            className={fieldsLocked ? "h-10 bg-gray-50 cursor-not-allowed" : "h-10"}
+                        />
+                    </div>
+                    <div className="space-y-1.5">
+                        <Label htmlFor="addr-zip" className="text-xs text-muted-foreground leading-none">Zip Code</Label>
+                        <Input
+                            id="addr-zip"
+                            value={zipCode}
+                            onChange={(e) => handleManualChange("zipCode", e.target.value)}
+                            disabled={fieldsLocked}
+                            className={fieldsLocked ? "h-10 bg-gray-50 cursor-not-allowed" : "h-10"}
+                        />
+                    </div>
+                    <div className="space-y-1.5">
+                        <Label htmlFor="addr-country" className="text-xs text-muted-foreground leading-none">Country</Label>
+                        <Input
+                            id="addr-country"
+                            value={country}
+                            onChange={(e) => handleManualChange("country", e.target.value)}
+                            disabled={fieldsLocked}
+                            className={fieldsLocked ? "h-10 bg-gray-50 cursor-not-allowed" : "h-10"}
+                        />
+                    </div>
                 </div>
             </div>
 
             {/* Manual Fallback Toggle */}
-            <div className="flex justify-end">
+            <div className="flex justify-between items-center pt-2">
+                <p className="text-[10px] text-muted-foreground italic truncate max-w-[200px]">
+                    Result provided by OpenStreetMap
+                </p>
                 <Button
                     type="button"
                     variant="ghost"
                     size="sm"
-                    className="text-xs text-muted-foreground hover:text-indigo-600 gap-1.5"
+                    className="h-7 text-[10px] text-indigo-600 hover:text-indigo-700 hover:bg-indigo-50 gap-1"
                     onClick={() => setManualMode(!manualMode)}
                 >
                     <Pencil className="h-3 w-3" />
-                    {manualMode ? "Use address search" : "Enter address manually"}
+                    {manualMode ? "Back to Search" : "Edit all fields manually"}
                 </Button>
             </div>
 
