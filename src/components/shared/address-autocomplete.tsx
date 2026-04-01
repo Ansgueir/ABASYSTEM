@@ -85,7 +85,9 @@ export function AddressAutocomplete({
                 format: "json",
                 addressdetails: "1",
                 q: query,
-                limit: "5"
+                limit: "10",
+                namedetails: "1",
+                extratags: "1"
             })
 
             const res = await fetch(`${NOMINATIM_URL}?${params.toString()}`, {
@@ -121,8 +123,8 @@ export function AddressAutocomplete({
     function parseNominatimResult(result: any): AddressFields {
         const addr = result.address || {}
 
-        // Street: house_number + road (or neighbourhood/suburb as fallback)
-        const road = addr.road || addr.pedestrian || addr.neighbourhood || ""
+        // Street: house_number + road (or various fallbacks)
+        const road = addr.road || addr.pedestrian || addr.neighbourhood || addr.suburb || addr.path || addr.footway || addr.cycleway || addr.square || ""
         const parsedStreet = [addr.house_number, road].filter(Boolean).join(" ")
 
         // City: different countries use different fields
@@ -198,11 +200,10 @@ export function AddressAutocomplete({
                     )}
                 </div>
 
-                {/* Suggestions Dropdown */}
                 {showSuggestions && suggestions.length > 0 && (
                     <div className="relative z-[9999]">
                         <div
-                            className="absolute top-0 left-0 right-0 rounded-xl shadow-2xl overflow-hidden max-h-60 overflow-y-auto border border-gray-200"
+                            className="absolute top-0 left-0 right-0 rounded-xl shadow-2xl overflow-hidden max-h-[300px] overflow-y-auto border border-gray-200"
                             style={{ backgroundColor: "#ffffff" }}
                         >
                             {suggestions.map((result, idx) => (
