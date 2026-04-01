@@ -8,6 +8,7 @@ import { MapPin, Search, Pencil, Loader2 } from "lucide-react"
 
 interface AddressFields {
     street: string
+    number: string
     city: string
     state: string
     zipCode: string
@@ -50,6 +51,7 @@ export function AddressAutocomplete({
     const containerRef = useRef<HTMLDivElement>(null)
 
     const [street, setStreet] = useState(initialStreet)
+    const [number, setNumber] = useState("")
     const [city, setCity] = useState(initialCity)
     const [state, setState] = useState(initialState)
     const [zipCode, setZipCode] = useState(initialZipCode)
@@ -123,9 +125,9 @@ export function AddressAutocomplete({
     function parseNominatimResult(result: any): AddressFields {
         const addr = result.address || {}
 
-        // Street: house_number + road (or various fallbacks)
-        const road = addr.road || addr.pedestrian || addr.neighbourhood || addr.suburb || addr.path || addr.footway || addr.cycleway || addr.square || ""
-        const parsedStreet = [addr.house_number, road].filter(Boolean).join(" ")
+        // Road: neighbourhood/suburb as fallback if road is missing
+        const parsedStreet = addr.road || addr.pedestrian || addr.neighbourhood || addr.suburb || addr.path || addr.footway || addr.cycleway || addr.square || ""
+        const parsedNumber = addr.house_number || ""
 
         // City: different countries use different fields
         const parsedCity = addr.city || addr.town || addr.village || addr.hamlet 
@@ -145,6 +147,7 @@ export function AddressAutocomplete({
 
         return {
             street: parsedStreet,
+            number: parsedNumber,
             city: parsedCity,
             state: parsedState,
             zipCode: parsedZip,
@@ -156,6 +159,7 @@ export function AddressAutocomplete({
     function handleSelect(result: any) {
         const parsed = parseNominatimResult(result)
         setStreet(parsed.street)
+        setNumber(parsed.number)
         setCity(parsed.city)
         setState(parsed.state)
         setZipCode(parsed.zipCode)
@@ -167,13 +171,14 @@ export function AddressAutocomplete({
     }
 
     function handleManualChange(field: string, value: string) {
-        const updated = { street, city, state, zipCode, country, fullAddress: "" }
+        const updated = { street, number, city, state, zipCode, country, fullAddress: "" }
         if (field === "street") { setStreet(value); updated.street = value }
+        if (field === "number") { setNumber(value); updated.number = value }
         if (field === "city") { setCity(value); updated.city = value }
         if (field === "state") { setState(value); updated.state = value }
         if (field === "zipCode") { setZipCode(value); updated.zipCode = value }
         if (field === "country") { setCountry(value); updated.country = value }
-        updated.fullAddress = [updated.street, updated.city, updated.state, updated.zipCode, updated.country].filter(Boolean).join(", ")
+        updated.fullAddress = [updated.number, updated.street, updated.city, updated.state, updated.zipCode, updated.country].filter(Boolean).join(", ")
         onAddressChange(updated)
     }
 
@@ -226,16 +231,26 @@ export function AddressAutocomplete({
             </div>
 
             {/* Parsed Fields (locked by default) */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                <div className="sm:col-span-2 space-y-1">
-                    <Label htmlFor="addr-street" className="text-xs text-muted-foreground">Street</Label>
+            <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                <div className="col-span-2 sm:col-span-2 space-y-1">
+                    <Label htmlFor="addr-street" className="text-xs text-muted-foreground">Street / Road</Label>
                     <Input
                         id="addr-street"
                         value={street}
                         onChange={(e) => handleManualChange("street", e.target.value)}
                         disabled={fieldsLocked}
                         className={fieldsLocked ? "bg-gray-50 dark:bg-gray-800/50 cursor-not-allowed" : ""}
-                        placeholder="Street address"
+                        placeholder="Street name"
+                    />
+                </div>
+                <div className="space-y-1">
+                    <Label htmlFor="addr-number" className="text-xs text-muted-foreground">Number / Unit <span className="text-red-500">*</span></Label>
+                    <Input
+                        id="addr-number"
+                        value={number}
+                        onChange={(e) => handleManualChange("number", e.target.value)}
+                        placeholder="e.g. 6075"
+                        className="border-indigo-200 focus-visible:ring-indigo-500"
                     />
                 </div>
                 <div className="space-y-1">
@@ -299,10 +314,11 @@ export function AddressAutocomplete({
             </div>
 
             {/* Hidden form fields */}
-            <input type="hidden" name={fieldNames.address} value={street} />
+            <input type="hidden" name={fieldNames.address} value={[number, street].filter(Boolean).join(" ")} />
             <input type="hidden" name={fieldNames.city} value={city} />
             <input type="hidden" name={fieldNames.state} value={state} />
             {fieldNames.zipCode && <input type="hidden" name={fieldNames.zipCode} value={zipCode} />}
+            <input type="hidden" name="address_country" value={country} />
         </div>
     )
 }
