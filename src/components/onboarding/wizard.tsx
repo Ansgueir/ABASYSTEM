@@ -16,6 +16,7 @@ import { Calendar } from "@/components/ui/calendar"
 import { format } from "date-fns"
 import { Calendar as CalendarIcon, Loader2 } from "lucide-react"
 import { cn } from "@/lib/utils"
+import { AddressAutocomplete } from "@/components/shared/address-autocomplete"
 import dynamic from "next/dynamic"
 import { useSession } from "next-auth/react"
 import { useEffect } from "react"
@@ -239,39 +240,16 @@ export default function OnboardingWizard({ initialStep, initialData }: WizardPro
                                     required
                                 />
                             </div>
-                            <div className="space-y-2">
-                                <Label htmlFor="address">Address <span className="text-red-500">*</span></Label>
-                                <Input
-                                    id="address"
-                                    value={address}
-                                    onChange={(e) => setAddress(e.target.value)}
-                                    placeholder="123 Main St"
-                                    required
-                                />
-                            </div>
-
-                            <div className="grid grid-cols-2 gap-4">
-                                <div className="space-y-2">
-                                    <Label htmlFor="city">City <span className="text-red-500">*</span></Label>
-                                    <Input
-                                        id="city"
-                                        value={city}
-                                        onChange={(e) => setCity(e.target.value)}
-                                        placeholder="City"
-                                        required
-                                    />
-                                </div>
-                                <div className="space-y-2">
-                                    <Label htmlFor="state">State <span className="text-red-500">*</span></Label>
-                                    <Input
-                                        id="state"
-                                        value={stateLocation}
-                                        onChange={(e) => setStateLocation(e.target.value)}
-                                        placeholder="State"
-                                        required
-                                    />
-                                </div>
-                            </div>
+                            <AddressAutocomplete
+                                initialStreet={address}
+                                initialCity={city}
+                                initialState={stateLocation}
+                                onAddressChange={(fields) => {
+                                    setAddress(fields.street)
+                                    setCity(fields.city)
+                                    setStateLocation(fields.state)
+                                }}
+                            />
 
                             {/* CONDITIONAL RENDER BY ROLE */}
                             {initialData.role.toUpperCase() === "STUDENT" && (

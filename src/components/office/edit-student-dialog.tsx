@@ -17,6 +17,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Edit, Loader2 } from "lucide-react"
 import { toast } from "sonner"
 import { updateStudent } from "@/actions/users"
+import { AddressAutocomplete } from "@/components/shared/address-autocomplete"
 
 interface EditStudentDialogProps {
     student: any
@@ -35,6 +36,12 @@ export function EditStudentDialog({
     const open = controlledOpen !== undefined ? controlledOpen : internalOpen
     const onOpenChange = controlledOnOpenChange || setInternalOpen
     const [isPending, startTransition] = useTransition()
+    const [addressFields, setAddressFields] = useState({
+        street: student.address || "",
+        city: student.city || "",
+        state: student.state || "",
+        zipCode: ""
+    })
 
     async function onSubmit(event: React.FormEvent<HTMLFormElement>) {
         event.preventDefault()
@@ -45,11 +52,12 @@ export function EditStudentDialog({
         const formattedData: any = {
             fullName: data.fullName,
             phone: data.phone,
+            address: addressFields.street,
+            city: addressFields.city,
+            state: addressFields.state,
             bacbId: data.bacbId,
             credential: data.credential,
             level: data.level,
-            city: data.city,
-            state: data.state,
             startDate: data.startDate ? new Date(data.startDate as string) : null,
             hoursPerMonth: parseInt(data.hoursPerMonth as string) || 130,
             supervisionPercentage: parseFloat(data.supervisionPercentage as string) || 5,
@@ -103,16 +111,12 @@ export function EditStudentDialog({
                         </div>
                     </div>
 
-                    <div className="grid grid-cols-2 gap-4">
-                        <div className="space-y-2">
-                            <Label htmlFor="city">City</Label>
-                            <Input id="city" name="city" defaultValue={student.city || ""} />
-                        </div>
-                        <div className="space-y-2">
-                            <Label htmlFor="state">State</Label>
-                            <Input id="state" name="state" defaultValue={student.state || ""} />
-                        </div>
-                    </div>
+                    <AddressAutocomplete
+                        initialStreet={student.address || ""}
+                        initialCity={student.city || ""}
+                        initialState={student.state || ""}
+                        onAddressChange={(fields) => setAddressFields(fields)}
+                    />
 
                     <div className="grid grid-cols-2 gap-4">
                         <div className="space-y-2">

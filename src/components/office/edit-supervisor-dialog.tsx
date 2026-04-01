@@ -17,6 +17,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Edit, Loader2 } from "lucide-react"
 import { toast } from "sonner"
 import { updateSupervisor } from "@/actions/users"
+import { AddressAutocomplete } from "@/components/shared/address-autocomplete"
 
 interface EditSupervisorDialogProps {
     supervisor: any
@@ -35,6 +36,12 @@ export function EditSupervisorDialog({
     const open = controlledOpen !== undefined ? controlledOpen : internalOpen
     const onOpenChange = controlledOnOpenChange || setInternalOpen
     const [isPending, startTransition] = useTransition()
+    const [addressFields, setAddressFields] = useState({
+        street: supervisor.address || "",
+        city: "",
+        state: "",
+        zipCode: ""
+    })
 
     async function onSubmit(event: React.FormEvent<HTMLFormElement>) {
         event.preventDefault()
@@ -45,7 +52,7 @@ export function EditSupervisorDialog({
             fullName: data.fullName,
             email: data.email,
             phone: data.phone,
-            address: data.address,
+            address: addressFields.street,
             bacbId: data.bacbId,
             certificantNumber: data.certificantNumber,
             credentialType: data.credentialType,
@@ -74,7 +81,7 @@ export function EditSupervisorDialog({
                     </Button>
                 </DialogTrigger>
             )}
-            <DialogContent className="sm:max-w-[550px]">
+            <DialogContent className="sm:max-w-[550px] max-h-[90vh] overflow-y-auto">
                 <DialogHeader>
                     <DialogTitle>Edit Supervisor Profile</DialogTitle>
                     <DialogDescription>
@@ -92,16 +99,17 @@ export function EditSupervisorDialog({
                             <Input id="email" name="email" type="email" defaultValue={supervisor.email} required disabled={!isSuperAdmin} />
                         </div>
                     </div>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div className="grid grid-cols-1 gap-4">
                         <div className="space-y-2">
                             <Label htmlFor="phone">Phone</Label>
                             <Input id="phone" name="phone" defaultValue={supervisor.phone || ""} />
                         </div>
-                        <div className="space-y-2">
-                            <Label htmlFor="address">Address</Label>
-                            <Input id="address" name="address" defaultValue={supervisor.address || ""} />
-                        </div>
                     </div>
+
+                    <AddressAutocomplete
+                        initialStreet={supervisor.address || ""}
+                        onAddressChange={(fields) => setAddressFields(fields)}
+                    />
 
                     <div className="grid grid-cols-2 gap-4">
                         <div className="space-y-2">
