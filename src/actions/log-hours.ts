@@ -654,7 +654,9 @@ export async function updateIndependentHour(
     if (!session?.user) return { error: 'Unauthorized' }
 
     const role = String((session.user as any).role).toLowerCase()
-    if (role !== 'student') return { error: 'Forbidden: Only students can edit their own logs.' }
+    if (role !== 'student' && role !== 'supervisor' && role !== 'qa') {
+        return { error: 'Forbidden: You do not have permission to edit logs.' }
+    }
 
     try {
         const hour = await prisma.independentHour.findUnique({ where: { id: logId } })
@@ -744,3 +746,79 @@ export async function updateIndependentHour(
         return { error: err instanceof Error ? err.message : 'Failed to update log' }
     }
 }
+
+export async function updateSupervisionHour(
+    logId: string,
+    data: {
+        notes?: string
+        setting?: string
+        activityType?: string
+        minutes?: number
+        date?: string
+        startTime?: string
+        supervisionType?: string
+    }
+): Promise<{ success?: boolean; error?: string }> {
+    const session = await auth()
+    if (!session?.user) return { error: 'Unauthorized' }
+
+    const role = String((session.user as any).role).toLowerCase()
+    if (role !== 'supervisor' && role !== 'qa') return { error: 'Forbidden: Only supervisors can edit supervision logs.' }
+
+    try {
+        const hour = await prisma.supervisionHour.findUnique({ where: { id: logId } })
+        if (!hour) return { error: 'Log not found' }
+
+        // 403 Guard — APPROVED or BILLED logs are immutable
+        if (hour.status === 'APPROVED' || hour.status === 'BILLED') {
+            return { error: 'Forbidden: This log has already been approved/billed and cannot be modified.' }
+        }
+
+        // ── Resolve final date & startTime ──────────────────────────────────
+        let finalDate = hour.date
+        let finalStartTime = hour.startTime
+
+        if (data.date) {
+            const newDate = new Date(data.date)
+            if (!isNaN(newDate.getTime())) {
+                finalDate = newDate
+                if (data.startTime) {
+                    const [h, m] = data.startTime.split(':').map(Number)
+                    const newStart = new Date(newDate)
+                    newStart.setHours(h, m, 0, 0)
+                    finalStartTime = newStart
+                }
+            }
+        } else if (data.startTime) {
+            const [h, m] = data.startTime.split(':').map(Number)
+            const base = new Date(hour.date)
+            base.setHours(h, m, 0, 0)
+            finalStartTime = base
+        }
+
+        const finalHours = data.minutes !== undefined ? data.minutes / 60 : Number(hour.hours)
+        const finalSetting = (data.setting ?? hour.setting) as any
+        const finalActivity = (data.activityType ?? hour.activityType) as any
+        const finalSupervisionType = (data.supervisionType ?? hour.supervisionType) as any
+        const finalNotes = data.notes !== undefined ? data.notes : hour.notes
+
+        const updatePayload: any = {
+            date: finalDate,
+            startTime: finalStartTime,
+            hours: finalHours,
+            setting: finalSetting,
+            activityType: finalActivity,
+            supervisionType: finalSupervisionType,
+            notes: finalNotes,
+        }
+
+        await prisma.supervisionHour.update({ where: { id: logId }, data: updatePayload })
+
+        revalidatePath('/supervisor/timesheet')
+        return { success: true }
+    } catch (err) {
+        console.error('updateSupervisionHour error:', err)
+        return { error: err instanceof Error ? err.message : 'Failed to update log' }
+    }
+}
+
