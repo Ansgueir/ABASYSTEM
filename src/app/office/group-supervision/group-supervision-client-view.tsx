@@ -110,20 +110,6 @@ export function GroupSupervisionClientView({ sessions, supervisors, students }: 
                                                 </div>
                                             </div>
                                             <div className="flex items-center gap-4">
-                                                <div className="flex -space-x-3">
-                                                    {session.participants?.slice(0, 4).map((p: any) => (
-                                                        <Avatar key={p.id} className="h-8 w-8 border-2 border-white shadow-sm">
-                                                            <AvatarFallback className="bg-indigo-100 text-indigo-700 text-[10px] font-bold">
-                                                                {p.student?.fullName?.split(' ').map((n: string) => n[0]).join('') || 'ST'}
-                                                            </AvatarFallback>
-                                                        </Avatar>
-                                                    ))}
-                                                    {session.participants?.length > 4 && (
-                                                        <div className="h-8 w-8 rounded-full bg-indigo-50 border-2 border-white flex items-center justify-center text-[10px] font-bold text-indigo-600 shadow-sm">
-                                                            +{session.participants.length - 4}
-                                                        </div>
-                                                    )}
-                                                </div>
                                                 <div className="text-right">
                                                     <div className="text-xs font-bold text-indigo-900">{session.participants?.length || 0}/10</div>
                                                     <div className="text-[10px] text-muted-foreground uppercase font-bold tracking-wider">Students</div>
