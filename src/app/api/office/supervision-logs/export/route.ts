@@ -19,38 +19,41 @@ export async function GET(request: Request) {
         
         const selectedStudent = searchParams.get("student") || ""
         const selectedSupervisor = searchParams.get("supervisor") || ""
-        const selectedMonth = searchParams.get("month")
-        const selectedYear = searchParams.get("year") || new Date().getFullYear().toString()
+        const monthParam = searchParams.get("month")
+        const yearParam = searchParams.get("year")
 
-        // 1. Same Filter Logic as page.tsx
+        // 1. Robust Filter Logic
         const supervisionWhere: any = { status: statusFilter as any }
         const independentWhere: any = { status: statusFilter as any }
 
-        if (selectedYear) {
-            const year = parseInt(selectedYear)
-            let startDate: Date
-            let endDate: Date
+        // Date Period Filtering with robust validation
+        const currentYear = new Date().getFullYear()
+        const year = (yearParam && !isNaN(parseInt(yearParam))) ? parseInt(yearParam) : currentYear
+        
+        let startDate: Date
+        let endDate: Date
 
-            if (selectedMonth) {
-                const month = parseInt(selectedMonth)
-                startDate = new Date(year, month, 1)
-                endDate = new Date(year, month + 1, 0, 23, 59, 59, 999)
-            } else {
-                startDate = new Date(year, 0, 1)
-                endDate = new Date(year, 11, 31, 23, 59, 59, 999)
-            }
-
-            supervisionWhere.date = { gte: startDate, lte: endDate }
-            independentWhere.date = { gte: startDate, lte: endDate }
+        if (monthParam && !isNaN(parseInt(monthParam))) {
+            // Specific Month
+            const month = parseInt(monthParam)
+            startDate = new Date(year, month, 1)
+            endDate = new Date(year, month + 1, 0, 23, 59, 59, 999)
+        } else {
+            // Full Year
+            startDate = new Date(year, 0, 1)
+            endDate = new Date(year, 11, 31, 23, 59, 59, 999)
         }
 
-        if (selectedStudent) {
+        supervisionWhere.date = { gte: startDate, lte: endDate }
+        independentWhere.date = { gte: startDate, lte: endDate }
+
+        if (selectedStudent && selectedStudent !== "undefined") {
             const studentFilter = { fullName: { equals: selectedStudent, mode: 'insensitive' as any } }
             supervisionWhere.student = studentFilter
             independentWhere.student = studentFilter
         }
         
-        if (selectedSupervisor) {
+        if (selectedSupervisor && selectedSupervisor !== "undefined") {
             supervisionWhere.supervisor = { fullName: { equals: selectedSupervisor, mode: 'insensitive' as any } }
         }
 
