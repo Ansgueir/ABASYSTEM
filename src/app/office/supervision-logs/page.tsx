@@ -1,7 +1,7 @@
 import DashboardLayout from "@/components/dashboard-layout"
 import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
-import { ClipboardList, Clock, CheckCircle, Download, ChevronUp, ChevronDown, ArrowUpDown } from "lucide-react"
+import { ClipboardList, Clock, CheckCircle, Download, ChevronUp, ChevronDown, ArrowUpDown, Search } from "lucide-react"
 import { auth } from "@/auth"
 import { prisma } from "@/lib/prisma"
 import { redirect } from "next/navigation"
@@ -17,7 +17,7 @@ export const fetchCache = "force-no-store"
 export default async function SupervisionLogsReviewPage({
     searchParams
 }: {
-    searchParams: Promise<{ tab?: string, sortBy?: string, order?: string }>
+    searchParams: Promise<{ tab?: string, sortBy?: string, order?: string, search?: string }>
 }) {
     const session = await auth()
     if (!session?.user) redirect("/login")
@@ -30,6 +30,7 @@ export default async function SupervisionLogsReviewPage({
     const activeTab = params.tab?.toUpperCase() || "PENDING"
     const validTabs = ["PENDING", "APPROVED", "REJECTED", "BILLED"]
     const statusFilter = validTabs.includes(activeTab) ? activeTab : "PENDING"
+    const search = params.search || ""
 
     // Sorting Logic
     const sortBy = params.sortBy || "date"
@@ -48,9 +49,20 @@ export default async function SupervisionLogsReviewPage({
             orderBy = { [sortBy]: order }
         }
 
+        // Build the dynamic WHERE filter for Search
+        const searchFilter = search ? {
+            OR: [
+                { student: { fullName: { contains: search, mode: 'insensitive' as any } } },
+                { supervisor: { fullName: { contains: search, mode: 'insensitive' as any } } }
+            ]
+        } : {}
+
         const [supervisionLogs, independentLogs] = await Promise.all([
             prisma.supervisionHour.findMany({
-                where: { status: statusFilter as any },
+                where: { 
+                    status: statusFilter as any,
+                    ...searchFilter
+                },
                 orderBy: orderBy,
                 include: {
                     student: { select: { fullName: true } },
@@ -58,8 +70,11 @@ export default async function SupervisionLogsReviewPage({
                 }
             }),
             prisma.independentHour.findMany({
-                where: { status: statusFilter as any },
-                orderBy: sortBy === 'supervisor' ? undefined : orderBy, // Independent hours don't have supervisor relation
+                where: { 
+                    status: statusFilter as any,
+                    ...(search ? { student: { fullName: { contains: search, mode: 'insensitive' as any } } } : {})
+                },
+                orderBy: sortBy === 'supervisor' ? undefined : orderBy,
                 include: {
                     student: { select: { fullName: true } }
                 }
@@ -77,8 +92,7 @@ export default async function SupervisionLogsReviewPage({
             }))
         ]
 
-        // Manual sort only for the combined array if we are sorting by supervisor (because combined has N/A)
-        // Otherwise, trust Prisma's sort
+        // Manual sort only for the combined array if we are sorting by supervisor
         logs = combined
         if (sortBy === 'supervisor' || sortBy === 'student') {
             logs = combined.sort((a, b) => {
@@ -106,12 +120,29 @@ export default async function SupervisionLogsReviewPage({
                         <h1 className="text-2xl font-bold">Review Logs</h1>
                         <p className="text-muted-foreground">Manage and archive supervision log submissions</p>
                     </div>
-                    <a href={`/api/office/supervision-logs/export?status=${statusFilter}`} target="_blank" rel="noopener noreferrer">
-                        <Button variant="outline" className="rounded-xl">
-                            <Download className="h-4 w-4 mr-2" />
-                            Export
-                        </Button>
-                    </a>
+                    <div className="flex items-center gap-2">
+                        {/* Search Filter */}
+                        <form className="relative">
+                            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                            <input
+                                name="search"
+                                defaultValue={search}
+                                placeholder="Search student or supervisor..."
+                                className="pl-9 h-10 w-full sm:w-[300px] rounded-xl border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                            />
+                            {/* Hidden field to keep sorting/tab state when searching if using a simple form submit */}
+                            <input type="hidden" name="tab" value={activeTab.toLowerCase()} />
+                            <input type="hidden" name="sortBy" value={sortBy} />
+                            <input type="hidden" name="order" value={order} />
+                        </form>
+
+                        <a href={`/api/office/supervision-logs/export?status=${statusFilter}&search=${search}`} target="_blank" rel="noopener noreferrer">
+                            <Button variant="outline" className="rounded-xl h-10">
+                                <Download className="h-4 w-4 mr-2" />
+                                Export
+                            </Button>
+                        </a>
+                    </div>
                 </div>
 
                 {/* Tabs */}
@@ -119,7 +150,7 @@ export default async function SupervisionLogsReviewPage({
                     {validTabs.map((tab) => (
                         <Link
                             key={tab}
-                            href={`/office/supervision-logs?tab=${tab.toLowerCase()}`}
+                            href={`/office/supervision-logs?tab=${tab.toLowerCase()}&search=${search}&sortBy=${sortBy}&order=${order}`}
                             className={`px-4 py-2 text-sm font-medium border-b-2 transition-colors ${activeTab === tab
                                 ? "border-primary text-foreground"
                                 : "border-transparent text-muted-foreground hover:text-foreground hover:border-border"
