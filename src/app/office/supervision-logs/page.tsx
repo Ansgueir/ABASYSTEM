@@ -1,7 +1,7 @@
 import DashboardLayout from "@/components/dashboard-layout"
 import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
-import { ClipboardList, Clock, CheckCircle, Download } from "lucide-react"
+import { ClipboardList, Clock, CheckCircle, Download, ChevronUp, ChevronDown, ArrowUpDown } from "lucide-react"
 import { auth } from "@/auth"
 import { prisma } from "@/lib/prisma"
 import { redirect } from "next/navigation"
@@ -17,7 +17,7 @@ export const fetchCache = "force-no-store"
 export default async function SupervisionLogsReviewPage({
     searchParams
 }: {
-    searchParams: Promise<{ tab?: string }>
+    searchParams: Promise<{ tab?: string, sortBy?: string, order?: string }>
 }) {
     const session = await auth()
     if (!session?.user) redirect("/login")
@@ -31,13 +31,27 @@ export default async function SupervisionLogsReviewPage({
     const validTabs = ["PENDING", "APPROVED", "REJECTED", "BILLED"]
     const statusFilter = validTabs.includes(activeTab) ? activeTab : "PENDING"
 
+    // Sorting Logic
+    const sortBy = params.sortBy || "date"
+    const order = params.order === "asc" ? "asc" : "desc"
+
     let logs: any[] = []
  
     try {
+        // Build the dynamic orderBy object for Prisma
+        let orderBy: any = {}
+        if (sortBy === "supervisor") {
+            orderBy = { supervisor: { fullName: order } }
+        } else if (sortBy === "student") {
+            orderBy = { student: { fullName: order } }
+        } else {
+            orderBy = { [sortBy]: order }
+        }
+
         const [supervisionLogs, independentLogs] = await Promise.all([
             prisma.supervisionHour.findMany({
                 where: { status: statusFilter as any },
-                orderBy: { date: 'desc' },
+                orderBy: orderBy,
                 include: {
                     student: { select: { fullName: true } },
                     supervisor: { select: { fullName: true } }
@@ -45,7 +59,7 @@ export default async function SupervisionLogsReviewPage({
             }),
             prisma.independentHour.findMany({
                 where: { status: statusFilter as any },
-                orderBy: { date: 'desc' },
+                orderBy: sortBy === 'supervisor' ? undefined : orderBy, // Independent hours don't have supervisor relation
                 include: {
                     student: { select: { fullName: true } }
                 }
@@ -63,8 +77,22 @@ export default async function SupervisionLogsReviewPage({
             }))
         ]
 
-        // Sort by date desc
-        logs = combined.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
+        // Manual sort only for the combined array if we are sorting by supervisor (because combined has N/A)
+        // Otherwise, trust Prisma's sort
+        logs = combined
+        if (sortBy === 'supervisor' || sortBy === 'student') {
+            logs = combined.sort((a, b) => {
+                const valA = (sortBy === 'supervisor' ? a.supervisor?.fullName : a.student?.fullName) || ""
+                const valB = (sortBy === 'supervisor' ? b.supervisor?.fullName : b.student?.fullName) || ""
+                return order === 'asc' ? valA.localeCompare(valB) : valB.localeCompare(valA)
+            })
+        } else if (sortBy === 'date') {
+            logs = combined.sort((a, b) => {
+                const timeA = new Date(a.date).getTime()
+                const timeB = new Date(b.date).getTime()
+                return order === 'asc' ? timeA - timeB : timeB - timeA
+            })
+        }
 
     } catch (error) {
         console.error(`Error fetching ${statusFilter} logs:`, error)
@@ -114,9 +142,39 @@ export default async function SupervisionLogsReviewPage({
                                 <table className="w-full">
                                     <thead>
                                         <tr className="border-b bg-muted/50">
-                                            <th className="text-left p-4 font-medium">Supervisor</th>
-                                            <th className="text-left p-4 font-medium">Student</th>
-                                            <th className="text-left p-4 font-medium hidden md:table-cell">Date & Time</th>
+                                            <th className="p-4 font-medium">
+                                                <Link 
+                                                    href={`/office/supervision-logs?tab=${activeTab.toLowerCase()}&sortBy=supervisor&order=${sortBy === 'supervisor' && order === 'asc' ? 'desc' : 'asc'}`}
+                                                    className="flex items-center gap-1 hover:text-primary transition-colors"
+                                                >
+                                                    Supervisor
+                                                    {sortBy === 'supervisor' ? (
+                                                        order === 'asc' ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />
+                                                    ) : <ArrowUpDown className="h-3 w-3 text-muted-foreground/50" />}
+                                                </Link>
+                                            </th>
+                                            <th className="p-4 font-medium">
+                                                <Link 
+                                                    href={`/office/supervision-logs?tab=${activeTab.toLowerCase()}&sortBy=student&order=${sortBy === 'student' && order === 'asc' ? 'desc' : 'asc'}`}
+                                                    className="flex items-center gap-1 hover:text-primary transition-colors"
+                                                >
+                                                    Student
+                                                    {sortBy === 'student' ? (
+                                                        order === 'asc' ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />
+                                                    ) : <ArrowUpDown className="h-3 w-3 text-muted-foreground/50" />}
+                                                </Link>
+                                            </th>
+                                            <th className="p-4 font-medium hidden md:table-cell">
+                                                <Link 
+                                                    href={`/office/supervision-logs?tab=${activeTab.toLowerCase()}&sortBy=date&order=${sortBy === 'date' && order === 'asc' ? 'desc' : 'asc'}`}
+                                                    className="flex items-center gap-1 hover:text-primary transition-colors"
+                                                >
+                                                    Date & Time
+                                                    {sortBy === 'date' ? (
+                                                        order === 'asc' ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />
+                                                    ) : <ArrowUpDown className="h-3 w-3 text-muted-foreground/50" />}
+                                                </Link>
+                                            </th>
                                             <th className="text-left p-4 font-medium hidden sm:table-cell">Details</th>
                                             <th className="text-left p-4 font-medium">Hours</th>
                                             <th className="text-right p-4 font-medium">Actions</th>
