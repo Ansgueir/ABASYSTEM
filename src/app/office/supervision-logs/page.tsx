@@ -28,7 +28,7 @@ export default async function SupervisionLogsReviewPage({
     if (role !== "office" && role !== "qa") redirect("/login")
 
     const params = await searchParams
-    const activeTab = params.tab?.toUpperCase() || "PENDING"
+    const activeTab = (params.tab || "PENDING").toUpperCase()
     const validTabs = ["PENDING", "APPROVED", "REJECTED", "BILLED"]
     const statusFilter = validTabs.includes(activeTab) ? activeTab : "PENDING"
     
@@ -42,50 +42,48 @@ export default async function SupervisionLogsReviewPage({
 
     let logs: any[] = []
     let filterOptions = { students: [] as string[], supervisors: [] as string[] }
+    let error: string | null = null
  
     try {
-        // Build separated filters for each model to avoid crashes
+        // Build separated filters for each model
         const supervisionWhere: any = { status: statusFilter as any }
-        if (selectedStudent) supervisionWhere.student = { fullName: selectedStudent }
-        if (selectedSupervisor) supervisionWhere.supervisor = { fullName: selectedSupervisor }
+        if (selectedStudent) supervisionWhere.student = { fullName: { equals: selectedStudent, mode: 'insensitive' } }
+        if (selectedSupervisor) supervisionWhere.supervisor = { fullName: { equals: selectedSupervisor, mode: 'insensitive' } }
 
         const independentWhere: any = { status: statusFilter as any }
-        if (selectedStudent) independentWhere.student = { fullName: selectedStudent }
-        // Independent hours NEVER should filter by supervisor because they don't have one
+        if (selectedStudent) independentWhere.student = { fullName: { equals: selectedStudent, mode: 'insensitive' } }
 
-        // Fetch dynamic lists for the filter dropdowns
+        // Fetch dynamic lists for the filter dropdowns (defensive fetch)
         const [allPossibleStudents, allPossibleSupervisors] = await Promise.all([
-            prisma.student.findMany({ select: { fullName: true }, orderBy: { fullName: 'asc' } }),
-            prisma.supervisor.findMany({ select: { fullName: true }, orderBy: { fullName: 'asc' } })
+            prisma.student.findMany({ select: { fullName: true }, orderBy: { fullName: 'asc' } }).catch(() => []),
+            prisma.supervisor.findMany({ select: { fullName: true }, orderBy: { fullName: 'asc' } }).catch(() => [])
         ])
         
-        filterOptions.students = Array.from(new Set(allPossibleStudents.map(s => s.fullName).filter(Boolean)))
-        filterOptions.supervisors = Array.from(new Set(allPossibleSupervisors.map(s => s.fullName).filter(Boolean)))
+        filterOptions.students = Array.from(new Set(allPossibleStudents.map(s => s?.fullName).filter(Boolean))) as string[]
+        filterOptions.supervisors = Array.from(new Set(allPossibleSupervisors.map(s => s?.fullName).filter(Boolean))) as string[]
 
-        // Fetch Logs with specific field sorting
-        // We avoid sorting by relation objects directly here to prevent Prisma errors
-        const sortField = (sortBy === 'supervisor' || sortBy === 'student') ? 'date' : sortBy
+        // We use 'date' as a safe default for any unknown sortBy key
+        const safeSortBy = ["date", "startTime", "hours"].includes(sortBy) ? sortBy : "date"
 
         const [supervisionLogs, independentLogs] = await Promise.all([
             prisma.supervisionHour.findMany({
                 where: supervisionWhere,
-                orderBy: { [sortField]: order },
+                orderBy: { [safeSortBy]: order },
                 include: {
                     student: { select: { fullName: true } },
                     supervisor: { select: { fullName: true } }
                 }
-            }),
+            }).catch(e => { console.error(e); return [] }),
             prisma.independentHour.findMany({
                 where: independentWhere,
-                orderBy: { [sortField]: order },
+                orderBy: { [safeSortBy]: order },
                 include: {
                     student: { select: { fullName: true } }
                 }
-            })
+            }).catch(e => { console.error(e); return [] })
         ])
 
-        // Combine and tag them
-        // If a supervisor is selected, we exclude independent hours because they don't have a supervisor
+        // Safe combine logic
         const combined = [
             ...supervisionLogs.map(l => ({ ...l, type: 'SUPERVISED' })),
             ...(selectedSupervisor ? [] : independentLogs.map(l => ({ 
@@ -96,24 +94,42 @@ export default async function SupervisionLogsReviewPage({
             })))
         ]
 
-        // Manual sort Logic
-        logs = combined
-        if (sortBy === 'supervisor' || sortBy === 'student') {
-            logs = combined.sort((a, b) => {
-                const valA = (sortBy === 'supervisor' ? a.supervisor?.fullName : a.student?.fullName) || ""
-                const valB = (sortBy === 'supervisor' ? b.supervisor?.fullName : b.student?.fullName) || ""
+        // Refined Sort Logic
+        logs = combined.sort((a, b) => {
+            if (sortBy === 'supervisor') {
+                const valA = a.supervisor?.fullName || ""
+                const valB = b.supervisor?.fullName || ""
                 return order === 'asc' ? valA.localeCompare(valB) : valB.localeCompare(valA)
-            })
-        } else if (sortBy === 'date') {
-            logs = combined.sort((a, b) => {
-                const timeA = new Date(a.date).getTime()
-                const timeB = new Date(b.date).getTime()
-                return order === 'asc' ? timeA - timeB : timeB - timeA
-            })
-        }
+            }
+            if (sortBy === 'student') {
+                const valA = a.student?.fullName || ""
+                const valB = b.student?.fullName || ""
+                return order === 'asc' ? valA.localeCompare(valB) : valB.localeCompare(valA)
+            }
+            
+            // Default Chronological Sort
+            const timeA = new Date(a[safeSortBy] || a.date).getTime()
+            const timeB = new Date(b[safeSortBy] || b.date).getTime()
+            return order === 'asc' ? timeA - timeB : timeB - timeA
+        })
 
-    } catch (error) {
-        console.error(`Error fetching ${statusFilter} logs:`, error)
+    } catch (e: any) {
+        console.error("Critical error loading Review Logs:", e)
+        error = e.message || "An unexpected error occurred while loading logs."
+    }
+
+    if (error) {
+        return (
+            <DashboardLayout role="office">
+                <div className="flex items-center justify-center min-h-[400px]">
+                    <div className="text-center space-y-4">
+                        <div className="text-destructive text-xl font-bold">Error loading logs</div>
+                        <p className="text-muted-foreground">{error}</p>
+                        <Button onClick={() => window.location.reload()}>Try Again</Button>
+                    </div>
+                </div>
+            </DashboardLayout>
+        )
     }
 
     return (
