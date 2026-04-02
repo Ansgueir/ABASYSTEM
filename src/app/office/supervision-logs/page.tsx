@@ -284,47 +284,47 @@ export default async function SupervisionLogsReviewPage({
                                                         <div className="flex items-center gap-3">
                                                             <Avatar className="h-9 w-9 border border-primary/20">
                                                                 <AvatarFallback className="bg-primary/10 text-primary text-sm font-bold">
-                                                                    {supervisorName.split(' ').filter(Boolean).map(n => n[0]).join('').substring(0, 2) || 'SV'}
+                                                                    {String(supervisorName).split(' ').filter(Boolean).map((n: string) => n[0]).join('').substring(0, 2) || 'SV'}
                                                                 </AvatarFallback>
                                                             </Avatar>
-                                                            <span className="font-medium">{supervisorName}</span>
+                                                            <span className="font-medium text-sm">{supervisorName}</span>
                                                         </div>
                                                     </td>
                                                     <td className="p-4">
                                                         <div className="flex items-center gap-3">
                                                             <Avatar className="h-9 w-9 border border-secondary/20">
                                                                 <AvatarFallback className="bg-secondary/10 text-secondary text-sm font-bold">
-                                                                    {studentName.split(' ').filter(Boolean).map(n => n[0]).join('').substring(0, 2) || 'ST'}
+                                                                    {String(studentName).split(' ').filter(Boolean).map((n: string) => n[0]).join('').substring(0, 2) || 'ST'}
                                                                 </AvatarFallback>
                                                             </Avatar>
-                                                            <span className="font-medium">{studentName}</span>
+                                                            <span className="font-medium text-sm">{studentName}</span>
                                                         </div>
                                                     </td>
                                                     <td className="p-4 hidden md:table-cell">
-                                                        <p className="font-medium">{format(logDate, 'MMM d, yyyy')}</p>
-                                                        <p className="text-xs text-muted-foreground">{format(startTime, 'h:mm a')}</p>
+                                                        <p className="font-medium text-sm">{format(logDate, 'MMM d, yyyy')}</p>
+                                                        <p className="text-[10px] text-muted-foreground uppercase">{format(startTime, 'h:mm a')}</p>
                                                     </td>
                                                     <td className="p-4 hidden sm:table-cell">
-                                                        <p className="text-sm font-medium">{log.supervisionType}</p>
-                                                        <p className="text-xs text-muted-foreground truncate max-w-[150px]">{log.setting || 'No setting'}</p>
+                                                        <p className="text-xs font-semibold">{log.supervisionType}</p>
+                                                        <p className="text-[10px] text-muted-foreground truncate max-w-[120px]">{log.setting || 'N/A'}</p>
                                                     </td>
                                                     <td className="p-4">
                                                         <span className="font-bold text-lg">{hours}</span>
                                                     </td>
                                                     <td className="p-4 text-right">
                                                         <ReviewSupervisionLogActions
-                                                            logId={log.id}
+                                                            logId={String(log.id)}
                                                             status={log.status}
-                                                            officeRole={officeRole}
-                                                            // Pass a minimal serialized object instead of the whole heavy log
-                                                            logData={JSON.parse(JSON.stringify({
-                                                                id: log.id,
-                                                                status: log.status,
+                                                            officeRole={String(officeRole)}
+                                                            // Manually construct a safe object with only primitives
+                                                            logData={{
+                                                                id: String(log.id),
+                                                                status: String(log.status),
                                                                 hours: Number(log.hours),
                                                                 date: logDate.toISOString(),
-                                                                student: { fullName: studentName },
-                                                                supervisor: { fullName: supervisorName }
-                                                            }))}
+                                                                student: { fullName: String(studentName) },
+                                                                supervisor: { fullName: String(supervisorName) }
+                                                            } as any}
                                                         />
                                                     </td>
                                                 </tr>
