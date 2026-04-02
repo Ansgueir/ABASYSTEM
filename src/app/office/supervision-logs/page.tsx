@@ -19,7 +19,16 @@ export const fetchCache = "force-no-store"
 export default async function SupervisionLogsReviewPage({
     searchParams
 }: {
-    searchParams: Promise<{ tab?: string, sortBy?: string, order?: string, search?: string, student?: string, supervisor?: string }>
+    searchParams: Promise<{ 
+        tab?: string, 
+        sortBy?: string, 
+        order?: string, 
+        search?: string, 
+        student?: string, 
+        supervisor?: string,
+        month?: string,
+        year?: string
+    }>
 }) {
     const session = await auth()
     if (!session?.user) redirect("/login")
@@ -36,6 +45,8 @@ export default async function SupervisionLogsReviewPage({
     // Excel-style Filters
     const selectedStudent = params.student || ""
     const selectedSupervisor = params.supervisor || ""
+    const selectedMonth = params.month // could be "0" to "11"
+    const selectedYear = params.year || new Date().getFullYear().toString()
 
     // Sorting Logic
     const sortBy = params.sortBy || "date"
@@ -48,11 +59,38 @@ export default async function SupervisionLogsReviewPage({
     try {
         // Build separated filters for each model
         const supervisionWhere: any = { status: statusFilter as any }
-        if (selectedStudent) supervisionWhere.student = { fullName: { equals: selectedStudent, mode: 'insensitive' } }
-        if (selectedSupervisor) supervisionWhere.supervisor = { fullName: { equals: selectedSupervisor, mode: 'insensitive' } }
-
         const independentWhere: any = { status: statusFilter as any }
-        if (selectedStudent) independentWhere.student = { fullName: { equals: selectedStudent, mode: 'insensitive' } }
+
+        // Date Period Filtering
+        if (selectedYear) {
+            const year = parseInt(selectedYear)
+            let startDate: Date
+            let endDate: Date
+
+            if (selectedMonth) {
+                // Specific Month
+                const month = parseInt(selectedMonth)
+                startDate = new Date(year, month, 1)
+                endDate = new Date(year, month + 1, 0, 23, 59, 59, 999)
+            } else {
+                // Full Year
+                startDate = new Date(year, 0, 1)
+                endDate = new Date(year, 11, 31, 23, 59, 59, 999)
+            }
+
+            supervisionWhere.date = { gte: startDate, lte: endDate }
+            independentWhere.date = { gte: startDate, lte: endDate }
+        }
+
+        if (selectedStudent) {
+            const studentFilter = { fullName: { equals: selectedStudent, mode: 'insensitive' as any } }
+            supervisionWhere.student = studentFilter
+            independentWhere.student = studentFilter
+        }
+        
+        if (selectedSupervisor) {
+            supervisionWhere.supervisor = { fullName: { equals: selectedSupervisor, mode: 'insensitive' as any } }
+        }
 
         // Fetch dynamic lists for the filter dropdowns (defensive fetch)
         const [allPossibleStudents, allPossibleSupervisors] = await Promise.all([
