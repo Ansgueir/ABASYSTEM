@@ -271,49 +271,65 @@ export default async function SupervisionLogsReviewPage({
                                         </tr>
                                     </thead>
                                     <tbody>
-                                        {logs.map((log) => (
-                                            <tr key={log.id} className="border-b hover:bg-muted/30 transition-colors">
-                                                <td className="p-4">
-                                                    <div className="flex items-center gap-3">
-                                                        <Avatar className="h-9 w-9 border border-primary/20">
-                                                            <AvatarFallback className="bg-primary/10 text-primary text-sm">
-                                                                {log.supervisor?.fullName?.split(' ').map((n: string) => n[0]).join('') || 'SV'}
-                                                            </AvatarFallback>
-                                                        </Avatar>
-                                                        <span className="font-medium">{log.supervisor?.fullName}</span>
-                                                    </div>
-                                                </td>
-                                                <td className="p-4">
-                                                    <div className="flex items-center gap-3">
-                                                        <Avatar className="h-9 w-9 border border-secondary/20">
-                                                            <AvatarFallback className="bg-secondary/10 text-secondary text-sm">
-                                                                {log.student?.fullName?.split(' ').map((n: string) => n[0]).join('') || 'ST'}
-                                                            </AvatarFallback>
-                                                        </Avatar>
-                                                        <span className="font-medium">{log.student?.fullName}</span>
-                                                    </div>
-                                                </td>
-                                                <td className="p-4 hidden md:table-cell">
-                                                    <p className="font-medium">{format(new Date(log.date), 'MMM d, yyyy')}</p>
-                                                    <p className="text-xs text-muted-foreground">{format(new Date(log.startTime), 'h:mm a')}</p>
-                                                </td>
-                                                <td className="p-4 hidden sm:table-cell">
-                                                    <p className="text-sm">{log.supervisionType} • {log.setting}</p>
-                                                    <p className="text-xs text-muted-foreground truncate max-w-[200px]">{log.notes || 'No notes'}</p>
-                                                </td>
-                                                <td className="p-4">
-                                                    <span className="font-bold text-lg">{Number(log.hours).toFixed(1)}</span>
-                                                </td>
-                                                <td className="p-4 text-right">
-                                                    <ReviewSupervisionLogActions
-                                                        logId={log.id}
-                                                        status={log.status}
-                                                        officeRole={officeRole}
-                                                        logData={serialize(log)}
-                                                    />
-                                                </td>
-                                            </tr>
-                                        ))}
+                                        {logs.map((log) => {
+                                            const supervisorName = log.supervisor?.fullName || "N/A"
+                                            const studentName = log.student?.fullName || "N/A"
+                                            const logDate = log.date ? new Date(log.date) : new Date()
+                                            const startTime = log.startTime ? new Date(log.startTime) : new Date()
+                                            const hours = Number(log.hours || 0).toFixed(1)
+
+                                            return (
+                                                <tr key={log.id} className="border-b hover:bg-muted/30 transition-colors">
+                                                    <td className="p-4">
+                                                        <div className="flex items-center gap-3">
+                                                            <Avatar className="h-9 w-9 border border-primary/20">
+                                                                <AvatarFallback className="bg-primary/10 text-primary text-sm font-bold">
+                                                                    {supervisorName.split(' ').filter(Boolean).map(n => n[0]).join('').substring(0, 2) || 'SV'}
+                                                                </AvatarFallback>
+                                                            </Avatar>
+                                                            <span className="font-medium">{supervisorName}</span>
+                                                        </div>
+                                                    </td>
+                                                    <td className="p-4">
+                                                        <div className="flex items-center gap-3">
+                                                            <Avatar className="h-9 w-9 border border-secondary/20">
+                                                                <AvatarFallback className="bg-secondary/10 text-secondary text-sm font-bold">
+                                                                    {studentName.split(' ').filter(Boolean).map(n => n[0]).join('').substring(0, 2) || 'ST'}
+                                                                </AvatarFallback>
+                                                            </Avatar>
+                                                            <span className="font-medium">{studentName}</span>
+                                                        </div>
+                                                    </td>
+                                                    <td className="p-4 hidden md:table-cell">
+                                                        <p className="font-medium">{format(logDate, 'MMM d, yyyy')}</p>
+                                                        <p className="text-xs text-muted-foreground">{format(startTime, 'h:mm a')}</p>
+                                                    </td>
+                                                    <td className="p-4 hidden sm:table-cell">
+                                                        <p className="text-sm font-medium">{log.supervisionType}</p>
+                                                        <p className="text-xs text-muted-foreground truncate max-w-[150px]">{log.setting || 'No setting'}</p>
+                                                    </td>
+                                                    <td className="p-4">
+                                                        <span className="font-bold text-lg">{hours}</span>
+                                                    </td>
+                                                    <td className="p-4 text-right">
+                                                        <ReviewSupervisionLogActions
+                                                            logId={log.id}
+                                                            status={log.status}
+                                                            officeRole={officeRole}
+                                                            // Pass a minimal serialized object instead of the whole heavy log
+                                                            logData={JSON.parse(JSON.stringify({
+                                                                id: log.id,
+                                                                status: log.status,
+                                                                hours: Number(log.hours),
+                                                                date: logDate.toISOString(),
+                                                                student: { fullName: studentName },
+                                                                supervisor: { fullName: supervisorName }
+                                                            }))}
+                                                        />
+                                                    </td>
+                                                </tr>
+                                            )
+                                        })}
                                     </tbody>
                                 </table>
                             </div>
