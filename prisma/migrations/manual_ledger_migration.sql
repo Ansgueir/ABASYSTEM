@@ -7,7 +7,7 @@ ALTER TYPE "InvoiceStatus" ADD VALUE IF NOT EXISTS 'READY_TO_GO';
 
 -- 2. Create SupervisorLedgerEntry table
 CREATE TABLE IF NOT EXISTS "SupervisorLedgerEntry" (
-    "id"                           TEXT NOT NULL DEFAULT gen_random_uuid()::text,
+    "id"                           TEXT NOT NULL,
     "invoiceId"                    TEXT NOT NULL,
     "supervisorId"                 TEXT NOT NULL,
     "studentId"                    TEXT NOT NULL,
