@@ -334,68 +334,104 @@ export async function approveSupervisionHour(logId: string) {
     }
 
     try {
-        const hour = await prisma.supervisionHour.findUnique({
-            where: { id: logId },
-            include: { student: { include: { supervisor: true } } }
-        })
+        return await prisma.$transaction(async (tx) => {
+            const hour = await tx.supervisionHour.findUnique({
+                where: { id: logId },
+                include: { student: { include: { supervisor: true } } }
+            })
 
-        if (!hour) return { error: "Hour log not found" }
+            if (!hour) return { error: "Hour log not found" }
+            if (hour.status === "APPROVED") return { error: "Log already approved" }
 
-        const hourlyRate = Number(hour.student.hourlyRate || 0)
-        let percent = 0.54
-        if (hour.student.supervisor?.paymentPercentage) {
-            percent = Number(hour.student.supervisor.paymentPercentage)
-        }
-
-        const amountBilled = Number(hour.hours) * hourlyRate
-        const supervisorPay = amountBilled * percent
-
-        await prisma.supervisionHour.update({
-            where: { id: logId },
-            data: {
-                status: "APPROVED",
-                amountBilled,
-                supervisorPay
+            const hourlyRate = Number(hour.student.hourlyRate || 0)
+            let percent = 0.54
+            if (hour.student.supervisor?.paymentPercentage) {
+                percent = Number(hour.student.supervisor.paymentPercentage)
             }
-        })
 
-        if (hour.student.supervisorId) {
-            const today = new Date()
-            const firstDayOfMonth = new Date(today.getFullYear(), today.getMonth(), 1)
-            const existingPayment = await prisma.supervisorPayment.findFirst({
+            const amountBilled = Number(hour.hours) * hourlyRate
+            const supervisorPay = amountBilled * percent
+
+            // 1. Check if there's an existing READY_TO_GO invoice for this student
+            let invoice = await tx.invoice.findFirst({
                 where: {
-                    supervisorId: hour.student.supervisorId,
-                    studentId: hour.student.id,
-                    monthYear: firstDayOfMonth
+                    studentId: hour.studentId,
+                    status: "READY_TO_GO" as any
                 }
             })
 
-            if (existingPayment) {
-                await prisma.supervisorPayment.update({
-                    where: { id: existingPayment.id },
+            if (!invoice) {
+                // Create a new one if it doesn't exist
+                invoice = await tx.invoice.create({
                     data: {
-                        amountDue: { increment: supervisorPay },
-                        balanceDue: { increment: supervisorPay }
-                    }
-                })
-            } else {
-                await prisma.supervisorPayment.create({
-                    data: {
-                        supervisorId: hour.student.supervisorId,
-                        studentId: hour.student.id,
-                        monthYear: firstDayOfMonth,
-                        amountDue: supervisorPay,
-                        balanceDue: supervisorPay,
-                        amountPaidThisMonth: 0,
-                        amountAlreadyPaid: 0
+                        studentId: hour.studentId,
+                        invoiceDate: new Date(),
+                        amountDue: 0,
+                        amountPaid: 0,
+                        status: "READY_TO_GO" as any
                     }
                 })
             }
-        }
 
-        revalidatePath("/office/supervision-logs")
-        revalidatePath("/supervisor/payments")
-        return { success: true }
+            // 2. Update the log status and link to the invoice
+            await tx.supervisionHour.update({
+                where: { id: logId },
+                data: {
+                    status: "APPROVED",
+                    amountBilled,
+                    supervisorPay,
+                    invoiceId: invoice.id
+                }
+            })
+
+            // 3. Update invoice total
+            await tx.invoice.update({
+                where: { id: invoice.id },
+                data: {
+                    amountDue: { increment: amountBilled }
+                }
+            })
+
+            // --- Legacy Payment Card Logic (Keep for BC) ---
+            if (hour.student.supervisorId) {
+                const today = new Date()
+                const firstDayOfMonth = new Date(today.getFullYear(), today.getMonth(), 1)
+                const existingPayment = await tx.supervisorPayment.findFirst({
+                    where: {
+                        supervisorId: hour.student.supervisorId,
+                        studentId: hour.student.id,
+                        monthYear: firstDayOfMonth
+                    }
+                })
+
+                if (existingPayment) {
+                    await tx.supervisorPayment.update({
+                        where: { id: existingPayment.id },
+                        data: {
+                            amountDue: { increment: supervisorPay },
+                            balanceDue: { increment: supervisorPay }
+                        }
+                    })
+                } else {
+                    await tx.supervisorPayment.create({
+                        data: {
+                            supervisorId: hour.student.supervisorId,
+                            studentId: hour.student.id,
+                            monthYear: firstDayOfMonth,
+                            amountDue: supervisorPay,
+                            balanceDue: supervisorPay,
+                            amountPaidThisMonth: 0,
+                            amountAlreadyPaid: 0
+                        }
+                    })
+                }
+            }
+
+            revalidatePath("/office/supervision-logs")
+            revalidatePath("/office/payments")
+            revalidatePath("/supervisor/payments")
+            return { success: true }
+        })
     } catch (error) {
         console.error("Failed to approve log:", error)
         return { error: "Failed to approve log" }
@@ -411,47 +447,68 @@ export async function rejectSupervisionHour(logId: string, reason: string) {
     }
 
     try {
-        const hour = await prisma.supervisionHour.findUnique({
-            where: { id: logId }
-        })
+        return await prisma.$transaction(async (tx) => {
+            const hour = await tx.supervisionHour.findUnique({
+                where: { id: logId }
+            })
 
-        if (!hour) return { error: "Log not found" }
-        if (hour.status === "BILLED") return { error: "Cannot reject a log that has already been billed." }
+            if (!hour) return { error: "Log not found" }
+            if (hour.status === "BILLED") return { error: "Cannot reject a log that has already been billed." }
 
-        // If reversing an APPROVED log, deduct the pay from the payment card
-        if (hour.status === "APPROVED" && hour.supervisorPay) {
-            const today = new Date(hour.date) // Use the hour's date to find the month card
-            const firstDayOfMonth = new Date(today.getFullYear(), today.getMonth(), 1)
+            // 1. If reversing an APPROVED log, deduct the pay from the payment card
+            if (hour.status === "APPROVED" && hour.supervisorPay) {
+                const today = new Date(hour.date)
+                const firstDayOfMonth = new Date(today.getFullYear(), today.getMonth(), 1)
 
-            const existingPayment = await prisma.supervisorPayment.findFirst({
-                where: {
-                    studentId: hour.studentId,
-                    monthYear: firstDayOfMonth
+                const existingPayment = await tx.supervisorPayment.findFirst({
+                    where: {
+                        studentId: hour.studentId,
+                        monthYear: firstDayOfMonth
+                    }
+                })
+
+                if (existingPayment) {
+                    await tx.supervisorPayment.update({
+                        where: { id: existingPayment.id },
+                        data: {
+                            amountDue: { decrement: hour.supervisorPay },
+                            balanceDue: { decrement: hour.supervisorPay }
+                        }
+                    })
+                }
+
+                // 2. Unlink from Invoice and decrement Invoice total if READY_TO_GO
+                if (hour.invoiceId) {
+                    const invoice = await tx.invoice.findUnique({
+                        where: { id: hour.invoiceId }
+                    })
+
+                    if (invoice && invoice.status === ("READY_TO_GO" as any)) {
+                        await tx.invoice.update({
+                            where: { id: invoice.id },
+                            data: {
+                                amountDue: { decrement: hour.amountBilled || 0 }
+                            }
+                        })
+                    }
+                }
+            }
+
+            await tx.supervisionHour.update({
+                where: { id: logId },
+                data: {
+                    status: "REJECTED",
+                    rejectReason: reason,
+                    amountBilled: 0,
+                    supervisorPay: 0,
+                    invoiceId: null // Clear linkage
                 }
             })
 
-            if (existingPayment) {
-                await prisma.supervisorPayment.update({
-                    where: { id: existingPayment.id },
-                    data: {
-                        amountDue: { decrement: hour.supervisorPay },
-                        balanceDue: { decrement: hour.supervisorPay }
-                    }
-                })
-            }
-        }
-
-        await prisma.supervisionHour.update({
-            where: { id: logId },
-            data: {
-                status: "REJECTED",
-                rejectReason: reason,
-                amountBilled: 0,
-                supervisorPay: 0
-            }
+            revalidatePath("/office/supervision-logs")
+            revalidatePath("/office/payments")
+            return { success: true }
         })
-        revalidatePath("/office/supervision-logs")
-        return { success: true }
     } catch (error) {
         console.error("Failed to reject log:", error)
         return { error: "Failed to reject log" }
