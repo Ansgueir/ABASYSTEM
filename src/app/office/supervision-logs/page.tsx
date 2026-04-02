@@ -94,8 +94,8 @@ export default async function SupervisionLogsReviewPage({
             })))
         ]
 
-        // Refined Sort Logic
-        logs = combined.sort((a, b) => {
+        // Refined Sort Logic with explicit any casting to avoid TS index errors
+        logs = (combined as any[]).sort((a, b) => {
             if (sortBy === 'supervisor') {
                 const valA = a.supervisor?.fullName || ""
                 const valB = b.supervisor?.fullName || ""
@@ -108,8 +108,9 @@ export default async function SupervisionLogsReviewPage({
             }
             
             // Default Chronological Sort
-            const timeA = new Date(a[safeSortBy] || a.date).getTime()
-            const timeB = new Date(b[safeSortBy] || b.date).getTime()
+            const field = safeSortBy as keyof typeof a
+            const timeA = new Date(a[field] || a.date).getTime()
+            const timeB = new Date(b[field] || b.date).getTime()
             return order === 'asc' ? timeA - timeB : timeB - timeA
         })
 
@@ -122,10 +123,10 @@ export default async function SupervisionLogsReviewPage({
         return (
             <DashboardLayout role="office">
                 <div className="flex items-center justify-center min-h-[400px]">
-                    <div className="text-center space-y-4">
+                    <div className="text-center space-y-4 p-6 bg-destructive/5 rounded-3xl border border-destructive/10">
                         <div className="text-destructive text-xl font-bold">Error loading logs</div>
-                        <p className="text-muted-foreground">{error}</p>
-                        <Button onClick={() => window.location.reload()}>Try Again</Button>
+                        <p className="text-muted-foreground max-w-sm mx-auto">{error}</p>
+                        <Button className="rounded-xl" onClick={() => window.location.reload()}>Try Again</Button>
                     </div>
                 </div>
             </DashboardLayout>
