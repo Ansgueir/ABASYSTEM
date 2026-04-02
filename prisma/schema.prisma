@@ -102,6 +102,7 @@ model Student {
   supervisionHours   SupervisionHour[]
   supervisorPayments SupervisorPayment[]
   financialPeriods   FinancialPeriod[]
+  ledgerEntries      SupervisorLedgerEntry[]
 
   @@index([fullName])
   @@index([email])
@@ -146,6 +147,7 @@ model Supervisor {
   students           Student[]                 @relation("PrimarySupervisor")
   payments           SupervisorPayment[]
   contracts          ContractSupervisor[]
+  ledgerEntries      SupervisorLedgerEntry[]
   importBatchId      String?
 
   @@index([fullName])
@@ -281,6 +283,28 @@ model Invoice {
   createdAt        DateTime          @default(now())
   student          Student           @relation(fields: [studentId], references: [id])
   supervisionHours SupervisionHour[]
+  ledgerEntries    SupervisorLedgerEntry[]
+}
+
+model SupervisorLedgerEntry {
+  id                          String     @id @default(uuid())
+  invoiceId                   String
+  supervisorId                String
+  studentId                   String
+  paymentFromStudent          Decimal    @db.Decimal(10, 2) // Cuánto pagó el estudiante en esta transacción
+  supervisorCapTotal          Decimal    @db.Decimal(10, 2) // Tope_Total_Supervisor = amountDue * paymentPercentage
+  supervisorCapRemainingBefore Decimal   @db.Decimal(10, 2) // Remanente ANTES de este pago
+  supervisorPayout            Decimal    @db.Decimal(10, 2) // Lo que SE LE PAGA al supervisor en esta transacción
+  officePayout                Decimal    @db.Decimal(10, 2) // Lo que SE QUEDA la oficina en esta transacción
+  supervisorCapRemainingAfter Decimal    @db.Decimal(10, 2) // Nuevo remanente DESPUÉS de este pago
+  createdAt                   DateTime   @default(now())
+
+  invoice    Invoice    @relation(fields: [invoiceId], references: [id])
+  supervisor Supervisor @relation(fields: [supervisorId], references: [id])
+  student    Student    @relation(fields: [studentId], references: [id])
+
+  @@index([invoiceId])
+  @@index([supervisorId])
 }
 
 model Document {
@@ -495,6 +519,7 @@ enum DocumentType {
 }
 
 enum InvoiceStatus {
+  READY_TO_GO
   SENT
   PAID
   PARTIAL
