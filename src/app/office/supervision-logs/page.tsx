@@ -44,40 +44,40 @@ export default async function SupervisionLogsReviewPage({
     let filterOptions = { students: [] as string[], supervisors: [] as string[] }
  
     try {
-        // Build the dynamic WHERE filter
-        const queryFilter: any = { status: statusFilter as any }
-        if (selectedStudent) {
-            queryFilter.student = { fullName: selectedStudent }
-        }
-        if (selectedSupervisor) {
-            queryFilter.supervisor = { fullName: selectedSupervisor }
-        }
+        // Build separated filters for each model to avoid crashes
+        const supervisionWhere: any = { status: statusFilter as any }
+        if (selectedStudent) supervisionWhere.student = { fullName: selectedStudent }
+        if (selectedSupervisor) supervisionWhere.supervisor = { fullName: selectedSupervisor }
 
-        // Fetch dynamic lists for the filter dropdowns (to populate "Excel-style" options)
+        const independentWhere: any = { status: statusFilter as any }
+        if (selectedStudent) independentWhere.student = { fullName: selectedStudent }
+        // Independent hours NEVER should filter by supervisor because they don't have one
+
+        // Fetch dynamic lists for the filter dropdowns
         const [allPossibleStudents, allPossibleSupervisors] = await Promise.all([
             prisma.student.findMany({ select: { fullName: true }, orderBy: { fullName: 'asc' } }),
             prisma.supervisor.findMany({ select: { fullName: true }, orderBy: { fullName: 'asc' } })
         ])
         
-        filterOptions.students = Array.from(new Set(allPossibleStudents.map(s => s.fullName)))
-        filterOptions.supervisors = Array.from(new Set(allPossibleSupervisors.map(s => s.fullName)))
+        filterOptions.students = Array.from(new Set(allPossibleStudents.map(s => s.fullName).filter(Boolean)))
+        filterOptions.supervisors = Array.from(new Set(allPossibleSupervisors.map(s => s.fullName).filter(Boolean)))
 
-        // Fetch Logs
+        // Fetch Logs with specific field sorting
+        // We avoid sorting by relation objects directly here to prevent Prisma errors
+        const sortField = (sortBy === 'supervisor' || sortBy === 'student') ? 'date' : sortBy
+
         const [supervisionLogs, independentLogs] = await Promise.all([
             prisma.supervisionHour.findMany({
-                where: queryFilter,
-                orderBy: { [sortBy === 'supervisor' || sortBy === 'student' ? 'date' : sortBy]: order },
+                where: supervisionWhere,
+                orderBy: { [sortField]: order },
                 include: {
                     student: { select: { fullName: true } },
                     supervisor: { select: { fullName: true } }
                 }
             }),
             prisma.independentHour.findMany({
-                where: { 
-                    status: statusFilter as any,
-                    ...(selectedStudent ? { student: { fullName: selectedStudent } } : {})
-                },
-                orderBy: { [sortBy === 'supervisor' || sortBy === 'student' ? 'date' : sortBy]: order },
+                where: independentWhere,
+                orderBy: { [sortField]: order },
                 include: {
                     student: { select: { fullName: true } }
                 }
@@ -85,6 +85,7 @@ export default async function SupervisionLogsReviewPage({
         ])
 
         // Combine and tag them
+        // If a supervisor is selected, we exclude independent hours because they don't have a supervisor
         const combined = [
             ...supervisionLogs.map(l => ({ ...l, type: 'SUPERVISED' })),
             ...(selectedSupervisor ? [] : independentLogs.map(l => ({ 
