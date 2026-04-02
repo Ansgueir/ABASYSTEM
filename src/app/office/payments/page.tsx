@@ -11,7 +11,7 @@ import Link from "next/link"
 export default async function OfficePaymentsPage({
     searchParams
 }: {
-    searchParams: Promise<{ tab?: string }>
+    searchParams: Promise<{ tab?: string; search?: string }>
 }) {
     const session = await auth()
     if (!session?.user) redirect("/login")
@@ -24,6 +24,7 @@ export default async function OfficePaymentsPage({
 
     const params = await searchParams
     const activeTab = params.tab === "supervisors" ? "supervisors" : "students"
+    const searchQuery = (params.search || "").toLowerCase().trim()
 
     let invoices: any[] = []
     let supervisorLedger: any[] = []
@@ -48,7 +49,7 @@ export default async function OfficePaymentsPage({
         })
 
         // ── SUPERVISOR LEDGER DATA ───────────────────────────────────────────────
-        supervisorLedger = await prisma.supervisorLedgerEntry.findMany({
+        supervisorLedger = await (prisma as any).supervisorLedgerEntry.findMany({
             orderBy: { createdAt: 'desc' },
             include: {
                 supervisor: { select: { fullName: true, email: true, credentialType: true } },
@@ -106,16 +107,28 @@ export default async function OfficePaymentsPage({
         supervisorSummary[id].entries.push(entry)
     }
 
-    // Normalize invoices for PaymentsTable
-    const normalizedInvoices = invoices.map(inv => ({
-        ...inv,
-        amountDue:  Number(inv.amountDue),
-        amountPaid: Number(inv.amountPaid),
-        student: {
-            fullName: inv.student.fullName,
-            email: inv.student.email
-        }
-    }))
+    // Normalize + FIX #3: filter by search scoped to Students tab only
+    const normalizedInvoices = invoices
+        .map(inv => ({
+            ...inv,
+            amountDue:  Number(inv.amountDue),
+            amountPaid: Number(inv.amountPaid),
+            student: { fullName: inv.student.fullName, email: inv.student.email }
+        }))
+        .filter(inv =>
+            !searchQuery ||
+            inv.student.fullName.toLowerCase().includes(searchQuery) ||
+            inv.student.email.toLowerCase().includes(searchQuery)
+        )
+
+    // FIX #3: filter supervisorSummary by search scoped to Supervisors tab only
+    const filteredSupervisorSummary = searchQuery
+        ? Object.fromEntries(
+            Object.entries(supervisorSummary).filter(([, sup]) =>
+                sup.name.toLowerCase().includes(searchQuery)
+            )
+          )
+        : supervisorSummary
 
     return (
         <DashboardLayout role="office">
@@ -149,24 +162,36 @@ export default async function OfficePaymentsPage({
                     ))}
                 </div>
 
-                {/* Tabs */}
-                <div className="flex items-center gap-1 border-b border-border">
-                    {[
-                        { key: "students",    label: "Students",    icon: Users },
-                        { key: "supervisors", label: "Supervisors", icon: UserCheck },
-                    ].map(t => (
-                        <Link
-                            key={t.key}
-                            href={`/office/payments?tab=${t.key}`}
-                            className={`flex items-center gap-2 px-5 py-2.5 text-sm font-medium border-b-2 transition-colors ${
-                                activeTab === t.key
-                                    ? "border-primary text-foreground"
-                                    : "border-transparent text-muted-foreground hover:text-foreground"
-                            }`}
-                        >
-                            <t.icon className="h-4 w-4" /> {t.label}
-                        </Link>
-                    ))}
+                {/* Tabs + Scoped Search — FIX #3 */}
+                <div className="flex items-center justify-between border-b border-border">
+                    <div className="flex items-center gap-1">
+                        {[
+                            { key: "students",    label: "Students",    icon: Users },
+                            { key: "supervisors", label: "Supervisors", icon: UserCheck },
+                        ].map(t => (
+                            <Link
+                                key={t.key}
+                                href={`/office/payments?tab=${t.key}`}
+                                className={`flex items-center gap-2 px-5 py-2.5 text-sm font-medium border-b-2 transition-colors ${
+                                    activeTab === t.key
+                                        ? "border-primary text-foreground"
+                                        : "border-transparent text-muted-foreground hover:text-foreground"
+                                }`}
+                            >
+                                <t.icon className="h-4 w-4" /> {t.label}
+                            </Link>
+                        ))}
+                    </div>
+                    {/* Scoped search - URL driven so it only affects active tab */}
+                    <form method="get" action="/office/payments" className="flex items-center gap-2 pb-1">
+                        <input type="hidden" name="tab" value={activeTab} />
+                        <input
+                            name="search"
+                            defaultValue={searchQuery}
+                            placeholder={activeTab === "students" ? "Search students..." : "Search supervisors..."}
+                            className="h-8 w-52 rounded-lg border border-input bg-background px-3 text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-primary"
+                        />
+                    </form>
                 </div>
 
                 {/* ── STUDENTS TAB ─────────────────────────────────────────────────── */}
@@ -181,13 +206,13 @@ export default async function OfficePaymentsPage({
                 {/* ── SUPERVISORS TAB ──────────────────────────────────────────────── */}
                 {activeTab === "supervisors" && (
                     <div className="space-y-4">
-                        {Object.keys(supervisorSummary).length === 0 ? (
+                        {Object.keys(filteredSupervisorSummary).length === 0 ? (
                             <Card>
                                 <CardContent className="py-16 text-center text-muted-foreground">
-                                    No supervisor payments recorded yet. Payments are registered automatically when a student invoice is processed.
+                                    {searchQuery ? `No supervisors matching "${searchQuery}"` : "No supervisor payments recorded yet. Payments are registered automatically when a student invoice is processed."}
                                 </CardContent>
                             </Card>
-                        ) : Object.entries(supervisorSummary).map(([supId, sup]) => (
+                        ) : Object.entries(filteredSupervisorSummary).map(([supId, sup]) => (
                             <Card key={supId}>
                                 <CardContent className="pt-5">
                                     {/* Supervisor Header */}
