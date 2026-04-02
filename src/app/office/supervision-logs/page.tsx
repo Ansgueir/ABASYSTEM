@@ -1,8 +1,9 @@
 import DashboardLayout from "@/components/dashboard-layout"
 import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
-import { ClipboardList, Clock, CheckCircle, Download, ChevronUp, ChevronDown, ArrowUpDown, Search } from "lucide-react"
+import { ClipboardList, Clock, CheckCircle, Download, ChevronUp, ChevronDown, ArrowUpDown } from "lucide-react"
 import { Label } from "@/components/ui/label"
+import { LogFilters } from "@/components/office/log-filters"
 import { auth } from "@/auth"
 import { prisma } from "@/lib/prisma"
 import { redirect } from "next/navigation"
@@ -151,61 +152,17 @@ export default async function SupervisionLogsReviewPage({
                    </div>
                 </div>
 
-                {/* ADVANCED FILTER BAR (Excel Style) */}
-                <div className="bg-muted/30 p-4 rounded-2xl border border-border flex flex-wrap items-end gap-4">
-                    <div className="space-y-1.5 flex-1 min-w-[200px]">
-                        <Label className="text-[10px] uppercase font-bold text-muted-foreground ml-1">Filter Student</Label>
-                        <form action="" method="get">
-                            <input type="hidden" name="tab" value={activeTab.toLowerCase()} />
-                            <input type="hidden" name="supervisor" value={selectedSupervisor} />
-                            <input type="hidden" name="sortBy" value={sortBy} />
-                            <input type="hidden" name="order" value={order} />
-                            <select 
-                                name="student"
-                                defaultValue={selectedStudent}
-                                className="w-full h-10 px-3 bg-background border border-input rounded-xl text-sm focus:ring-2 focus:ring-primary outline-none"
-                                onChange={(e) => e.target.form?.submit()}
-                            >
-                                <option value="">- All Students -</option>
-                                {filterOptions.students.map(s => (
-                                    <option key={s} value={s}>{s}</option>
-                                ))}
-                            </select>
-                        </form>
-                    </div>
-
-                    <div className="space-y-1.5 flex-1 min-w-[200px]">
-                        <Label className="text-[10px] uppercase font-bold text-muted-foreground ml-1">Filter Supervisor</Label>
-                        <form action="" method="get">
-                            <input type="hidden" name="tab" value={activeTab.toLowerCase()} />
-                            <input type="hidden" name="student" value={selectedStudent} />
-                            <input type="hidden" name="sortBy" value={sortBy} />
-                            <input type="hidden" name="order" value={order} />
-                            <select 
-                                name="supervisor"
-                                defaultValue={selectedSupervisor}
-                                className="w-full h-10 px-3 bg-background border border-input rounded-xl text-sm focus:ring-2 focus:ring-primary outline-none"
-                                onChange={(e) => e.target.form?.submit()}
-                            >
-                                <option value="">- All Supervisors -</option>
-                                {filterOptions.supervisors.map(s => (
-                                    <option key={s} value={s}>{s}</option>
-                                ))}
-                            </select>
-                        </form>
-                    </div>
-
-                    {(selectedStudent || selectedSupervisor) && (
-                        <Link href={`/office/supervision-logs?tab=${activeTab.toLowerCase()}`}>
-                            <Button variant="ghost" className="h-10 text-xs text-muted-foreground hover:text-destructive">
-                                Clear Filters
-                            </Button>
-                        </Link>
-                    )}
-                </div>
+                {/* SEARCH & FILTERS (Client Component) */}
+                <LogFilters 
+                    students={filterOptions.students}
+                    supervisors={filterOptions.supervisors}
+                    selectedStudent={selectedStudent}
+                    selectedSupervisor={selectedSupervisor}
+                    activeTab={activeTab}
+                />
 
                 {/* Tabs */}
-                <div className="flex items-center gap-2 border-b border-border pb-px overflow-x-auto">
+                <div className="flex items-center gap-2 border-b border-border pb-px overflow-x-auto mb-6">
                     {validTabs.map((tab) => (
                         <Link
                             key={tab}
