@@ -181,7 +181,11 @@ export default async function SupervisionLogsReviewPage({
                         <p className="text-muted-foreground">Audit and manage supervision entries</p>
                     </div>
                    <div className="flex items-center gap-2">
-                        <a href={`/api/office/supervision-logs/export?status=${statusFilter}`} target="_blank" rel="noopener noreferrer">
+                        <a 
+                            href={`/api/office/supervision-logs/export?status=${statusFilter}&student=${selectedStudent}&supervisor=${selectedSupervisor}&month=${selectedMonth}&year=${selectedYear}`} 
+                            target="_blank" 
+                            rel="noopener noreferrer"
+                        >
                             <Button variant="outline" className="rounded-xl">
                                 <Download className="h-4 w-4 mr-2" />
                                 Export Excel

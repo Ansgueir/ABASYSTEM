@@ -2,6 +2,7 @@ import { auth } from "@/auth"
 import { prisma } from "@/lib/prisma"
 import { format } from "date-fns"
 import { NextResponse } from "next/server"
+import * as XLSX from "xlsx"
 
 export async function GET(request: Request) {
     try {
@@ -15,101 +16,108 @@ export async function GET(request: Request) {
         const statusStr = searchParams.get("status") || "PENDING"
         const validStatuses = ["PENDING", "APPROVED", "REJECTED", "BILLED"]
         const statusFilter = validStatuses.includes(statusStr.toUpperCase()) ? statusStr.toUpperCase() : "PENDING"
+        
+        const selectedStudent = searchParams.get("student") || ""
+        const selectedSupervisor = searchParams.get("supervisor") || ""
+        const selectedMonth = searchParams.get("month")
+        const selectedYear = searchParams.get("year") || new Date().getFullYear().toString()
 
-        const logs = await prisma.supervisionHour.findMany({
-            where: { status: statusFilter as any },
-            include: { student: true, supervisor: true },
-            orderBy: { date: 'desc' }
-        })
+        // 1. Same Filter Logic as page.tsx
+        const supervisionWhere: any = { status: statusFilter as any }
+        const independentWhere: any = { status: statusFilter as any }
 
-        const html = `
-        <!DOCTYPE html>
-        <html>
-        <head>
-            <meta charset="UTF-8">
-            <title>Supervision Logs Export</title>
-            <style>
-                body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; line-height: 1.6; color: #333; max-width: 1200px; margin: 0 auto; padding: 40px; }
-                .header { text-align: center; margin-bottom: 40px; }
-                .header h1 { margin: 0; color: #111; }
-                .header p { color: #666; margin-top: 5px; }
-                table { width: 100%; border-collapse: collapse; margin-top: 20px; font-size: 13px; }
-                th, td { padding: 10px 12px; text-align: left; border-bottom: 1px solid #ddd; }
-                th { background-color: #f8f9fa; font-weight: 600; color: #444; }
-                .amount { text-align: right; }
-                .status-badge { padding: 2px 8px; border-radius: 999px; font-weight: 500; font-size: 11px; }
-                .status-pending { color: #F59E0B; background: #F59E0B1A; }
-                .status-approved { color: #3B82F6; background: #3B82F61A; }
-                .status-rejected { color: #EF4444; background: #EF44441A; }
-                .status-billed { color: #10B981; background: #10B9811A; }
-                @media print {
-                    body { padding: 0; margin: 0; }
-                    .no-print { display: none; }
-                }
-            </style>
-        </head>
-        <body>
-            <div class="no-print" style="margin-bottom: 20px; text-align: right;">
-                <button onclick="window.print()" style="padding: 8px 16px; background: #000; color: #fff; border: none; border-radius: 6px; cursor: pointer;">Print / Save PDF</button>
-            </div>
-            
-            <div class="header">
-                <h1>Supervision Logs: ${statusFilter}</h1>
-                <p>Generated: ${format(new Date(), 'MMMM d, yyyy')}</p>
-            </div>
+        if (selectedYear) {
+            const year = parseInt(selectedYear)
+            let startDate: Date
+            let endDate: Date
 
-            <table>
-                <thead>
-                    <tr>
-                        <th>Date & Time</th>
-                        <th>Supervisor</th>
-                        <th>Student</th>
-                        <th>Activity (Format) / Setting</th>
-                        <th>Notes / Topic</th>
-                        <th class="amount">Hours</th>
-                        <th>Status</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    ${logs.length > 0 ? logs.map(log => {
-            const dateStr = format(new Date(log.date), 'MMM d, yyyy')
-            const timeStr = new Date(log.startTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+            if (selectedMonth) {
+                const month = parseInt(selectedMonth)
+                startDate = new Date(year, month, 1)
+                endDate = new Date(year, month + 1, 0, 23, 59, 59, 999)
+            } else {
+                startDate = new Date(year, 0, 1)
+                endDate = new Date(year, 11, 31, 23, 59, 59, 999)
+            }
 
-            let badgeClass = 'status-pending'
-            if (log.status === 'APPROVED') badgeClass = 'status-approved'
-            if (log.status === 'REJECTED') badgeClass = 'status-rejected'
-            if (log.status === 'BILLED' || (log.status as string) === 'PAID') badgeClass = 'status-billed'
+            supervisionWhere.date = { gte: startDate, lte: endDate }
+            independentWhere.date = { gte: startDate, lte: endDate }
+        }
 
-            return `
-                        <tr>
-                            <td><strong>${dateStr}</strong><br/><span style="color:#666;font-size:11px">${timeStr}</span></td>
-                            <td>${log.supervisor?.fullName || 'N/A'}</td>
-                            <td>${log.student?.fullName || 'N/A'}</td>
-                            <td><strong>${log.activityType} (${log.supervisionType})</strong><br/><span style="color:#666;font-size:11px">${log.setting.replace('_', ' ')}</span></td>
-                            <td><i style="color:#555">"${log.notes || 'No notes'}"</i>${log.groupTopic ? `<br/><b>Topic:</b> ${log.groupTopic}` : ''}</td>
-                            <td class="amount"><strong>${Number(log.hours).toFixed(1)}h</strong></td>
-                            <td>
-                                <span class="status-badge ${badgeClass}">
-                                    ${log.status}
-                                </span>
-                            </td>
-                        </tr>
-                        `;
-        }).join('') : `<tr><td colspan="7" style="text-align: center; padding: 20px;">No ${statusFilter.toLowerCase()} logs found.</td></tr>`}
-                </tbody>
-            </table>
-        </body>
-        </html>
-        `
+        if (selectedStudent) {
+            const studentFilter = { fullName: { equals: selectedStudent, mode: 'insensitive' as any } }
+            supervisionWhere.student = studentFilter
+            independentWhere.student = studentFilter
+        }
+        
+        if (selectedSupervisor) {
+            supervisionWhere.supervisor = { fullName: { equals: selectedSupervisor, mode: 'insensitive' as any } }
+        }
 
-        return new NextResponse(html, {
+        // 2. Fetch Data
+        const [supervisionLogs, independentLogs] = await Promise.all([
+            prisma.supervisionHour.findMany({
+                where: supervisionWhere,
+                orderBy: { date: 'asc' },
+                include: { student: { select: { fullName: true } }, supervisor: { select: { fullName: true } } }
+            }),
+            prisma.independentHour.findMany({
+                where: independentWhere,
+                orderBy: { date: 'asc' },
+                include: { student: { select: { fullName: true } } }
+            })
+        ])
+
+        // 3. Flatten Data for Excel
+        const combinedData = [
+            ...supervisionLogs.map(l => ({
+                Date: format(new Date(l.date), 'yyyy-MM-dd'),
+                Time: format(new Date(l.startTime), 'h:mm a'),
+                Supervisor: l.supervisor?.fullName || 'N/A',
+                Student: l.student?.fullName || 'N/A',
+                Type: 'SUPERVISED',
+                'Supervision Type': l.supervisionType,
+                'Activity Format': l.activityType,
+                Setting: l.setting.replace('_', ' '),
+                Hours: Number(l.hours),
+                Notes: l.notes || '',
+                Status: l.status
+            })),
+            ...(selectedSupervisor ? [] : independentLogs.map(l => ({
+                Date: format(new Date(l.date), 'yyyy-MM-dd'),
+                Time: format(new Date(l.startTime), 'h:mm a'),
+                Supervisor: 'N/A (Independent)',
+                Student: l.student?.fullName || 'N/A',
+                Type: 'INDEPENDENT',
+                'Supervision Type': 'N/A',
+                'Activity Format': 'N/A',
+                Setting: 'Self-Study/Other',
+                Hours: Number(l.hours),
+                Notes: l.notes || '',
+                Status: l.status
+            })))
+        ]
+
+        // 4. Create Workbook
+        const worksheet = XLSX.utils.json_to_sheet(combinedData)
+        const workbook = XLSX.utils.book_new()
+        XLSX.utils.book_append_sheet(workbook, worksheet, "Supervision Logs")
+
+        // 5. Generate Buffer
+        const buffer = XLSX.write(workbook, { type: "buffer", bookType: "xlsx" })
+
+        // 6. Return Response
+        const fileName = `Logs_${statusFilter}_${format(new Date(), 'yyyyMMdd')}.xlsx`
+        
+        return new NextResponse(buffer, {
             headers: {
-                'Content-Type': 'text/html; charset=utf-8',
+                'Content-Disposition': `attachment; filename="${fileName}"`,
+                'Content-Type': 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
             },
         })
 
     } catch (error: any) {
-        console.error("Export error:", error)
+        console.error("Excel Export error:", error)
         return new NextResponse(error.message, { status: 500 })
     }
 }
