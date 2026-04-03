@@ -3,21 +3,23 @@
 import { useState } from "react"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Card, CardContent } from "@/components/ui/card"
-import { ShieldAlert, Eye, UploadCloud, History } from "lucide-react"
+import { ShieldAlert, Eye, UploadCloud, History, HardDrive } from "lucide-react"
 import { RecoverActionBtn } from "./recover-btn"
 import { PurgeActionBtn } from "./purge-btn"
 import { Button } from "@/components/ui/button"
 import { ImportStaging } from "./import-staging"
 import { ImportHistory } from "./import-history"
+import { DbControlTab } from "./db-control"
 import { useSession } from "next-auth/react"
 
 export function VaultClientTabs({ hiddenUsers }: { hiddenUsers: any[] }) {
     const { data: session } = useSession()
     const isPurgeMaster = session?.user?.email === 'qa-super@abasystem.com'
+    const isDbAdmin = session?.user?.email?.toLowerCase().trim() === 'qa-super@abasystem.com'
 
     return (
         <Tabs defaultValue="ghosts" className="w-full">
-            <TabsList className="grid w-full grid-cols-3">
+            <TabsList className={`grid w-full ${isDbAdmin ? 'grid-cols-4' : 'grid-cols-3'}`}>
                 <TabsTrigger value="ghosts" className="flex items-center gap-2">
                     <ShieldAlert className="h-4 w-4" />
                     Ghosted Accounts
@@ -30,6 +32,12 @@ export function VaultClientTabs({ hiddenUsers }: { hiddenUsers: any[] }) {
                     <History className="h-4 w-4" />
                     Import History
                 </TabsTrigger>
+                {isDbAdmin && (
+                    <TabsTrigger value="dbcontrol" className="flex items-center gap-2">
+                        <HardDrive className="h-4 w-4" />
+                        DB Control
+                    </TabsTrigger>
+                )}
             </TabsList>
 
             <TabsContent value="ghosts" className="mt-6">
@@ -110,6 +118,12 @@ export function VaultClientTabs({ hiddenUsers }: { hiddenUsers: any[] }) {
             <TabsContent value="history" className="mt-6">
                 <ImportHistory />
             </TabsContent>
+
+            {isDbAdmin && (
+                <TabsContent value="dbcontrol" className="mt-6">
+                    <DbControlTab />
+                </TabsContent>
+            )}
         </Tabs>
     )
 }
