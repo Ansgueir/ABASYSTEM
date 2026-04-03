@@ -148,28 +148,69 @@ function DataResetSection() {
 
 // ── BACKUP SECTION ─────────────────────────────────────────────────────────
 
+interface PendingBackup {
+    name: string
+    startedAt: Date
+    expectedFilename: string
+}
+
 function BackupSection() {
     const [backups, setBackups] = useState<BackupFile[]>([])
     const [loadingList, setLoadingList] = useState(false)
     const [creating, setCreating] = useState(false)
     const [restoring, setRestoring] = useState<string | null>(null)
     const [backupName, setBackupName] = useState("")
+    const [pendingBackup, setPendingBackup] = useState<PendingBackup | null>(null)
+    const [pollSeconds, setPollSeconds] = useState(0)
 
-    const loadBackups = useCallback(async () => {
-        setLoadingList(true)
+    const loadBackups = useCallback(async (silent = false) => {
+        if (!silent) setLoadingList(true)
         try {
             const res = await fetch("/api/office/vault/backup")
             const data = await res.json()
-            if (data.success) setBackups(data.backups)
-            else toast.error(data.error || "Could not load backups")
+            if (data.success) {
+                setBackups(data.backups)
+                return data.backups as BackupFile[]
+            }
         } catch {
-            toast.error("Network error loading backups")
+            if (!silent) toast.error("Network error loading backups")
         } finally {
-            setLoadingList(false)
+            if (!silent) setLoadingList(false)
         }
+        return []
     }, [])
 
     useEffect(() => { loadBackups() }, [loadBackups])
+
+    // ── Auto-poll when a backup is pending ───────────────────────
+    useEffect(() => {
+        if (!pendingBackup) return
+
+        let elapsed = 0
+        const MAX_WAIT = 30 // seconds
+
+        const interval = setInterval(async () => {
+            elapsed += 3
+            setPollSeconds(elapsed)
+
+            const list = await loadBackups(true)
+            const found = list.find((f: BackupFile) => f.name === pendingBackup.expectedFilename)
+
+            if (found || elapsed >= MAX_WAIT) {
+                clearInterval(interval)
+                setPendingBackup(null)
+                setPollSeconds(0)
+                setBackups(list)
+                if (found) {
+                    toast.success(`✓ Backup "${pendingBackup.expectedFilename}" is ready!`)
+                } else {
+                    toast.warning("Backup may still be running — refresh manually in a moment.")
+                }
+            }
+        }, 3000)
+
+        return () => clearInterval(interval)
+    }, [pendingBackup, loadBackups])
 
     async function handleCreateBackup() {
         if (!backupName.trim()) {
@@ -185,10 +226,13 @@ function BackupSection() {
             })
             const data = await res.json()
             if (data.success) {
-                toast.success(`✓ ${data.message}`)
+                toast.info("⏳ Backup launched in background — polling for completion...")
+                setPendingBackup({
+                    name: backupName.trim(),
+                    startedAt: new Date(),
+                    expectedFilename: data.filename
+                })
                 setBackupName("")
-                // Poll after 3 seconds to give pg_dump time to finish
-                setTimeout(loadBackups, 3000)
             } else {
                 toast.error(data.error || "Backup failed")
             }
@@ -244,23 +288,42 @@ function BackupSection() {
                         onChange={(e) => setBackupName(e.target.value.replace(/[^a-zA-Z0-9_-]/g, "_"))}
                         className="font-mono text-sm"
                         onKeyDown={(e) => e.key === "Enter" && handleCreateBackup()}
+                        disabled={!!pendingBackup}
                     />
-                    <Button onClick={handleCreateBackup} disabled={creating || !backupName.trim()} className="shrink-0">
+                    <Button onClick={handleCreateBackup} disabled={creating || !backupName.trim() || !!pendingBackup} className="shrink-0">
                         {creating ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <DatabaseBackup className="h-4 w-4 mr-2" />}
                         Create Backup
                     </Button>
-                    <Button variant="outline" size="icon" onClick={loadBackups} disabled={loadingList} title="Refresh list">
+                    <Button variant="outline" size="icon" onClick={() => loadBackups()} disabled={loadingList || !!pendingBackup} title="Refresh list">
                         <RefreshCw className={`h-4 w-4 ${loadingList ? "animate-spin" : ""}`} />
                     </Button>
                 </div>
 
+                {/* ── Pending Backup Progress Banner ─────────────────── */}
+                {pendingBackup && (
+                    <div className="flex items-center gap-3 border border-blue-200 bg-blue-50 rounded-lg px-4 py-3 text-sm text-blue-800">
+                        <Loader2 className="h-4 w-4 animate-spin shrink-0 text-blue-500" />
+                        <div className="flex-1 min-w-0">
+                            <p className="font-medium truncate">
+                                Backup in progress: <code className="text-xs">{pendingBackup.expectedFilename}</code>
+                            </p>
+                            <p className="text-xs text-blue-600 mt-0.5">
+                                pg_dump running in background — checking every 3s ({pollSeconds}s elapsed, max 30s)
+                            </p>
+                        </div>
+                        <Badge variant="secondary" className="bg-blue-100 text-blue-700 shrink-0 text-[10px]">
+                            {pollSeconds}/{30}s
+                        </Badge>
+                    </div>
+                )}
+
                 {/* Backup List */}
-                {loadingList ? (
+                {loadingList && !pendingBackup ? (
                     <div className="flex items-center justify-center py-8 text-muted-foreground gap-2">
                         <Loader2 className="h-4 w-4 animate-spin" />
                         Loading backups...
                     </div>
-                ) : backups.length === 0 ? (
+                ) : backups.length === 0 && !pendingBackup ? (
                     <div className="flex flex-col items-center justify-center py-10 text-muted-foreground border border-dashed rounded-lg">
                         <HardDrive className="h-8 w-8 mb-2 opacity-30" />
                         <p className="text-sm">No backups found yet.</p>
@@ -278,13 +341,37 @@ function BackupSection() {
                                 </tr>
                             </thead>
                             <tbody>
+                                {/* Pending row — shown while polling */}
+                                {pendingBackup && (
+                                    <tr className="border-t bg-blue-50/50">
+                                        <td className="px-4 py-3">
+                                            <div className="flex items-center gap-2">
+                                                <Loader2 className="h-3.5 w-3.5 text-blue-500 animate-spin shrink-0" />
+                                                <span className="font-mono text-xs truncate max-w-[200px] text-blue-700">{pendingBackup.expectedFilename}</span>
+                                                <Badge variant="secondary" className="text-[9px] py-0 h-4 bg-blue-100 text-blue-600">GENERATING…</Badge>
+                                            </div>
+                                        </td>
+                                        <td className="px-4 py-3">
+                                            <div className="flex items-center gap-1.5 text-xs text-blue-500">
+                                                <Clock className="h-3 w-3" />
+                                                {formatDate(pendingBackup.startedAt.toISOString())}
+                                            </div>
+                                        </td>
+                                        <td className="px-4 py-3 text-right">
+                                            <span className="text-xs text-blue-400">—</span>
+                                        </td>
+                                        <td className="px-4 py-3 text-right">
+                                            <span className="text-xs text-blue-400 italic">wait...</span>
+                                        </td>
+                                    </tr>
+                                )}
                                 {backups.map((b, i) => (
-                                    <tr key={b.name} className={`border-t hover:bg-muted/20 transition-colors ${i === 0 ? "bg-green-50/50" : ""}`}>
+                                    <tr key={b.name} className={`border-t hover:bg-muted/20 transition-colors ${i === 0 && !pendingBackup ? "bg-green-50/50" : ""}`}>
                                         <td className="px-4 py-3">
                                             <div className="flex items-center gap-2">
                                                 <HardDrive className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
                                                 <span className="font-mono text-xs truncate max-w-[200px]">{b.name}</span>
-                                                {i === 0 && <Badge variant="secondary" className="text-[9px] py-0 h-4 bg-green-100 text-green-700">LATEST</Badge>}
+                                                {i === 0 && !pendingBackup && <Badge variant="secondary" className="text-[9px] py-0 h-4 bg-green-100 text-green-700">LATEST</Badge>}
                                             </div>
                                         </td>
                                         <td className="px-4 py-3">
@@ -301,7 +388,7 @@ function BackupSection() {
                                                 size="sm"
                                                 variant="outline"
                                                 onClick={() => handleRestore(b.name)}
-                                                disabled={restoring === b.name}
+                                                disabled={restoring === b.name || !!pendingBackup}
                                                 className="h-7 px-2 text-xs hover:bg-blue-50 hover:text-blue-700 hover:border-blue-300"
                                             >
                                                 {restoring === b.name
