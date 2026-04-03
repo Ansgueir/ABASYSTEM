@@ -148,6 +148,7 @@ model Supervisor {
   payments           SupervisorPayment[]
   contracts          ContractSupervisor[]
   ledgerEntries      SupervisorLedgerEntry[]
+  payouts            SupervisorPayout[]
   importBatchId      String?
 
   @@index([fullName])
