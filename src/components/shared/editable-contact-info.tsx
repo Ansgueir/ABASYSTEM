@@ -196,7 +196,10 @@ export function EditableStudentBacbFieldwork({ student, isSuperAdmin: isSuperAdm
     const fetchPlans = async () => {
         try {
             const res = await fetch("/api/office/plans")
-            if (res.ok) setPlans(await res.json())
+            if (res.ok) {
+                const data = await res.json()
+                if (data.plans) setPlans(data.plans)
+            }
         } catch (error) {
             console.error("Failed to fetch plans", error)
         }
@@ -426,7 +429,7 @@ export function EditableStudentBacbFieldwork({ student, isSuperAdmin: isSuperAdm
                                 <SelectTrigger className="w-full sm:w-[220px] h-8 mt-1"><SelectValue placeholder="Select Plan" /></SelectTrigger>
                                 <SelectContent>
                                     <SelectItem value="PLAN MANUAL" className="font-bold text-indigo-600">PLAN MANUAL (Unlock fields)</SelectItem>
-                                    {plans.map((p) => (
+                                    {Array.isArray(plans) && plans.map((p) => (
                                         <SelectItem key={p.id} value={p.id}>{p.name}</SelectItem>
                                     ))}
                                 </SelectContent>
