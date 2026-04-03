@@ -72,6 +72,8 @@ export default function OnboardingWizard({ initialStep, initialData }: WizardPro
     // Step 3 State
     const [sigPad, setSigPad] = useState<SignaturePad | null>(null)
     const [initialsPad, setInitialsPad] = useState<SignaturePad | null>(null)
+    const [hasSignature, setHasSignature] = useState(false)
+    const [hasInitials, setHasInitials] = useState(false)
     const [companyName, setCompanyName] = useState("ABA Supervision System")
 
     useEffect(() => {
@@ -203,8 +205,14 @@ export default function OnboardingWizard({ initialStep, initialData }: WizardPro
         }
     }
 
-    const clearSignature = () => sigPad?.clear()
-    const clearInitials = () => initialsPad?.clear()
+    const clearSignature = () => {
+        sigPad?.clear()
+        setHasSignature(false)
+    }
+    const clearInitials = () => {
+        initialsPad?.clear()
+        setHasInitials(false)
+    }
 
     return (
         <Card className="w-full shadow-lg border-t-4 border-indigo-600">
@@ -227,6 +235,7 @@ export default function OnboardingWizard({ initialStep, initialData }: WizardPro
             <CardContent>
                 {step === 1 && (
                     <form onSubmit={handleNextStep1} id="step1-form" className="space-y-4">
+                        <input type="hidden" name="role" value={initialData.role} />
                         <div className="grid grid-cols-1 gap-4">
                             <div>
                                 <Label>Full Name (Read Only)</Label>
@@ -432,6 +441,7 @@ export default function OnboardingWizard({ initialStep, initialData }: WizardPro
                                 <SignatureCanvas
                                     ref={(ref: SignaturePad | null) => setSigPad(ref)}
                                     canvasProps={{ className: "w-full h-full" }}
+                                    onEnd={() => setHasSignature(true)}
                                 />
                             </div>
                             <p className="text-xs text-muted-foreground">Sign above using your mouse or finger.</p>
@@ -446,6 +456,7 @@ export default function OnboardingWizard({ initialStep, initialData }: WizardPro
                                 <SignatureCanvas
                                     ref={(ref: SignaturePad | null) => setInitialsPad(ref)}
                                     canvasProps={{ className: "w-full h-full" }}
+                                    onEnd={() => setHasInitials(true)}
                                 />
                             </div>
                             <p className="text-xs text-muted-foreground">Draw your initials.</p>
@@ -471,7 +482,7 @@ export default function OnboardingWizard({ initialStep, initialData }: WizardPro
                     </Button>
                 )}
                 {step === 3 && (
-                    <Button onClick={handleNextStep3} disabled={isPending}>
+                    <Button onClick={handleNextStep3} disabled={isPending || !hasSignature || !hasInitials}>
                         {isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                         Complete Setup
                     </Button>
