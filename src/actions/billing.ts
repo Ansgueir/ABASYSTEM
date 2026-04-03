@@ -62,8 +62,8 @@ export async function markInvoiceAsPaid(
         let supervisorPayout = 0
         let officePayout = paymentAmount
 
-        if (supervisor && student.supervisorId && supervisor.paymentPercentage) {
-            const payPercent = Number(supervisor.paymentPercentage) // e.g. 0.40
+        if (supervisor && student.supervisorId) {
+            const payPercent = Number(supervisor.paymentPercentage || 0.54) // e.g. 0.40 o 0.54 por defecto
 
             // PASO 1: Tope total del supervisor para ESTA factura
             const supervisorCapTotal = invoiceTotal * payPercent
