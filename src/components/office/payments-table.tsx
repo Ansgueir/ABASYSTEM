@@ -31,7 +31,6 @@ interface PaymentsTableProps {
 const STATUS_CONFIG: Record<string, { label: string; color: string; icon: any }> = {
     READY_TO_GO: { label: "Ready to Go",    color: "bg-emerald-500/10 text-emerald-600 border-emerald-500/20", icon: CheckCircle },
     SENT:        { label: "Sent",           color: "bg-amber-500/10 text-amber-600 border-amber-500/20",       icon: Clock },
-    PARTIAL:     { label: "Partially Paid", color: "bg-blue-500/10 text-blue-600 border-blue-500/20",          icon: DollarSign },
     PAID:        { label: "Paid",           color: "bg-green-500/10 text-green-600 border-green-500/20",       icon: CheckCircle },
     OVERDUE:     { label: "Overdue",        color: "bg-red-500/10 text-red-600 border-red-500/20",             icon: AlertCircle },
 }
@@ -133,7 +132,7 @@ export function PaymentsTable({ invoices }: PaymentsTableProps) {
                         const Icon     = cfg.icon
                         const balance  = inv.amountDue - inv.amountPaid
                         const canSend  = inv.status === "READY_TO_GO"
-                        const canPay   = inv.status === "SENT" || inv.status === "PARTIAL"
+                        const canPay   = inv.status === "SENT"
 
                         return (
                             <TableRow key={inv.id} className="group">

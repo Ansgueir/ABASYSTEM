@@ -522,7 +522,6 @@ enum InvoiceStatus {
   READY_TO_GO
   SENT
   PAID
-  PARTIAL
   OVERDUE
 }
 

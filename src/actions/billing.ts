@@ -113,7 +113,7 @@ export async function markInvoiceAsPaid(
         // ─── ACTUALIZAR INVOICE ─────────────────────────────────────────────────
 
         const isPaidInFull = newTotalPaid >= invoiceTotal - 0.01 // Tolerancia de 1 centavo
-        const newStatus = isPaidInFull ? InvoiceStatus.PAID : InvoiceStatus.PARTIAL
+        const newStatus = isPaidInFull ? InvoiceStatus.PAID : InvoiceStatus.SENT
 
         await prisma.invoice.update({
             where: { id: invoiceId },

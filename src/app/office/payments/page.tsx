@@ -39,12 +39,12 @@ export default async function OfficePaymentsPage({
     try {
         // ── STUDENT TAB DATA ─────────────────────────────────────────────────────
         invoices = await prisma.invoice.findMany({
+            where: {
+                status: { in: ["READY_TO_GO", "SENT", "PAID"] } as any
+            },
             orderBy: { createdAt: 'desc' },
             include: {
-                student: { select: { fullName: true, email: true } },
-                supervisionHours: {
-                    include: { supervisor: { select: { fullName: true } } }
-                }
+                student: { include: { supervisor: true } }
             }
         })
 
@@ -64,7 +64,7 @@ export default async function OfficePaymentsPage({
             .reduce((s, i) => s + Number(i.amountDue), 0)
 
         const sentTotal = invoices
-            .filter(i => i.status === 'SENT' || i.status === 'PARTIAL')
+            .filter(i => i.status === 'SENT')
             .reduce((s, i) => s + Number(i.amountDue) - Number(i.amountPaid), 0)
 
         const paidTotal = invoices
