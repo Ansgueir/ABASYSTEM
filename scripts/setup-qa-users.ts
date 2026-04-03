@@ -123,7 +123,6 @@ async function main() {
     const studentProfile = await prisma.student.upsert({
         where: { userId: studentUser.id },
         update: {
-            supervisorId: supervisorProfile.id,
             fullName: 'QA Estudiante'
         },
         create: {
@@ -147,7 +146,6 @@ async function main() {
             hoursPerMonth: 130,
             totalMonths: 12,
             endDate: new Date(new Date().setFullYear(new Date().getFullYear() + 1)),
-            supervisorId: supervisorProfile.id,
             availableDaysGroup: [],
             paymentAlias: []
         }
