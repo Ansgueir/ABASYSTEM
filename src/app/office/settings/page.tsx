@@ -5,6 +5,7 @@ import { getGeneralSettings } from "@/actions/settings"
 import { SettingsClient } from "./settings-client"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/custom-tabs"
 import { AuditLogsTab } from "./audit-logs-tab"
+import { PlansTab } from "./plans-tab"
 
 export default async function OfficeSettingsPage() {
     const session = await auth()
@@ -33,11 +34,15 @@ export default async function OfficeSettingsPage() {
             {officeRole === "SUPER_ADMIN" ? (
                 <Tabs defaultValue="general">
                     <TabsList className="mb-6 bg-muted/50 p-1 border">
-                        <TabsTrigger value="general" className="px-6">General Settings</TabsTrigger>
-                        <TabsTrigger value="audit" className="px-6">Audit Logs</TabsTrigger>
+                        <TabsTrigger value="general" className="px-6 italic">General Setting</TabsTrigger>
+                        <TabsTrigger value="plans" className="px-6 italic text-amber-600">Plans</TabsTrigger>
+                        <TabsTrigger value="audit" className="px-6 font-bold text-destructive">Audit logs</TabsTrigger>
                     </TabsList>
                     <TabsContent value="general">
                         <SettingsClient settings={settings} />
+                    </TabsContent>
+                    <TabsContent value="plans">
+                        <PlansTab />
                     </TabsContent>
                     <TabsContent value="audit">
                         <AuditLogsTab />

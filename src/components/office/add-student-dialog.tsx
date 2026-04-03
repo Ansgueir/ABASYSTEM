@@ -12,10 +12,20 @@ import {
 } from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { Plus, Loader2 } from "lucide-react"
-import { useState, useTransition } from "react"
+import { Plus, Loader2, Sparkles } from "lucide-react"
+import { useState, useTransition, useEffect } from "react"
 import { toast } from "sonner"
 import { createStudent } from "@/actions/users"
+
+interface Plan {
+    id: string
+    name: string
+    regHoursBcba: number
+    regHoursBcaba: number
+    concHours: number
+    totalCharge: number
+    analystPayout: number
+}
 
 interface AddStudentDialogProps {
     isSuperAdmin?: boolean
@@ -24,8 +34,55 @@ interface AddStudentDialogProps {
 export function AddStudentDialog({ isSuperAdmin }: AddStudentDialogProps) {
     const [open, setOpen] = useState(false)
     const [isPending, startTransition] = useTransition()
+    const [plans, setPlans] = useState<Plan[]>([])
+    const [loadingPlans, setLoadingPlans] = useState(false)
 
-    // Using client-side form submission to handle transition and toast
+    // Controlled fields for auto-fill
+    const [vcsSequence, setVcsSequence] = useState("")
+    const [totalAmount, setTotalAmount] = useState("")
+    const [analystRate, setAnalystRate] = useState("0.60")
+    const [officeRate, setOfficeRate] = useState("0.40")
+    const [regTarget, setRegTarget] = useState("")
+    const [concTarget, setConcTarget] = useState("")
+
+    useEffect(() => {
+        if (open) {
+            setLoadingPlans(true)
+            fetch("/api/office/plans")
+                .then(res => res.json())
+                .then(data => {
+                    if (data.success) setPlans(data.plans)
+                })
+                .finally(() => setLoadingPlans(false))
+        }
+    }, [open])
+
+    const handlePlanChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+        const planName = e.target.value
+        const plan = plans.find(p => p.name === planName)
+        
+        if (plan) {
+            setVcsSequence(plan.name)
+            setTotalAmount(plan.totalCharge.toString())
+            setRegTarget(plan.regHoursBcba.toString())
+            setConcTarget(plan.concHours.toString())
+            
+            // Calculate rates if possible
+            const total = Number(plan.totalCharge)
+            const payout = Number(plan.analystPayout)
+            if (total > 0) {
+                const aRate = (payout / total).toFixed(2)
+                const oRate = (1 - Number(aRate)).toFixed(2)
+                setAnalystRate(aRate)
+                setOfficeRate(oRate)
+            }
+            
+            toast.info(`Plan "${plan.name}" applied! Targets and financials updated.`, {
+                icon: <Sparkles className="h-4 w-4 text-amber-500" />
+            })
+        }
+    }
+
     async function onSubmit(event: React.FormEvent<HTMLFormElement>) {
         event.preventDefault()
         const formData = new FormData(event.currentTarget)
@@ -37,6 +94,11 @@ export function AddStudentDialog({ isSuperAdmin }: AddStudentDialogProps) {
             } else {
                 toast.success("Student created successfully")
                 setOpen(false)
+                // Reset states
+                setVcsSequence("")
+                setTotalAmount("")
+                setRegTarget("")
+                setConcTarget("")
             }
         })
     }
@@ -87,37 +149,75 @@ export function AddStudentDialog({ isSuperAdmin }: AddStudentDialogProps) {
                         {/* Section: Academic/Program */}
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
                             <div className="space-y-2">
-                                <Label htmlFor="vcsSequence" className="text-xs uppercase tracking-wider font-semibold text-muted-foreground">VCS Sequence</Label>
-                                <Input id="vcsSequence" name="vcsSequence" className="h-10 rounded-lg" />
+                                <Label htmlFor="vcsSequence" className="text-xs uppercase tracking-wider font-semibold text-muted-foreground">VCS Sequence (Auto-fill)</Label>
+                                <Input 
+                                    id="vcsSequence" 
+                                    name="vcsSequence" 
+                                    className="h-10 rounded-lg bg-muted/30" 
+                                    value={vcsSequence}
+                                    onChange={(e) => setVcsSequence(e.target.value)}
+                                />
                             </div>
                             <div className="space-y-2">
-                                <Label htmlFor="assignedOptionPlan" className="text-xs uppercase tracking-wider font-semibold text-muted-foreground">Option Plan</Label>
-                                <select id="assignedOptionPlan" name="assignedOptionPlan" className="flex h-10 w-full rounded-lg border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50">
-                                    <option value="">Select a plan...</option>
-                                    <option value="A">Plan A</option>
-                                    <option value="B">Plan B</option>
-                                    <option value="C">Plan C</option>
-                                    <option value="D">Plan D</option>
-                                    <option value="E">Plan E</option>
+                                <Label htmlFor="assignedOptionPlan" className="text-xs uppercase tracking-wider font-semibold text-primary flex items-center gap-1">
+                                    <Sparkles className="h-3 w-3" /> OPTION PLAN
+                                </Label>
+                                <select 
+                                    id="assignedOptionPlan" 
+                                    name="assignedOptionPlan" 
+                                    onChange={handlePlanChange}
+                                    className="flex h-10 w-full rounded-lg border-2 border-primary/20 bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                                >
+                                    <option value="">{loadingPlans ? "Loading plans..." : "Select a template..."}</option>
+                                    {plans.map(p => (
+                                        <option key={p.id} value={p.name}>{p.name}</option>
+                                    ))}
                                 </select>
                             </div>
                         </div>
 
                         {/* Section: Financials */}
-                        <div className="p-5 bg-muted/40 rounded-xl space-y-4">
+                        <div className="p-5 bg-muted/40 rounded-xl space-y-4 border">
                             <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground/80">Financial Calibration</p>
                             <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
                                 <div className="space-y-2">
                                     <Label htmlFor="totalAmountContract" className="text-xs font-semibold">Total Contract ($)</Label>
-                                    <Input id="totalAmountContract" name="totalAmountContract" type="number" step="0.01" placeholder="0.00" className="h-10" />
+                                    <Input 
+                                        id="totalAmountContract" 
+                                        name="totalAmountContract" 
+                                        type="number" 
+                                        step="0.01" 
+                                        placeholder="0.00" 
+                                        className="h-10" 
+                                        value={totalAmount}
+                                        onChange={(e) => setTotalAmount(e.target.value)}
+                                    />
                                 </div>
                                 <div className="space-y-2">
-                                    <Label htmlFor="analystPaymentRate" className="text-xs font-semibold">Analyst Rate (%)</Label>
-                                    <Input id="analystPaymentRate" name="analystPaymentRate" type="number" step="0.01" placeholder="0.60" className="h-10" />
+                                    <Label htmlFor="analystPaymentRate" className="text-xs font-semibold text-green-700">Analyst Rate (%)</Label>
+                                    <Input 
+                                        id="analystPaymentRate" 
+                                        name="analystPaymentRate" 
+                                        type="number" 
+                                        step="0.01" 
+                                        placeholder="0.60" 
+                                        className="h-10" 
+                                        value={analystRate}
+                                        onChange={(e) => setAnalystRate(e.target.value)}
+                                    />
                                 </div>
                                 <div className="space-y-2">
                                     <Label htmlFor="officePaymentRate" className="text-xs font-semibold">Office Rate (%)</Label>
-                                    <Input id="officePaymentRate" name="officePaymentRate" type="number" step="0.01" placeholder="0.40" className="h-10" />
+                                    <Input 
+                                        id="officePaymentRate" 
+                                        name="officePaymentRate" 
+                                        type="number" 
+                                        step="0.01" 
+                                        placeholder="0.40" 
+                                        className="h-10" 
+                                        value={officeRate}
+                                        onChange={(e) => setOfficeRate(e.target.value)}
+                                    />
                                 </div>
                             </div>
                         </div>
@@ -125,15 +225,31 @@ export function AddStudentDialog({ isSuperAdmin }: AddStudentDialogProps) {
                         {/* Section: Targets */}
                         <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
                             <div className="space-y-2">
-                                <Label htmlFor="regularHoursTarget" className="text-[11px] font-semibold text-muted-foreground">Reg. Target</Label>
-                                <Input id="regularHoursTarget" name="regularHoursTarget" type="number" placeholder="0" className="h-9" />
+                                <Label htmlFor="regularHoursTarget" className="text-[11px] font-semibold text-muted-foreground uppercase">Reg. Target (BCBA)</Label>
+                                <Input 
+                                    id="regularHoursTarget" 
+                                    name="regularHoursTarget" 
+                                    type="number" 
+                                    placeholder="0" 
+                                    className="h-9" 
+                                    value={regTarget}
+                                    onChange={(e) => setRegTarget(e.target.value)}
+                                />
                             </div>
                             <div className="space-y-2">
-                                <Label htmlFor="concentratedHoursTarget" className="text-[11px] font-semibold text-muted-foreground">Conc. Target</Label>
-                                <Input id="concentratedHoursTarget" name="concentratedHoursTarget" type="number" placeholder="0" className="h-9" />
+                                <Label htmlFor="concentratedHoursTarget" className="text-[11px] font-semibold text-muted-foreground uppercase">Conc. Target</Label>
+                                <Input 
+                                    id="concentratedHoursTarget" 
+                                    name="concentratedHoursTarget" 
+                                    type="number" 
+                                    placeholder="0" 
+                                    className="h-9" 
+                                    value={concTarget}
+                                    onChange={(e) => setConcTarget(e.target.value)}
+                                />
                             </div>
                             <div className="space-y-2">
-                                <Label htmlFor="independentHoursTarget" className="text-[11px] font-semibold text-muted-foreground">Indp. Target</Label>
+                                <Label htmlFor="independentHoursTarget" className="text-[11px] font-semibold text-muted-foreground uppercase">Indp. Target</Label>
                                 <Input id="independentHoursTarget" name="independentHoursTarget" type="number" placeholder="0" className="h-9" />
                             </div>
                         </div>

@@ -88,7 +88,7 @@ model Student {
   evaluations             StudentEvaluation[]
   payments                StudentPayment[]
   vcsSequence             String?
-  assignedOptionPlan      OptionPlanType?
+  assignedOptionPlan      String?
   totalAmountContract     Decimal?                     @db.Decimal(10, 2)
   analystPaymentRate      Decimal?                     @db.Decimal(5, 4)
   officePaymentRate       Decimal?                     @db.Decimal(5, 4)
@@ -456,13 +456,6 @@ enum LevelType {
   BCBA
 }
 
-enum OptionPlanType {
-  A
-  B
-  C
-  D
-  E
-}
 
 enum SupervisionType {
   REGULAR
@@ -618,4 +611,16 @@ model ImportLog {
   oldData   Json?
   newData   Json?
   batch     ImportBatch @relation(fields: [batchId], references: [id], onDelete: Cascade)
+}
+
+model Plan {
+  id            String   @id @default(uuid())
+  name          String   @unique
+  regHoursBcba  Float
+  regHoursBcaba Float
+  concHours     Float
+  totalCharge   Decimal  @db.Decimal(10, 2)
+  analystPayout Decimal  @db.Decimal(10, 2)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
 }
