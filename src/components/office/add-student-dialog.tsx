@@ -197,6 +197,7 @@ export function AddStudentDialog({ isSuperAdmin }: AddStudentDialogProps) {
                                     name="planTemplateId" 
                                     value={selectedPlanId}
                                     onChange={handlePlanChange}
+                                    required
                                     className="flex h-10 w-full rounded-lg border-2 border-primary/20 bg-background px-3 py-2 text-sm focus:ring-2 focus:ring-primary/40 outline-none"
                                 >
                                     <option value="">-- Click to Select Plan --</option>
@@ -322,7 +323,7 @@ export function AddStudentDialog({ isSuperAdmin }: AddStudentDialogProps) {
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
                             <div className="space-y-2">
                                 <Label htmlFor="phone" className="text-xs uppercase tracking-wider font-semibold text-muted-foreground">Phone Number</Label>
-                                <Input id="phone" name="phone" placeholder="+1..." required className="h-10 rounded-lg" />
+                                <Input id="phone" name="phone" placeholder="+1..." className="h-10 rounded-lg" />
                             </div>
                             <div className="space-y-2">
                                 <Label htmlFor="bacbId" className="text-xs uppercase tracking-wider font-semibold text-muted-foreground">BACB ID</Label>
@@ -339,7 +340,7 @@ export function AddStudentDialog({ isSuperAdmin }: AddStudentDialogProps) {
                             <div className="pt-2 border-t">
                                 <div className="space-y-2">
                                     <Label htmlFor="hourlyRate" className="text-xs uppercase tracking-wider font-semibold text-primary">Hourly Rate ($)</Label>
-                                    <Input id="hourlyRate" name="hourlyRate" type="number" step="0.01" placeholder="0.00" className="h-10 border-primary/30" required />
+                                    <Input id="hourlyRate" name="hourlyRate" type="number" step="0.01" placeholder="0.00" className="h-10 border-primary/30" />
                                 </div>
                             </div>
                         )}

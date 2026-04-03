@@ -85,6 +85,12 @@ export default function OnboardingWizard({ initialStep, initialData }: WizardPro
     async function handleNextStep1(e: React.FormEvent) {
         e.preventDefault()
         setIsPending(true)
+        if (!phone || !address || !city || !stateLocation) {
+            toast.error("Please complete all personal and address information")
+            setIsPending(false)
+            return
+        }
+
         const formData = new FormData()
         formData.append("phone", phone)
         formData.append("address", address)

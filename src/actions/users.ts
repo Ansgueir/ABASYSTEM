@@ -70,8 +70,8 @@ export async function createStudent(formData: FormData) {
     const isSuperAdmin = currentUser.officeRole === "SUPER_ADMIN"
     const hourlyRate = isSuperAdmin ? (parseFloat(formData.get("hourlyRate") as string) || 0) : 0
 
-    if (!email || !fullName) {
-        return { error: "Missing required fields" }
+    if (!email || !fullName || !planTemplateId) {
+        return { error: "Missing required fields: Name, Email and Plan are mandatory." }
     }
 
     try {
