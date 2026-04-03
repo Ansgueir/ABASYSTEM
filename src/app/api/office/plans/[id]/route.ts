@@ -4,13 +4,19 @@ import { prisma } from "@/lib/prisma"
 
 const QA_SUPER_EMAIL = "qa-super@abasystem.com"
 
-export async function PATCH(req: Request, props: { params: any }) {
+export async function PATCH(req: Request, context: { params: any }) {
     const session = await auth()
     if (!session?.user?.email || session.user.email.toLowerCase().trim() !== QA_SUPER_EMAIL) {
         return NextResponse.json({ error: "403 Forbidden" }, { status: 403 })
     }
 
-    const { id } = props.params
+    // Await params if they are a promise (standard in newer Next.js versions)
+    const params = await context.params
+    const id = params?.id
+
+    if (!id) {
+        return NextResponse.json({ error: "Plan ID is required" }, { status: 400 })
+    }
 
     try {
         const body = await req.json()
@@ -23,25 +29,31 @@ export async function PATCH(req: Request, props: { params: any }) {
                 regHoursBcba: Number(regHoursBcba),
                 regHoursBcaba: Number(regHoursBcaba),
                 concHours: Number(concHours),
-                totalCharge,
-                analystPayout,
+                totalCharge: totalCharge,
+                analystPayout: analystPayout,
                 totalMonths: Number(totalMonths) || 12
             }
         })
 
         return NextResponse.json({ success: true, plan: updatedPlan })
     } catch (error: any) {
+        console.error("Prisma update error:", error)
         return NextResponse.json({ error: error.message }, { status: 500 })
     }
 }
 
-export async function DELETE(req: Request, props: { params: any }) {
+export async function DELETE(req: Request, context: { params: any }) {
     const session = await auth()
     if (!session?.user?.email || session.user.email.toLowerCase().trim() !== QA_SUPER_EMAIL) {
         return NextResponse.json({ error: "403 Forbidden" }, { status: 403 })
     }
 
-    const { id } = props.params
+    const params = await context.params
+    const id = params?.id
+
+    if (!id) {
+        return NextResponse.json({ error: "Plan ID is required" }, { status: 400 })
+    }
 
     try {
         await prisma.plan.delete({
