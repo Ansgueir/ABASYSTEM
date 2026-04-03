@@ -2,7 +2,7 @@
 
 import { useState } from "react"
 import * as z from "zod"
-import { Loader2 } from "lucide-react"
+import { Eye, EyeOff, Loader2 } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
 import { useSession } from "next-auth/react"
@@ -37,13 +37,19 @@ const passwordSchema = z.object({
 
 export default function ChangePasswordPage() {
     const { update } = useSession()
+    const [error, setError] = useState<string | null>(null)
+    const [fieldErrors, setFieldErrors] = useState<Record<string, string[]>>({})
     const [isPending, setIsPending] = useState(false)
+    const [showNewPassword, setShowNewPassword] = useState(false)
+    const [showConfirmPassword, setShowConfirmPassword] = useState(false)
     const router = useRouter()
 
     // Using standard fetch/catch instead of useActionState for simplicity with client-side form libraries
     async function onSubmit(event: React.FormEvent<HTMLFormElement>) {
         event.preventDefault()
         setIsPending(true)
+        setError(null)
+        setFieldErrors({})
 
         const formData = new FormData(event.currentTarget)
         const password = formData.get("newPassword") as string
@@ -59,6 +65,10 @@ export default function ChangePasswordPage() {
             const result = await changeInitialPassword(null, formData)
 
             if (result.error) {
+                setError(result.error)
+                if (result.fieldErrors) {
+                    setFieldErrors(result.fieldErrors)
+                }
                 toast.error(result.error)
                 setIsPending(false)
             } else if (result.success) {
@@ -109,21 +119,49 @@ export default function ChangePasswordPage() {
                         </div>
                         <div className="space-y-2">
                             <Label htmlFor="newPassword">New Password</Label>
-                            <PasswordInput
-                                id="newPassword"
-                                name="newPassword"
-                                required
-                                placeholder="Min 8 chars, uppercase, lowercase, number, special char"
-                            />
+                            <div className="relative">
+                                <Input
+                                    id="newPassword"
+                                    name="newPassword"
+                                    type={showNewPassword ? "text" : "password"}
+                                    required
+                                    className={fieldErrors.newPassword ? "border-red-500" : ""}
+                                    placeholder="Min 8 chars, uppercase, lowercase, number, special char"
+                                />
+                                <button
+                                    type="button"
+                                    onClick={() => setShowNewPassword(!showNewPassword)}
+                                    className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700"
+                                >
+                                    {showNewPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+                                </button>
+                            </div>
+                            {fieldErrors.newPassword && (
+                                <p className="text-xs text-red-500 mt-1">{fieldErrors.newPassword[0]}</p>
+                            )}
                         </div>
                         <div className="space-y-2">
                             <Label htmlFor="confirmPassword">Confirm New Password</Label>
-                            <PasswordInput
-                                id="confirmPassword"
-                                name="confirmPassword"
-                                required
-                                placeholder="Re-enter new password"
-                            />
+                            <div className="relative">
+                                <Input
+                                    id="confirmPassword"
+                                    name="confirmPassword"
+                                    type={showConfirmPassword ? "text" : "password"}
+                                    required
+                                    className={fieldErrors.confirmPassword ? "border-red-500" : ""}
+                                    placeholder="Re-enter new password"
+                                />
+                                <button
+                                    type="button"
+                                    onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                                    className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700"
+                                >
+                                    {showConfirmPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+                                </button>
+                            </div>
+                            {fieldErrors.confirmPassword && (
+                                <p className="text-xs text-red-500 mt-1">{fieldErrors.confirmPassword[0]}</p>
+                            )}
                         </div>
                     </CardContent>
                     <CardFooter>
