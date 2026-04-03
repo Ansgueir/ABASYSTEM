@@ -565,6 +565,14 @@ export async function updateStudent(studentId: string, data: any) {
                 })
             }
 
+            // Normalize rates for Decimal(5, 4)
+            if (data.analystPaymentRate !== undefined && data.analystPaymentRate > 1) {
+                data.analystPaymentRate = data.analystPaymentRate / 100
+            }
+            if (data.officePaymentRate !== undefined && data.officePaymentRate > 1) {
+                data.officePaymentRate = data.officePaymentRate / 100
+            }
+
             await tx.student.update({
                 where: { id: studentId },
                 data: data

@@ -16,8 +16,10 @@ interface Plan {
     regHoursBcba: number
     regHoursBcaba: number
     concHours: number
-    totalCharge: any // Using any to handle decimal from DB
+    totalCharge: any 
     analystPayout: any
+    totalMonths: number
+    fieldworkType: string
 }
 
 export function PlansTab() {
@@ -36,7 +38,8 @@ export function PlansTab() {
         concHours: "",
         totalCharge: "",
         analystPayout: "",
-        totalMonths: ""
+        totalMonths: "12",
+        fieldworkType: "REGULAR"
     })
 
     const loadPlans = useCallback(async () => {
@@ -69,7 +72,8 @@ export function PlansTab() {
             concHours: "",
             totalCharge: "",
             analystPayout: "",
-            totalMonths: "12"
+            totalMonths: "12",
+            fieldworkType: "REGULAR"
         })
         setDialogOpen(true)
     }
@@ -83,13 +87,13 @@ export function PlansTab() {
             concHours: plan.concHours.toString(),
             totalCharge: plan.totalCharge.toString(),
             analystPayout: plan.analystPayout.toString(),
-            totalMonths: (plan.totalMonths || 12).toString()
+            totalMonths: (plan.totalMonths || 12).toString(),
+            fieldworkType: plan.fieldworkType || "REGULAR"
         })
         setDialogOpen(true)
     }
 
     const handleSave = async () => {
-        // Validation
         if (!formData.name.trim()) return toast.error("Plan name is required")
         
         setIsSaving(true)
@@ -205,17 +209,22 @@ export function PlansTab() {
                                 </div>
                             </CardHeader>
                             <CardContent className="space-y-4 pt-4">
+                                <div className="flex items-center justify-between pb-1">
+                                    <Badge variant="outline" className={`text-[10px] uppercase font-bold shrink-0 ${plan.fieldworkType === 'CONCENTRATED' ? 'bg-orange-100 text-orange-700 border-orange-200' : 'bg-green-100 text-green-700 border-green-200'}`}>
+                                        {plan.fieldworkType === 'CONCENTRATED' ? 'Concentrated Type' : 'Regular Type'}
+                                    </Badge>
+                                </div>
                                 <div className="grid grid-cols-3 gap-2">
-                                    <div className="bg-blue-50/50 p-2 rounded-lg border border-blue-100 flex flex-col items-center">
-                                        <span className="text-[10px] uppercase font-bold text-blue-600 mb-1">BCBA Regular Hours</span>
+                                    <div className="bg-blue-50/50 p-2 rounded-lg border border-blue-100 flex flex-col items-center text-center">
+                                        <span className="text-[9px] uppercase font-bold text-blue-600 mb-1 leading-tight">BCBA Regular</span>
                                         <span className="text-sm font-black text-blue-900">{plan.regHoursBcba}h</span>
                                     </div>
-                                    <div className="bg-indigo-50/50 p-2 rounded-lg border border-indigo-100 flex flex-col items-center">
-                                        <span className="text-[10px] uppercase font-bold text-indigo-600 mb-1">BCaBA Regular Hours</span>
+                                    <div className="bg-indigo-50/50 p-2 rounded-lg border border-indigo-100 flex flex-col items-center text-center">
+                                        <span className="text-[9px] uppercase font-bold text-indigo-600 mb-1 leading-tight">BCaBA Regular</span>
                                         <span className="text-sm font-black text-indigo-900">{plan.regHoursBcaba}h</span>
                                     </div>
-                                    <div className="bg-amber-50/50 p-2 rounded-lg border border-amber-100 flex flex-col items-center">
-                                        <span className="text-[10px] uppercase font-bold text-amber-600 mb-1">Concentrated hours</span>
+                                    <div className="bg-amber-50/50 p-2 rounded-lg border border-amber-100 flex flex-col items-center text-center">
+                                        <span className="text-[9px] uppercase font-bold text-amber-600 mb-1 leading-tight">Conc. Hours</span>
                                         <span className="text-sm font-black text-amber-900">{plan.concHours}h</span>
                                     </div>
                                 </div>
@@ -224,7 +233,7 @@ export function PlansTab() {
                                     <div className="flex items-center justify-between">
                                         <div className="flex items-center gap-2 text-xs text-muted-foreground">
                                             <DollarSign className="h-3 w-3" />
-                                            <span>Client Charge (Contract)</span>
+                                            <span>Client Charge</span>
                                         </div>
                                         <span className="font-bold text-sm">$ {Number(plan.totalCharge).toFixed(2)}</span>
                                     </div>
@@ -242,7 +251,6 @@ export function PlansTab() {
                 </div>
             )}
 
-            {/* Create/Edit Dialog */}
             <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
                 <DialogContent className="sm:max-w-[500px]">
                     <DialogHeader>
@@ -253,14 +261,28 @@ export function PlansTab() {
                         <DialogDescription>Setup your plan targets and financial defaults.</DialogDescription>
                     </DialogHeader>
                     <div className="grid gap-4 py-4">
-                        <div className="space-y-2">
-                            <Label htmlFor="name">Plan Name</Label>
-                            <Input 
-                                id="name" 
-                                value={formData.name} 
-                                onChange={(e) => setFormData(p => ({ ...p, name: e.target.value }))}
-                                placeholder="e.g. SILVER 40H / MONTH" 
-                            />
+                        <div className="grid grid-cols-2 gap-4">
+                            <div className="space-y-2">
+                                <Label htmlFor="name">Plan Name</Label>
+                                <Input 
+                                    id="name" 
+                                    value={formData.name} 
+                                    onChange={(e) => setFormData(p => ({ ...p, name: e.target.value }))}
+                                    placeholder="e.g. SILVER 40H / MONTH" 
+                                />
+                            </div>
+                            <div className="space-y-2">
+                                <Label htmlFor="fieldworkType">Fieldwork Classification</Label>
+                                <select 
+                                    id="fieldworkType"
+                                    className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                                    value={formData.fieldworkType}
+                                    onChange={(e) => setFormData(p => ({ ...p, fieldworkType: e.target.value }))}
+                                >
+                                    <option value="REGULAR">Regular (Supervised)</option>
+                                    <option value="CONCENTRATED">Concentrated</option>
+                                </select>
+                            </div>
                         </div>
                         <div className="grid grid-cols-4 gap-3">
                             <div className="space-y-2 col-span-1">
@@ -338,7 +360,6 @@ export function PlansTab() {
                 </DialogContent>
             </Dialog>
 
-            {/* Delete Confirmation */}
             <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
                 <DialogContent>
                     <DialogHeader>

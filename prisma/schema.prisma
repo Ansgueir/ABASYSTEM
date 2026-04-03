@@ -623,6 +623,7 @@ model Plan {
   totalCharge   Decimal  @db.Decimal(10, 2)
   analystPayout Decimal  @db.Decimal(10, 2)
   totalMonths   Int      @default(12)
+  fieldworkType String   @default("REGULAR") // REGULAR or CONCENTRATED
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
 }

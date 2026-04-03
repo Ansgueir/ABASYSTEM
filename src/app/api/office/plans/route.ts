@@ -34,7 +34,7 @@ export async function POST(req: Request) {
         }
 
         const body = await req.json()
-        const { name, regHoursBcba, regHoursBcaba, concHours, totalCharge, analystPayout, totalMonths } = body
+        const { name, regHoursBcba, regHoursBcaba, concHours, totalCharge, analystPayout, totalMonths, fieldworkType } = body
 
         const newPlan = await prisma.plan.create({
             data: {
@@ -44,7 +44,8 @@ export async function POST(req: Request) {
                 concHours: Number(concHours),
                 totalCharge,
                 analystPayout,
-                totalMonths: Number(totalMonths) || 12
+                totalMonths: Number(totalMonths) || 12,
+                fieldworkType: fieldworkType || "REGULAR"
             }
         })
 

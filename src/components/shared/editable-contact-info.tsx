@@ -224,8 +224,8 @@ export function EditableStudentBacbFieldwork({ student, isSuperAdmin: isSuperAdm
     const [assignedOptionPlan, setAssignedOptionPlan] = useState(student.assignedOptionPlan || "")
     const [planTemplateId, setPlanTemplateId] = useState(student.planTemplateId || "")
     const [totalAmountContract, setTotalAmountContract] = useState(String(Number(student.totalAmountContract || 0)))
-    const [analystPaymentRate, setAnalystPaymentRate] = useState(String(Number(student.analystPaymentRate || 0)))
-    const [officePaymentRate, setOfficePaymentRate] = useState(String(Number(student.officePaymentRate || 0)))
+    const [analystPaymentRate, setAnalystPaymentRate] = useState(String(Number((student.analystPaymentRate || 0) * 100).toFixed(2)))
+    const [officePaymentRate, setOfficePaymentRate] = useState(String(Number((student.officePaymentRate || 0) * 100).toFixed(2)))
     const [internalComments, setInternalComments] = useState(student.internalComments || "")
     const [hoursTargetReg, setHoursTargetReg] = useState(String(Number(student.hoursTargetReg || 0)))
     const [hoursTargetConc, setHoursTargetConc] = useState(String(Number(student.hoursTargetConc || 0)))
@@ -300,8 +300,8 @@ export function EditableStudentBacbFieldwork({ student, isSuperAdmin: isSuperAdm
         setAssignedOptionPlan(student.assignedOptionPlan || "")
         setPlanTemplateId(student.planTemplateId || "")
         setTotalAmountContract(String(Number(student.totalAmountContract || 0)))
-        setAnalystPaymentRate(String(Number(student.analystPaymentRate || 0)))
-        setOfficePaymentRate(String(Number(student.officePaymentRate || 0)))
+        setAnalystPaymentRate(String(Number((student.analystPaymentRate || 0) * 100).toFixed(2)))
+        setOfficePaymentRate(String(Number((student.officePaymentRate || 0) * 100).toFixed(2)))
         setInternalComments(student.internalComments || "")
         setHoursTargetReg(String(Number(student.hoursTargetReg || 0)))
         setHoursTargetConc(String(Number(student.hoursTargetConc || 0)))
@@ -323,7 +323,8 @@ export function EditableStudentBacbFieldwork({ student, isSuperAdmin: isSuperAdm
             setAssignedOptionPlan(selectedPlan.name)
             setHoursTargetReg(String(selectedPlan.regHoursBcba + selectedPlan.regHoursBcaba))
             setHoursTargetConc(String(selectedPlan.concHours))
-            setTotalMonths(String(selectedPlan.maxMonths || 12))
+            setTotalMonths(String(selectedPlan.maxMonths || selectedPlan.totalMonths || 12))
+            setFieldworkType(selectedPlan.fieldworkType || "REGULAR")
             
             const total = Number(selectedPlan.totalCharge) || 0
             const payout = Number(selectedPlan.analystPayout) || 0
@@ -531,13 +532,21 @@ export function EditableStudentBacbFieldwork({ student, isSuperAdmin: isSuperAdm
                 </div>
 
                 {/* Fieldwork Type */}
-                <div className="flex items-center gap-3 p-3 rounded-lg bg-muted/30">
+                {/* Fieldwork Type - Hide redundancy if locked by plan */}
+                <div className={`flex items-center gap-3 p-3 rounded-lg bg-muted/30 ${isLocked ? 'opacity-60 grayscale-[0.5] border border-dashed border-amber-200' : ''}`}>
                     <Award className="h-5 w-5 text-primary/70 shrink-0" />
                     <div className="flex-1">
-                        <p className="text-xs text-muted-foreground mb-0.5">Fieldwork Type (PDF Checkbox)</p>
+                        <div className="flex justify-between items-center pr-2">
+                            <p className="text-xs text-muted-foreground mb-0.5">Fieldwork Type (PDF Checkbox)</p>
+                            {isEditing && isLocked && (
+                                <Badge variant="outline" className="bg-amber-100 text-amber-700 border-amber-200 text-[9px] h-4">
+                                    AUTO BY PLAN
+                                </Badge>
+                            )}
+                        </div>
                         {isEditing ? (
-                            <Select value={fieldworkType} onValueChange={setFieldworkType}>
-                                <SelectTrigger className="w-full sm:w-[220px] h-8 mt-1"><SelectValue placeholder="Select type" /></SelectTrigger>
+                            <Select value={fieldworkType} onValueChange={setFieldworkType} disabled={isLocked}>
+                                <SelectTrigger className={`w-full sm:w-[220px] h-8 mt-1 ${isLocked ? 'bg-amber-50 cursor-not-allowed' : ''}`}><SelectValue placeholder="Select type" /></SelectTrigger>
                                 <SelectContent>
                                     <SelectItem value="REGULAR">Supervised (Regular)</SelectItem>
                                     <SelectItem value="CONCENTRATED">Concentrated</SelectItem>

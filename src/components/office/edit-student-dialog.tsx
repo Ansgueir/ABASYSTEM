@@ -30,6 +30,7 @@ interface Plan {
     totalCharge: number
     analystPayout: number
     totalMonths: number
+    fieldworkType: string
 }
 
 interface EditStudentDialogProps {
@@ -62,6 +63,7 @@ export function EditStudentDialog({
     const [concTarget, setConcTarget] = useState(student.hoursTargetConc?.toString() || "")
     const [totalMonths, setTotalMonths] = useState(student.totalMonths?.toString() || "12")
     const [bcabaTarget, setBcabaTarget] = useState(student.independentHoursTarget?.toString() || "0")
+    const [fieldworkType, setFieldworkType] = useState(student.fieldworkType || "REGULAR")
 
     const [addressFields, setAddressFields] = useState({
         street: student.address || "",
@@ -97,6 +99,7 @@ export function EditStudentDialog({
         if (plan) {
             setVcsSequence(plan.name)
             setTotalAmount(plan.totalCharge.toString())
+            setFieldworkType(plan.fieldworkType || "REGULAR")
             
             const total = Number(plan.totalCharge)
             const payout = Number(plan.analystPayout)
@@ -145,13 +148,14 @@ export function EditStudentDialog({
             // Epic Integration Fields (Snapshotting)
             planTemplateId: selectedPlanId || null,
             assignedOptionPlan: isLocked ? vcsSequence : dataEntries.assignedOptionPlan,
-            vcsSequence: isLocked ? vcsSequence : dataEntries.assignedOptionPlan,
-            totalAmountContract: isLocked ? Number(totalAmount) : Number(dataEntries.totalAmountContract),
-            analystPaymentRate: finalAnalystRate,
-            officePaymentRate: finalOfficeRate,
-            totalMonths: isLocked ? Number(totalMonths) : Number(dataEntries.totalMonths),
-            hoursTargetReg: isLocked ? Number(regTarget) : Number(dataEntries.hoursTargetReg),
-            hoursTargetConc: isLocked ? Number(concTarget) : Number(dataEntries.hoursTargetConc),
+            vcsSequence: vcsSequence,
+            totalAmountContract: parseFloat(totalAmount),
+            analystPaymentRate: parseFloat(analystRate) / 100,
+            officePaymentRate: parseFloat(officeRate) / 100,
+            totalMonths: parseInt(totalMonths),
+            hoursTargetReg: parseInt(regTarget),
+            hoursTargetConc: parseInt(concTarget),
+            fieldworkType: fieldworkType,
             independentHoursTarget: Number(dataEntries.independentHoursTarget || 0)
         }
 
@@ -367,6 +371,20 @@ export function EditStudentDialog({
                                 </SelectContent>
                             </Select>
                         </div>
+                    </div>
+
+                    <div className="space-y-2">
+                        <Label htmlFor="fieldworkType">Fieldwork Classification</Label>
+                        <Select name="fieldworkType" value={fieldworkType} onValueChange={setFieldworkType} disabled={isLocked}>
+                            <SelectTrigger className={isLocked ? "bg-muted cursor-not-allowed" : ""}>
+                                <SelectValue placeholder="Select type" />
+                            </SelectTrigger>
+                            <SelectContent>
+                                <SelectItem value="REGULAR">Regular (Supervised)</SelectItem>
+                                <SelectItem value="CONCENTRATED">Concentrated</SelectItem>
+                            </SelectContent>
+                        </Select>
+                        {isLocked && <p className="text-[10px] text-amber-600 font-bold italic">Auto-managed by Plan Template</p>}
                     </div>
 
                     <div className="grid grid-cols-2 gap-4 border-t pt-4">

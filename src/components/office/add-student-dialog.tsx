@@ -27,6 +27,7 @@ interface Plan {
     totalCharge: number
     analystPayout: number
     totalMonths: number
+    fieldworkType: string
 }
 
 interface AddStudentDialogProps {
@@ -49,6 +50,7 @@ export function AddStudentDialog({ isSuperAdmin }: AddStudentDialogProps) {
     const [bcabaTarget, setBcabaTarget] = useState("")
     const [concTarget, setConcTarget] = useState("")
     const [totalMonths, setTotalMonths] = useState("12")
+    const [fieldworkType, setFieldworkType] = useState("REGULAR")
 
     const isManual = selectedPlanId === "manual" || selectedPlanId === ""
     const isLocked = !isManual
@@ -78,6 +80,7 @@ export function AddStudentDialog({ isSuperAdmin }: AddStudentDialogProps) {
             setBcabaTarget("")
             setConcTarget("")
             setTotalMonths("12")
+            setFieldworkType("REGULAR")
             return
         }
 
@@ -105,6 +108,7 @@ export function AddStudentDialog({ isSuperAdmin }: AddStudentDialogProps) {
             setConcTarget(plan.concHours.toString())
             setBcabaTarget("0") // BCABA already added to reg target as per epic instructions logic
             setTotalMonths((plan.totalMonths || 12).toString())
+            setFieldworkType(plan.fieldworkType || "REGULAR")
             
             toast.info(`Plan "${plan.name}" locked & applied!`, {
                 icon: <Sparkles className="h-4 w-4 text-amber-500" />
@@ -131,6 +135,7 @@ export function AddStudentDialog({ isSuperAdmin }: AddStudentDialogProps) {
              const oRateValue = formData.get("officePaymentRate")
              if (aRateValue) formData.set("analystPaymentRate", (Number(aRateValue) / 100).toString())
              if (oRateValue) formData.set("officePaymentRate", (Number(oRateValue) / 100).toString())
+             formData.set("fieldworkType", fieldworkType)
         }
 
         startTransition(async () => {
@@ -147,6 +152,7 @@ export function AddStudentDialog({ isSuperAdmin }: AddStudentDialogProps) {
                 setBcabaTarget("")
                 setConcTarget("")
                 setTotalMonths("12")
+                setFieldworkType("REGULAR")
             }
         })
     }
@@ -341,7 +347,7 @@ export function AddStudentDialog({ isSuperAdmin }: AddStudentDialogProps) {
                         <input type="hidden" name="city" value="Miami" />
                         <input type="hidden" name="state" value="FL" />
                         <input type="hidden" name="school" value="FSU" />
-                        <input type="hidden" name="supervisionType" value="REGULAR" />
+                        <input type="hidden" name="fieldworkType" value={fieldworkType} />
                         <input type="hidden" name="startDate" value={new Date().toISOString()} />
                         <input type="hidden" name="endDate" value={new Date(new Date().setFullYear(new Date().getFullYear() + 1)).toISOString()} />
                     </div>
