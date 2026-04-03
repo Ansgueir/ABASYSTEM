@@ -25,6 +25,7 @@ interface Plan {
     concHours: number
     totalCharge: number
     analystPayout: number
+    totalMonths: number
 }
 
 interface AddStudentDialogProps {
@@ -45,6 +46,7 @@ export function AddStudentDialog({ isSuperAdmin }: AddStudentDialogProps) {
     const [regTarget, setRegTarget] = useState("")
     const [bcabaTarget, setBcabaTarget] = useState("")
     const [concTarget, setConcTarget] = useState("")
+    const [totalMonths, setTotalMonths] = useState("12")
 
     useEffect(() => {
         if (open) {
@@ -68,6 +70,7 @@ export function AddStudentDialog({ isSuperAdmin }: AddStudentDialogProps) {
             setRegTarget(plan.regHoursBcba.toString())
             setBcabaTarget(plan.regHoursBcaba.toString()) // Mapping regHoursBcaba
             setConcTarget(plan.concHours.toString())
+            setTotalMonths((plan.totalMonths || 12).toString())
             
             // Calculate rates if possible
             const total = Number(plan.totalCharge)
@@ -102,6 +105,7 @@ export function AddStudentDialog({ isSuperAdmin }: AddStudentDialogProps) {
                 setRegTarget("")
                 setBcabaTarget("")
                 setConcTarget("")
+                setTotalMonths("12")
             }
         })
     }
@@ -210,16 +214,15 @@ export function AddStudentDialog({ isSuperAdmin }: AddStudentDialogProps) {
                                     />
                                 </div>
                                 <div className="space-y-2">
-                                    <Label htmlFor="officePaymentRate" className="text-xs font-semibold">Office Rate (%)</Label>
+                                    <Label htmlFor="totalMonths" className="text-xs font-semibold text-blue-600">Total Months</Label>
                                     <Input 
-                                        id="officePaymentRate" 
-                                        name="officePaymentRate" 
+                                        id="totalMonths" 
+                                        name="totalMonths" 
                                         type="number" 
-                                        step="0.01" 
-                                        placeholder="0.40" 
-                                        className="h-10" 
-                                        value={officeRate}
-                                        onChange={(e) => setOfficeRate(e.target.value)}
+                                        placeholder="12" 
+                                        className="h-10 border-blue-100" 
+                                        value={totalMonths}
+                                        onChange={(e) => setTotalMonths(e.target.value)}
                                     />
                                 </div>
                             </div>

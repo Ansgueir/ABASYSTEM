@@ -14,7 +14,7 @@ export async function PATCH(req: Request, props: { params: any }) {
 
     try {
         const body = await req.json()
-        const { name, regHoursBcba, regHoursBcaba, concHours, totalCharge, analystPayout } = body
+        const { name, regHoursBcba, regHoursBcaba, concHours, totalCharge, analystPayout, totalMonths } = body
 
         const updatedPlan = await prisma.plan.update({
             where: { id: id },
@@ -24,7 +24,8 @@ export async function PATCH(req: Request, props: { params: any }) {
                 regHoursBcaba: Number(regHoursBcaba),
                 concHours: Number(concHours),
                 totalCharge,
-                analystPayout
+                analystPayout,
+                totalMonths: Number(totalMonths) || 12
             }
         })
 

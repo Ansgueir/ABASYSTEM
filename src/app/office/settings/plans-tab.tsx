@@ -35,7 +35,8 @@ export function PlansTab() {
         regHoursBcaba: "",
         concHours: "",
         totalCharge: "",
-        analystPayout: ""
+        analystPayout: "",
+        totalMonths: ""
     })
 
     const loadPlans = useCallback(async () => {
@@ -67,7 +68,8 @@ export function PlansTab() {
             regHoursBcaba: "",
             concHours: "",
             totalCharge: "",
-            analystPayout: ""
+            analystPayout: "",
+            totalMonths: "12"
         })
         setDialogOpen(true)
     }
@@ -80,7 +82,8 @@ export function PlansTab() {
             regHoursBcaba: plan.regHoursBcaba.toString(),
             concHours: plan.concHours.toString(),
             totalCharge: plan.totalCharge.toString(),
-            analystPayout: plan.analystPayout.toString()
+            analystPayout: plan.analystPayout.toString(),
+            totalMonths: (plan.totalMonths || 12).toString()
         })
         setDialogOpen(true)
     }
@@ -185,9 +188,11 @@ export function PlansTab() {
                                 <div className="flex items-start justify-between">
                                     <div className="flex items-center gap-2">
                                         <div className="bg-primary/10 p-2 rounded-xl border border-primary/20">
-                                            <Sparkles className="h-4 w-4 text-primary" />
+                                            <Badge variant="outline" className="text-[10px] font-bold border-blue-200 text-blue-700 bg-blue-50/50">
+                                                {plan.totalMonths || 12} Months
+                                            </Badge>
                                         </div>
-                                        <CardTitle className="text-lg font-bold truncate group-hover:text-primary transition-colors">{plan.name}</CardTitle>
+                                        <CardTitle className="text-xl font-black text-slate-800 flex items-center gap-2 group-hover:text-primary transition-colors">{plan.name}</CardTitle>
                                     </div>
                                     <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
                                         <Button variant="outline" size="icon" className="h-7 w-7" onClick={() => handleOpenEdit(plan)}>
@@ -257,10 +262,10 @@ export function PlansTab() {
                                 placeholder="e.g. SILVER 40H / MONTH" 
                             />
                         </div>
-                        <div className="grid grid-cols-3 gap-3">
-                            <div className="space-y-2">
+                        <div className="grid grid-cols-4 gap-3">
+                            <div className="space-y-2 col-span-1">
                                 <Label className="text-[11px] uppercase font-bold text-muted-foreground flex items-center gap-1">
-                                    <Clock className="h-3 w-3" /> BCBA Regular Hours
+                                    <Clock className="h-3 w-3" /> BCBA
                                 </Label>
                                 <Input 
                                     type="number" 
@@ -268,9 +273,9 @@ export function PlansTab() {
                                     onChange={(e) => setFormData(p => ({ ...p, regHoursBcba: e.target.value }))}
                                 />
                             </div>
-                            <div className="space-y-2">
+                            <div className="space-y-2 col-span-1">
                                 <Label className="text-[11px] uppercase font-bold text-muted-foreground flex items-center gap-1">
-                                    <Clock className="h-3 w-3" /> BCaBA Regular Hours
+                                    <Clock className="h-3 w-3" /> BCaBA
                                 </Label>
                                 <Input 
                                     type="number" 
@@ -278,14 +283,23 @@ export function PlansTab() {
                                     onChange={(e) => setFormData(p => ({ ...p, regHoursBcaba: e.target.value }))}
                                 />
                             </div>
-                            <div className="space-y-2">
+                            <div className="space-y-2 col-span-1">
                                 <Label className="text-[11px] uppercase font-bold text-muted-foreground flex items-center gap-1">
-                                    <Clock className="h-3 w-3" /> Concentrated hours
+                                    <Clock className="h-3 w-3" /> Conc.
                                 </Label>
                                 <Input 
                                     type="number" 
                                     value={formData.concHours}
                                     onChange={(e) => setFormData(p => ({ ...p, concHours: e.target.value }))}
+                                />
+                            </div>
+                            <div className="space-y-2 col-span-1">
+                                <Label className="text-[11px] uppercase font-bold text-muted-foreground">Months</Label>
+                                <Input 
+                                    type="number" 
+                                    placeholder="12"
+                                    value={formData.totalMonths}
+                                    onChange={(e) => setFormData(p => ({ ...p, totalMonths: e.target.value }))}
                                 />
                             </div>
                         </div>

@@ -34,7 +34,7 @@ export async function POST(req: Request) {
         }
 
         const body = await req.json()
-        const { name, regHoursBcba, regHoursBcaba, concHours, totalCharge, analystPayout } = body
+        const { name, regHoursBcba, regHoursBcaba, concHours, totalCharge, analystPayout, totalMonths } = body
 
         const newPlan = await prisma.plan.create({
             data: {
@@ -43,7 +43,8 @@ export async function POST(req: Request) {
                 regHoursBcaba: Number(regHoursBcaba), // Note: user said both reg
                 concHours: Number(concHours),
                 totalCharge,
-                analystPayout
+                analystPayout,
+                totalMonths: Number(totalMonths) || 12
             }
         })
 

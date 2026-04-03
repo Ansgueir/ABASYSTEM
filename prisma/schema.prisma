@@ -616,11 +616,12 @@ model ImportLog {
 model Plan {
   id            String   @id @default(uuid())
   name          String   @unique
-  regHoursBcba  Float
-  regHoursBcaba Float
-  concHours     Float
+  regHoursBcba  Int      @default(0)
+  regHoursBcaba Int      @default(0)
+  concHours     Int      @default(0)
   totalCharge   Decimal  @db.Decimal(10, 2)
   analystPayout Decimal  @db.Decimal(10, 2)
+  totalMonths   Int      @default(12)
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
 }
