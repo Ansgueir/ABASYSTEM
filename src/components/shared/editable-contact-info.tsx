@@ -215,7 +215,12 @@ export function EditableStudentBacbFieldwork({ student, isSuperAdmin: isSuperAdm
     const [startDate, setStartDate] = useState(() => {
         if (!student.startDate) return ""
         const d = new Date(student.startDate)
-        return !isNaN(d.getTime()) ? d.toISOString().split('T')[0] : ""
+        if (isNaN(d.getTime())) return ""
+        // Use UTC parts to get the correct YYYY-MM-DD string stored in DB
+        const year = d.getUTCFullYear()
+        const month = String(d.getUTCMonth() + 1).padStart(2, '0')
+        const day = String(d.getUTCDate()).padStart(2, '0')
+        return `${year}-${month}-${day}`
     })
     const [hoursPerMonth, setHoursPerMonth] = useState(String(Number(student.hoursPerMonth) || 130))
     const [supervisionPercentage, setSupervisionPercentage] = useState(String(Number(student.supervisionPercentage) || 5))
@@ -268,7 +273,11 @@ export function EditableStudentBacbFieldwork({ student, isSuperAdmin: isSuperAdm
                 totalMonths: parseInt(totalMonths) || 12,
                 internalComments: internalComments || null
             }
-            if (startDate) dataToUpdate.startDate = new Date(startDate)
+            if (startDate) {
+                // Ensure date is saved as local midnight or specific string to avoid shift
+                const [y, m, d] = startDate.split('-').map(Number)
+                dataToUpdate.startDate = new Date(y, m - 1, d)
+            }
             if (isSuperAdmin) {
                 dataToUpdate.hourlyRate = parseFloat(hourlyRate) || 0
             }
@@ -291,7 +300,11 @@ export function EditableStudentBacbFieldwork({ student, isSuperAdmin: isSuperAdm
         setStartDate(() => {
             if (!student.startDate) return ""
             const d = new Date(student.startDate)
-            return !isNaN(d.getTime()) ? d.toISOString().split('T')[0] : ""
+            if (isNaN(d.getTime())) return ""
+            const year = d.getUTCFullYear()
+            const month = String(d.getUTCMonth() + 1).padStart(2, '0')
+            const day = String(d.getUTCDate()).padStart(2, '0')
+            return `${year}-${month}-${day}`
         })
         setHoursPerMonth(String(Number(student.hoursPerMonth) || 130))
         setSupervisionPercentage(String(Number(student.supervisionPercentage) || 5))
@@ -568,7 +581,9 @@ export function EditableStudentBacbFieldwork({ student, isSuperAdmin: isSuperAdm
                         {isEditing ? (
                             <Input type="date" value={startDate} onChange={(e) => setStartDate(e.target.value)} className="w-full sm:w-[200px] h-8 mt-1" />
                         ) : (
-                            <p className="font-medium">{startDate ? new Date(startDate).toLocaleDateString() : "—"}</p>
+                            <p className="font-medium">
+                                {startDate ? startDate.split("-").reverse().join("/") : "—"}
+                            </p>
                         )}
                     </div>
                 </div>

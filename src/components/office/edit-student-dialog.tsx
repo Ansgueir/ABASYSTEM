@@ -340,7 +340,15 @@ export function EditStudentDialog({
                                 id="startDate"
                                 name="startDate"
                                 type="date"
-                                defaultValue={student.startDate ? new Date(student.startDate).toISOString().split('T')[0] : ""}
+                                defaultValue={(() => {
+                                    if (!student.startDate) return ""
+                                    const d = new Date(student.startDate)
+                                    if (isNaN(d.getTime())) return ""
+                                    const y = d.getUTCFullYear()
+                                    const m = String(d.getUTCMonth() + 1).padStart(2, '0')
+                                    const day = String(d.getUTCDate()).padStart(2, '0')
+                                    return `${y}-${m}-${day}`
+                                })()}
                             />
                         </div>
                     </div>

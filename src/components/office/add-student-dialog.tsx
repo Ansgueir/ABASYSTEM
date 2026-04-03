@@ -348,8 +348,21 @@ export function AddStudentDialog({ isSuperAdmin }: AddStudentDialogProps) {
                         <input type="hidden" name="state" value="FL" />
                         <input type="hidden" name="school" value="FSU" />
                         <input type="hidden" name="fieldworkType" value={fieldworkType} />
-                        <input type="hidden" name="startDate" value={new Date().toISOString()} />
-                        <input type="hidden" name="endDate" value={new Date(new Date().setFullYear(new Date().getFullYear() + 1)).toISOString()} />
+                        <input type="hidden" name="startDate" value={(() => {
+                            const d = new Date()
+                            const y = d.getFullYear()
+                            const m = String(d.getMonth() + 1).padStart(2, '0')
+                            const day = String(d.getDate()).padStart(2, '0')
+                            return `${y}-${m}-${day}`
+                        })()} />
+                        <input type="hidden" name="endDate" value={(() => {
+                            const d = new Date()
+                            d.setFullYear(d.getFullYear() + 1)
+                            const y = d.getFullYear()
+                            const m = String(d.getMonth() + 1).padStart(2, '0')
+                            const day = String(d.getDate()).padStart(2, '0')
+                            return `${y}-${m}-${day}`
+                        })()} />
                     </div>
                     <DialogFooter className="mt-4 gap-2">
                         <Button type="button" variant="ghost" onClick={() => setOpen(false)} disabled={isPending}>Cancel</Button>
