@@ -1,9 +1,6 @@
 "use client"
 
 import { useState } from "react"
-import { useFormStatus } from "react-dom"
-import { useForm } from "react-hook-form"
-import { zodResolver } from "@hookform/resolvers/zod"
 import * as z from "zod"
 import { Loader2 } from "lucide-react"
 
@@ -66,20 +63,11 @@ export default function ChangePasswordPage() {
                 setIsPending(false)
             } else if (result.success) {
                 toast.success("Password updated successfully!")
-
-                try {
-                    // Update session state locally
-                    await update({
-                        isFirstLogin: false,
-                        onboardingCompleted: false,
-                        onboardingStep: 1
-                    })
-                    router.push("/onboarding")
-                } catch (updateError) {
-                    console.error("Session update failed, but password was changed:", updateError)
-                    toast.info("Password changed. Please refresh the page or login again to proceed.")
-                    setIsPending(false)
-                }
+                // Refreshing instead of pushing often fixes the NextAuth v5 session shift issue
+                // by forcing a clean reload after the DB update
+                setTimeout(() => {
+                    window.location.href = "/onboarding"
+                }, 1000)
             }
         } catch (error) {
             console.error(error)

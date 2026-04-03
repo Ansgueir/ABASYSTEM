@@ -40,21 +40,12 @@ export default function LoginPage() {
         setError("")
 
         try {
-            const result = await signIn("credentials", {
-                redirect: false,
+            await signIn("credentials", {
                 email,
                 password,
             })
-
-            if (result?.error) {
-                setError("Invalid credentials")
-            } else {
-                if (role === "student") router.push("/student")
-                else if (role === "supervisor") router.push("/supervisor")
-                else if (role === "office") router.push("/office")
-            }
         } catch (err) {
-            setError("An unexpected error occurred")
+            setError("Invalid credentials or unexpected error during sign in")
         } finally {
             setIsLoading(false)
         }
