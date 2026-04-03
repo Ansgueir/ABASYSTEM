@@ -74,7 +74,7 @@ export function PlansTab() {
         setDialogOpen(true)
     }
 
-    const handleOpenEdit = (plan: Plan) => {
+    const handleOpenEdit = (plan: any) => {
         setEditingPlan(plan)
         setFormData({
             name: plan.name,
@@ -181,7 +181,7 @@ export function PlansTab() {
                 </Card>
             ) : (
                 <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-                    {plans.map((plan) => (
+                    {plans.map((plan: any) => (
                         <Card key={plan.id} className="group overflow-hidden hover:shadow-xl transition-all border-muted/60 relative">
                             <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-blue-500 to-amber-500 hidden group-hover:block" />
                             <CardHeader className="pb-3 bg-muted/10">
