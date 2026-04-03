@@ -4,9 +4,9 @@ import { DollarSign, CheckCircle, Clock, TrendingUp, Users, UserCheck } from "lu
 import { auth } from "@/auth"
 import { prisma } from "@/lib/prisma"
 import { redirect } from "next/navigation"
-import { format } from "date-fns"
 import { PaymentsTable } from "@/components/office/payments-table"
 import Link from "next/link"
+import { SupervisorPaymentsList } from "@/components/office/supervisor-payments-list"
 
 export default async function OfficePaymentsPage({
     searchParams
@@ -44,7 +44,8 @@ export default async function OfficePaymentsPage({
             },
             orderBy: { createdAt: 'desc' },
             include: {
-                student: { include: { supervisor: true } }
+                student: { include: { supervisor: true } },
+                payouts: true
             }
         })
 
@@ -119,7 +120,8 @@ export default async function OfficePaymentsPage({
             }
 
             supervisorSummary[id].totalProjected += capTotal
-            supervisorSummary[id].totalPaid += paidToSup
+            const payoutSum = (inv as any).payouts?.filter((p: any) => p.supervisorId === id).reduce((s: number, p: any) => s + Number(p.amount), 0) || 0
+            supervisorSummary[id].totalPaid += payoutSum
             
             // Add this invoice to the supervisor's list
             supervisorSummary[id].invoices.push({
@@ -129,8 +131,8 @@ export default async function OfficePaymentsPage({
                 status: inv.status,
                 invoiceTotal: Number(inv.amountDue),
                 supervisorCap: capTotal,
-                paidAmount: paidToSup,
-                remainingCap: capTotal - paidToSup
+                paidAmount: payoutSum,
+                remainingCap: capTotal - payoutSum
             })
         }
     }
@@ -173,8 +175,9 @@ export default async function OfficePaymentsPage({
                         { label: "Ready to Invoice", value: stats.readyToGo, icon: TrendingUp, color: "text-emerald-600", bg: "bg-emerald-500/10" },
                         { label: "Pending Payment", value: stats.pending,    icon: Clock,      color: "text-amber-600",   bg: "bg-amber-500/10" },
                         { label: "Collected",        value: stats.paid,      icon: CheckCircle, color: "text-green-600",  bg: "bg-green-500/10" },
-                        { label: "Owed to Supervisors", value: Object.values(supervisorSummary).reduce((s, sup) => s + (sup.totalProjected - sup.totalPaid), 0), icon: UserCheck, color: "text-blue-600", bg: "bg-blue-500/10" },
-                        { label: "Office Revenue",   value: stats.paid - Object.values(supervisorSummary).reduce((s, sup) => s + sup.totalPaid, 0), icon: DollarSign, color: "text-primary", bg: "bg-primary/10" },
+                        { label: "Owed to Supervisors", value: Object.values(supervisorSummary).reduce((s, sup) => s + sup.totalProjected - sup.totalPaid, 0), icon: UserCheck, color: "text-blue-600", bg: "bg-blue-500/10" },
+                        { label: "Paid to Supervisors", value: Object.values(supervisorSummary).reduce((s, sup) => s + sup.totalPaid, 0), icon: CheckCircle, color: "text-green-600", bg: "bg-green-500/10" },
+                        { label: "Office Net Revenue",   value: stats.paid - Object.values(supervisorSummary).reduce((s, sup) => s + sup.totalPaid, 0), icon: DollarSign, color: "text-primary", bg: "bg-primary/10" },
                     ].map(s => (
                         <Card key={s.label}>
                             <CardContent className="flex items-center gap-3 p-5">
@@ -231,66 +234,9 @@ export default async function OfficePaymentsPage({
                     </Card>
                 )}
 
-                {/* ── SUPERVISORS TAB — FIX #1, #2, #3 ──────────────────────────── */}
+                {/* ── SUPERVISORS TAB ───────────────────────────────────────────── */}
                 {activeTab === "supervisors" && (
-                    <div className="space-y-4">
-                        {Object.keys(filteredSupervisorSummary).length === 0 ? (
-                            <Card>
-                                <CardContent className="py-16 text-center text-muted-foreground">
-                                    {searchQuery ? `No supervisors matching "${searchQuery}"` : "No active invoices for supervisors found."}
-                                </CardContent>
-                            </Card>
-                        ) : Object.entries(filteredSupervisorSummary).map(([supId, sup]) => (
-                            <Card key={supId}>
-                                <CardContent className="pt-5">
-                                    {/* Supervisor Header */}
-                                    <div className="flex items-center justify-between mb-4">
-                                        <div>
-                                            <h3 className="font-bold text-base">{sup.name}</h3>
-                                            <p className="text-xs text-muted-foreground">{sup.credential}</p>
-                                        </div>
-                                        <div className="text-right">
-                                            <p className="text-xs text-muted-foreground">Projected Total for Active Invoices</p>
-                                            <p className="text-xl font-bold text-primary">${sup.totalProjected.toFixed(2)}</p>
-                                        </div>
-                                    </div>
-                                    {/* Invoices Mirror List for Supervisor */}
-                                    <div className="overflow-x-auto">
-                                        <table className="w-full text-xs">
-                                            <thead>
-                                                <tr className="border-b text-muted-foreground">
-                                                    <th className="text-left pb-2 font-medium">Invoice</th>
-                                                    <th className="text-left pb-2 font-medium">Student</th>
-                                                    <th className="text-left pb-2 font-medium">Status</th>
-                                                    <th className="text-right pb-2 font-medium">Bill Total</th>
-                                                    <th className="text-right pb-2 font-medium text-primary">Your Cap (%)</th>
-                                                    <th className="text-right pb-2 font-medium text-green-600">Paid to You</th>
-                                                    <th className="text-right pb-2 font-medium text-amber-600">Rem. Balance</th>
-                                                </tr>
-                                            </thead>
-                                            <tbody>
-                                                {sup.invoices.map((inv: any) => (
-                                                    <tr key={inv.id} className="border-b border-muted/50 hover:bg-muted/20">
-                                                        <td className="py-2 font-mono text-[10px]">#{inv.id.slice(-6).toUpperCase()}</td>
-                                                        <td className="py-2">{inv.studentName}</td>
-                                                        <td className="py-2">
-                                                            <span className="text-[10px] uppercase font-bold border px-1.5 py-0.5 rounded-md">
-                                                                {inv.status.replace(/_/g, ' ')}
-                                                            </span>
-                                                        </td>
-                                                        <td className="py-2 text-right">${inv.invoiceTotal.toFixed(2)}</td>
-                                                        <td className="py-2 text-right font-medium text-primary">${inv.supervisorCap.toFixed(2)}</td>
-                                                        <td className="py-2 text-right font-bold text-green-600">${inv.paidAmount.toFixed(2)}</td>
-                                                        <td className="py-2 text-right font-bold text-amber-600">${inv.remainingCap.toFixed(2)}</td>
-                                                    </tr>
-                                                ))}
-                                            </tbody>
-                                        </table>
-                                    </div>
-                                </CardContent>
-                            </Card>
-                        ))}
-                    </div>
+                    <SupervisorPaymentsList supervisorSummary={filteredSupervisorSummary} />
                 )}
             </div>
         </DashboardLayout>

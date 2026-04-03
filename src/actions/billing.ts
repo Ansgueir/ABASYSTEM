@@ -296,3 +296,50 @@ export async function generateInvoicesAction() {
         return { error: "Failed to generate invoices" }
     }
 }
+
+/**
+ * Records a Payout (Office -> Supervisor) for a specific invoice.
+ */
+export async function recordSupervisorPayout(data: {
+    invoiceId: string
+    supervisorId: string
+    amount: number
+    method: string
+    reference?: string
+    notes?: string
+}) {
+    const session = await auth()
+    if (!session?.user) return { error: "Unauthorized" }
+
+    const role = String((session.user as any).role).toLowerCase()
+    if (role !== "office" && role !== "qa") return { error: "Unauthorized role" }
+
+    const officeRole = (session.user as any).officeRole
+    if (officeRole !== "SUPER_ADMIN") return { error: "Forbidden: Only Super Admin can record payouts" }
+
+    try {
+        await (prisma as any).supervisorPayout.create({
+            data: {
+                invoiceId: data.invoiceId,
+                supervisorId: data.supervisorId,
+                amount: data.amount,
+                method: data.method,
+                reference: data.reference || null,
+                notes: data.notes || null
+            }
+        })
+
+        await logAudit({
+            action: "CREATE",
+            entity: "Payment",
+            entityId: data.invoiceId,
+            details: `Office paid $${data.amount} to supervisor (Invoice ${data.invoiceId.slice(-6)})`
+        })
+
+        revalidatePath("/office/payments")
+        return { success: true }
+    } catch (error: any) {
+        console.error("Payout error:", error)
+        return { error: error.message }
+    }
+}

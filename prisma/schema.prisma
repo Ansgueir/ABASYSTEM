@@ -248,13 +248,29 @@ model RepeatingSchedule {
 model StudentPayment {
   id            String      @id @default(uuid())
   studentId     String
-  paymentDate   DateTime
   amount        Decimal     @db.Decimal(10, 2)
-  paymentType   PaymentType
+  paymentDate   DateTime
+  paymentMethod String
+  reference     String?
   notes         String?
-  importBatchId String?
+  invoiceId     String?
   createdAt     DateTime    @default(now())
+  invoice       Invoice?    @relation(fields: [invoiceId], references: [id])
   student       Student     @relation(fields: [studentId], references: [id])
+}
+
+model SupervisorPayout {
+  id            String      @id @default(uuid())
+  invoiceId     String
+  supervisorId  String
+  amount        Decimal     @db.Decimal(10, 2)
+  method        String
+  reference     String?
+  notes         String?
+  createdAt     DateTime    @default(now())
+
+  invoice       Invoice     @relation(fields: [invoiceId], references: [id])
+  supervisor    Supervisor  @relation(fields: [supervisorId], references: [id])
 }
 
 model SupervisorPayment {
@@ -284,6 +300,7 @@ model Invoice {
   student          Student           @relation(fields: [studentId], references: [id])
   supervisionHours SupervisionHour[]
   ledgerEntries    SupervisorLedgerEntry[]
+  payouts          SupervisorPayout[]
 }
 
 model SupervisorLedgerEntry {
