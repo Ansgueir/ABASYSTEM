@@ -76,9 +76,7 @@ function normalizeLevelType(val: string): string {
 }
 
 function normalizeOptionPlan(val: string): string {
-    const v = val.toUpperCase().trim()
-    if (["A", "B", "C", "D", "E"].includes(v)) return v
-    return "A"
+    return val.trim() || "PLAN MANUAL"
 }
 
 function normalizeRate(val: number): number {
@@ -267,8 +265,8 @@ export async function POST(request: Request) {
                     optionPlan:            normalizeOptionPlan(cellStr(row, "K")),
                     endDate:               cellDate(row, "M"),
                     totalMonths:           cellNum(row, "N") || null,
-                    regularHoursTarget:    cellNum(row, "O") || null, // Horas Regulares
-                    concentratedHoursTarget: cellNum(row, "P") || null, // Horas Concentradas
+                    hoursTargetReg:        cellNum(row, "O") || null, // Horas Regulares
+                    hoursTargetConc:       cellNum(row, "P") || null, // Horas Concentradas
                     independentHoursTarget: cellNum(row, "Q") || null, // Horas Independientes
                     totalAmountContract:   cellNum(row, "R") || null, // Monto Total Supervisión
                     analystPaymentRate:    normalizeRate(cellNum(row, "S")) || null, // Monto a Pagar Analista
@@ -551,9 +549,9 @@ export async function POST(request: Request) {
                                     amountToPay: 0,
                                     hoursPerMonth: 130,
                                     vcsSequence: newUser.fields?.vcsSequence ?? null, 
-                                    assignedOptionPlan: (newUser.fields?.optionPlan || "A") as any,
-                                    regularHoursTarget: newUser.fields?.regularHoursTarget ?? null, 
-                                    concentratedHoursTarget: newUser.fields?.concentratedHoursTarget ?? null,
+                                    assignedOptionPlan: newUser.fields?.optionPlan ?? "PLAN MANUAL",
+                                    hoursTargetReg: newUser.fields?.hoursTargetReg ?? null, 
+                                    hoursTargetConc: newUser.fields?.hoursTargetConc ?? null,
                                     independentHoursTarget: newUser.fields?.independentHoursTarget ?? null, 
                                     totalAmountContract: newUser.fields?.totalAmountContract ?? null,
                                     analystPaymentRate: newUser.fields?.analystPaymentRate !== null ? normalizeRate(Number(newUser.fields?.analystPaymentRate)) : null, 

@@ -83,8 +83,8 @@ export async function GET(request: Request) {
 
         let cons = 1;
         for (const student of students) {
-            const regHours = Number(student.regularHoursTarget) || 0
-            const concHours = Number(student.concentratedHoursTarget) || 0
+            const regHours = Number(student.hoursTargetReg) || 0
+            const concHours = Number(student.hoursTargetConc) || 0
             const indHours = Number(student.independentHoursTarget) || 0
 
             const totAmtSup = Number(student.totalAmountContract) || 0

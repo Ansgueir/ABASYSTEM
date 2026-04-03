@@ -380,7 +380,7 @@ export function ImportStaging() {
                                                     </td>
                                                     <td className="p-2">{u.fields?.supervisorName || "-"}</td>
                                                     <td className="p-2 font-mono">
-                                                        {u.fields?.regularHoursTarget || 0}/{u.fields?.concentratedHoursTarget || 0}/{u.fields?.independentHoursTarget || 0}
+                                                        {u.fields?.hoursTargetReg || 0}/{u.fields?.hoursTargetConc || 0}/{u.fields?.independentHoursTarget || 0}
                                                     </td>
                                                     <td className="p-2 font-bold text-emerald-700">
                                                         ${u.fields?.totalAmountContract || 0} / ${u.fields?.analystPaymentRate || 0} / ${u.fields?.officePaymentRate || 0}

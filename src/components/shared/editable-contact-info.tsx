@@ -210,8 +210,8 @@ export function EditableStudentBacbFieldwork({ student, isSuperAdmin: isSuperAdm
     const [analystPaymentRate, setAnalystPaymentRate] = useState(String(Number(student.analystPaymentRate || 0)))
     const [officePaymentRate, setOfficePaymentRate] = useState(String(Number(student.officePaymentRate || 0)))
     const [internalComments, setInternalComments] = useState(student.internalComments || "")
-    const [regularHoursTarget, setRegularHoursTarget] = useState(String(Number(student.regularHoursTarget || 0)))
-    const [concentratedHoursTarget, setConcentratedHoursTarget] = useState(String(Number(student.concentratedHoursTarget || 0)))
+    const [hoursTargetReg, setHoursTargetReg] = useState(String(Number(student.hoursTargetReg || 0)))
+    const [hoursTargetConc, setHoursTargetConc] = useState(String(Number(student.hoursTargetConc || 0)))
     const [independentHoursTarget, setIndependentHoursTarget] = useState(String(Number(student.independentHoursTarget || 0)))
 
     if (!mounted) return null
@@ -241,8 +241,8 @@ export function EditableStudentBacbFieldwork({ student, isSuperAdmin: isSuperAdm
                 totalAmountContract: parseFloat(totalAmountContract) || null,
                 analystPaymentRate: parseFloat(analystPaymentRate) || null,
                 officePaymentRate: parseFloat(officePaymentRate) || null,
-                regularHoursTarget: parseInt(regularHoursTarget) || null,
-                concentratedHoursTarget: parseInt(concentratedHoursTarget) || null,
+                hoursTargetReg: parseInt(hoursTargetReg) || 0,
+                hoursTargetConc: parseInt(hoursTargetConc) || 0,
                 independentHoursTarget: parseInt(independentHoursTarget) || null,
                 internalComments: internalComments || null
             }
@@ -280,8 +280,8 @@ export function EditableStudentBacbFieldwork({ student, isSuperAdmin: isSuperAdm
         setAnalystPaymentRate(String(Number(student.analystPaymentRate || 0)))
         setOfficePaymentRate(String(Number(student.officePaymentRate || 0)))
         setInternalComments(student.internalComments || "")
-        setRegularHoursTarget(String(Number(student.regularHoursTarget || 0)))
-        setConcentratedHoursTarget(String(Number(student.concentratedHoursTarget || 0)))
+        setHoursTargetReg(String(Number(student.hoursTargetReg || 0)))
+        setHoursTargetConc(String(Number(student.hoursTargetConc || 0)))
         setIndependentHoursTarget(String(Number(student.independentHoursTarget || 0)))
         setIsEditing(false)
     }
@@ -400,9 +400,9 @@ export function EditableStudentBacbFieldwork({ student, isSuperAdmin: isSuperAdm
                         <div className="flex-1">
                             <p className="text-xs text-muted-foreground mb-0.5">Reg. Hours Target</p>
                             {isEditing ? (
-                                <Input type="number" value={regularHoursTarget} onChange={(e) => setRegularHoursTarget(e.target.value)} className="w-full h-8 mt-1" />
+                                <Input type="number" value={hoursTargetReg} onChange={(e) => setHoursTargetReg(e.target.value)} className="w-full h-8 mt-1" />
                             ) : (
-                                <p className="font-bold">{regularHoursTarget}</p>
+                                <p className="font-bold">{hoursTargetReg}</p>
                             )}
                         </div>
                     </div>
@@ -410,9 +410,9 @@ export function EditableStudentBacbFieldwork({ student, isSuperAdmin: isSuperAdm
                         <div className="flex-1">
                             <p className="text-xs text-muted-foreground mb-0.5">Conc. Hours Target</p>
                             {isEditing ? (
-                                <Input type="number" value={concentratedHoursTarget} onChange={(e) => setConcentratedHoursTarget(e.target.value)} className="w-full h-8 mt-1" />
+                                <Input type="number" value={hoursTargetConc} onChange={(e) => setHoursTargetConc(e.target.value)} className="w-full h-8 mt-1" />
                             ) : (
-                                <p className="font-bold">{concentratedHoursTarget}</p>
+                                <p className="font-bold">{hoursTargetConc}</p>
                             )}
                         </div>
                     </div>
