@@ -878,4 +878,76 @@ export async function updateSupervisionHour(
         return { error: err instanceof Error ? err.message : 'Failed to update log' }
     }
 }
+export async function updateLogStatus(
+    logId: string,
+    type: 'INDEPENDENT' | 'SUPERVISED' | string,
+    status: 'APPROVED' | 'REJECTED' | 'PENDING',
+    rejectReason?: string
+): Promise<{ success?: boolean; error?: string }> {
+    const session = await auth()
+    if (!session?.user) return { error: 'Unauthorized' }
 
+    const role = String((session.user as any).role).toLowerCase()
+    const userId = session.user.id
+
+    if (role !== 'supervisor' && role !== 'office' && role !== 'qa') {
+        return { error: 'Forbidden: You do not have permission to update log status.' }
+    }
+
+    try {
+        if (type === 'INDEPENDENT') {
+            const hour = await prisma.independentHour.findUnique({
+                where: { id: logId },
+                include: { student: true }
+            })
+            if (!hour) return { error: 'Independent log not found' }
+
+            // Security: If supervisor, verify assignment
+            if (role === 'supervisor') {
+                const supervisor = await prisma.supervisor.findUnique({ where: { userId } })
+                if (!supervisor) return { error: 'Supervisor profile not found' }
+                
+                const assignment = await prisma.studentSupervisor.findFirst({
+                    where: { studentId: hour.studentId, supervisorId: supervisor.id }
+                })
+                const legacyMatch = hour.student.supervisorId === supervisor.id
+
+                if (!assignment && !legacyMatch) {
+                    return { error: 'Forbidden: This student is not assigned to you.' }
+                }
+            }
+
+            await prisma.independentHour.update({
+                where: { id: logId },
+                data: { status, rejectReason: status === 'REJECTED' ? rejectReason : null }
+            })
+        } else {
+            const hour = await prisma.supervisionHour.findUnique({
+                where: { id: logId }
+            })
+            if (!hour) return { error: 'Supervision log not found' }
+
+            // Security: If supervisor, verify they are the assigned supervisor
+            if (role === 'supervisor') {
+                const supervisor = await prisma.supervisor.findUnique({ where: { userId } })
+                if (!supervisor || (hour.supervisorId !== supervisor.id)) {
+                    return { error: 'Forbidden: You are not the supervisor for this log.' }
+                }
+            }
+
+            await prisma.supervisionHour.update({
+                where: { id: logId },
+                data: { status, rejectReason: status === 'REJECTED' ? rejectReason : null }
+            })
+        }
+
+        revalidatePath('/student/timesheet')
+        revalidatePath('/supervisor/timesheet')
+        revalidatePath('/office/supervision-logs')
+
+        return { success: true }
+    } catch (err) {
+        console.error('updateLogStatus error:', err)
+        return { error: 'Failed to update log status' }
+    }
+}

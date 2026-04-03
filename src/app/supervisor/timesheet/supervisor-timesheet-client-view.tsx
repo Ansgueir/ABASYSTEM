@@ -12,36 +12,29 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { toast } from "sonner"
 import { CalendarSupervisorHourModal } from "@/components/supervisor/calendar-supervisor-hour-modal"
+import { updateLogStatus } from "@/actions/log-hours"
 
 export function SupervisorTimesheetClientView({ hours, students }: { hours: any[], students: any[] }) {
     const [selectedEntry, setSelectedEntry] = useState<any>(null)
     const [userSelectedStudentId, setUserSelectedStudentId] = useState<string>("all")
     
-    // Status update logic requires calling a server action ideally, but we will mock or implement the API call.
-    // In timesheets-tab.tsx, there was a `handleUpdateStatus` function that called an endpoint.
+    // Status update logic now uses a Server Action
     const [isUpdating, setIsUpdating] = useState(false)
     const [rejectReason, setRejectReason] = useState("")
     const [showRejectInput, setShowRejectInput] = useState(false)
 
-    // Wait, since we are fetching via server components, and this is a general view, we can just point to the API.
     const handleUpdateStatus = async (id: string, type: string, status: "APPROVED" | "REJECTED") => {
         setIsUpdating(true)
         try {
-            const endpoint = type === 'INDEPENDENT'
-                ? `/api/student/log-hours/${id}`
-                : `/api/supervisor/log-hours/${id}`
-            const res = await fetch(endpoint, {
-                method: "PATCH",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ status, rejectReason: status === "REJECTED" ? rejectReason : undefined }),
-            })
-            if (!res.ok) throw new Error("Failed to update status")
+            const res = await updateLogStatus(id, type, status, status === "REJECTED" ? rejectReason : undefined)
+            
+            if (res.error) throw new Error(res.error)
+            
             toast.success(`Entry ${status.toLowerCase()} successfully`)
-            // Typically this would also refresh the page data
             window.location.reload()
-        } catch (error) {
+        } catch (error: any) {
             console.error(error)
-            toast.error("Failed to update status")
+            toast.error(error.message || "Failed to update status")
         } finally {
             setIsUpdating(false)
         }
