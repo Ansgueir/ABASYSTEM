@@ -254,9 +254,7 @@ model StudentPayment {
   paymentType   PaymentType
   notes         String?
   importBatchId String?
-  invoiceId     String?
   createdAt     DateTime    @default(now())
-  invoice       Invoice?    @relation(fields: [invoiceId], references: [id])
   student       Student     @relation(fields: [studentId], references: [id])
 }
 
@@ -302,7 +300,6 @@ model Invoice {
   supervisionHours SupervisionHour[]
   ledgerEntries    SupervisorLedgerEntry[]
   payouts          SupervisorPayout[]
-  studentPayments    StudentPayment[]
 }
 
 model SupervisorLedgerEntry {
