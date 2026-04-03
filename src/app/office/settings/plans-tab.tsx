@@ -202,15 +202,15 @@ export function PlansTab() {
                             <CardContent className="space-y-4 pt-4">
                                 <div className="grid grid-cols-3 gap-2">
                                     <div className="bg-blue-50/50 p-2 rounded-lg border border-blue-100 flex flex-col items-center">
-                                        <span className="text-[10px] uppercase font-bold text-blue-600 mb-1">BCBA</span>
+                                        <span className="text-[10px] uppercase font-bold text-blue-600 mb-1">BCBA Regular Hours</span>
                                         <span className="text-sm font-black text-blue-900">{plan.regHoursBcba}h</span>
                                     </div>
                                     <div className="bg-indigo-50/50 p-2 rounded-lg border border-indigo-100 flex flex-col items-center">
-                                        <span className="text-[10px] uppercase font-bold text-indigo-600 mb-1">BCaBA</span>
+                                        <span className="text-[10px] uppercase font-bold text-indigo-600 mb-1">BCaBA Regular Hours</span>
                                         <span className="text-sm font-black text-indigo-900">{plan.regHoursBcaba}h</span>
                                     </div>
                                     <div className="bg-amber-50/50 p-2 rounded-lg border border-amber-100 flex flex-col items-center">
-                                        <span className="text-[10px] uppercase font-bold text-amber-600 mb-1">Conc.</span>
+                                        <span className="text-[10px] uppercase font-bold text-amber-600 mb-1">Concentrated hours</span>
                                         <span className="text-sm font-black text-amber-900">{plan.concHours}h</span>
                                     </div>
                                 </div>
@@ -260,7 +260,7 @@ export function PlansTab() {
                         <div className="grid grid-cols-3 gap-3">
                             <div className="space-y-2">
                                 <Label className="text-[11px] uppercase font-bold text-muted-foreground flex items-center gap-1">
-                                    <Clock className="h-3 w-3" /> Reg BCBA
+                                    <Clock className="h-3 w-3" /> BCBA Regular Hours
                                 </Label>
                                 <Input 
                                     type="number" 
@@ -270,7 +270,7 @@ export function PlansTab() {
                             </div>
                             <div className="space-y-2">
                                 <Label className="text-[11px] uppercase font-bold text-muted-foreground flex items-center gap-1">
-                                    <Clock className="h-3 w-3" /> Reg BCaBA
+                                    <Clock className="h-3 w-3" /> BCaBA Regular Hours
                                 </Label>
                                 <Input 
                                     type="number" 
@@ -280,7 +280,7 @@ export function PlansTab() {
                             </div>
                             <div className="space-y-2">
                                 <Label className="text-[11px] uppercase font-bold text-muted-foreground flex items-center gap-1">
-                                    <Clock className="h-3 w-3" /> Conc Target
+                                    <Clock className="h-3 w-3" /> Concentrated hours
                                 </Label>
                                 <Input 
                                     type="number" 

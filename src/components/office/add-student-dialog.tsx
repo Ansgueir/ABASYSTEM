@@ -43,6 +43,7 @@ export function AddStudentDialog({ isSuperAdmin }: AddStudentDialogProps) {
     const [analystRate, setAnalystRate] = useState("0.60")
     const [officeRate, setOfficeRate] = useState("0.40")
     const [regTarget, setRegTarget] = useState("")
+    const [bcabaTarget, setBcabaTarget] = useState("")
     const [concTarget, setConcTarget] = useState("")
 
     useEffect(() => {
@@ -65,6 +66,7 @@ export function AddStudentDialog({ isSuperAdmin }: AddStudentDialogProps) {
             setVcsSequence(plan.name)
             setTotalAmount(plan.totalCharge.toString())
             setRegTarget(plan.regHoursBcba.toString())
+            setBcabaTarget(plan.regHoursBcaba.toString()) // Mapping regHoursBcaba
             setConcTarget(plan.concHours.toString())
             
             // Calculate rates if possible
@@ -98,6 +100,7 @@ export function AddStudentDialog({ isSuperAdmin }: AddStudentDialogProps) {
                 setVcsSequence("")
                 setTotalAmount("")
                 setRegTarget("")
+                setBcabaTarget("")
                 setConcTarget("")
             }
         })
@@ -225,7 +228,7 @@ export function AddStudentDialog({ isSuperAdmin }: AddStudentDialogProps) {
                         {/* Section: Targets */}
                         <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
                             <div className="space-y-2">
-                                <Label htmlFor="regularHoursTarget" className="text-[11px] font-semibold text-muted-foreground uppercase">Reg. Target (BCBA)</Label>
+                                <Label htmlFor="regularHoursTarget" className="text-[11px] font-semibold text-muted-foreground uppercase">BCBA Regular Hours</Label>
                                 <Input 
                                     id="regularHoursTarget" 
                                     name="regularHoursTarget" 
@@ -237,7 +240,7 @@ export function AddStudentDialog({ isSuperAdmin }: AddStudentDialogProps) {
                                 />
                             </div>
                             <div className="space-y-2">
-                                <Label htmlFor="concentratedHoursTarget" className="text-[11px] font-semibold text-muted-foreground uppercase">Conc. Target</Label>
+                                <Label htmlFor="concentratedHoursTarget" className="text-[11px] font-semibold text-muted-foreground uppercase">Concentrated hours</Label>
                                 <Input 
                                     id="concentratedHoursTarget" 
                                     name="concentratedHoursTarget" 
@@ -249,8 +252,16 @@ export function AddStudentDialog({ isSuperAdmin }: AddStudentDialogProps) {
                                 />
                             </div>
                             <div className="space-y-2">
-                                <Label htmlFor="independentHoursTarget" className="text-[11px] font-semibold text-muted-foreground uppercase">Indp. Target</Label>
-                                <Input id="independentHoursTarget" name="independentHoursTarget" type="number" placeholder="0" className="h-9" />
+                                <Label htmlFor="independentHoursTarget" className="text-[11px] font-semibold text-muted-foreground uppercase">BCaBA Regular Hours</Label>
+                                <Input 
+                                    id="independentHoursTarget" 
+                                    name="independentHoursTarget" 
+                                    type="number" 
+                                    placeholder="0" 
+                                    className="h-9" 
+                                    value={bcabaTarget}
+                                    onChange={(e) => setBcabaTarget(e.target.value)}
+                                />
                             </div>
                         </div>
 
