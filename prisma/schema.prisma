@@ -302,6 +302,7 @@ model Invoice {
   supervisionHours SupervisionHour[]
   ledgerEntries    SupervisorLedgerEntry[]
   payouts          SupervisorPayout[]
+  studentPayments    StudentPayment[]
 }
 
 model SupervisorLedgerEntry {
