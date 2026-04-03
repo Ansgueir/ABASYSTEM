@@ -48,12 +48,13 @@ export async function createStudent(formData: FormData) {
     const endDate = new Date(formData.get("endDate") as string)
 
     const vcsSequence = formData.get("vcsSequence") as string
-    const assignedOptionPlan = formData.get("assignedOptionPlan") as any || null
+    const assignedOptionPlan = formData.get("assignedOptionPlan") as string || null
+    const planTemplateId = formData.get("planTemplateId") as string || null
     const totalAmountContract = Number(formData.get("totalAmountContract")) || null
     const analystPaymentRate = Number(formData.get("analystPaymentRate")) || null
     const officePaymentRate = Number(formData.get("officePaymentRate")) || null
-    const regularHoursTarget = Number(formData.get("regularHoursTarget")) || null
-    const concentratedHoursTarget = Number(formData.get("concentratedHoursTarget")) || null
+    const hoursTargetReg = Number(formData.get("hoursTargetReg")) || Number(formData.get("regularHoursTarget")) || null
+    const hoursTargetConc = Number(formData.get("hoursTargetConc")) || Number(formData.get("concentratedHoursTarget")) || null
     const independentHoursTarget = Number(formData.get("independentHoursTarget")) || null
     const internalComments = formData.get("internalComments") as string
 
@@ -118,11 +119,12 @@ export async function createStudent(formData: FormData) {
                     paymentAlias: [],
                     vcsSequence: vcsSequence || null,
                     assignedOptionPlan: assignedOptionPlan || null,
+                    planTemplateId: planTemplateId || null,
                     totalAmountContract,
                     analystPaymentRate,
                     officePaymentRate,
-                    regularHoursTarget,
-                    concentratedHoursTarget,
+                    hoursTargetReg,
+                    hoursTargetConc,
                     independentHoursTarget,
                     internalComments: internalComments || null
                 }

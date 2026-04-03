@@ -89,12 +89,13 @@ model Student {
   payments                StudentPayment[]
   vcsSequence             String?
   assignedOptionPlan      String?
+  planTemplateId          String?
   totalAmountContract     Decimal?                     @db.Decimal(10, 2)
   analystPaymentRate      Decimal?                     @db.Decimal(5, 4)
   officePaymentRate       Decimal?                     @db.Decimal(5, 4)
   internalComments        String?
-  regularHoursTarget      Int?
-  concentratedHoursTarget Int?
+  hoursTargetReg          Int?
+  hoursTargetConc         Int?
   independentHoursTarget  Int?
 
   importBatchId String?
