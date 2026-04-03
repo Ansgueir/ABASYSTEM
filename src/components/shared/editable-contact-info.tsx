@@ -9,6 +9,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { updateStudent, updateSupervisor } from "@/actions/users"
 import { useSession } from "next-auth/react"
 import { AddressAutocomplete } from "@/components/shared/address-autocomplete"
+import { Badge } from "@/components/ui/badge"
+import { Lock } from "lucide-react"
 
 /* ───────────────────────────────────────────
    STUDENT – Contact Information (Card 1)
@@ -187,7 +189,18 @@ export function EditableStudentBacbFieldwork({ student, isSuperAdmin: isSuperAdm
 
     useEffect(() => {
         setMounted(true)
+        fetchPlans()
     }, [])
+
+    const [plans, setPlans] = useState<any[]>([])
+    const fetchPlans = async () => {
+        try {
+            const res = await fetch("/api/office/plans")
+            if (res.ok) setPlans(await res.json())
+        } catch (error) {
+            console.error("Failed to fetch plans", error)
+        }
+    }
 
     const [isEditing, setIsEditing] = useState(false)
     const [isPending, startTransition] = useTransition()
@@ -206,6 +219,7 @@ export function EditableStudentBacbFieldwork({ student, isSuperAdmin: isSuperAdm
     const [hourlyRate, setHourlyRate] = useState(String(Number(student.hourlyRate || 0).toFixed(2)))
     const [vcsSequence, setVcsSequence] = useState(student.vcsSequence || "")
     const [assignedOptionPlan, setAssignedOptionPlan] = useState(student.assignedOptionPlan || "")
+    const [planTemplateId, setPlanTemplateId] = useState(student.planTemplateId || "")
     const [totalAmountContract, setTotalAmountContract] = useState(String(Number(student.totalAmountContract || 0)))
     const [analystPaymentRate, setAnalystPaymentRate] = useState(String(Number(student.analystPaymentRate || 0)))
     const [officePaymentRate, setOfficePaymentRate] = useState(String(Number(student.officePaymentRate || 0)))
@@ -213,6 +227,9 @@ export function EditableStudentBacbFieldwork({ student, isSuperAdmin: isSuperAdm
     const [hoursTargetReg, setHoursTargetReg] = useState(String(Number(student.hoursTargetReg || 0)))
     const [hoursTargetConc, setHoursTargetConc] = useState(String(Number(student.hoursTargetConc || 0)))
     const [independentHoursTarget, setIndependentHoursTarget] = useState(String(Number(student.independentHoursTarget || 0)))
+    const [totalMonths, setTotalMonths] = useState(String(Number(student.totalMonths || 12)))
+
+    const isLocked = !!planTemplateId && planTemplateId !== "PLAN MANUAL"
 
     if (!mounted) return null
 
@@ -238,12 +255,14 @@ export function EditableStudentBacbFieldwork({ student, isSuperAdmin: isSuperAdm
                 supervisionPercentage: parseFloat(supervisionPercentage) || 5,
                 vcsSequence: vcsSequence || null,
                 assignedOptionPlan: assignedOptionPlan || null,
+                planTemplateId: (planTemplateId === "PLAN MANUAL") ? null : (planTemplateId || null),
                 totalAmountContract: parseFloat(totalAmountContract) || null,
                 analystPaymentRate: parseFloat(analystPaymentRate) || null,
                 officePaymentRate: parseFloat(officePaymentRate) || null,
                 hoursTargetReg: parseInt(hoursTargetReg) || 0,
                 hoursTargetConc: parseInt(hoursTargetConc) || 0,
                 independentHoursTarget: parseInt(independentHoursTarget) || null,
+                totalMonths: parseInt(totalMonths) || 12,
                 internalComments: internalComments || null
             }
             if (startDate) dataToUpdate.startDate = new Date(startDate)
@@ -276,6 +295,7 @@ export function EditableStudentBacbFieldwork({ student, isSuperAdmin: isSuperAdm
         setHourlyRate(String(Number(student.hourlyRate || 0).toFixed(2)))
         setVcsSequence(student.vcsSequence || "")
         setAssignedOptionPlan(student.assignedOptionPlan || "")
+        setPlanTemplateId(student.planTemplateId || "")
         setTotalAmountContract(String(Number(student.totalAmountContract || 0)))
         setAnalystPaymentRate(String(Number(student.analystPaymentRate || 0)))
         setOfficePaymentRate(String(Number(student.officePaymentRate || 0)))
@@ -283,7 +303,35 @@ export function EditableStudentBacbFieldwork({ student, isSuperAdmin: isSuperAdm
         setHoursTargetReg(String(Number(student.hoursTargetReg || 0)))
         setHoursTargetConc(String(Number(student.hoursTargetConc || 0)))
         setIndependentHoursTarget(String(Number(student.independentHoursTarget || 0)))
+        setTotalMonths(String(Number(student.totalMonths || 12)))
         setIsEditing(false)
+    }
+
+    const handlePlanChange = (pId: string) => {
+        setPlanTemplateId(pId)
+        if (pId === "PLAN MANUAL") {
+            setAssignedOptionPlan("PLAN MANUAL")
+            // No auto-fill for manual
+            return
+        }
+
+        const selectedPlan = plans.find(p => p.id === pId)
+        if (selectedPlan) {
+            setAssignedOptionPlan(selectedPlan.name)
+            setHoursTargetReg(String(selectedPlan.regHoursBcba + selectedPlan.regHoursBcaba))
+            setHoursTargetConc(String(selectedPlan.concHours))
+            setTotalMonths(String(selectedPlan.maxMonths || 12))
+            
+            const total = Number(selectedPlan.totalCharge) || 0
+            const payout = Number(selectedPlan.analystPayout) || 0
+            setTotalAmountContract(String(total))
+            
+            if (total > 0) {
+                const analystRate = (payout / total) * 100
+                setAnalystPaymentRate(analystRate.toFixed(2))
+                setOfficePaymentRate((100 - analystRate).toFixed(2))
+            }
+        }
     }
 
     return (
@@ -363,30 +411,24 @@ export function EditableStudentBacbFieldwork({ student, isSuperAdmin: isSuperAdm
 
                 {/* Additional Foundation Fields */}
                 <div className="flex items-center gap-3 p-3 rounded-lg bg-muted/30">
-                    <Award className="h-5 w-5 text-primary/70 shrink-0" />
-                    <div className="flex-1">
-                        <p className="text-xs text-muted-foreground mb-0.5">VCS Sequence</p>
-                        {isEditing ? (
-                            <Input value={vcsSequence} onChange={(e) => setVcsSequence(e.target.value)} placeholder="VCS Sequence" className="w-full h-8 mt-1" />
-                        ) : (
-                            <p className="font-semibold text-primary">{vcsSequence || "—"}</p>
-                        )}
-                    </div>
-                </div>
-
-                <div className="flex items-center gap-3 p-3 rounded-lg bg-muted/30">
                     <GraduationCap className="h-5 w-5 text-primary/70 shrink-0" />
                     <div className="flex-1">
-                        <p className="text-xs text-muted-foreground mb-0.5">Option Plan</p>
+                        <div className="flex justify-between items-center pr-2">
+                            <p className="text-xs text-muted-foreground mb-0.5">Option Plan</p>
+                            {isEditing && isLocked && (
+                                <Badge variant="outline" className="bg-amber-100 text-amber-700 border-amber-200 gap-1 animate-pulse">
+                                    <Lock className="h-3 w-3" /> LOCKED BY PLAN
+                                </Badge>
+                            )}
+                        </div>
                         {isEditing ? (
-                            <Select value={assignedOptionPlan} onValueChange={setAssignedOptionPlan}>
-                                <SelectTrigger className="w-full sm:w-[220px] h-8 mt-1"><SelectValue placeholder="Plan (A-E)" /></SelectTrigger>
+                            <Select value={planTemplateId} onValueChange={handlePlanChange}>
+                                <SelectTrigger className="w-full sm:w-[220px] h-8 mt-1"><SelectValue placeholder="Select Plan" /></SelectTrigger>
                                 <SelectContent>
-                                    <SelectItem value="A">Plan A</SelectItem>
-                                    <SelectItem value="B">Plan B</SelectItem>
-                                    <SelectItem value="C">Plan C</SelectItem>
-                                    <SelectItem value="D">Plan D</SelectItem>
-                                    <SelectItem value="E">Plan E</SelectItem>
+                                    <SelectItem value="PLAN MANUAL" className="font-bold text-indigo-600">PLAN MANUAL (Unlock fields)</SelectItem>
+                                    {plans.map((p) => (
+                                        <SelectItem key={p.id} value={p.id}>{p.name}</SelectItem>
+                                    ))}
                                 </SelectContent>
                             </Select>
                         ) : (
@@ -395,12 +437,12 @@ export function EditableStudentBacbFieldwork({ student, isSuperAdmin: isSuperAdm
                     </div>
                 </div>
 
-                <div className="grid grid-cols-3 gap-3">
+                <div className="grid grid-cols-4 gap-3">
                     <div className="flex items-center gap-3 p-3 rounded-lg bg-muted/30">
                         <div className="flex-1">
                             <p className="text-xs text-muted-foreground mb-0.5">Reg. Hours Target</p>
                             {isEditing ? (
-                                <Input type="number" value={hoursTargetReg} onChange={(e) => setHoursTargetReg(e.target.value)} className="w-full h-8 mt-1" />
+                                <Input type="number" value={hoursTargetReg} readOnly={isLocked} onChange={(e) => setHoursTargetReg(e.target.value)} className={`w-full h-8 mt-1 ${isLocked ? 'bg-amber-50' : ''}`} />
                             ) : (
                                 <p className="font-bold">{hoursTargetReg}</p>
                             )}
@@ -410,7 +452,7 @@ export function EditableStudentBacbFieldwork({ student, isSuperAdmin: isSuperAdm
                         <div className="flex-1">
                             <p className="text-xs text-muted-foreground mb-0.5">Conc. Hours Target</p>
                             {isEditing ? (
-                                <Input type="number" value={hoursTargetConc} onChange={(e) => setHoursTargetConc(e.target.value)} className="w-full h-8 mt-1" />
+                                <Input type="number" value={hoursTargetConc} readOnly={isLocked} onChange={(e) => setHoursTargetConc(e.target.value)} className={`w-full h-8 mt-1 ${isLocked ? 'bg-amber-50' : ''}`} />
                             ) : (
                                 <p className="font-bold">{hoursTargetConc}</p>
                             )}
@@ -422,7 +464,17 @@ export function EditableStudentBacbFieldwork({ student, isSuperAdmin: isSuperAdm
                             {isEditing ? (
                                 <Input type="number" value={independentHoursTarget} onChange={(e) => setIndependentHoursTarget(e.target.value)} className="w-full h-8 mt-1" />
                             ) : (
-                                <p className="font-bold">{independentHoursTarget}</p>
+                                <p className="font-bold">{independentHoursTarget || 0}</p>
+                            )}
+                        </div>
+                    </div>
+                    <div className="flex items-center gap-3 p-3 rounded-lg bg-muted/30">
+                        <div className="flex-1">
+                            <p className="text-xs text-muted-foreground mb-0.5">Total Months</p>
+                            {isEditing ? (
+                                <Input type="number" value={totalMonths} readOnly={isLocked} onChange={(e) => setTotalMonths(e.target.value)} className={`w-full h-8 mt-1 ${isLocked ? 'bg-amber-50' : ''}`} />
+                            ) : (
+                                <p className="font-bold">{totalMonths}</p>
                             )}
                         </div>
                     </div>
@@ -434,9 +486,9 @@ export function EditableStudentBacbFieldwork({ student, isSuperAdmin: isSuperAdm
                         <div className="flex-1">
                             <p className="text-xs text-muted-foreground mb-0.5">Analyst Rate (%)</p>
                             {isEditing ? (
-                                <Input type="number" step="0.0001" value={analystPaymentRate} onChange={(e) => setAnalystPaymentRate(e.target.value)} className="w-full h-8 mt-1" />
+                                <Input type="number" step="0.0001" value={analystPaymentRate} readOnly={isLocked} onChange={(e) => setAnalystPaymentRate(e.target.value)} className={`w-full h-8 mt-1 ${isLocked ? 'bg-amber-50' : ''}`} />
                             ) : (
-                                <p className="font-bold">{analystPaymentRate}</p>
+                                <p className="font-bold">{analystPaymentRate}%</p>
                             )}
                         </div>
                     </div>
@@ -445,9 +497,9 @@ export function EditableStudentBacbFieldwork({ student, isSuperAdmin: isSuperAdm
                         <div className="flex-1">
                             <p className="text-xs text-muted-foreground mb-0.5">Office Rate (%)</p>
                             {isEditing ? (
-                                <Input type="number" step="0.0001" value={officePaymentRate} onChange={(e) => setOfficePaymentRate(e.target.value)} className="w-full h-8 mt-1" />
+                                <Input type="number" step="0.0001" value={officePaymentRate} readOnly={isLocked} onChange={(e) => setOfficePaymentRate(e.target.value)} className={`w-full h-8 mt-1 ${isLocked ? 'bg-amber-50' : ''}`} />
                             ) : (
-                                <p className="font-bold">{officePaymentRate}</p>
+                                <p className="font-bold">{officePaymentRate}%</p>
                             )}
                         </div>
                     </div>
@@ -457,7 +509,7 @@ export function EditableStudentBacbFieldwork({ student, isSuperAdmin: isSuperAdm
                     <div className="flex-1">
                         <p className="text-xs text-muted-foreground mb-0.5">Total Amount Contract ($)</p>
                         {isEditing ? (
-                            <Input type="number" step="0.01" value={totalAmountContract} onChange={(e) => setTotalAmountContract(e.target.value)} className="w-full sm:w-[220px] h-8 mt-1" />
+                            <Input type="number" step="0.01" value={totalAmountContract} readOnly={isLocked} onChange={(e) => setTotalAmountContract(e.target.value)} className={`w-full sm:w-[220px] h-8 mt-1 ${isLocked ? 'bg-amber-50' : ''}`} />
                         ) : (
                             <p className="font-bold">${totalAmountContract}</p>
                         )}
