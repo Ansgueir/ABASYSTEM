@@ -37,19 +37,19 @@ export default async function TimesheetPage() {
                 prisma.independentHour.findMany({
                     where: { studentId: student.id },
                     orderBy: { date: 'desc' },
-                    take: 100
+                    take: 500
                 }),
                 prisma.supervisionHour.findMany({
                     where: { studentId: student.id },
                     orderBy: { date: 'desc' },
-                    take: 100,
+                    take: 1000,
                     include: { supervisor: true }
                 }),
                 prisma.groupSupervisionAttendance.findMany({
                     where: { studentId: student.id, attended: true },
                     include: { session: { include: { supervisor: true } } },
                     orderBy: { session: { date: 'desc' } },
-                    take: 50
+                    take: 200
                 })
             ])
             

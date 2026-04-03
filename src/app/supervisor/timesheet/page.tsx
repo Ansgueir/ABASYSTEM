@@ -41,7 +41,7 @@ export default async function SupervisorTimesheetPage() {
                         status: { not: 'REJECTED' }
                     },
                     orderBy: { date: 'desc' },
-                    take: 100,
+                    take: 1000,
                     include: { student: true }
                 }),
                 prisma.independentHour.findMany({
@@ -50,14 +50,14 @@ export default async function SupervisorTimesheetPage() {
                         status: { not: 'REJECTED' }
                     },
                     orderBy: { date: 'desc' },
-                    take: 50,
+                    take: 500,
                     include: { student: true }
                 }),
                 prisma.groupSupervisionSession.findMany({
                     where: { supervisorId: supervisor.id },
                     include: { attendance: { include: { student: true } } },
                     orderBy: { date: 'desc' },
-                    take: 20
+                    take: 100
                 })
             ])
 
@@ -92,7 +92,6 @@ export default async function SupervisorTimesheetPage() {
 
             const raw = combined
                 .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
-                .slice(0, 50)
  
             hours = (raw as any[]).map(x => ({
                 ...x,
