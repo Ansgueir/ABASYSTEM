@@ -249,11 +249,11 @@ model RepeatingSchedule {
 model StudentPayment {
   id            String      @id @default(uuid())
   studentId     String
-  amount        Decimal     @db.Decimal(10, 2)
   paymentDate   DateTime
-  paymentMethod String
-  reference     String?
+  amount        Decimal     @db.Decimal(10, 2)
+  paymentType   PaymentType
   notes         String?
+  importBatchId String?
   invoiceId     String?
   createdAt     DateTime    @default(now())
   invoice       Invoice?    @relation(fields: [invoiceId], references: [id])
