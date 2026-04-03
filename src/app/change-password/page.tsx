@@ -63,11 +63,22 @@ export default function ChangePasswordPage() {
                 setIsPending(false)
             } else if (result.success) {
                 toast.success("Password updated successfully!")
-                // Refreshing instead of pushing often fixes the NextAuth v5 session shift issue
-                // by forcing a clean reload after the DB update
-                setTimeout(() => {
+
+                try {
+                    // Update session state locally - THIS IS CRITICAL for Middleware to see the change
+                    await update({
+                        isFirstLogin: false,
+                        onboardingStep: 1
+                    })
+                    
+                    // Small delay to ensure cookie is written before navigation
+                    setTimeout(() => {
+                        window.location.href = "/onboarding"
+                    }, 500)
+                } catch (updateError) {
+                    console.error("Session update failed:", updateError)
                     window.location.href = "/onboarding"
-                }, 1000)
+                }
             }
         } catch (error) {
             console.error(error)
