@@ -15,7 +15,13 @@ import {
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { TimesheetCalendar } from "@/components/shared/timesheet-calendar"
 
-export function SupervisorActivityTab({ supervisionHours = [] }: { supervisionHours: any[] }) {
+export function SupervisorActivityTab({ 
+    supervisionHours = [], 
+    groupSessions = [] 
+}: { 
+    supervisionHours: any[], 
+    groupSessions?: any[] 
+}) {
     const [mounted, setMounted] = useState(false)
     const [userSelectedStudentId, setUserSelectedStudentId] = useState<string>("all")
     const [selectedHour, setSelectedHour] = useState<any>(null)
@@ -36,9 +42,27 @@ export function SupervisorActivityTab({ supervisionHours = [] }: { supervisionHo
     })
     const students = Array.from(studentsMap.values())
 
+    const safeSupervision = Array.isArray(supervisionHours) ? supervisionHours : []
+    const safeGroups = Array.isArray(groupSessions) ? groupSessions : []
+
+    // Normalize group logs for visualization
+    const groupLogs = safeGroups.map(s => ({
+        id: s.id,
+        date: s.date,
+        startTime: s.startTime,
+        hours: 1, // Default for group activity view
+        supervisionType: 'GROUP',
+        groupTopic: s.topic,
+        status: 'PENDING',
+        type: 'supervised',
+        student: { fullName: `${s.attendance?.length || 0} Students` }
+    }))
+
+    const allCombined = [...safeSupervision, ...groupLogs]
+
     const filteredHours = userSelectedStudentId === "all" 
-        ? supervisionHours 
-        : (supervisionHours || []).filter(hour => hour.studentId === userSelectedStudentId)
+        ? allCombined 
+        : (allCombined || []).filter(hour => hour.studentId === userSelectedStudentId)
 
     return (
         <div className="space-y-4">

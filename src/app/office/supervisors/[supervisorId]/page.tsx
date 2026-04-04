@@ -40,12 +40,17 @@ export default async function OfficeSupervisorDetailPage({ params }: { params: P
                 },
                 supervisionHours: {
                     orderBy: { date: "desc" },
-                    take: 100, // Limit shown history to latest 100 for performance
+                    take: 1000, 
                     include: { student: true }
                 },
                 contracts: {
                     where: { contract: { status: "SIGNED" } },
                     include: { contract: true }
+                },
+                groupSessions: {
+                    orderBy: { date: "desc" },
+                    take: 200,
+                    include: { attendance: { include: { student: true } } }
                 }
             }
         });
@@ -249,7 +254,10 @@ export default async function OfficeSupervisorDetailPage({ params }: { params: P
                     </TabsContent>
 
                     <TabsContent value="activity">
-                        <SupervisorActivityTab supervisionHours={safeSupervisor.supervisionHours || []} />
+                        <SupervisorActivityTab 
+                            supervisionHours={safeSupervisor.supervisionHours || []} 
+                            groupSessions={safeSupervisor.groupSessions || []}
+                        />
                     </TabsContent>
                 </Tabs>
             </div>

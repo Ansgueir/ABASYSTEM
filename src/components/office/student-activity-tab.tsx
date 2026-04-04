@@ -13,7 +13,15 @@ import {
 } from "@/components/ui/dialog"
 import { TimesheetCalendar } from "@/components/shared/timesheet-calendar"
 
-export function StudentActivityTab({ supervisionHours = [], independentHours = [] }: { supervisionHours: any[], independentHours: any[] }) {
+export function StudentActivityTab({ 
+    supervisionHours = [], 
+    independentHours = [],
+    groupAttendance = [] 
+}: { 
+    supervisionHours: any[], 
+    independentHours: any[],
+    groupAttendance?: any[]
+}) {
     const [mounted, setMounted] = useState(false)
     const [selectedHour, setSelectedHour] = useState<any>(null)
 
@@ -27,8 +35,22 @@ export function StudentActivityTab({ supervisionHours = [], independentHours = [
 
     const safeSupervision = Array.isArray(supervisionHours) ? supervisionHours : []
     const safeIndependent = Array.isArray(independentHours) ? independentHours : []
+    const safeGroup = Array.isArray(groupAttendance) ? groupAttendance : []
 
-    const allHours = [...safeSupervision, ...safeIndependent]
+    // Normalize group sessions for visualization
+    const groupLogs = safeGroup.map(att => ({
+        id: att.id,
+        date: att.session.date,
+        startTime: att.session.startTime,
+        hours: 1,
+        supervisionType: 'GROUP',
+        groupTopic: att.session.topic,
+        status: 'PENDING',
+        type: 'supervised',
+        studentId: att.studentId
+    }))
+
+    const allHours = [...safeSupervision, ...safeIndependent, ...groupLogs]
         .filter((h: any) => h && (h.status === "APPROVED" || h.status === "BILLED" || h.status === "PENDING" || h.status === "REJECTED"))
 
     return (

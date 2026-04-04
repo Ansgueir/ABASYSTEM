@@ -47,13 +47,20 @@ export default async function OfficeStudentDetailPage({ params }: { params: Prom
                         }
                     }
                 },
-                independentHours: { orderBy: { date: "desc" } },
-                supervisionHours: { orderBy: { date: "desc" } },
-                invoices: { orderBy: { createdAt: "desc" } },
-                supervisors: {
-                    include: { supervisor: true }
+                independentHours: { 
+                    orderBy: { date: "desc" },
+                    take: 1000
                 },
-                // removed financialPeriods as it is not present in the current production schema
+                supervisionHours: { 
+                    orderBy: { date: "desc" },
+                    take: 1000
+                },
+                groupSupervisionAttendance: {
+                    where: { attended: true },
+                    include: { session: { include: { supervisor: true } } },
+                    orderBy: { session: { date: "desc" } },
+                    take: 200
+                },
             }
         });
     } catch (error) {
@@ -239,6 +246,7 @@ export default async function OfficeStudentDetailPage({ params }: { params: Prom
                             <StudentActivityTab 
                                 supervisionHours={safeStudent.supervisionHours || []} 
                                 independentHours={safeStudent.independentHours || []} 
+                                groupAttendance={safeStudent.groupSupervisionAttendance || []}
                             />
                         </TabsContent>
 
