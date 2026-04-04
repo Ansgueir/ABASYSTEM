@@ -55,7 +55,7 @@ export default async function OfficeStudentDetailPage({ params }: { params: Prom
                     orderBy: { date: "desc" },
                     take: 1000
                 },
-                groupSupervisionAttendance: {
+                groupAttendance: {
                     where: { attended: true },
                     include: { session: { include: { supervisor: true } } },
                     orderBy: { session: { date: "desc" } },
@@ -246,7 +246,7 @@ export default async function OfficeStudentDetailPage({ params }: { params: Prom
                             <StudentActivityTab 
                                 supervisionHours={safeStudent.supervisionHours || []} 
                                 independentHours={safeStudent.independentHours || []} 
-                                groupAttendance={safeStudent.groupSupervisionAttendance || []}
+                                groupAttendance={safeStudent.groupAttendance || []}
                             />
                         </TabsContent>
 
