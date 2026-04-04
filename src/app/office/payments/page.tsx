@@ -45,7 +45,8 @@ export default async function OfficePaymentsPage({
             orderBy: { createdAt: 'desc' },
             include: {
                 student: { include: { supervisor: true } },
-                payouts: true
+                payouts: true,
+                supervisionHours: { include: { supervisor: true } }
             }
         })
 
