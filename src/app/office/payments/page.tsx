@@ -105,10 +105,12 @@ export default async function OfficePaymentsPage({
         if (supervisor && inv.student.supervisorId) {
             const id = inv.student.supervisorId
             const payPercent = Number(supervisor.paymentPercentage || 0.54)
-            const capTotal = Number(inv.amountDue) * payPercent
-            const paidToSup = supervisorLedger
-                .filter(e => e.invoiceId === inv.id && e.supervisorId === id)
-                .reduce((s, e) => s + Number(e.supervisorPayout), 0)
+            const projectedCap = Number(inv.amountDue) * payPercent
+            const collectedForSupervisor = Number(inv.amountPaid || 0) * payPercent
+            const payoutSum = (inv as any).payouts?.filter((p: any) => p.supervisorId === id).reduce((s: number, p: any) => s + Number(p.amount), 0) || 0
+            
+            // Crucial Rule: The supervisor can ONLY be paid from what the student has actually paid.
+            const payableBalance = collectedForSupervisor - payoutSum
 
             if (!supervisorSummary[id]) {
                 supervisorSummary[id] = {
@@ -120,8 +122,7 @@ export default async function OfficePaymentsPage({
                 }
             }
 
-            supervisorSummary[id].totalProjected += capTotal
-            const payoutSum = (inv as any).payouts?.filter((p: any) => p.supervisorId === id).reduce((s: number, p: any) => s + Number(p.amount), 0) || 0
+            supervisorSummary[id].totalProjected += projectedCap
             supervisorSummary[id].totalPaid += payoutSum
             
             // Add this invoice to the supervisor's list
@@ -131,9 +132,11 @@ export default async function OfficePaymentsPage({
                 date: inv.invoiceDate,
                 status: inv.status,
                 invoiceTotal: Number(inv.amountDue),
-                supervisorCap: capTotal,
+                studentPaid: Number(inv.amountPaid || 0),
+                supervisorCap: projectedCap,
+                collectedForSupervisor: collectedForSupervisor,
                 paidAmount: payoutSum,
-                remainingCap: capTotal - payoutSum
+                remainingCap: payableBalance // This dictates the "Pay" button availability
             })
         }
     }

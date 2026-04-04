@@ -56,9 +56,11 @@ export function SupervisorPaymentsList({ supervisorSummary }: SupervisorPayments
                                         <th className="text-left pb-2 font-medium">Student</th>
                                         <th className="text-left pb-2 font-medium">Status</th>
                                         <th className="text-right pb-2 font-medium">Bill Total</th>
-                                        <th className="text-right pb-2 font-medium text-primary">Your Cap (%)</th>
+                                        <th className="text-right pb-2 font-medium text-blue-600">Student Paid</th>
+                                        <th className="text-right pb-2 font-medium text-primary">Proj. Cap</th>
+                                        <th className="text-right pb-2 font-medium text-emerald-600">Available to Pay</th>
                                         <th className="text-right pb-2 font-medium text-green-600">Paid to You</th>
-                                        <th className="text-right pb-2 font-medium text-amber-600">Rem. Balance</th>
+                                        <th className="text-right pb-2 font-medium text-amber-600">Unpaid Bal.</th>
                                         <th className="text-right pb-2 font-medium">Actions</th>
                                     </tr>
                                 </thead>
@@ -73,7 +75,9 @@ export function SupervisorPaymentsList({ supervisorSummary }: SupervisorPayments
                                                 </span>
                                             </td>
                                             <td className="py-2 text-right">${inv.invoiceTotal.toFixed(2)}</td>
+                                            <td className="py-2 text-right font-medium text-blue-600">${inv.studentPaid.toFixed(2)}</td>
                                             <td className="py-2 text-right font-medium text-primary">${inv.supervisorCap.toFixed(2)}</td>
+                                            <td className="py-2 text-right font-medium text-emerald-600">${inv.collectedForSupervisor.toFixed(2)}</td>
                                             <td className="py-2 text-right font-bold text-green-600">${inv.paidAmount.toFixed(2)}</td>
                                             <td className="py-2 text-right font-bold text-amber-600">${inv.remainingCap.toFixed(2)}</td>
                                             <td className="py-2 text-right">
