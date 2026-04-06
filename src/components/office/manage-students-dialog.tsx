@@ -29,6 +29,8 @@ export function ManageStudentsForm({ supervisorId, supervisorName }: ManageStude
     const [assigned, setAssigned] = useState<any[]>([])
     const [searchAssignedTerm, setSearchAssignedTerm] = useState("")
     const [searchAvailableTerm, setSearchAvailableTerm] = useState("")
+    const [confirmData, setConfirmData] = useState<{ studentId: string; studentName: string; action: 'assign' | 'remove' } | null>(null)
+    const [confirmInput, setConfirmInput] = useState("")
 
     const fetchStudents = async () => {
         setIsLoading(true)
@@ -48,15 +50,24 @@ export function ManageStudentsForm({ supervisorId, supervisorName }: ManageStude
         fetchStudents()
     }, [supervisorId])
 
-    const handleAssignToggle = (studentId: string, currentStatus: "assigned" | "unassigned") => {
+    const handleAssignToggle = (studentId: string, studentName: string, action: 'assign' | 'remove') => {
+        setConfirmData({ studentId, studentName, action })
+        setConfirmInput("")
+    }
+
+    const executeToggle = () => {
+        if (!confirmData) return
+        
         startTransition(async () => {
+            const currentStatus = confirmData.action === 'remove' ? 'assigned' : 'unassigned'
             const newSupervisorId = currentStatus === "assigned" ? null : supervisorId
-            const res = await assignStudentToSupervisor(studentId, newSupervisorId)
+            const res = await assignStudentToSupervisor(confirmData.studentId, newSupervisorId)
 
             if (res.error) {
                 toast.error(res.error)
             } else {
                 toast.success(currentStatus === "assigned" ? "Student removed" : "Student assigned")
+                setConfirmData(null)
                 fetchStudents()
             }
         })
@@ -109,16 +120,16 @@ export function ManageStudentsForm({ supervisorId, supervisorName }: ManageStude
                                             <p className="font-semibold text-sm">{student.fullName}</p>
                                             <p className="text-xs text-muted-foreground tracking-tight">{student.email}</p>
                                         </div>
-                                        <Button
-                                            variant="ghost"
-                                            size="sm"
-                                            className="text-destructive hover:text-destructive hover:bg-destructive/10 rounded-full h-8 opacity-90 group-hover:opacity-100"
-                                            onClick={() => handleAssignToggle(student.id, "assigned")}
-                                            disabled={isPending}
-                                        >
-                                            <X className="h-4 w-4 mr-1" />
-                                            Remove
-                                        </Button>
+                                            <Button
+                                                variant="ghost"
+                                                size="sm"
+                                                className="text-destructive hover:text-destructive hover:bg-destructive/10 rounded-full h-8 opacity-90 group-hover:opacity-100"
+                                                onClick={() => handleAssignToggle(student.id, student.fullName, 'remove')}
+                                                disabled={isPending}
+                                            >
+                                                <X className="h-4 w-4 mr-1" />
+                                                Remove
+                                            </Button>
                                     </div>
                                 ))
                             )}
@@ -154,16 +165,16 @@ export function ManageStudentsForm({ supervisorId, supervisorName }: ManageStude
                                             <p className="font-semibold text-sm">{student.fullName}</p>
                                             <p className="text-xs text-muted-foreground tracking-tight">{student.email}</p>
                                         </div>
-                                        <Button
-                                            variant="secondary"
-                                            size="sm"
-                                            className="rounded-full h-8 bg-primary/10 text-primary hover:bg-primary/20 hover:text-primary transition-colors opacity-90 group-hover:opacity-100"
-                                            onClick={() => handleAssignToggle(student.id, "unassigned")}
-                                            disabled={isPending}
-                                        >
-                                            <Check className="h-4 w-4 mr-1" />
-                                            Assign
-                                        </Button>
+                                            <Button
+                                                variant="secondary"
+                                                size="sm"
+                                                className="rounded-full h-8 bg-primary/10 text-primary hover:bg-primary/20 hover:text-primary transition-colors opacity-90 group-hover:opacity-100"
+                                                onClick={() => handleAssignToggle(student.id, student.fullName, 'assign')}
+                                                disabled={isPending}
+                                            >
+                                                <Check className="h-4 w-4 mr-1" />
+                                                Assign
+                                            </Button>
                                     </div>
                                 ))
                             )}
@@ -171,6 +182,51 @@ export function ManageStudentsForm({ supervisorId, supervisorName }: ManageStude
                     </div>
                 </>
             )}
+
+            {/* Confirmation Modal */}
+            <Dialog open={!!confirmData} onOpenChange={(open) => !open && setConfirmData(null)}>
+                <DialogContent className="sm:max-w-[400px]">
+                    <DialogHeader>
+                        <DialogTitle>
+                            {confirmData?.action === 'remove' ? 'Remove Student Assignment' : 'Assign Student to Supervisor'}
+                        </DialogTitle>
+                        <DialogDescription>
+                            Are you sure you want to {confirmData?.action} <strong>{confirmData?.studentName}</strong>?
+                            <br />
+                            This will {confirmData?.action === 'remove' ? 'detach them from' : 'assign them to'} {supervisorName}.
+                        </DialogDescription>
+                    </DialogHeader>
+                    <div className="py-4 space-y-4">
+                        <p className="text-sm font-medium">To confirm, please type <span className="font-bold uppercase">"{confirmData?.action}"</span> below:</p>
+                        <Input 
+                            value={confirmInput}
+                            onChange={(e) => setConfirmInput(e.target.value.toLowerCase())}
+                            placeholder={`Type ${confirmData?.action}...`}
+                            className="h-10 text-center font-bold"
+                            autoFocus
+                        />
+                    </div>
+                    <div className="flex gap-2">
+                        <Button 
+                            variant="outline" 
+                            className="flex-1 rounded-full" 
+                            onClick={() => setConfirmData(null)}
+                            disabled={isPending}
+                        >
+                            Cancel
+                        </Button>
+                        <Button 
+                            variant={confirmData?.action === 'remove' ? 'destructive' : 'default'}
+                            className="flex-1 rounded-full" 
+                            onClick={executeToggle}
+                            disabled={isPending || confirmInput !== confirmData?.action}
+                        >
+                            {isPending && <Loader2 className="h-4 w-4 animate-spin mr-2" />}
+                            Confirm {confirmData?.action}
+                        </Button>
+                    </div>
+                </DialogContent>
+            </Dialog>
         </div>
     )
 }
