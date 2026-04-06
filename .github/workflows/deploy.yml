@@ -12,21 +12,18 @@ jobs:
     steps:
     - name: Update and Build Application
       run: |
-        cd ~/aba-supervision-system
+        cd /opt/aba-system
         
         # Pull the latest changes
-        git pull origin main
+        sudo git pull origin main
         
         # Install dependencies
-        npm install --legacy-peer-deps
-        
-        # Clean Next.js cache to avoid CSS corruption
-        rm -rf .next
+        sudo npm install --legacy-peer-deps
         
         # Build the production bundle
-        npm run build
+        sudo npm run build
         
         # Restart the application
-        pm2 restart aba-supervision-system
+        sudo systemctl restart aba-system
         
         echo "Deployment completed successfully!"
