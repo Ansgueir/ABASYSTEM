@@ -20,7 +20,11 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
                 password: { label: "Password", type: "password" },
             },
             authorize: async (credentials) => {
-                if (!credentials?.email || !credentials?.password) return null
+                console.log("[AUTH-DEBUG] Authorize called with email:", credentials?.email);
+                if (!credentials?.email || !credentials?.password) {
+                    console.log("[AUTH-DEBUG] Missing email or password");
+                    return null;
+                }
 
                 const email = credentials.email as string
                 const user = await prisma.user.findUnique({
@@ -32,14 +36,21 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
                     }
                 })
 
-                if (!user || !user.passwordHash) {
+                if (!user) {
+                    console.log("[AUTH-DEBUG] User not found in DB");
+                    return null
+                }
+                if (!user.passwordHash) {
+                    console.log("[AUTH-DEBUG] User has no passwordHash");
                     return null
                 }
 
+                console.log("[AUTH-DEBUG] Comparing passwords...");
                 const passwordsMatch = await bcrypt.compare(
                     credentials.password as string,
                     user.passwordHash
                 )
+                console.log("[AUTH-DEBUG] bcrypt result:", passwordsMatch);
 
                 if (passwordsMatch) {
                     if (user.isActive === false) return null
@@ -55,6 +66,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
                         officeRole = user.officeMember.officeRole
                     }
 
+                    console.log("[AUTH-DEBUG] Successfully returning user payload");
                     return {
                         id: user.id,
                         email: user.email,
@@ -67,6 +79,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
                     }
                 }
 
+                console.log("[AUTH-DEBUG] Passwords did not match");
                 return null
             },
         }),
