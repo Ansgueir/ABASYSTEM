@@ -43,7 +43,7 @@ import { cn } from "@/lib/utils"
 import { logHours, logBulkHours } from "@/actions/log-hours"
 import { toast } from "sonner"
 
-const SettingTypeOptions = ["CLIENTS_HOME", "SCHOOL", "DAYCARE", "OFFICE_CLINIC", "GROUP_HOME", "COMMUNITY"] as const
+const SettingTypeOptions = ["CLIENTS_HOME", "SCHOOL", "DAYCARE", "OFFICE_CLINIC", "GROUP_HOME", "COMMUNITY", "OTHERS"] as const
 const ActivityTypeOptions = ["RESTRICTED", "UNRESTRICTED"] as const
 
 const WEEKDAYS = [
@@ -70,6 +70,7 @@ const formSchema = z.object({
     endTime: z.string().min(1, "End time is required"),
     minutes: z.coerce.number().min(1, "Duration must be at least 1 minute"),
     setting: z.enum(SettingTypeOptions),
+    customSetting: z.string().optional(),
     activityType: z.enum(ActivityTypeOptions),
     notes: z.string().optional(),
 })
@@ -101,6 +102,7 @@ export function LogHoursDialog({ disabled = false, disabledMessage, students }: 
             endTime: "10:00",
             minutes: 60,
             setting: "CLIENTS_HOME",
+            customSetting: "",
             activityType: "UNRESTRICTED",
             notes: ""
         },
@@ -168,6 +170,9 @@ export function LogHoursDialog({ disabled = false, disabledMessage, students }: 
                 formData.append("startTime", values.startTime)
                 formData.append("minutes", values.minutes.toString())
                 formData.append("setting", values.setting)
+                if (values.setting === "OTHERS" && values.customSetting) {
+                    formData.append("customSetting", values.customSetting)
+                }
                 formData.append("activityType", values.activityType)
                 if (values.notes) formData.append("notes", values.notes)
                 if (isSupervisorMode && selectedStudentId) formData.append("studentId", selectedStudentId)
@@ -206,6 +211,7 @@ export function LogHoursDialog({ disabled = false, disabledMessage, students }: 
                     startTime: values.startTime,
                     minutes: values.minutes,
                     setting: values.setting,
+                    customSetting: values.setting === "OTHERS" ? values.customSetting : undefined,
                     activityType: values.activityType,
                     notes: values.notes,
                     studentId: isSupervisorMode ? selectedStudentId : undefined,
@@ -599,6 +605,21 @@ export function LogHoursDialog({ disabled = false, disabledMessage, students }: 
                                             </FormItem>
                                         )}
                                     />
+                                    {form.watch("setting") === "OTHERS" && (
+                                        <FormField
+                                            control={form.control}
+                                            name="customSetting"
+                                            render={({ field }) => (
+                                                <FormItem className="col-span-2">
+                                                    <FormLabel>Manual Setting</FormLabel>
+                                                    <FormControl>
+                                                        <Input placeholder="Enter custom setting location / context..." {...field} />
+                                                    </FormControl>
+                                                    <FormMessage />
+                                                </FormItem>
+                                            )}
+                                        />
+                                    )}
                                 </div>
 
                                 <FormField

@@ -13,6 +13,7 @@ const logHoursSchema = z.object({
     startTime: z.string().min(1, "Start time is required"),
     minutes: z.preprocess((a) => parseInt(String(a), 10), z.number().min(1, "Duration must be at least 1 minute")),
     setting: z.nativeEnum(SettingType),
+    customSetting: z.string().optional(),
     activityType: z.nativeEnum(ActivityType),
     notes: z.string().optional(),
     supervisorId: z.string().optional(),
@@ -275,6 +276,7 @@ export async function logHours(prevState: LogHoursState, formData: FormData) {
                     startTime: startDateTime,
                     hours: hoursDecimal,
                     setting: data.setting,
+                    customSetting: data.customSetting,
                     activityType: data.activityType,
                     notes: data.notes,
                 }
@@ -290,6 +292,7 @@ export async function logHours(prevState: LogHoursState, formData: FormData) {
                     startTime: startDateTime,
                     hours: hoursDecimal,
                     setting: data.setting,
+                    customSetting: data.customSetting,
                     activityType: data.activityType,
                     supervisionType: data.supervisionFormat || SupervisionFormat.INDIVIDUAL,
                     notes: data.notes,
@@ -564,6 +567,7 @@ export async function logBulkHours(payload: {
     startTime: string    // "HH:MM"
     minutes: number
     setting: string
+    customSetting?: string
     activityType: string
     notes?: string
     studentId?: string   // for supervisor-initiated logs
@@ -654,6 +658,7 @@ export async function logBulkHours(payload: {
                             startTime: startDateTime,
                             hours: hoursDecimal,
                             setting: payload.setting as any,
+                            customSetting: payload.customSetting,
                             activityType: payload.activityType as any,
                             notes: payload.notes,
                         }
@@ -668,6 +673,7 @@ export async function logBulkHours(payload: {
                             startTime: startDateTime,
                             hours: hoursDecimal,
                             setting: payload.setting as any,
+                            customSetting: payload.customSetting,
                             activityType: payload.activityType as any,
                             supervisionType: 'INDIVIDUAL' as any,
                             notes: payload.notes,

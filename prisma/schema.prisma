@@ -191,6 +191,7 @@ model IndependentHour {
   startTime           DateTime
   hours               Decimal            @db.Decimal(4, 2)
   setting             SettingType
+  customSetting       String?
   activityType        ActivityType
   notes               String?
   isRepeating         Boolean            @default(false)
@@ -211,6 +212,7 @@ model SupervisionHour {
   hours               Decimal            @db.Decimal(4, 2)
   supervisionType     SupervisionFormat
   setting             SettingType
+  customSetting       String?
   activityType        ActivityType
   notes               String?
   groupTopic          String?
@@ -484,6 +486,7 @@ enum SettingType {
   OFFICE_CLINIC
   GROUP_HOME
   COMMUNITY
+  OTHERS
 }
 
 enum ActivityType {
