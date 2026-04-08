@@ -45,7 +45,7 @@ export function AddressAutocomplete({
     const [suggestions, setSuggestions] = useState<any[]>([])
     const [isLoading, setIsLoading] = useState(false)
     const [showSuggestions, setShowSuggestions] = useState(false)
-    const [manualMode, setManualMode] = useState(false)
+    const [manualMode, setManualMode] = useState(true)
     const [hasSelected, setHasSelected] = useState(false)
     const debounceRef = useRef<NodeJS.Timeout | null>(null)
     const containerRef = useRef<HTMLDivElement>(null)
@@ -131,10 +131,14 @@ export function AddressAutocomplete({
         const parsedNumber = p.housenumber || ""
         
         // 2. City Detection (Aggressive check across different mapping labels)
-        const parsedCity = p.city || p.town || p.village || p.locality || p.municipality || p.district || ""
+        let parsedCity = p.city || p.town || p.village || p.locality || p.municipality || p.district || ""
         
         // 3. State/Region
-        const parsedState = p.state || ""
+        let parsedState = p.state || p.county || ""
+        
+        // --- Smart Fallback ---
+        if (!parsedCity && parsedState) parsedCity = parsedState
+        if (!parsedState && parsedCity) parsedState = parsedCity
         
         // 4. Zip/Postcode
         const parsedZip = p.postcode || ""
@@ -323,7 +327,7 @@ export function AddressAutocomplete({
                     onClick={() => setManualMode(!manualMode)}
                 >
                     <Pencil className="h-3.5 w-3.5" />
-                    {manualMode ? "Lock Edits" : "Edit All Manually"}
+                    {manualMode ? "Lock Edits" : "Unlock & Edit Manually"}
                 </Button>
             </div>
 
