@@ -1,0 +1,30 @@
+47c4511 HEAD@{0}: commit: chore: add debug logs to auth
+2f29dcd HEAD@{1}: commit: chore: test authorize logic directly
+9198c0e HEAD@{2}: commit: chore: add test-login diagnostic script
+d3c410a HEAD@{3}: commit: chore: restore admin to production stable
+4bbb2f3 HEAD@{4}: reset: moving to 4bbb2f3
+1222e83 HEAD@{5}: commit: feat: restore admin account to production
+d9c7e24 HEAD@{6}: commit: fix: seed field names to match schema
+ff1b4e4 HEAD@{7}: commit: chore: adding sql check to production
+7eaa72a HEAD@{8}: commit: chore: adding db check script to production
+ceaf2d3 HEAD@{9}: commit: feat: added Others option to log hours setting with manual field entry support
+4bbb2f3 HEAD@{10}: commit: Fix deployment workflow and manual deploy via SSH
+f8d370c HEAD@{11}: commit: Add confirmation keyword requirement for assigning/removing students
+de40ba9 HEAD@{12}: commit: Fix: enforce waterfall rule - supervisor payout strictly proportional to student amountPaid
+c2bd206 HEAD@{13}: commit: Fix: include supervisionHours in office payments query to populate Action LOG
+2370074 HEAD@{14}: commit: Fix: correct groupAttendance relation name for student detail
+9cb43a4 HEAD@{15}: commit: Fix: ensure all activities (including group sessions) show up in Supervisor and Student Activity Logs
+aa65226 HEAD@{16}: commit: Fix: implement updateLogStatus server action and fix supervisor approval UI
+39fce67 HEAD@{17}: commit: Fix: expand timesheet fetch limits for long-term schedules
+8f64ddf HEAD@{18}: commit: QA: remove temporary cleanup scripts
+a278e88 HEAD@{19}: commit: QA: add JS cleanup script for production assignments
+609d437 HEAD@{20}: commit: QA: remove auto-assignment of students in setup script
+2b31a52 HEAD@{21}: commit: UX: show specific validation errors in change-password
+076930d HEAD@{22}: commit: QA Hardening: role-based validation, signature stroke detection & session lock
+2cee808 HEAD@{23}: commit: fix(auth): solved session sync loop after password change
+c44711b HEAD@{24}: commit: feat(auth): only name email and plan are required for office; all mandatory for student wizard
+58560cc HEAD@{25}: commit: fix(auth): solved client-side exception by standardizing redirects
+2e916f6 HEAD@{26}: commit: fix(dates): solved timezone shift causing one day discrepancy in start dates
+6ba260e HEAD@{27}: commit: feat(plans): automated fieldworkType and fixed numeric overflow via normalization
+5cb8ac0 HEAD@{28}: commit: fix(ui): fixed plans mapping error in profile view
+9b419c3 HEAD@{29}: commit: feat(ui): integrated plan templates engine into student profile view
