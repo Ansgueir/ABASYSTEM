@@ -4,7 +4,7 @@ import { useState, useEffect } from "react"
 import { format } from "date-fns"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
-import { Eye } from "lucide-react"
+import { Eye, FileSignature, FileText } from "lucide-react"
 import {
     Dialog,
     DialogContent,
@@ -55,7 +55,33 @@ export function StudentActivityTab({
 
     return (
         <div className="rounded-xl border bg-card p-6 w-full overflow-x-auto relative mt-6">
-            <h3 className="font-semibold text-lg mb-4">Activity Log Calendar</h3>
+            <div className="flex flex-col md:flex-row md:items-center justify-between mb-4 gap-4">
+                <h3 className="font-semibold text-lg">Activity Log Calendar</h3>
+                <div className="flex flex-wrap gap-2">
+                    <Button variant="default" size="sm" className="gap-2" onClick={() => {
+                        const firstEntry = allHours.length > 0 ? allHours[0] : null;
+                        if (firstEntry?.studentId) {
+                            const dateObj = new Date(firstEntry.date || firstEntry.startTime || new Date());
+                            const monthStr = `${dateObj.getFullYear()}-${String(dateObj.getMonth() + 1).padStart(2, '0')}`;
+                            window.open(`/api/pdf/mvf/${firstEntry.studentId}?month=${monthStr}`, "_blank")
+                        } else {
+                            alert("No hours found to generate MVF");
+                        }
+                    }}>
+                        <FileSignature className="w-4 h-4" /> Generate Monthly Form (MVF)
+                    </Button>
+                    <Button variant="outline" size="sm" className="gap-2 border-primary text-primary hover:bg-primary/5" onClick={() => {
+                        const firstEntry = allHours.length > 0 ? allHours[0] : null;
+                        if (firstEntry?.studentId) {
+                            window.open(`/api/pdf/fvf/${firstEntry.studentId}`, "_blank")
+                        } else {
+                            alert("No hours found to generate FVF");
+                        }
+                    }}>
+                        <FileText className="w-4 h-4" /> Generate Fieldwork Form (FVF)
+                    </Button>
+                </div>
+            </div>
             <div className="w-full relative">
                 <TimesheetCalendar 
                     hours={allHours} 
