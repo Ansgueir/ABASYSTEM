@@ -43,7 +43,7 @@ import { cn } from "@/lib/utils"
 import { logHours } from "@/actions/log-hours"
 import { toast } from "sonner"
 
-const SettingTypeOptions = ["CLIENTS_HOME", "SCHOOL", "DAYCARE", "OFFICE_CLINIC", "GROUP_HOME", "COMMUNITY"] as const
+const SettingTypeOptions = ["CLIENTS_HOME", "SCHOOL", "DAYCARE", "OFFICE_CLINIC", "GROUP_HOME", "COMMUNITY", "OTHERS"] as const
 const ActivityTypeOptions = ["RESTRICTED", "UNRESTRICTED"] as const
 const SupervisionFormatOptions = ["INDIVIDUAL", "GROUP"] as const
 
@@ -53,6 +53,7 @@ const formSchema = z.object({
     startTime: z.string().min(1, "Start time is required"),
     minutes: z.coerce.number().min(1, "Duration must be at least 1 minute"),
     setting: z.enum(SettingTypeOptions),
+    customSetting: z.string().optional(),
     activityType: z.enum(ActivityTypeOptions),
     supervisionFormat: z.enum(SupervisionFormatOptions),
     notes: z.string().optional(),
@@ -73,6 +74,7 @@ export function LogSupervisionDialog({ students }: LogSupervisionDialogProps) {
             startTime: "09:00",
             minutes: 60,
             setting: "CLIENTS_HOME",
+            customSetting: "",
             activityType: "UNRESTRICTED",
             supervisionFormat: "INDIVIDUAL",
             notes: ""
@@ -88,6 +90,9 @@ export function LogSupervisionDialog({ students }: LogSupervisionDialogProps) {
         formData.append("startTime", values.startTime)
         formData.append("minutes", values.minutes.toString())
         formData.append("setting", values.setting)
+        if (values.setting === "OTHERS" && values.customSetting) {
+            formData.append("customSetting", values.customSetting)
+        }
         formData.append("activityType", values.activityType)
         formData.append("supervisionFormat", values.supervisionFormat)
         if (values.notes) formData.append("notes", values.notes)
@@ -290,6 +295,22 @@ export function LogSupervisionDialog({ students }: LogSupervisionDialogProps) {
                                     </FormItem>
                                 )}
                             />
+
+                            {form.watch("setting") === "OTHERS" && (
+                                <FormField
+                                    control={form.control}
+                                    name="customSetting"
+                                    render={({ field }) => (
+                                        <FormItem className="col-span-2">
+                                            <FormLabel>Manual Setting</FormLabel>
+                                            <FormControl>
+                                                <Input placeholder="Enter custom setting location / context..." {...field} />
+                                            </FormControl>
+                                            <FormMessage />
+                                        </FormItem>
+                                    )}
+                                />
+                            )}
                         </div>
 
 
