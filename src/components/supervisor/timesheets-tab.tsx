@@ -89,16 +89,6 @@ export function TimesheetsTab({ independentHours, supervisionHours }: Timesheets
                     }}>
                         <FileSignature className="w-4 h-4" /> Generate Monthly Form (MVF)
                     </Button>
-                    <Button variant="outline" size="sm" className="gap-2 border-primary text-primary hover:bg-primary/5" onClick={() => {
-                        const firstEntry = allEntries.length > 0 ? allEntries[0] : null;
-                        if (firstEntry?.studentId) {
-                            window.open(`/api/pdf/fvf/${firstEntry.studentId}`, "_blank")
-                        } else {
-                            toast.error("No hours found to generate FVF");
-                        }
-                    }}>
-                        <FileText className="w-4 h-4" /> Generate Fieldwork Form (FVF)
-                    </Button>
                     <div className="flex flex-col items-end">
                         <span className="text-muted-foreground">Total</span>
                         <span>{totalHours.toFixed(2)} hrs</span>
