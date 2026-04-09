@@ -321,7 +321,7 @@ export function SupervisorList({ initialSupervisors, isSuperAdmin, isQaSuper = f
                                     <tr className="border-b bg-muted/40 text-muted-foreground/80">
                                         <th className="text-left p-4 font-semibold">Supervisor</th>
                                         <th className="text-left p-4 font-semibold hidden md:table-cell">Students</th>
-                                        <th className="text-left p-4 font-semibold hidden lg:table-cell">Sup. Groups</th>
+                                        <th className="text-left p-4 font-semibold hidden lg:table-cell">Groups</th>
                                         <th className="text-left p-4 font-semibold hidden sm:table-cell">Credential</th>
                                         <th className="text-left p-4 font-semibold hidden sm:table-cell">Commission</th>
                                         <th className="text-right p-4 font-semibold">Actions</th>
@@ -348,7 +348,7 @@ export function SupervisorList({ initialSupervisors, isSuperAdmin, isQaSuper = f
                                                 <span className="text-muted-foreground/70"> / {supervisor.maxStudents || 10}</span>
                                             </td>
                                             <td className="p-4 hidden lg:table-cell">
-                                                <span className="font-bold text-foreground">{supervisor._count?.groupSessions || 0}</span>
+                                                <span className="font-bold text-foreground">{supervisor._count?.studentAssignments || 0}</span>
                                                 <span className="font-semibold text-foreground">/10</span>
                                             </td>
                                             <td className="p-4 hidden sm:table-cell">

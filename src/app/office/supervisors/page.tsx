@@ -21,7 +21,7 @@ export default async function OfficeSupervisorsPage() {
             where: { user: { isHidden: false } },
             orderBy: { fullName: 'asc' },
             include: {
-                _count: { select: { students: true, groupSessions: true } },
+                _count: { select: { students: true, studentAssignments: { where: { isPrimary: false } } } },
                 user: { select: { isActive: true, email: true } }
             }
         })
