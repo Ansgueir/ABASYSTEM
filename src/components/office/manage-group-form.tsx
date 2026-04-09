@@ -298,7 +298,7 @@ export function ManageGroupForm({ supervisorId, supervisorName }: ManageGroupPro
                                     </div>
                                     <div className="flex items-center gap-3">
                                         <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider whitespace-nowrap">
-                                            Fecha Inicio:
+                                            Start Date:
                                         </span>
                                         <Input 
                                             value={draft.startDate} 
