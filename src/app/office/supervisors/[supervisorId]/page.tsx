@@ -19,15 +19,18 @@ import { UploadDocumentDialog } from "@/components/upload-document-dialog"
 import { OfficeDocumentActions } from "@/components/office/office-document-actions"
 import { SupervisorActivityTab } from "@/components/office/supervisor-activity-tab"
 
-export default async function OfficeSupervisorDetailPage({ 
-    params,
-    searchParams
-}: { 
-    params: Promise<{ supervisorId: string }>,
-    searchParams: Promise<{ tab?: string }>
-}) {
-    const { supervisorId } = await params
-    const { tab } = await searchParams || {}
+export default async function OfficeSupervisorDetailPage(props: any) {
+    const params = await props.params
+    const supervisorId = params?.supervisorId
+    
+    // Safely extract tab from searchParams if it exists
+    let tab = "profile"
+    if (props.searchParams) {
+        const sp = await props.searchParams
+        if (sp && typeof sp.tab === 'string') {
+            tab = sp.tab
+        }
+    }
     const session = await auth()
     if (!session?.user) redirect("/login")
     const role = String((session.user as any).role).toUpperCase()
@@ -151,7 +154,7 @@ export default async function OfficeSupervisorDetailPage({
                 </div>
 
                 {/* Tabs */}
-                <Tabs defaultValue={tab || "profile"}>
+                <Tabs defaultValue={tab}>
                     <TabsList className="mb-6 bg-muted/50 p-1 border">
                         <TabsTrigger value="profile" className="px-6 font-medium">Profile</TabsTrigger>
                         <TabsTrigger value="students" className="px-6 font-medium">Students</TabsTrigger>
