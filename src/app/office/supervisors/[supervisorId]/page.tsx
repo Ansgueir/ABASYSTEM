@@ -18,8 +18,15 @@ import { UploadDocumentDialog } from "@/components/upload-document-dialog"
 import { OfficeDocumentActions } from "@/components/office/office-document-actions"
 import { SupervisorActivityTab } from "@/components/office/supervisor-activity-tab"
 
-export default async function OfficeSupervisorDetailPage({ params }: { params: Promise<{ supervisorId: string }> }) {
+export default async function OfficeSupervisorDetailPage({ 
+    params,
+    searchParams
+}: { 
+    params: Promise<{ supervisorId: string }>,
+    searchParams: Promise<{ tab?: string }>
+}) {
     const { supervisorId } = await params
+    const { tab } = await searchParams || {}
     const session = await auth()
     if (!session?.user) redirect("/login")
     const role = String((session.user as any).role).toUpperCase()
@@ -143,11 +150,12 @@ export default async function OfficeSupervisorDetailPage({ params }: { params: P
                 </div>
 
                 {/* Tabs */}
-                <Tabs defaultValue="profile">
+                <Tabs defaultValue={tab || "profile"}>
                     <TabsList className="mb-6 bg-muted/50 p-1 border">
                         <TabsTrigger value="profile" className="px-6 font-medium">Profile</TabsTrigger>
                         <TabsTrigger value="students" className="px-6 font-medium">Students</TabsTrigger>
                         <TabsTrigger value="manage" className="px-6 font-medium">Manage Students</TabsTrigger>
+                        <TabsTrigger value="groups" className="px-6 font-medium">Manage Group</TabsTrigger>
                         <TabsTrigger value="documents" className="px-6 font-medium">Documents</TabsTrigger>
                         <TabsTrigger value="activity" className="px-6 font-medium">Activity Log</TabsTrigger>
                     </TabsList>
@@ -216,6 +224,23 @@ export default async function OfficeSupervisorDetailPage({ params }: { params: P
                                 supervisorId={safeSupervisor.id} 
                                 supervisorName={safeSupervisor.fullName} 
                             />
+                        </div>
+                    </TabsContent>
+
+                    <TabsContent value="groups">
+                        <div className="bg-card border rounded-2xl p-8 shadow-sm max-w-4xl">
+                            <div className="mb-6">
+                                <h3 className="text-xl font-bold flex items-center gap-2">
+                                    <Users className="h-6 w-6 text-primary" />
+                                    Manage Group Students
+                                </h3>
+                                <p className="text-sm text-muted-foreground mt-1">
+                                    Configure group settings and specific assignments for {safeSupervisor.fullName}.
+                                </p>
+                            </div>
+                            <div className="p-10 border border-dashed rounded-xl text-center text-muted-foreground">
+                                Structure ready for the new Advanced Group Administration interface.
+                            </div>
                         </div>
                     </TabsContent>
 

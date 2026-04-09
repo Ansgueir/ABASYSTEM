@@ -141,7 +141,7 @@ export function UserActions({ id, userId, name, email, type, isActive, fullData,
                                 asChild
                                 className="w-full justify-start h-8 px-2"
                             >
-                                <Link href="#" onClick={() => setIsPopoverOpen(false)}>
+                                <Link href={`/office/supervisors/${id}?tab=groups`} onClick={() => setIsPopoverOpen(false)}>
                                     <Users className="mr-2 h-4 w-4" />
                                     Manage Group
                                 </Link>
