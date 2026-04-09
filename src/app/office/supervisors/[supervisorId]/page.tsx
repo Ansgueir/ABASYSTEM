@@ -9,6 +9,7 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/custom-tabs"
 import { serialize } from "@/lib/serialize"
 import { ManageStudentsDialog, ManageStudentsForm } from "@/components/office/manage-students-dialog"
+import { ManageGroupForm } from "@/components/office/manage-group-form"
 import { EditableSupervisorContactInfo } from "@/components/shared/editable-contact-info"
 import { EditableSupervisorFinancialInfo } from "@/components/office/editable-financial-info"
 import { format } from "date-fns"
@@ -238,9 +239,10 @@ export default async function OfficeSupervisorDetailPage({
                                     Configure group settings and specific assignments for {safeSupervisor.fullName}.
                                 </p>
                             </div>
-                            <div className="p-10 border border-dashed rounded-xl text-center text-muted-foreground">
-                                Structure ready for the new Advanced Group Administration interface.
-                            </div>
+                            <ManageGroupForm 
+                                supervisorId={safeSupervisor.id} 
+                                supervisorName={safeSupervisor.fullName} 
+                            />
                         </div>
                     </TabsContent>
 

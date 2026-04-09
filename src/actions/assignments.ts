@@ -105,3 +105,62 @@ export async function assignStudentToSupervisor(studentId: string, supervisorId:
     // Kept for backward compatibility, but it will handle it via the new structure as Primary
     return updateStudentAssignments(studentId, supervisorId, [])
 }
+
+export async function getGroupStudents(supervisorId: string) {
+    const currentUser = await getSessionUser()
+    if (!currentUser || (currentUser.role !== "OFFICE" && currentUser.role !== "QA")) {
+        return { error: "Unauthorized" }
+    }
+
+    try {
+        const allStudents = await prisma.student.findMany({
+            where: { status: 'ACTIVE' },
+            select: { 
+                id: true, 
+                fullName: true, 
+                email: true, 
+                supervisors: true 
+            }
+        })
+
+        const assigned = allStudents.filter(s => s.supervisors.some(as => as.supervisorId === supervisorId && as.isPrimary === false))
+        const unassigned = allStudents.filter(s => !s.supervisors.some(as => as.supervisorId === supervisorId && as.isPrimary === false))
+
+        return { unassigned, assigned }
+    } catch (error) {
+        console.error("Failed to fetch group students", error)
+        return { error: "Failed to fetch group students" }
+    }
+}
+
+export async function toggleGroupStudentAssignment(studentId: string, supervisorId: string, action: 'assign' | 'remove') {
+    const currentUser = await getSessionUser()
+    if (!currentUser || (currentUser.role !== "OFFICE" && currentUser.role !== "QA")) {
+        return { error: "Unauthorized" }
+    }
+
+    try {
+        if (action === 'assign') {
+            const exists = await prisma.studentSupervisor.findFirst({
+                where: { studentId, supervisorId }
+            })
+            if (!exists) {
+                await prisma.studentSupervisor.create({
+                    data: { studentId, supervisorId, isPrimary: false }
+                })
+            } else if (exists.isPrimary) {
+                return { error: "Student is already assigned as the PRIMARY student." }
+            }
+        } else {
+            await prisma.studentSupervisor.deleteMany({
+                where: { studentId, supervisorId, isPrimary: false }
+            })
+        }
+        revalidatePath("/office/supervisors")
+        revalidatePath("/office/supervisors/${supervisorId}")
+        return { success: true }
+    } catch (error) {
+        console.error("Failed updating group assignment", error)
+        return { error: "Failed to update group assignment" }
+    }
+}
