@@ -81,10 +81,10 @@ export function ManageGroupForm({ supervisorId, supervisorName }: ManageGroupPro
     return (
         <div className="flex-1 overflow-y-auto pr-2 space-y-6">
             <div className="flex justify-end gap-3 mb-6 border-b pb-4">
-                <Button variant="default" className="bg-[#1e4b63] hover:bg-[#16364a] text-white rounded-sm px-6">
+                <Button variant="default" className="px-6">
                     Update
                 </Button>
-                <Button variant="default" className="bg-[#1e4b63] hover:bg-[#16364a] text-white rounded-sm px-6">
+                <Button variant="default" className="px-6">
                     Program
                 </Button>
             </div>
