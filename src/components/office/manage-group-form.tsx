@@ -11,7 +11,6 @@ import {
     DialogContent,
     DialogHeader,
     DialogTitle,
-    DialogDescription,
 } from "@/components/ui/dialog"
 
 interface ManageGroupProps {
@@ -19,15 +18,30 @@ interface ManageGroupProps {
     supervisorName: string
 }
 
+type DraftChange = {
+    studentId: string
+    name: string
+    action: 'assign' | 'remove'
+    startDate: string
+}
+
 export function ManageGroupForm({ supervisorId, supervisorName }: ManageGroupProps) {
     const [isPending, startTransition] = useTransition()
     const [isLoading, setIsLoading] = useState(false)
+    
+    // Master data
+    const [initialUnassigned, setInitialUnassigned] = useState<any[]>([])
+    const [initialAssigned, setInitialAssigned] = useState<any[]>([])
+    
+    // Local state data
     const [unassigned, setUnassigned] = useState<any[]>([])
     const [assigned, setAssigned] = useState<any[]>([])
     const [searchAssignedTerm, setSearchAssignedTerm] = useState("")
     const [searchAvailableTerm, setSearchAvailableTerm] = useState("")
-    const [confirmData, setConfirmData] = useState<{ studentId: string; studentName: string; action: 'assign' | 'remove' } | null>(null)
-    const [confirmInput, setConfirmInput] = useState("")
+    
+    // Drafts
+    const [pendingChanges, setPendingChanges] = useState<Record<string, DraftChange>>({})
+    const [isUpdateModalOpen, setIsUpdateModalOpen] = useState(false)
 
     const fetchStudents = async () => {
         setIsLoading(true)
@@ -35,8 +49,11 @@ export function ManageGroupForm({ supervisorId, supervisorName }: ManageGroupPro
         if (res.error) {
             toast.error(res.error)
         } else {
+            setInitialUnassigned(res.unassigned || [])
+            setInitialAssigned(res.assigned || [])
             setUnassigned(res.unassigned || [])
             setAssigned(res.assigned || [])
+            setPendingChanges({})
         }
         setIsLoading(false)
     }
@@ -47,22 +64,70 @@ export function ManageGroupForm({ supervisorId, supervisorName }: ManageGroupPro
         fetchStudents()
     }, [supervisorId])
 
-    const handleAssignToggle = (studentId: string, studentName: string, action: 'assign' | 'remove') => {
-        setConfirmData({ studentId, studentName, action })
-        setConfirmInput("")
+    const getLocalDateString = () => {
+        const d = new Date()
+        return `${String(d.getMonth() + 1).padStart(2, '0')}/${String(d.getDate()).padStart(2, '0')}/${d.getFullYear()}`
     }
 
-    const executeToggle = () => {
-        if (!confirmData) return
+    const handleToggle = (studentId: string, studentName: string, action: 'assign' | 'remove') => {
+        if (action === 'assign') {
+            const s = unassigned.find(x => x.id === studentId)
+            if (!s) return
+            setUnassigned(prev => prev.filter(x => x.id !== studentId))
+            setAssigned(prev => [...prev, s])
+            
+            setPendingChanges(prev => {
+                const next = { ...prev }
+                if (initialAssigned.some(x => x.id === studentId)) {
+                    delete next[studentId] // Reverted
+                } else {
+                    next[studentId] = { studentId, name: studentName, action, startDate: getLocalDateString() }
+                }
+                return next
+            })
+        } else {
+            const s = assigned.find(x => x.id === studentId)
+            if (!s) return
+            setAssigned(prev => prev.filter(x => x.id !== studentId))
+            setUnassigned(prev => [...prev, s])
+            
+            setPendingChanges(prev => {
+                const next = { ...prev }
+                if (initialUnassigned.some(x => x.id === studentId)) {
+                    delete next[studentId] // Reverted
+                } else {
+                    next[studentId] = { studentId, name: studentName, action, startDate: getLocalDateString() }
+                }
+                return next
+            })
+        }
+    }
+
+    const updateStartDate = (studentId: string, value: string) => {
+        setPendingChanges(prev => ({
+            ...prev,
+            [studentId]: { ...prev[studentId], startDate: value }
+        }))
+    }
+
+    const executeRun = () => {
+        const changes = Object.values(pendingChanges)
+        if (changes.length === 0) return
         
         startTransition(async () => {
-            const res = await toggleGroupStudentAssignment(confirmData.studentId, supervisorId, confirmData.action)
-
-            if (res.error) {
-                toast.error(res.error)
-            } else {
-                toast.success(confirmData.action === "remove" ? "Student removed from group" : "Student assigned to group")
-                setConfirmData(null)
+            let errorCount = 0
+            for (const change of changes) {
+                // Here we pass the action, but currently assignments.ts doesn't support startDate yet.
+                // We keep it functionally same to DB while reflecting UI requirement.
+                const res = await toggleGroupStudentAssignment(change.studentId, supervisorId, change.action)
+                if (res.error) {
+                    toast.error(`Error on ${change.name}: ${res.error}`)
+                    errorCount++
+                }
+            }
+            if (errorCount === 0) {
+                toast.success("Groups successfully updated!")
+                setIsUpdateModalOpen(false)
                 fetchStudents()
             }
         })
@@ -78,11 +143,25 @@ export function ManageGroupForm({ supervisorId, supervisorName }: ManageGroupPro
         (s.email || "").toLowerCase().includes(searchAvailableTerm.toLowerCase())
     )
 
+    const pendingArray = Object.values(pendingChanges)
+
     return (
         <div className="flex-1 overflow-y-auto pr-2 space-y-6">
             <div className="flex justify-end gap-3 mb-6 border-b pb-4">
-                <Button variant="default" className="px-6">
+                <Button 
+                    variant="default" 
+                    className="px-6 relative"
+                    onClick={() => {
+                        if (pendingArray.length === 0) return toast("No pending modifications.")
+                        setIsUpdateModalOpen(true)
+                    }}
+                >
                     Update
+                    {pendingArray.length > 0 && (
+                        <span className="absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-destructive text-[10px] font-bold text-white">
+                            {pendingArray.length}
+                        </span>
+                    )}
                 </Button>
                 <Button variant="default" className="px-6">
                     Program
@@ -128,7 +207,7 @@ export function ManageGroupForm({ supervisorId, supervisorName }: ManageGroupPro
                                             variant="ghost"
                                             size="sm"
                                             className="text-destructive hover:text-destructive hover:bg-destructive/10 rounded-full h-8 opacity-90 group-hover:opacity-100"
-                                            onClick={() => handleAssignToggle(student.id, student.fullName, 'remove')}
+                                            onClick={() => handleToggle(student.id, student.fullName, 'remove')}
                                             disabled={isPending}
                                         >
                                             <X className="h-4 w-4 mr-1" />
@@ -173,7 +252,7 @@ export function ManageGroupForm({ supervisorId, supervisorName }: ManageGroupPro
                                             variant="secondary"
                                             size="sm"
                                             className="rounded-full h-8 bg-primary/10 text-primary hover:bg-primary/20 hover:text-primary transition-colors opacity-90 group-hover:opacity-100"
-                                            onClick={() => handleAssignToggle(student.id, student.fullName, 'assign')}
+                                            onClick={() => handleToggle(student.id, student.fullName, 'assign')}
                                             disabled={isPending}
                                         >
                                             <Check className="h-4 w-4 mr-1" />
@@ -187,46 +266,41 @@ export function ManageGroupForm({ supervisorId, supervisorName }: ManageGroupPro
                 </>
             )}
 
-            {/* Confirmation Modal */}
-            <Dialog open={!!confirmData} onOpenChange={(open) => !open && setConfirmData(null)}>
-                <DialogContent className="sm:max-w-[400px]">
-                    <DialogHeader>
-                        <DialogTitle>
-                            {confirmData?.action === 'remove' ? 'Remove Group Assignment' : 'Assign Student to Group'}
-                        </DialogTitle>
-                        <DialogDescription>
-                            Are you sure you want to {confirmData?.action} <strong>{confirmData?.studentName}</strong>?
-                            <br />
-                            This will {confirmData?.action === 'remove' ? 'detach them from' : 'assign them to'} the group supervision under {supervisorName}.
-                        </DialogDescription>
-                    </DialogHeader>
-                    <div className="py-4 space-y-4">
-                        <p className="text-sm font-medium">To confirm, please type <span className="font-bold uppercase">"{confirmData?.action}"</span> below:</p>
-                        <Input 
-                            value={confirmInput}
-                            onChange={(e) => setConfirmInput(e.target.value.toLowerCase())}
-                            placeholder={`Type ${confirmData?.action}...`}
-                            className="h-10 text-center font-bold"
-                            autoFocus
-                        />
-                    </div>
-                    <div className="flex gap-2">
+            {/* Update Modal */}
+            <Dialog open={isUpdateModalOpen} onOpenChange={setIsUpdateModalOpen}>
+                <DialogContent className="sm:max-w-[650px] p-8 border-t-8 border-t-[#1e4b63]">
+                    <div className="flex flex-col items-center pb-8 pt-2">
+                        <div className="bg-[#1e4b63] text-white px-8 py-2 md:text-lg mb-8 font-medium">
+                            Update
+                        </div>
+                        
+                        <div className="w-full space-y-4">
+                            {pendingArray.map((draft, idx) => (
+                                <div key={idx} className="flex items-center justify-between gap-6 w-full">
+                                    <div className="bg-[#1e4b63] text-white text-center py-2 px-4 flex-1 text-sm shadow-sm truncate">
+                                        {draft.name} {draft.action === 'remove' ? '(R)' : ''}
+                                    </div>
+                                    <div className="text-black whitespace-nowrap text-sm font-medium">
+                                        Fecha Inicio
+                                    </div>
+                                    <div className="flex-1">
+                                        <Input 
+                                            value={draft.startDate} 
+                                            onChange={(e) => updateStartDate(draft.studentId, e.target.value)}
+                                            className="bg-[#1e4b63] text-white border-0 text-center py-2 rounded-none text-sm h-9 placeholder:text-white/60 focus-visible:ring-0 focus-visible:ring-offset-0"
+                                        />
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+
                         <Button 
-                            variant="outline" 
-                            className="flex-1 rounded-full" 
-                            onClick={() => setConfirmData(null)}
+                            className="bg-black hover:bg-zinc-800 text-white rounded-none w-48 py-6 text-xl mt-10"
+                            onClick={executeRun}
                             disabled={isPending}
                         >
-                            Cancel
-                        </Button>
-                        <Button 
-                            variant={confirmData?.action === 'remove' ? 'destructive' : 'default'}
-                            className="flex-1 rounded-full" 
-                            onClick={executeToggle}
-                            disabled={isPending || confirmInput !== confirmData?.action}
-                        >
-                            {isPending && <Loader2 className="h-4 w-4 animate-spin mr-2" />}
-                            Confirm {confirmData?.action}
+                            {isPending && <Loader2 className="mr-2 h-5 w-5 animate-spin" />}
+                            Run
                         </Button>
                     </div>
                 </DialogContent>
