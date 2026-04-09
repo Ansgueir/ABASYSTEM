@@ -320,8 +320,9 @@ export function SupervisorList({ initialSupervisors, isSuperAdmin, isQaSuper = f
                                 <thead>
                                     <tr className="border-b bg-muted/40 text-muted-foreground/80">
                                         <th className="text-left p-4 font-semibold">Supervisor</th>
-                                        <th className="text-left p-4 font-semibold hidden md:table-cell">Credential</th>
-                                        <th className="text-left p-4 font-semibold hidden lg:table-cell">Students</th>
+                                        <th className="text-left p-4 font-semibold hidden md:table-cell">Students</th>
+                                        <th className="text-left p-4 font-semibold hidden lg:table-cell">Sup. Groups</th>
+                                        <th className="text-left p-4 font-semibold hidden sm:table-cell">Credential</th>
                                         <th className="text-left p-4 font-semibold hidden sm:table-cell">Commission</th>
                                         <th className="text-right p-4 font-semibold">Actions</th>
                                     </tr>
@@ -343,13 +344,17 @@ export function SupervisorList({ initialSupervisors, isSuperAdmin, isQaSuper = f
                                                 </div>
                                             </td>
                                             <td className="p-4 hidden md:table-cell">
+                                                <span className="font-medium">{supervisor._count?.students || 0}</span>
+                                                <span className="text-muted-foreground/70"> / {supervisor.maxStudents || 10}</span>
+                                            </td>
+                                            <td className="p-4 hidden lg:table-cell">
+                                                <span className="font-bold text-foreground">{supervisor._count?.groupSessions || 0}</span>
+                                                <span className="font-semibold text-foreground">/10</span>
+                                            </td>
+                                            <td className="p-4 hidden sm:table-cell">
                                                 <span className="text-xs font-bold px-2 py-1 rounded border bg-amber-500/10 text-amber-600 border-amber-500/20">
                                                     {supervisor.credentialType || 'BCBA'}
                                                 </span>
-                                            </td>
-                                            <td className="p-4 hidden lg:table-cell">
-                                                <span className="font-medium">{supervisor._count?.students || 0}</span>
-                                                <span className="text-muted-foreground/70"> / {supervisor.maxStudents || 10}</span>
                                             </td>
                                             <td className="p-4 hidden sm:table-cell">
                                                 <span className="font-semibold text-emerald-600 bg-emerald-500/10 px-2 py-1 rounded-sm border border-emerald-500/20">
