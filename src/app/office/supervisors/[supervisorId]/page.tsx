@@ -22,15 +22,7 @@ import { SupervisorActivityTab } from "@/components/office/supervisor-activity-t
 export default async function OfficeSupervisorDetailPage(props: any) {
     const params = await props.params
     const supervisorId = params?.supervisorId
-    
-    // Safely extract tab from searchParams if it exists
-    let tab = "profile"
-    if (props.searchParams) {
-        const sp = await props.searchParams
-        if (sp && typeof sp.tab === 'string') {
-            tab = sp.tab
-        }
-    }
+    const tab = "profile"
     const session = await auth()
     if (!session?.user) redirect("/login")
     const role = String((session.user as any).role).toUpperCase()
