@@ -11,6 +11,7 @@ import {
     DialogContent,
     DialogHeader,
     DialogTitle,
+    DialogDescription,
 } from "@/components/ui/dialog"
 
 interface ManageGroupProps {
@@ -268,39 +269,65 @@ export function ManageGroupForm({ supervisorId, supervisorName }: ManageGroupPro
 
             {/* Update Modal */}
             <Dialog open={isUpdateModalOpen} onOpenChange={setIsUpdateModalOpen}>
-                <DialogContent className="sm:max-w-[650px] p-8 border-t-8 border-t-[#1e4b63]">
-                    <div className="flex flex-col items-center pb-8 pt-2">
-                        <div className="bg-[#1e4b63] text-white px-8 py-2 md:text-lg mb-8 font-medium">
-                            Update
-                        </div>
-                        
-                        <div className="w-full space-y-4">
-                            {pendingArray.map((draft, idx) => (
-                                <div key={idx} className="flex items-center justify-between gap-6 w-full">
-                                    <div className="bg-[#1e4b63] text-white text-center py-2 px-4 flex-1 text-sm shadow-sm truncate">
-                                        {draft.name} {draft.action === 'remove' ? '(R)' : ''}
+                <DialogContent className="sm:max-w-[600px] flex flex-col max-h-[85vh]">
+                    <DialogHeader>
+                        <DialogTitle className="flex items-center gap-2">
+                            <Check className="h-5 w-5 text-primary" />
+                            Confirm Group Modifications
+                        </DialogTitle>
+                        <DialogDescription>
+                            Review the students added or removed from this group and finalize their start dates.
+                        </DialogDescription>
+                    </DialogHeader>
+                    
+                    <div className="py-2 space-y-3 overflow-y-auto pr-2 mt-2">
+                        {pendingArray.length === 0 ? (
+                            <p className="text-sm text-center py-6 text-muted-foreground">No pending modifications.</p>
+                        ) : (
+                            pendingArray.map((draft, idx) => (
+                                <div key={idx} className="flex items-center justify-between gap-4 p-4 rounded-xl border bg-card hover:shadow-sm">
+                                    <div className="flex-1 truncate">
+                                        <div className="flex items-center gap-2 mb-1">
+                                            <p className="font-semibold text-sm truncate">{draft.name}</p>
+                                            {draft.action === 'remove' ? (
+                                                <span className="text-[9px] bg-destructive/10 text-destructive px-2 py-0.5 rounded-full font-bold uppercase tracking-wider">Removing</span>
+                                            ) : (
+                                                <span className="text-[9px] bg-primary/10 text-primary px-2 py-0.5 rounded-full font-bold uppercase tracking-wider">Assigning</span>
+                                            )}
+                                        </div>
                                     </div>
-                                    <div className="text-black whitespace-nowrap text-sm font-medium">
-                                        Fecha Inicio
-                                    </div>
-                                    <div className="flex-1">
+                                    <div className="flex items-center gap-3">
+                                        <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider whitespace-nowrap">
+                                            Fecha Inicio:
+                                        </span>
                                         <Input 
                                             value={draft.startDate} 
                                             onChange={(e) => updateStartDate(draft.studentId, e.target.value)}
-                                            className="bg-[#1e4b63] text-white border-0 text-center py-2 rounded-none text-sm h-9 placeholder:text-white/60 focus-visible:ring-0 focus-visible:ring-offset-0"
+                                            className="w-32 h-9 text-sm text-center font-medium bg-muted/50 focus:bg-background"
+                                            placeholder="MM/DD/YYYY"
                                         />
                                     </div>
                                 </div>
-                            ))}
-                        </div>
+                            ))
+                        )}
+                    </div>
 
+                    <div className="flex justify-end gap-3 pt-4 border-t mt-2">
                         <Button 
-                            className="bg-black hover:bg-zinc-800 text-white rounded-none w-48 py-6 text-xl mt-10"
-                            onClick={executeRun}
+                            variant="outline" 
+                            className="rounded-full px-6"
+                            onClick={() => setIsUpdateModalOpen(false)}
                             disabled={isPending}
                         >
-                            {isPending && <Loader2 className="mr-2 h-5 w-5 animate-spin" />}
-                            Run
+                            Cancel
+                        </Button>
+                        <Button 
+                            onClick={executeRun}
+                            disabled={isPending}
+                            className="rounded-full px-8"
+                        >
+                            {isPending ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Check className="mr-2 h-4 w-4" />}
+                            Run Updates
                         </Button>
                     </div>
                 </DialogContent>
