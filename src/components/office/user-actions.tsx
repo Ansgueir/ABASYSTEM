@@ -120,18 +120,33 @@ export function UserActions({ id, userId, name, email, type, isActive, fullData,
                 <PopoverContent align="end" className="w-[200px] p-2 space-y-1">
                     <p className="px-2 py-1.5 text-xs font-semibold text-muted-foreground">Actions</p>
 
-                    {(type === "student" || type === "supervisor") && (
-                        <Button
-                            variant="ghost"
-                            size="sm"
-                            asChild
-                            className="w-full justify-start h-8 px-2"
-                        >
-                            <Link href={`/office/${type}s/${id}`}>
-                                <ExternalLink className="mr-2 h-4 w-4" />
-                                View Details
-                            </Link>
-                        </Button>
+                    {type === "supervisor" && (
+                        <>
+                            <Button
+                                variant="ghost"
+                                size="sm"
+                                className="w-full justify-start h-8 px-2"
+                                onClick={() => {
+                                    setIsPopoverOpen(false)
+                                    setShowManageStudentsDialog(true)
+                                }}
+                            >
+                                <Users className="mr-2 h-4 w-4" />
+                                Manage Student
+                            </Button>
+
+                            <Button
+                                variant="ghost"
+                                size="sm"
+                                asChild
+                                className="w-full justify-start h-8 px-2"
+                            >
+                                <Link href="#" onClick={() => setIsPopoverOpen(false)}>
+                                    <Users className="mr-2 h-4 w-4" />
+                                    Manage Group
+                                </Link>
+                            </Button>
+                        </>
                     )}
 
                     {isSuperAdmin && (
@@ -149,21 +164,6 @@ export function UserActions({ id, userId, name, email, type, isActive, fullData,
                         </Button>
                     )}
 
-                    {type === "supervisor" && (
-                        <Button
-                            variant="ghost"
-                            size="sm"
-                            className="w-full justify-start h-8 px-2"
-                            onClick={() => {
-                                setIsPopoverOpen(false)
-                                setShowManageStudentsDialog(true)
-                            }}
-                        >
-                            <Users className="mr-2 h-4 w-4" />
-                            Manage Students
-                        </Button>
-                    )}
-
                     <Button
                         variant="ghost"
                         size="sm"
@@ -173,6 +173,7 @@ export function UserActions({ id, userId, name, email, type, isActive, fullData,
                         <Power className={`mr-2 h-4 w-4 ${isActive ? "text-destructive" : "text-green-500"}`} />
                         {isActive ? "Disable Account" : "Enable Account"}
                     </Button>
+
                     <Button
                         variant="ghost"
                         size="sm"
@@ -185,8 +186,9 @@ export function UserActions({ id, userId, name, email, type, isActive, fullData,
                         }}
                     >
                         <RotateCcw className="mr-2 h-4 w-4" />
-                        Reset Password
+                        Reset Account
                     </Button>
+
                     <div className="h-px bg-muted my-1" />
                     <Button
                         variant="ghost"
