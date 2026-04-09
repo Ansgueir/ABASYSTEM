@@ -147,25 +147,23 @@ export function ManageGroupForm({ supervisorId, supervisorName }: ManageGroupPro
     const pendingArray = Object.values(pendingChanges)
 
     return (
-        <div className="flex-1 overflow-y-auto pr-2 space-y-6">
+        <div className="flex-1 overflow-y-auto pr-2 space-y-6 pt-2">
             <div className="flex justify-end gap-3 mb-6 border-b pb-4">
-                <div className="relative isolate">
-                    <Button 
-                        variant="default" 
-                        className="px-6"
-                        onClick={() => {
-                            if (pendingArray.length === 0) return toast("No pending modifications.")
-                            setIsUpdateModalOpen(true)
-                        }}
-                    >
-                        Update
-                    </Button>
+                <Button 
+                    variant="default" 
+                    className="px-6 gap-2"
+                    onClick={() => {
+                        if (pendingArray.length === 0) return toast("No pending modifications.")
+                        setIsUpdateModalOpen(true)
+                    }}
+                >
+                    Update
                     {pendingArray.length > 0 && (
-                        <span className="absolute -top-2 -right-2 flex h-5 w-5 items-center justify-center rounded-full bg-destructive text-[11px] font-bold text-white shadow-sm ring-2 ring-background z-10">
+                        <span className="flex h-5 items-center justify-center rounded-full bg-destructive/10 px-2 text-[11px] font-bold text-destructive ring-1 ring-inset ring-destructive/20">
                             {pendingArray.length}
                         </span>
                     )}
-                </div>
+                </Button>
                 <Button variant="default" className="px-6">
                     Program
                 </Button>
