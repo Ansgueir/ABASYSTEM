@@ -5,7 +5,7 @@ import { auth } from "@/auth"
 import { prisma } from "@/lib/prisma"
 import { redirect } from "next/navigation"
 import { format } from "date-fns"
-import { CreateGroupSessionDialog } from "@/components/create-group-session-dialog"
+
 import { GroupSessionDetailsDialog } from "@/components/group-session-details-dialog"
 import { Users, Calendar, Clock, Eye } from "lucide-react"
 
@@ -54,8 +54,7 @@ export default async function SupervisorGroupsPage() {
                         <h1 className="text-2xl font-bold">Group Supervision</h1>
                         <p className="text-muted-foreground">Manage your group sessions and attendance</p>
                     </div>
-                    <CreateGroupSessionDialog students={students} />
-                </div>
+                    </div>
 
                 {sessions.length === 0 ? (
                     <Card>

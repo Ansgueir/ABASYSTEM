@@ -19,6 +19,7 @@ import {
     deleteSupervisorGroup,
     getStudentsByGroup,
     toggleStudentGroupAssignment,
+    programGroupSessions,
 } from "@/actions/group-assignments"
 import {
     Dialog,
@@ -78,6 +79,8 @@ export function ManageGroupForm({ supervisorId, supervisorName }: ManageGroupPro
     const [monthsForward, setMonthsForward] = useState("1")
     const [programStart, setProgramStart] = useState("19:00")
     const [programEnd, setProgramEnd] = useState("20:30")
+    const [selectedDays, setSelectedDays] = useState<number[]>([])
+    const [programPending, setProgramPending] = useState(false)
 
     // ─── Load Groups ───
     const loadGroups = async () => {
@@ -221,8 +224,27 @@ export function ManageGroupForm({ supervisorId, supervisorName }: ManageGroupPro
 
     const handleProgramRun = async () => {
         if (!selectedGroupId) return toast.error("No group selected.")
-        toast.success(`Group session programmed from ${programStart} to ${programEnd}`)
-        setIsProgramModalOpen(false)
+        if (selectedDays.length === 0) return toast.error("Select at least one day of the week.")
+        
+        setProgramPending(true)
+        const res = await programGroupSessions(
+            selectedGroupId,
+            supervisorId,
+            selectedDays,
+            programStart,
+            programEnd,
+            recurrenceType,
+            parseInt(monthsForward) || 1
+        )
+        setProgramPending(false)
+        
+        if (res.error) {
+            toast.error(res.error)
+        } else {
+            toast.success(`${(res as any).sessionsCreated} session(s) programmed successfully!`)
+            setIsProgramModalOpen(false)
+            setSelectedDays([])
+        }
     }
 
     // ─── Filters ───
@@ -581,19 +603,59 @@ export function ManageGroupForm({ supervisorId, supervisorName }: ManageGroupPro
                         </div>
                     </div>
 
+                    {/* Days of Week Selector */}
+                    <div className="space-y-2 pt-2">
+                        <label className="text-[11px] font-bold text-muted-foreground uppercase tracking-wider text-center block">Days of Week</label>
+                        <div className="flex justify-center gap-1.5">
+                            {[
+                                { label: 'S', value: 0 },
+                                { label: 'M', value: 1 },
+                                { label: 'T', value: 2 },
+                                { label: 'W', value: 3 },
+                                { label: 'T', value: 4 },
+                                { label: 'F', value: 5 },
+                                { label: 'S', value: 6 },
+                            ].map(day => (
+                                <Button
+                                    key={day.value}
+                                    type="button"
+                                    variant={selectedDays.includes(day.value) ? 'default' : 'outline'}
+                                    className={`h-10 w-10 p-0 rounded-full text-xs font-bold ${
+                                        selectedDays.includes(day.value) ? '' : 'hover:bg-primary/10'
+                                    }`}
+                                    onClick={() => {
+                                        setSelectedDays(prev =>
+                                            prev.includes(day.value)
+                                                ? prev.filter(d => d !== day.value)
+                                                : [...prev, day.value]
+                                        )
+                                    }}
+                                >
+                                    {day.label}
+                                </Button>
+                            ))}
+                        </div>
+                    </div>
+
                     <div className="flex justify-end gap-3 pt-4 border-t mt-2">
                         <Button 
                             variant="outline" 
                             className="rounded-full px-6"
                             onClick={() => setIsProgramModalOpen(false)}
+                            disabled={programPending}
                         >
                             Cancel
                         </Button>
                         <Button 
                             onClick={handleProgramRun}
                             className="rounded-full px-8"
+                            disabled={programPending || selectedDays.length === 0}
                         >
-                            Run
+                            {programPending ? (
+                                <><Loader2 className="mr-2 h-4 w-4 animate-spin" />Running...</>
+                            ) : (
+                                'Run'
+                            )}
                         </Button>
                     </div>
                 </DialogContent>
