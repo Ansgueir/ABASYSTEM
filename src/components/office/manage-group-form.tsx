@@ -412,10 +412,17 @@ export function ManageGroupForm({ supervisorId, supervisorName }: ManageGroupPro
                         </div>
                     </div>
 
-                    <div className="flex justify-end pt-4 mt-2">
+                    <div className="flex justify-end gap-3 pt-4 border-t mt-2">
+                        <Button 
+                            variant="outline" 
+                            className="rounded-full px-6"
+                            onClick={() => setIsProgramModalOpen(false)}
+                        >
+                            Cancel
+                        </Button>
                         <Button 
                             onClick={handleProgramRun}
-                            className="w-full h-12 text-md font-semibold text-white bg-black hover:bg-zinc-800 transition-colors"
+                            className="rounded-full px-8"
                         >
                             Run
                         </Button>
