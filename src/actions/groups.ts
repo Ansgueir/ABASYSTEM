@@ -271,3 +271,56 @@ export async function deleteGroupSession(sessionId: string) {
         return { error: "Failed to delete group session" }
     }
 }
+
+export async function deleteGroupSessionChain(sessionId: string) {
+    const session = await auth()
+    if (!session || !session.user) return { error: "Unauthorized" }
+
+    try {
+        const targetSession = await prisma.groupSupervisionSession.findUnique({
+            where: { id: sessionId }
+        })
+
+        if (!targetSession) return { error: "Session not found" }
+        if (!targetSession.recurrenceId) {
+            // No chain — just delete the single session
+            return deleteGroupSession(sessionId)
+        }
+
+        // Delete all sessions of this chain from this date forward
+        const futureSessions = await prisma.groupSupervisionSession.findMany({
+            where: {
+                recurrenceId: targetSession.recurrenceId,
+                date: { gte: targetSession.date }
+            },
+            include: { attendance: true }
+        })
+
+        await prisma.$transaction(async (tx) => {
+            for (const sess of futureSessions) {
+                const studentIds = sess.attendance.map(a => a.studentId)
+                await tx.supervisionHour.deleteMany({
+                    where: {
+                        studentId: { in: studentIds },
+                        date: sess.date,
+                        startTime: sess.startTime,
+                        supervisionType: "GROUP"
+                    }
+                })
+                await tx.groupSupervisionAttendance.deleteMany({
+                    where: { sessionId: sess.id }
+                })
+                await tx.groupSupervisionSession.delete({
+                    where: { id: sess.id }
+                })
+            }
+        })
+
+        revalidatePath("/office/group-supervision")
+        revalidatePath("/supervisor/groups")
+        return { success: true, deletedCount: futureSessions.length }
+    } catch (error) {
+        console.error("Delete Chain Error:", error)
+        return { error: "Failed to delete session chain" }
+    }
+}

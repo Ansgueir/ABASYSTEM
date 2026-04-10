@@ -20,7 +20,7 @@ import {
 } from "@/components/ui/select"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { updateGroupSession, deleteGroupSession } from "@/actions/groups"
+import { updateGroupSession, deleteGroupSession, deleteGroupSessionChain } from "@/actions/groups"
 import { useRouter } from "next/navigation"
 import { CalendarIcon, Edit, Trash2, Clock, Users, Loader2, CheckCircle2 } from "lucide-react"
 import { toast } from "sonner"
@@ -66,6 +66,7 @@ export function GroupSessionDetailsDialog({ session, supervisors, students, chil
     const [studentSearch, setStudentSearch] = useState("")
 
     const [isPending, setIsPending] = useState(false)
+    const [showChainConfirm, setShowChainConfirm] = useState(false)
     const router = useRouter()
 
     async function handleUpdate(e: React.FormEvent) {
@@ -100,14 +101,37 @@ export function GroupSessionDetailsDialog({ session, supervisors, students, chil
     }
 
     async function handleDelete() {
-        if (!confirm("Are you sure you want to delete this session? This action cannot be undone.")) return
+        // If this session belongs to a chain, ask user what to do
+        if (session.recurrenceId) {
+            setShowChainConfirm(true)
+            return
+        }
+        // No chain — simple single delete
+        await executeSingleDelete()
+    }
 
+    async function executeSingleDelete() {
         setIsPending(true)
         const res = await deleteGroupSession(session.id)
         setIsPending(false)
         if (res.success) {
             setOpen(false)
-            toast.success("✅ Session deleted successfully")
+            setShowChainConfirm(false)
+            toast.success("Session deleted successfully")
+            router.refresh()
+        } else {
+            toast.error(res.error)
+        }
+    }
+
+    async function executeChainDelete() {
+        setIsPending(true)
+        const res = await deleteGroupSessionChain(session.id)
+        setIsPending(false)
+        if (res.success) {
+            setOpen(false)
+            setShowChainConfirm(false)
+            toast.success(`Deleted ${(res as any).deletedCount || 1} session(s) successfully`)
             router.refresh()
         } else {
             toast.error(res.error)
@@ -131,6 +155,7 @@ export function GroupSessionDetailsDialog({ session, supervisors, students, chil
     }
 
     return (
+        <>
         <Dialog open={open} onOpenChange={(v) => {
             if (!v) resetForm()
             setOpen(v)
@@ -409,5 +434,50 @@ export function GroupSessionDetailsDialog({ session, supervisors, students, chil
                 </form>
             </DialogContent>
         </Dialog>
+
+        {/* Chain Confirmation Dialog */}
+        <Dialog open={showChainConfirm} onOpenChange={setShowChainConfirm}>
+            <DialogContent className="sm:max-w-[420px]">
+                <DialogHeader>
+                    <DialogTitle className="text-destructive flex items-center gap-2">
+                        <Trash2 className="h-5 w-5" />
+                        Delete Recurring Session
+                    </DialogTitle>
+                    <DialogDescription>
+                        This session is part of a recurring series. How would you like to proceed?
+                    </DialogDescription>
+                </DialogHeader>
+                <div className="space-y-3 pt-4">
+                    <Button
+                        variant="outline"
+                        className="w-full h-14 justify-start text-left px-4 rounded-xl hover:border-destructive/50 hover:text-destructive transition-colors"
+                        onClick={executeSingleDelete}
+                        disabled={isPending}
+                    >
+                        <div>
+                            <p className="font-semibold text-sm">This session only</p>
+                            <p className="text-xs text-muted-foreground">Only remove this specific occurrence</p>
+                        </div>
+                    </Button>
+                    <Button
+                        variant="outline"
+                        className="w-full h-14 justify-start text-left px-4 rounded-xl hover:border-destructive/50 hover:text-destructive transition-colors"
+                        onClick={executeChainDelete}
+                        disabled={isPending}
+                    >
+                        <div>
+                            <p className="font-semibold text-sm">This and all future sessions</p>
+                            <p className="text-xs text-muted-foreground">Remove this session and every occurrence after it</p>
+                        </div>
+                    </Button>
+                </div>
+                <div className="flex justify-end pt-2">
+                    <Button variant="ghost" onClick={() => setShowChainConfirm(false)} disabled={isPending} className="rounded-full">
+                        Cancel
+                    </Button>
+                </div>
+            </DialogContent>
+        </Dialog>
+        </>
     )
 }
