@@ -45,58 +45,58 @@ model Notification {
 }
 
 model Student {
-  id                      String                       @id @default(uuid())
-  userId                  String                       @unique
-  fullName                String
-  paymentAlias            String[]
-  bacbId                  String                       @db.VarChar(10)
-  credential              CredentialType
-  school                  String
-  level                   LevelType
-  phone                   String
-  email                   String
-  supervisorId            String?
-  address                 String                       @default("")
-  city                    String
-  state                   String
-  startDate               DateTime
-  supervisionType         SupervisionType
-  fieldworkType           FieldworkType                @default(REGULAR)
-  supervisionPercentage   Decimal
-  hoursToDo               Int
-  hoursToPay              Int
-  amountToPay             Decimal                      @db.Decimal(10, 2)
-  hourlyRate              Decimal                      @default(0) @db.Decimal(10, 2)
-  hoursPerMonth           Int
-  totalMonths             Int
-  endDate                 DateTime
-  status                  StudentStatus                @default(ACTIVE)
-  availableDaysGroup      String[]
-  notes                   String?
-  createdAt               DateTime                     @default(now())
-  updatedAt               DateTime                     @updatedAt
-  academicDegree          String?
-  contractStartDate       DateTime?
-  contracts               Contract[]
-  documents               Document[]
-  groupAttendance         GroupSupervisionAttendance[]
-  independentHours        IndependentHour[]
-  invoices                Invoice[]
-  supervisors             StudentSupervisor[]
-  user                    User                         @relation(fields: [userId], references: [id])
-  supervisor              Supervisor?                  @relation("PrimarySupervisor", fields: [supervisorId], references: [id])
-  evaluations             StudentEvaluation[]
-  payments                StudentPayment[]
-  vcsSequence             String?
-  assignedOptionPlan      String?
-  planTemplateId          String?
-  totalAmountContract     Decimal?                     @db.Decimal(10, 2)
-  analystPaymentRate      Decimal?                     @db.Decimal(5, 4)
-  officePaymentRate       Decimal?                     @db.Decimal(5, 4)
-  internalComments        String?
-  hoursTargetReg          Int?
-  hoursTargetConc         Int?
-  independentHoursTarget  Int?
+  id                     String                       @id @default(uuid())
+  userId                 String                       @unique
+  fullName               String
+  paymentAlias           String[]
+  bacbId                 String                       @db.VarChar(10)
+  credential             CredentialType
+  school                 String
+  level                  LevelType
+  phone                  String
+  email                  String
+  supervisorId           String?
+  address                String                       @default("")
+  city                   String
+  state                  String
+  startDate              DateTime
+  supervisionType        SupervisionType
+  fieldworkType          FieldworkType                @default(REGULAR)
+  supervisionPercentage  Decimal
+  hoursToDo              Int
+  hoursToPay             Int
+  amountToPay            Decimal                      @db.Decimal(10, 2)
+  hourlyRate             Decimal                      @default(0) @db.Decimal(10, 2)
+  hoursPerMonth          Int
+  totalMonths            Int
+  endDate                DateTime
+  status                 StudentStatus                @default(ACTIVE)
+  availableDaysGroup     String[]
+  notes                  String?
+  createdAt              DateTime                     @default(now())
+  updatedAt              DateTime                     @updatedAt
+  academicDegree         String?
+  contractStartDate      DateTime?
+  contracts              Contract[]
+  documents              Document[]
+  groupAttendance        GroupSupervisionAttendance[]
+  independentHours       IndependentHour[]
+  invoices               Invoice[]
+  supervisors            StudentSupervisor[]
+  user                   User                         @relation(fields: [userId], references: [id])
+  supervisor             Supervisor?                  @relation("PrimarySupervisor", fields: [supervisorId], references: [id])
+  evaluations            StudentEvaluation[]
+  payments               StudentPayment[]
+  vcsSequence            String?
+  assignedOptionPlan     String?
+  planTemplateId         String?
+  totalAmountContract    Decimal?                     @db.Decimal(10, 2)
+  analystPaymentRate     Decimal?                     @db.Decimal(5, 4)
+  officePaymentRate      Decimal?                     @db.Decimal(5, 4)
+  internalComments       String?
+  hoursTargetReg         Int?
+  hoursTargetConc        Int?
+  independentHoursTarget Int?
 
   importBatchId String?
 
@@ -104,6 +104,7 @@ model Student {
   supervisorPayments SupervisorPayment[]
   financialPeriods   FinancialPeriod[]
   ledgerEntries      SupervisorLedgerEntry[]
+  groupAssignments   GroupStudent[]
 
   @@index([fullName])
   @@index([email])
@@ -150,6 +151,7 @@ model Supervisor {
   contracts          ContractSupervisor[]
   ledgerEntries      SupervisorLedgerEntry[]
   payouts            SupervisorPayout[]
+  managedGroups      SupervisorGroup[]
   importBatchId      String?
 
   @@index([fullName])
@@ -204,32 +206,32 @@ model IndependentHour {
 }
 
 model SupervisionHour {
-  id                  String             @id @default(uuid())
+  id                  String                   @id @default(uuid())
   studentId           String
   supervisorId        String
   date                DateTime
   startTime           DateTime
-  hours               Decimal            @db.Decimal(4, 2)
+  hours               Decimal                  @db.Decimal(4, 2)
   supervisionType     SupervisionFormat
   setting             SettingType
   customSetting       String?
   activityType        ActivityType
   notes               String?
   groupTopic          String?
-  isRepeating         Boolean            @default(false)
+  isRepeating         Boolean                  @default(false)
   repeatingScheduleId String?
-  status              HourStatus         @default(PENDING)
+  status              HourStatus               @default(PENDING)
   rejectReason        String?
-  amountBilled        Decimal?           @db.Decimal(10, 2)
-  supervisorPay       Decimal?           @db.Decimal(10, 2)
+  amountBilled        Decimal?                 @db.Decimal(10, 2)
+  supervisorPay       Decimal?                 @db.Decimal(10, 2)
   invoiceId           String?
   groupSessionId      String?
-  createdAt           DateTime           @default(now())
-  invoice             Invoice?           @relation(fields: [invoiceId], references: [id])
+  createdAt           DateTime                 @default(now())
+  invoice             Invoice?                 @relation(fields: [invoiceId], references: [id])
   groupSession        GroupSupervisionSession? @relation(fields: [groupSessionId], references: [id], onDelete: SetNull)
-  repeatingSchedule   RepeatingSchedule? @relation(fields: [repeatingScheduleId], references: [id])
-  student             Student            @relation(fields: [studentId], references: [id])
-  supervisor          Supervisor         @relation(fields: [supervisorId], references: [id])
+  repeatingSchedule   RepeatingSchedule?       @relation(fields: [repeatingScheduleId], references: [id])
+  student             Student                  @relation(fields: [studentId], references: [id])
+  supervisor          Supervisor               @relation(fields: [supervisorId], references: [id])
 }
 
 model RepeatingSchedule {
@@ -262,17 +264,17 @@ model StudentPayment {
 }
 
 model SupervisorPayout {
-  id            String      @id @default(uuid())
-  invoiceId     String
-  supervisorId  String
-  amount        Decimal     @db.Decimal(10, 2)
-  method        String
-  reference     String?
-  notes         String?
-  createdAt     DateTime    @default(now())
+  id           String   @id @default(uuid())
+  invoiceId    String
+  supervisorId String
+  amount       Decimal  @db.Decimal(10, 2)
+  method       String
+  reference    String?
+  notes        String?
+  createdAt    DateTime @default(now())
 
-  invoice       Invoice     @relation(fields: [invoiceId], references: [id])
-  supervisor    Supervisor  @relation(fields: [supervisorId], references: [id])
+  invoice    Invoice    @relation(fields: [invoiceId], references: [id])
+  supervisor Supervisor @relation(fields: [supervisorId], references: [id])
 }
 
 model SupervisorPayment {
@@ -291,32 +293,32 @@ model SupervisorPayment {
 }
 
 model Invoice {
-  id               String            @id @default(uuid())
+  id               String                  @id @default(uuid())
   studentId        String
   invoiceDate      DateTime
-  amountDue        Decimal           @db.Decimal(10, 2)
-  amountPaid       Decimal           @db.Decimal(10, 2)
+  amountDue        Decimal                 @db.Decimal(10, 2)
+  amountPaid       Decimal                 @db.Decimal(10, 2)
   status           InvoiceStatus
   sentAt           DateTime?
-  createdAt        DateTime          @default(now())
-  student          Student           @relation(fields: [studentId], references: [id])
+  createdAt        DateTime                @default(now())
+  student          Student                 @relation(fields: [studentId], references: [id])
   supervisionHours SupervisionHour[]
   ledgerEntries    SupervisorLedgerEntry[]
   payouts          SupervisorPayout[]
 }
 
 model SupervisorLedgerEntry {
-  id                          String     @id @default(uuid())
-  invoiceId                   String
-  supervisorId                String
-  studentId                   String
-  paymentFromStudent          Decimal    @db.Decimal(10, 2) // Cuánto pagó el estudiante en esta transacción
-  supervisorCapTotal          Decimal    @db.Decimal(10, 2) // Tope_Total_Supervisor = amountDue * paymentPercentage
-  supervisorCapRemainingBefore Decimal   @db.Decimal(10, 2) // Remanente ANTES de este pago
-  supervisorPayout            Decimal    @db.Decimal(10, 2) // Lo que SE LE PAGA al supervisor en esta transacción
-  officePayout                Decimal    @db.Decimal(10, 2) // Lo que SE QUEDA la oficina en esta transacción
-  supervisorCapRemainingAfter Decimal    @db.Decimal(10, 2) // Nuevo remanente DESPUÉS de este pago
-  createdAt                   DateTime   @default(now())
+  id                           String   @id @default(uuid())
+  invoiceId                    String
+  supervisorId                 String
+  studentId                    String
+  paymentFromStudent           Decimal  @db.Decimal(10, 2) // Cuánto pagó el estudiante en esta transacción
+  supervisorCapTotal           Decimal  @db.Decimal(10, 2) // Tope_Total_Supervisor = amountDue * paymentPercentage
+  supervisorCapRemainingBefore Decimal  @db.Decimal(10, 2) // Remanente ANTES de este pago
+  supervisorPayout             Decimal  @db.Decimal(10, 2) // Lo que SE LE PAGA al supervisor en esta transacción
+  officePayout                 Decimal  @db.Decimal(10, 2) // Lo que SE QUEDA la oficina en esta transacción
+  supervisorCapRemainingAfter  Decimal  @db.Decimal(10, 2) // Nuevo remanente DESPUÉS de este pago
+  createdAt                    DateTime @default(now())
 
   invoice    Invoice    @relation(fields: [invoiceId], references: [id])
   supervisor Supervisor @relation(fields: [supervisorId], references: [id])
@@ -327,33 +329,38 @@ model SupervisorLedgerEntry {
 }
 
 model Document {
-  id           String         @id @default(uuid())
-  studentId    String?
-  supervisorId String?
-  documentType DocumentType
-  fileUrl      String
-  fileName     String
-  fileSize     Int
-  uploadedById String?
-  uploadedAt   DateTime       @default(now())
-  status       DocumentStatus @default(PENDING)
+  id              String         @id @default(uuid())
+  studentId       String?
+  supervisorId    String?
+  documentType    DocumentType
+  fileUrl         String
+  fileName        String
+  fileSize        Int
+  uploadedById    String?
+  uploadedAt      DateTime       @default(now())
+  status          DocumentStatus @default(PENDING)
   rejectionReason String?
-  student      Student?       @relation(fields: [studentId], references: [id])
-  supervisor   Supervisor?    @relation(fields: [supervisorId], references: [id])
-  uploadedBy   User?          @relation(fields: [uploadedById], references: [id])
+  student         Student?       @relation(fields: [studentId], references: [id])
+  supervisor      Supervisor?    @relation(fields: [supervisorId], references: [id])
+  uploadedBy      User?          @relation(fields: [uploadedById], references: [id])
 }
 
 model GroupSupervisionSession {
-  id           String                       @id @default(uuid())
+  id           String   @id @default(uuid())
   supervisorId String
+  groupId      String?
+  recurrenceId String?
   date         DateTime
   startTime    DateTime
   topic        String
-  maxStudents  Int                          @default(10)
-  createdAt    DateTime                     @default(now())
-  attendance   GroupSupervisionAttendance[]
+  maxStudents  Int      @default(10)
+  createdAt    DateTime @default(now())
+
+  attendance       GroupSupervisionAttendance[]
   supervisionHours SupervisionHour[]
-  supervisor   Supervisor                   @relation(fields: [supervisorId], references: [id])
+
+  supervisor Supervisor       @relation(fields: [supervisorId], references: [id])
+  group      SupervisorGroup? @relation(fields: [groupId], references: [id], onDelete: Cascade)
 }
 
 model GroupSupervisionAttendance {
@@ -458,7 +465,6 @@ enum LevelType {
   BCaBA
   BCBA
 }
-
 
 enum SupervisionType {
   REGULAR
@@ -629,4 +635,37 @@ model Plan {
   fieldworkType String   @default("REGULAR") // REGULAR or CONCENTRATED
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
+}
+
+model SupervisorGroup {
+  id           String   @id @default(uuid())
+  supervisorId String
+  name         String
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  supervisor    Supervisor                @relation(fields: [supervisorId], references: [id], onDelete: Cascade)
+  students      GroupStudent[]
+  groupSessions GroupSupervisionSession[]
+
+  @@unique([supervisorId, name])
+  @@index([supervisorId])
+}
+
+model GroupStudent {
+  id        String        @id @default(uuid())
+  groupId   String
+  studentId String
+  startDate DateTime
+  endDate   DateTime?
+  status    StudentStatus @default(ACTIVE)
+  createdAt DateTime      @default(now())
+  updatedAt DateTime      @updatedAt
+
+  group   SupervisorGroup @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  student Student         @relation(fields: [studentId], references: [id], onDelete: Cascade)
+
+  @@unique([groupId, studentId])
+  @@index([groupId])
+  @@index([studentId])
 }
