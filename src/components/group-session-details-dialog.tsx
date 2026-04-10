@@ -20,7 +20,7 @@ import {
 } from "@/components/ui/select"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { updateGroupSession, deleteGroupSession, deleteGroupSessionChain } from "@/actions/groups"
+import { updateGroupSession, deleteGroupSession, deleteGroupSessionChain, updateGroupSessionChain } from "@/actions/groups"
 import { useRouter } from "next/navigation"
 import { CalendarIcon, Edit, Trash2, Clock, Users, Loader2, CheckCircle2 } from "lucide-react"
 import { toast } from "sonner"
@@ -67,6 +67,7 @@ export function GroupSessionDetailsDialog({ session, supervisors, students, chil
 
     const [isPending, setIsPending] = useState(false)
     const [showChainConfirm, setShowChainConfirm] = useState(false)
+    const [showChainEditConfirm, setShowChainEditConfirm] = useState(false)
     const router = useRouter()
 
     async function handleUpdate(e: React.FormEvent) {
@@ -76,27 +77,57 @@ export function GroupSessionDetailsDialog({ session, supervisors, students, chil
             return
         }
 
-        setIsPending(true)
         if (!date) {
             toast.error("Please select a date.")
-            setIsPending(false)
             return
         }
-
         if (durationMin <= 0) {
             toast.error("End time must be after start time.")
-            setIsPending(false)
             return
         }
 
-        const res = await updateGroupSession(session.id, date, startTimeStr, topic, parseInt(maxStudents), supervisorId, selectedStudents, durationMin)
+        // If this session belongs to a recurrence chain, ask which scope
+        if (session.recurrenceId) {
+            setShowChainEditConfirm(true)
+            return
+        }
+
+        // No chain — update single session directly
+        await executeSingleUpdate()
+    }
+
+    async function executeSingleUpdate() {
+        setIsPending(true)
+        const res = await updateGroupSession(session.id, date!, startTimeStr, topic, parseInt(maxStudents), supervisorId, selectedStudents, durationMin)
         setIsPending(false)
         if (res.success) {
             setIsEditing(false)
-            toast.success("✅ Session updated!")
+            setShowChainEditConfirm(false)
+            toast.success("Session updated!")
             router.refresh()
         } else {
             toast.error(res.error)
+        }
+    }
+
+    async function executeChainUpdate() {
+        setIsPending(true)
+        const res = await updateGroupSessionChain(
+            session.id,
+            startTimeStr,
+            topic,
+            parseInt(maxStudents),
+            supervisorId,
+            durationMin
+        )
+        setIsPending(false)
+        if ('success' in res && res.success) {
+            setIsEditing(false)
+            setShowChainEditConfirm(false)
+            toast.success(`Updated ${(res as any).updatedCount || 1} session(s) in the series!`)
+            router.refresh()
+        } else {
+            toast.error((res as any).error || "Failed to update")
         }
     }
 
@@ -473,6 +504,50 @@ export function GroupSessionDetailsDialog({ session, supervisors, students, chil
                 </div>
                 <div className="flex justify-end pt-2">
                     <Button variant="ghost" onClick={() => setShowChainConfirm(false)} disabled={isPending} className="rounded-full">
+                        Cancel
+                    </Button>
+                </div>
+            </DialogContent>
+        </Dialog>
+
+        {/* Chain Edit Confirmation Dialog */}
+        <Dialog open={showChainEditConfirm} onOpenChange={setShowChainEditConfirm}>
+            <DialogContent className="sm:max-w-[420px]">
+                <DialogHeader>
+                    <DialogTitle className="text-primary flex items-center gap-2">
+                        <CheckCircle2 className="h-5 w-5" />
+                        Edit Recurring Session
+                    </DialogTitle>
+                    <DialogDescription>
+                        This session is part of a recurring series. Which sessions should be updated?
+                    </DialogDescription>
+                </DialogHeader>
+                <div className="space-y-3 pt-4">
+                    <Button
+                        variant="outline"
+                        className="w-full h-14 justify-start text-left px-4 rounded-xl hover:border-primary/50 hover:text-primary transition-colors"
+                        onClick={executeSingleUpdate}
+                        disabled={isPending}
+                    >
+                        <div>
+                            <p className="font-semibold text-sm">This session only</p>
+                            <p className="text-xs text-muted-foreground">Only update this specific occurrence</p>
+                        </div>
+                    </Button>
+                    <Button
+                        variant="outline"
+                        className="w-full h-14 justify-start text-left px-4 rounded-xl hover:border-primary/50 hover:text-primary transition-colors"
+                        onClick={executeChainUpdate}
+                        disabled={isPending}
+                    >
+                        <div>
+                            <p className="font-semibold text-sm">This and all future sessions</p>
+                            <p className="text-xs text-muted-foreground">Update this session and every occurrence after it</p>
+                        </div>
+                    </Button>
+                </div>
+                <div className="flex justify-end pt-2">
+                    <Button variant="ghost" onClick={() => setShowChainEditConfirm(false)} disabled={isPending} className="rounded-full">
                         Cancel
                     </Button>
                 </div>

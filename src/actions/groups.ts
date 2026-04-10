@@ -324,3 +324,97 @@ export async function deleteGroupSessionChain(sessionId: string) {
         return { error: "Failed to delete session chain" }
     }
 }
+
+export async function updateGroupSessionChain(
+    sessionId: string,
+    newTime: string,    // "HH:MM"
+    topic: string,
+    maxStudents: number,
+    supervisorId: string,
+    durationMin: number = 60
+) {
+    const session = await auth()
+    if (!session || !session.user) return { error: "Unauthorized" }
+
+    try {
+        const targetSession = await prisma.groupSupervisionSession.findUnique({
+            where: { id: sessionId }
+        })
+
+        if (!targetSession) return { error: "Session not found" }
+        if (!targetSession.recurrenceId) {
+            // No chain — fall back to single update (no student changes in chain mode)
+            return updateGroupSession(sessionId, targetSession.date, newTime, topic, maxStudents, supervisorId, [], durationMin)
+        }
+
+        const [h, m] = newTime.split(':').map(Number)
+        const finalMax = maxStudents > GENERIC_GROUP_LIMIT ? GENERIC_GROUP_LIMIT : maxStudents
+
+        // Get all future sessions in this chain
+        const futureSessions = await prisma.groupSupervisionSession.findMany({
+            where: {
+                recurrenceId: targetSession.recurrenceId,
+                date: { gte: targetSession.date }
+            },
+            include: { attendance: true }
+        })
+
+        await prisma.$transaction(async (tx) => {
+            for (const sess of futureSessions) {
+                // Build new startTime preserving the original date, only changing the clock time
+                const newStart = new Date(sess.date)
+                newStart.setUTCHours(h, m, 0, 0)
+
+                // Update session metadata
+                await tx.groupSupervisionSession.update({
+                    where: { id: sess.id },
+                    data: {
+                        startTime: newStart,
+                        topic,
+                        maxStudents: finalMax,
+                        supervisorId
+                    }
+                })
+
+                // Update supervision hours for all students of this session
+                const studentIds = sess.attendance.map(a => a.studentId)
+                if (studentIds.length > 0) {
+                    // Delete old hours matching original time
+                    await tx.supervisionHour.deleteMany({
+                        where: {
+                            studentId: { in: studentIds },
+                            date: sess.date,
+                            startTime: sess.startTime,
+                            supervisionType: "GROUP"
+                        }
+                    })
+                    // Re-create with new time and topic
+                    for (const sId of studentIds) {
+                        await tx.supervisionHour.create({
+                            data: {
+                                studentId: sId,
+                                supervisorId,
+                                date: sess.date,
+                                startTime: newStart,
+                                hours: durationMin / 60,
+                                supervisionType: "GROUP",
+                                setting: "OFFICE_CLINIC",
+                                activityType: "RESTRICTED",
+                                notes: `Group Session: ${topic}`,
+                                groupTopic: topic,
+                                status: "PENDING"
+                            }
+                        })
+                    }
+                }
+            }
+        })
+
+        revalidatePath("/office/group-supervision")
+        revalidatePath("/supervisor/groups")
+        return { success: true, updatedCount: futureSessions.length }
+    } catch (error) {
+        console.error("Update Chain Error:", error)
+        return { error: "Failed to update session chain" }
+    }
+}

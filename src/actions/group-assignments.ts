@@ -191,7 +191,7 @@ export async function programGroupSessions(
         await prisma.$transaction(async (tx) => {
             for (const date of targetDates) {
                 const startDateTime = new Date(date)
-                startDateTime.setHours(startH, startM, 0, 0)
+                startDateTime.setUTCHours(startH, startM, 0, 0)
 
                 // 1. Create the session
                 const session = await tx.groupSupervisionSession.create({
