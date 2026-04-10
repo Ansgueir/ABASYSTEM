@@ -2,7 +2,7 @@
 
 import { useState, useTransition, useEffect } from "react"
 import { Button } from "@/components/ui/button"
-import { Check, X, Loader2, Search, Calendar, Plus, Users, Pencil, Trash2 } from "lucide-react"
+import { Check, X, Loader2, Search, Calendar, Plus, Users, Edit, Trash2, CheckCircle2 } from "lucide-react"
 import { toast } from "sonner"
 import {
     Select,
@@ -27,6 +27,7 @@ import {
     DialogTitle,
     DialogDescription,
 } from "@/components/ui/dialog"
+import { Label } from "@/components/ui/label"
 
 interface ManageGroupProps {
     supervisorId: string
@@ -53,9 +54,11 @@ export function ManageGroupForm({ supervisorId, supervisorName }: ManageGroupPro
     const [groups, setGroups] = useState<GroupOption[]>([])
     const [selectedGroupId, setSelectedGroupId] = useState<string | null>(null)
     const [isCreatingGroup, setIsCreatingGroup] = useState(false)
-    const [isEditingGroup, setIsEditingGroup] = useState(false)
     const [newGroupName, setNewGroupName] = useState("")
-    const [editGroupName, setEditGroupName] = useState("")
+    const [isEditDialogOpen, setIsEditDialogOpen] = useState(false)
+    const [editName, setEditName] = useState("")
+    const [isEditMode, setIsEditMode] = useState(false)
+    const [editPending, setEditPending] = useState(false)
     
     // Master data
     const [initialUnassigned, setInitialUnassigned] = useState<any[]>([])
@@ -241,41 +244,7 @@ export function ManageGroupForm({ supervisorId, supervisorName }: ManageGroupPro
             <div className="flex items-center gap-3 p-4 rounded-xl bg-muted/30 border">
                 <Users className="h-5 w-5 text-primary shrink-0" />
                 <div className="flex-1">
-                    {isEditingGroup && selectedGroupId ? (
-                        <div className="flex items-center gap-2">
-                            <Input
-                                value={editGroupName}
-                                onChange={e => setEditGroupName(e.target.value)}
-                                placeholder="Rename group"
-                                className="h-10 text-sm flex-1"
-                                onKeyDown={async e => {
-                                    if (e.key === 'Enter' && editGroupName.trim()) {
-                                        const res = await updateSupervisorGroup(selectedGroupId, editGroupName.trim())
-                                        if (res.error) { toast.error(res.error) } else {
-                                            toast.success("Group renamed.")
-                                            setIsEditingGroup(false)
-                                            await loadGroups()
-                                        }
-                                    }
-                                }}
-                                autoFocus
-                            />
-                            <Button size="sm" className="h-10 px-3" onClick={async () => {
-                                if (!editGroupName.trim()) return
-                                const res = await updateSupervisorGroup(selectedGroupId, editGroupName.trim())
-                                if (res.error) { toast.error(res.error) } else {
-                                    toast.success("Group renamed.")
-                                    setIsEditingGroup(false)
-                                    await loadGroups()
-                                }
-                            }}>
-                                <Check className="h-4 w-4" />
-                            </Button>
-                            <Button size="sm" variant="ghost" className="h-10 px-3" onClick={() => setIsEditingGroup(false)}>
-                                <X className="h-4 w-4" />
-                            </Button>
-                        </div>
-                    ) : groups.length > 0 ? (
+                    {groups.length > 0 ? (
                         <Select value={selectedGroupId || ""} onValueChange={setSelectedGroupId}>
                             <SelectTrigger className="w-full bg-background border h-10 font-medium">
                                 <SelectValue placeholder="Select a group..." />
@@ -291,38 +260,21 @@ export function ManageGroupForm({ supervisorId, supervisorName }: ManageGroupPro
                     )}
                 </div>
 
-                {/* Edit / Delete / New buttons */}
-                {!isCreatingGroup && !isEditingGroup && selectedGroupId && (
-                    <div className="flex items-center gap-1">
-                        <Button
-                            size="sm"
-                            variant="ghost"
-                            className="h-10 w-10 p-0 text-muted-foreground hover:text-primary"
-                            onClick={() => {
-                                const current = groups.find(g => g.id === selectedGroupId)
-                                setEditGroupName(current?.name || "")
-                                setIsEditingGroup(true)
-                            }}
-                        >
-                            <Pencil className="h-4 w-4" />
-                        </Button>
-                        <Button
-                            size="sm"
-                            variant="ghost"
-                            className="h-10 w-10 p-0 text-muted-foreground hover:text-destructive"
-                            onClick={async () => {
-                                if (!confirm("Are you sure you want to delete this group? All student assignments in this group will be removed.")) return
-                                const res = await deleteSupervisorGroup(selectedGroupId)
-                                if (res.error) { toast.error(res.error) } else {
-                                    toast.success("Group deleted.")
-                                    setSelectedGroupId(null)
-                                    await loadGroups()
-                                }
-                            }}
-                        >
-                            <Trash2 className="h-4 w-4" />
-                        </Button>
-                    </div>
+                {/* Edit button (opens dialog) */}
+                {!isCreatingGroup && selectedGroupId && (
+                    <Button
+                        size="sm"
+                        variant="ghost"
+                        className="h-10 w-10 p-0 text-primary bg-primary/5 hover:bg-primary/10 rounded-full"
+                        onClick={() => {
+                            const current = groups.find(g => g.id === selectedGroupId)
+                            setEditName(current?.name || "")
+                            setIsEditMode(false)
+                            setIsEditDialogOpen(true)
+                        }}
+                    >
+                        <Edit className="h-4 w-4" />
+                    </Button>
                 )}
 
                 {isCreatingGroup ? (
@@ -342,7 +294,7 @@ export function ManageGroupForm({ supervisorId, supervisorName }: ManageGroupPro
                             <X className="h-4 w-4" />
                         </Button>
                     </div>
-                ) : !isEditingGroup && (
+                ) : (
                     <Button 
                         size="sm" 
                         variant="outline" 
@@ -644,6 +596,136 @@ export function ManageGroupForm({ supervisorId, supervisorName }: ManageGroupPro
                             Run
                         </Button>
                     </div>
+                </DialogContent>
+            </Dialog>
+
+            {/* ─── Edit Group Dialog ─── */}
+            <Dialog open={isEditDialogOpen} onOpenChange={(v) => { if (!v) { setIsEditMode(false) }; setIsEditDialogOpen(v) }}>
+                <DialogContent className="sm:max-w-[500px] p-0 overflow-hidden flex flex-col max-h-[85vh]">
+                    <DialogHeader className="p-6 pb-2">
+                        <div className="flex justify-between items-center pr-8">
+                            <DialogTitle className="flex items-center gap-2 text-primary">
+                                {isEditMode ? <CheckCircle2 className="h-5 w-5" /> : <Users className="h-5 w-5" />}
+                                {isEditMode ? "Edit Group" : "Group Details"}
+                            </DialogTitle>
+                            {!isEditMode && (
+                                <div className="flex space-x-2">
+                                    <Button variant="ghost" size="icon" onClick={() => setIsEditMode(true)} className="h-8 w-8 text-primary bg-primary/5 hover:bg-primary/10 rounded-full">
+                                        <Edit className="h-4 w-4" />
+                                    </Button>
+                                    <Button 
+                                        variant="ghost" 
+                                        size="icon" 
+                                        className="h-8 w-8 text-destructive bg-destructive/5 hover:bg-destructive/10 rounded-full" 
+                                        onClick={async () => {
+                                            if (!selectedGroupId) return
+                                            if (!confirm("Are you sure you want to delete this group? All student assignments will be removed.")) return
+                                            setEditPending(true)
+                                            const res = await deleteSupervisorGroup(selectedGroupId)
+                                            setEditPending(false)
+                                            if (res.error) { toast.error(res.error) } else {
+                                                toast.success("Group deleted.")
+                                                setIsEditDialogOpen(false)
+                                                setSelectedGroupId(null)
+                                                await loadGroups()
+                                            }
+                                        }}
+                                    >
+                                        <Trash2 className="h-4 w-4" />
+                                    </Button>
+                                </div>
+                            )}
+                        </div>
+                        {!isEditMode && (
+                            <DialogDescription className="text-xs">
+                                View or edit the properties of this group.
+                            </DialogDescription>
+                        )}
+                    </DialogHeader>
+
+                    <div className="flex-1 overflow-y-auto p-6 pt-0 space-y-4">
+                        {/* Supervisor (always read-only) */}
+                        <div className="space-y-1">
+                            <Label className="text-muted-foreground text-xs font-bold uppercase ml-1">Supervisor</Label>
+                            <div className="p-3 border rounded-xl bg-muted/20 font-medium text-sm">{supervisorName}</div>
+                        </div>
+
+                        {/* Group Name */}
+                        <div className="space-y-1">
+                            <Label className="text-muted-foreground text-xs font-bold uppercase ml-1">Group Name</Label>
+                            {isEditMode ? (
+                                <Input 
+                                    value={editName} 
+                                    onChange={e => setEditName(e.target.value)} 
+                                    className="rounded-xl bg-muted/20 border-primary/20 focus:bg-background transition-all"
+                                />
+                            ) : (
+                                <div className="p-3 border rounded-xl bg-primary/5 font-semibold text-primary">
+                                    {groups.find(g => g.id === selectedGroupId)?.name || "—"}
+                                </div>
+                            )}
+                        </div>
+
+                        {/* Capacity */}
+                        <div className="space-y-1">
+                            <Label className="text-muted-foreground text-xs font-bold uppercase ml-1">Capacity</Label>
+                            <div className="p-3 border rounded-xl bg-muted/20 flex items-center text-sm font-bold">
+                                <Users className="mr-2 h-4 w-4 text-primary/60" />
+                                {assigned.length} / 10 Students
+                            </div>
+                        </div>
+
+                        {/* Current Attendees */}
+                        <div className="space-y-2 pt-2 border-t">
+                            <div className="flex justify-between items-center mb-1">
+                                <Label className="text-xs font-bold uppercase text-muted-foreground ml-1">Current Students</Label>
+                                <span className="text-[10px] bg-primary/10 text-primary px-2 py-0.5 rounded-full font-bold">
+                                    {assigned.length} / 10
+                                </span>
+                            </div>
+                            <div className="max-h-40 overflow-y-auto border rounded-xl p-3 space-y-1.5 bg-muted/10">
+                                {assigned.length > 0 ? (
+                                    assigned.map((s: any) => (
+                                        <div key={s.id} className="flex items-center gap-2 p-1.5 text-sm bg-card border rounded-lg shadow-sm">
+                                            <div className="h-6 w-6 rounded-full bg-primary/10 text-primary flex items-center justify-center text-[10px] font-bold">
+                                                {s.fullName?.charAt(0) || "U"}
+                                            </div>
+                                            <span className="font-medium">{s.fullName}</span>
+                                        </div>
+                                    ))
+                                ) : (
+                                    <div className="text-xs text-muted-foreground text-center py-4">No students assigned to this group yet.</div>
+                                )}
+                            </div>
+                        </div>
+                    </div>
+
+                    {isEditMode && (
+                        <div className="p-6 pt-4 border-t flex-shrink-0 flex justify-end gap-3">
+                            <Button variant="ghost" onClick={() => setIsEditMode(false)} className="rounded-xl" disabled={editPending}>Cancel</Button>
+                            <Button 
+                                disabled={editPending}
+                                className="rounded-xl shadow-md font-semibold"
+                                onClick={async () => {
+                                    if (!selectedGroupId || !editName.trim()) return
+                                    setEditPending(true)
+                                    const res = await updateSupervisorGroup(selectedGroupId, editName.trim())
+                                    setEditPending(false)
+                                    if (res.error) { toast.error(res.error) } else {
+                                        toast.success("Group updated!")
+                                        setIsEditMode(false)
+                                        await loadGroups()
+                                    }
+                                }}
+                            >
+                                {editPending ? (
+                                    <><Loader2 className="mr-2 h-4 w-4 animate-spin" />Saving...</>
+                                ) : (
+                                    <><CheckCircle2 className="mr-2 h-4 w-4" />Save Changes</>
+                                )}
+                            </Button>
+                        </div>
+                    )}
                 </DialogContent>
             </Dialog>
         </div>
