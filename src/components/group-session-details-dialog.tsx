@@ -128,13 +128,13 @@ export function GroupSessionDetailsDialog({ session, supervisors, students, chil
         setIsPending(true)
         const res = await deleteGroupSessionChain(session.id)
         setIsPending(false)
-        if (res.success) {
+        if ('success' in res && res.success) {
             setOpen(false)
             setShowChainConfirm(false)
             toast.success(`Deleted ${(res as any).deletedCount || 1} session(s) successfully`)
             router.refresh()
         } else {
-            toast.error(res.error)
+            toast.error((res as any).error || "Failed to delete")
         }
     }
 
