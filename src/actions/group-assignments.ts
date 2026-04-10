@@ -40,6 +40,37 @@ export async function createSupervisorGroup(supervisorId: string, name: string) 
     }
 }
 
+export async function updateSupervisorGroup(groupId: string, name: string) {
+    const currentUser = await getSessionUser()
+    if (!currentUser || (currentUser.role !== "OFFICE" && currentUser.role !== "QA")) return { error: "Unauthorized" }
+    
+    try {
+        await prisma.supervisorGroup.update({
+            where: { id: groupId },
+            data: { name }
+        })
+        revalidatePath(`/office/supervisors`)
+        return { success: true }
+    } catch (e) {
+        return { error: "Failed to update group. Name may already exist." }
+    }
+}
+
+export async function deleteSupervisorGroup(groupId: string) {
+    const currentUser = await getSessionUser()
+    if (!currentUser || (currentUser.role !== "OFFICE" && currentUser.role !== "QA")) return { error: "Unauthorized" }
+    
+    try {
+        await prisma.supervisorGroup.delete({
+            where: { id: groupId }
+        })
+        revalidatePath(`/office/supervisors`)
+        return { success: true }
+    } catch (e) {
+        return { error: "Failed to delete group. It may have active sessions." }
+    }
+}
+
 export async function getStudentsByGroup(groupId: string) {
     const currentUser = await getSessionUser()
     if (!currentUser || (currentUser.role !== "OFFICE" && currentUser.role !== "QA")) return { error: "Unauthorized" }

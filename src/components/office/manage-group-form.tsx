@@ -2,7 +2,7 @@
 
 import { useState, useTransition, useEffect } from "react"
 import { Button } from "@/components/ui/button"
-import { Check, X, Loader2, Search, Calendar, Plus, Users } from "lucide-react"
+import { Check, X, Loader2, Search, Calendar, Plus, Users, Pencil, Trash2 } from "lucide-react"
 import { toast } from "sonner"
 import {
     Select,
@@ -15,6 +15,8 @@ import { Input } from "@/components/ui/input"
 import {
     fetchSupervisorGroups,
     createSupervisorGroup,
+    updateSupervisorGroup,
+    deleteSupervisorGroup,
     getStudentsByGroup,
     toggleStudentGroupAssignment,
 } from "@/actions/group-assignments"
@@ -51,7 +53,9 @@ export function ManageGroupForm({ supervisorId, supervisorName }: ManageGroupPro
     const [groups, setGroups] = useState<GroupOption[]>([])
     const [selectedGroupId, setSelectedGroupId] = useState<string | null>(null)
     const [isCreatingGroup, setIsCreatingGroup] = useState(false)
+    const [isEditingGroup, setIsEditingGroup] = useState(false)
     const [newGroupName, setNewGroupName] = useState("")
+    const [editGroupName, setEditGroupName] = useState("")
     
     // Master data
     const [initialUnassigned, setInitialUnassigned] = useState<any[]>([])
@@ -237,7 +241,41 @@ export function ManageGroupForm({ supervisorId, supervisorName }: ManageGroupPro
             <div className="flex items-center gap-3 p-4 rounded-xl bg-muted/30 border">
                 <Users className="h-5 w-5 text-primary shrink-0" />
                 <div className="flex-1">
-                    {groups.length > 0 ? (
+                    {isEditingGroup && selectedGroupId ? (
+                        <div className="flex items-center gap-2">
+                            <Input
+                                value={editGroupName}
+                                onChange={e => setEditGroupName(e.target.value)}
+                                placeholder="Rename group"
+                                className="h-10 text-sm flex-1"
+                                onKeyDown={async e => {
+                                    if (e.key === 'Enter' && editGroupName.trim()) {
+                                        const res = await updateSupervisorGroup(selectedGroupId, editGroupName.trim())
+                                        if (res.error) { toast.error(res.error) } else {
+                                            toast.success("Group renamed.")
+                                            setIsEditingGroup(false)
+                                            await loadGroups()
+                                        }
+                                    }
+                                }}
+                                autoFocus
+                            />
+                            <Button size="sm" className="h-10 px-3" onClick={async () => {
+                                if (!editGroupName.trim()) return
+                                const res = await updateSupervisorGroup(selectedGroupId, editGroupName.trim())
+                                if (res.error) { toast.error(res.error) } else {
+                                    toast.success("Group renamed.")
+                                    setIsEditingGroup(false)
+                                    await loadGroups()
+                                }
+                            }}>
+                                <Check className="h-4 w-4" />
+                            </Button>
+                            <Button size="sm" variant="ghost" className="h-10 px-3" onClick={() => setIsEditingGroup(false)}>
+                                <X className="h-4 w-4" />
+                            </Button>
+                        </div>
+                    ) : groups.length > 0 ? (
                         <Select value={selectedGroupId || ""} onValueChange={setSelectedGroupId}>
                             <SelectTrigger className="w-full bg-background border h-10 font-medium">
                                 <SelectValue placeholder="Select a group..." />
@@ -252,6 +290,41 @@ export function ManageGroupForm({ supervisorId, supervisorName }: ManageGroupPro
                         <p className="text-sm text-muted-foreground">No groups created yet for this supervisor.</p>
                     )}
                 </div>
+
+                {/* Edit / Delete / New buttons */}
+                {!isCreatingGroup && !isEditingGroup && selectedGroupId && (
+                    <div className="flex items-center gap-1">
+                        <Button
+                            size="sm"
+                            variant="ghost"
+                            className="h-10 w-10 p-0 text-muted-foreground hover:text-primary"
+                            onClick={() => {
+                                const current = groups.find(g => g.id === selectedGroupId)
+                                setEditGroupName(current?.name || "")
+                                setIsEditingGroup(true)
+                            }}
+                        >
+                            <Pencil className="h-4 w-4" />
+                        </Button>
+                        <Button
+                            size="sm"
+                            variant="ghost"
+                            className="h-10 w-10 p-0 text-muted-foreground hover:text-destructive"
+                            onClick={async () => {
+                                if (!confirm("Are you sure you want to delete this group? All student assignments in this group will be removed.")) return
+                                const res = await deleteSupervisorGroup(selectedGroupId)
+                                if (res.error) { toast.error(res.error) } else {
+                                    toast.success("Group deleted.")
+                                    setSelectedGroupId(null)
+                                    await loadGroups()
+                                }
+                            }}
+                        >
+                            <Trash2 className="h-4 w-4" />
+                        </Button>
+                    </div>
+                )}
+
                 {isCreatingGroup ? (
                     <div className="flex items-center gap-2">
                         <Input
@@ -269,7 +342,7 @@ export function ManageGroupForm({ supervisorId, supervisorName }: ManageGroupPro
                             <X className="h-4 w-4" />
                         </Button>
                     </div>
-                ) : (
+                ) : !isEditingGroup && (
                     <Button 
                         size="sm" 
                         variant="outline" 
