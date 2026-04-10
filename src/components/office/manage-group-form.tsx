@@ -159,7 +159,7 @@ export function ManageGroupForm({ supervisorId, supervisorName }: ManageGroupPro
                 >
                     Update
                     {pendingArray.length > 0 && (
-                        <span className="flex h-5 items-center justify-center rounded-full bg-destructive/10 px-2 text-[11px] font-bold text-destructive ring-1 ring-inset ring-destructive/20">
+                        <span className="flex h-5 min-w-5 items-center justify-center rounded-full bg-white px-1.5 text-[11px] font-extrabold text-primary shadow-sm">
                             {pendingArray.length}
                         </span>
                     )}
