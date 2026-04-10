@@ -2,8 +2,15 @@
 
 import { useState, useTransition, useEffect } from "react"
 import { Button } from "@/components/ui/button"
-import { Check, X, Loader2, Search } from "lucide-react"
+import { Check, X, Loader2, Search, Calendar } from "lucide-react"
 import { toast } from "sonner"
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from "@/components/ui/select"
 import { Input } from "@/components/ui/input"
 import { getGroupStudents, toggleGroupStudentAssignment } from "@/actions/assignments"
 import {
@@ -43,6 +50,9 @@ export function ManageGroupForm({ supervisorId, supervisorName }: ManageGroupPro
     // Drafts
     const [pendingChanges, setPendingChanges] = useState<Record<string, DraftChange>>({})
     const [isUpdateModalOpen, setIsUpdateModalOpen] = useState(false)
+    const [isProgramModalOpen, setIsProgramModalOpen] = useState(false)
+    const [programStart, setProgramStart] = useState("19:00")
+    const [programEnd, setProgramEnd] = useState("20:30")
 
     const fetchStudents = async () => {
         setIsLoading(true)
@@ -134,6 +144,11 @@ export function ManageGroupForm({ supervisorId, supervisorName }: ManageGroupPro
         })
     }
 
+    const handleProgramRun = async () => {
+        toast.success(`Group Session successfully programmed from ${programStart} to ${programEnd}`)
+        setIsProgramModalOpen(false)
+    }
+
     const filteredAssigned = assigned.filter(s => 
         (s.fullName || "").toLowerCase().includes(searchAssignedTerm.toLowerCase()) || 
         (s.email || "").toLowerCase().includes(searchAssignedTerm.toLowerCase())
@@ -164,7 +179,11 @@ export function ManageGroupForm({ supervisorId, supervisorName }: ManageGroupPro
                         </span>
                     )}
                 </Button>
-                <Button variant="default" className="px-6">
+                <Button 
+                    variant="default" 
+                    className="px-6"
+                    onClick={() => setIsProgramModalOpen(true)}
+                >
                     Program
                 </Button>
             </div>
@@ -328,6 +347,77 @@ export function ManageGroupForm({ supervisorId, supervisorName }: ManageGroupPro
                         >
                             {isPending ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Check className="mr-2 h-4 w-4" />}
                             Run Updates
+                        </Button>
+                    </div>
+                </DialogContent>
+            </Dialog>
+
+            {/* Program Modal */}
+            <Dialog open={isProgramModalOpen} onOpenChange={setIsProgramModalOpen}>
+                <DialogContent className="sm:max-w-[450px]">
+                    <DialogHeader>
+                        <DialogTitle className="flex items-center gap-2">
+                            <Calendar className="h-5 w-5 text-primary" />
+                            Program Group Session
+                        </DialogTitle>
+                        <DialogDescription>
+                            Configure the default parameters for the supervision sessions.
+                        </DialogDescription>
+                    </DialogHeader>
+                    
+                    <div className="py-4 space-y-6">
+                        <div className="grid grid-cols-2 gap-6">
+                            <div className="space-y-4">
+                                <div className="space-y-2">
+                                    <label className="text-[11px] font-bold text-muted-foreground uppercase tracking-wider text-center block">Current Month</label>
+                                    <div className="flex h-10 w-full items-center justify-center rounded-md border border-input bg-muted/50 px-3 py-2 text-sm text-muted-foreground font-medium">
+                                        <span>Current Month</span>
+                                    </div>
+                                </div>
+                                <div className="space-y-2">
+                                    <label className="text-[11px] font-bold text-muted-foreground uppercase tracking-wider text-center block">Months</label>
+                                    <Select defaultValue="current">
+                                        <SelectTrigger className="w-full bg-background border text-center h-10">
+                                            <SelectValue placeholder="Select months" />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            <SelectItem value="all">All Available</SelectItem>
+                                            <SelectItem value="current">Only Current</SelectItem>
+                                            <SelectItem value="next">Next Month</SelectItem>
+                                        </SelectContent>
+                                    </Select>
+                                </div>
+                            </div>
+
+                            <div className="space-y-4">
+                                <div className="space-y-2">
+                                    <label className="text-[11px] font-bold text-muted-foreground uppercase tracking-wider text-center block">Start Time</label>
+                                    <Input 
+                                        type="time" 
+                                        value={programStart}
+                                        onChange={(e) => setProgramStart(e.target.value)}
+                                        className="h-10 text-center font-medium bg-background border"
+                                    />
+                                </div>
+                                <div className="space-y-2">
+                                    <label className="text-[11px] font-bold text-muted-foreground uppercase tracking-wider text-center block">End Time</label>
+                                    <Input 
+                                        type="time" 
+                                        value={programEnd}
+                                        onChange={(e) => setProgramEnd(e.target.value)}
+                                        className="h-10 text-center font-medium bg-background border"
+                                    />
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div className="flex justify-end pt-4 mt-2">
+                        <Button 
+                            onClick={handleProgramRun}
+                            className="w-full h-12 text-md font-semibold text-white bg-black hover:bg-zinc-800 transition-colors"
+                        >
+                            Run
                         </Button>
                     </div>
                 </DialogContent>
