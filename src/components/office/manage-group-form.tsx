@@ -2,7 +2,7 @@
 
 import { useState, useTransition, useEffect } from "react"
 import { Button } from "@/components/ui/button"
-import { Check, X, Loader2, Search, Calendar } from "lucide-react"
+import { Check, X, Loader2, Search, Calendar, Plus, Users } from "lucide-react"
 import { toast } from "sonner"
 import {
     Select,
@@ -12,7 +12,12 @@ import {
     SelectValue,
 } from "@/components/ui/select"
 import { Input } from "@/components/ui/input"
-import { getGroupStudents, toggleGroupStudentAssignment } from "@/actions/assignments"
+import {
+    fetchSupervisorGroups,
+    createSupervisorGroup,
+    getStudentsByGroup,
+    toggleStudentGroupAssignment,
+} from "@/actions/group-assignments"
 import {
     Dialog,
     DialogContent,
@@ -33,9 +38,20 @@ type DraftChange = {
     startDate: string
 }
 
+type GroupOption = {
+    id: string
+    name: string
+}
+
 export function ManageGroupForm({ supervisorId, supervisorName }: ManageGroupProps) {
     const [isPending, startTransition] = useTransition()
     const [isLoading, setIsLoading] = useState(false)
+    
+    // Groups
+    const [groups, setGroups] = useState<GroupOption[]>([])
+    const [selectedGroupId, setSelectedGroupId] = useState<string | null>(null)
+    const [isCreatingGroup, setIsCreatingGroup] = useState(false)
+    const [newGroupName, setNewGroupName] = useState("")
     
     // Master data
     const [initialUnassigned, setInitialUnassigned] = useState<any[]>([])
@@ -56,9 +72,33 @@ export function ManageGroupForm({ supervisorId, supervisorName }: ManageGroupPro
     const [programStart, setProgramStart] = useState("19:00")
     const [programEnd, setProgramEnd] = useState("20:30")
 
-    const fetchStudents = async () => {
+    // ─── Load Groups ───
+    const loadGroups = async () => {
+        const res = await fetchSupervisorGroups(supervisorId)
+        if (res.error) {
+            toast.error(res.error)
+        } else {
+            const list = (res.groups || []) as GroupOption[]
+            setGroups(list)
+            if (list.length > 0 && !selectedGroupId) {
+                setSelectedGroupId(list[0].id)
+            }
+        }
+    }
+
+    useEffect(() => {
+        setSelectedGroupId(null)
+        setGroups([])
+        setAssigned([])
+        setUnassigned([])
+        setPendingChanges({})
+        loadGroups()
+    }, [supervisorId])
+
+    // ─── Load Students when group changes ───
+    const fetchStudents = async (groupId: string) => {
         setIsLoading(true)
-        const res = await getGroupStudents(supervisorId)
+        const res = await getStudentsByGroup(groupId)
         if (res.error) {
             toast.error(res.error)
         } else {
@@ -72,17 +112,44 @@ export function ManageGroupForm({ supervisorId, supervisorName }: ManageGroupPro
     }
 
     useEffect(() => {
-        setSearchAssignedTerm("")
-        setSearchAvailableTerm("")
-        fetchStudents()
-    }, [supervisorId])
+        if (selectedGroupId) {
+            setSearchAssignedTerm("")
+            setSearchAvailableTerm("")
+            fetchStudents(selectedGroupId)
+        } else {
+            setAssigned([])
+            setUnassigned([])
+            setPendingChanges({})
+        }
+    }, [selectedGroupId])
 
+    // ─── Create Group ───
+    const handleCreateGroup = async () => {
+        if (!newGroupName.trim()) return toast.error("Group name cannot be empty.")
+        const res = await createSupervisorGroup(supervisorId, newGroupName.trim())
+        if (res.error) {
+            toast.error(res.error)
+        } else {
+            toast.success(`Group "${newGroupName.trim()}" created.`)
+            setNewGroupName("")
+            setIsCreatingGroup(false)
+            await loadGroups()
+            if (res.group) setSelectedGroupId(res.group.id)
+        }
+    }
+
+    // ─── Helpers ───
     const getLocalDateString = () => {
         const d = new Date()
         return `${String(d.getMonth() + 1).padStart(2, '0')}/${String(d.getDate()).padStart(2, '0')}/${d.getFullYear()}`
     }
 
     const handleToggle = (studentId: string, studentName: string, action: 'assign' | 'remove') => {
+        // Enforce max 10 on assign (local check)
+        if (action === 'assign' && assigned.length >= 10) {
+            return toast.error("Maximum capacity (10 students) reached for this group.")
+        }
+
         if (action === 'assign') {
             const s = unassigned.find(x => x.id === studentId)
             if (!s) return
@@ -92,7 +159,7 @@ export function ManageGroupForm({ supervisorId, supervisorName }: ManageGroupPro
             setPendingChanges(prev => {
                 const next = { ...prev }
                 if (initialAssigned.some(x => x.id === studentId)) {
-                    delete next[studentId] // Reverted
+                    delete next[studentId]
                 } else {
                     next[studentId] = { studentId, name: studentName, action, startDate: getLocalDateString() }
                 }
@@ -107,7 +174,7 @@ export function ManageGroupForm({ supervisorId, supervisorName }: ManageGroupPro
             setPendingChanges(prev => {
                 const next = { ...prev }
                 if (initialUnassigned.some(x => x.id === studentId)) {
-                    delete next[studentId] // Reverted
+                    delete next[studentId]
                 } else {
                     next[studentId] = { studentId, name: studentName, action, startDate: getLocalDateString() }
                 }
@@ -124,33 +191,34 @@ export function ManageGroupForm({ supervisorId, supervisorName }: ManageGroupPro
     }
 
     const executeRun = () => {
+        if (!selectedGroupId) return toast.error("No group selected.")
         const changes = Object.values(pendingChanges)
         if (changes.length === 0) return
         
         startTransition(async () => {
             let errorCount = 0
             for (const change of changes) {
-                // Here we pass the action, but currently assignments.ts doesn't support startDate yet.
-                // We keep it functionally same to DB while reflecting UI requirement.
-                const res = await toggleGroupStudentAssignment(change.studentId, supervisorId, change.action)
+                const res = await toggleStudentGroupAssignment(selectedGroupId, change.studentId, change.action, change.startDate)
                 if (res.error) {
                     toast.error(`Error on ${change.name}: ${res.error}`)
                     errorCount++
                 }
             }
             if (errorCount === 0) {
-                toast.success("Groups successfully updated!")
+                toast.success("Group successfully updated!")
                 setIsUpdateModalOpen(false)
-                fetchStudents()
+                fetchStudents(selectedGroupId)
             }
         })
     }
 
     const handleProgramRun = async () => {
-        toast.success(`Group Session successfully programmed from ${programStart} to ${programEnd}`)
+        if (!selectedGroupId) return toast.error("No group selected.")
+        toast.success(`Group session programmed from ${programStart} to ${programEnd}`)
         setIsProgramModalOpen(false)
     }
 
+    // ─── Filters ───
     const filteredAssigned = assigned.filter(s => 
         (s.fullName || "").toLowerCase().includes(searchAssignedTerm.toLowerCase()) || 
         (s.email || "").toLowerCase().includes(searchAssignedTerm.toLowerCase())
@@ -165,126 +233,186 @@ export function ManageGroupForm({ supervisorId, supervisorName }: ManageGroupPro
 
     return (
         <div className="flex-1 overflow-y-auto pr-2 space-y-6 pt-2">
-            <div className="flex justify-end gap-3 mb-6 border-b pb-4">
-                <Button 
-                    variant="default" 
-                    className="px-6 gap-2"
-                    onClick={() => {
-                        if (pendingArray.length === 0) return toast("No pending modifications.")
-                        setIsUpdateModalOpen(true)
-                    }}
-                >
-                    Update
-                    {pendingArray.length > 0 && (
-                        <span className="flex h-5 min-w-5 items-center justify-center rounded-full bg-white px-1.5 text-[11px] font-extrabold text-primary shadow-sm">
-                            {pendingArray.length}
-                        </span>
+            {/* ─── Group Selector Bar ─── */}
+            <div className="flex items-center gap-3 p-4 rounded-xl bg-muted/30 border">
+                <Users className="h-5 w-5 text-primary shrink-0" />
+                <div className="flex-1">
+                    {groups.length > 0 ? (
+                        <Select value={selectedGroupId || ""} onValueChange={setSelectedGroupId}>
+                            <SelectTrigger className="w-full bg-background border h-10 font-medium">
+                                <SelectValue placeholder="Select a group..." />
+                            </SelectTrigger>
+                            <SelectContent>
+                                {groups.map(g => (
+                                    <SelectItem key={g.id} value={g.id}>{g.name}</SelectItem>
+                                ))}
+                            </SelectContent>
+                        </Select>
+                    ) : (
+                        <p className="text-sm text-muted-foreground">No groups created yet for this supervisor.</p>
                     )}
-                </Button>
-                <Button 
-                    variant="default" 
-                    className="px-6"
-                    onClick={() => setIsProgramModalOpen(true)}
-                >
-                    Program
-                </Button>
+                </div>
+                {isCreatingGroup ? (
+                    <div className="flex items-center gap-2">
+                        <Input
+                            value={newGroupName}
+                            onChange={e => setNewGroupName(e.target.value)}
+                            placeholder="Group Name"
+                            className="h-10 w-44 text-sm"
+                            onKeyDown={e => e.key === 'Enter' && handleCreateGroup()}
+                            autoFocus
+                        />
+                        <Button size="sm" className="h-10 px-3" onClick={handleCreateGroup}>
+                            <Check className="h-4 w-4" />
+                        </Button>
+                        <Button size="sm" variant="ghost" className="h-10 px-3" onClick={() => { setIsCreatingGroup(false); setNewGroupName("") }}>
+                            <X className="h-4 w-4" />
+                        </Button>
+                    </div>
+                ) : (
+                    <Button 
+                        size="sm" 
+                        variant="outline" 
+                        className="h-10 gap-1.5 shrink-0"
+                        onClick={() => setIsCreatingGroup(true)}
+                    >
+                        <Plus className="h-4 w-4" />
+                        New Group
+                    </Button>
+                )}
             </div>
 
-            {isLoading ? (
-                <div className="flex justify-center p-8">
-                    <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
-                </div>
-            ) : (
+            {/* ─── Action Buttons ─── */}
+            {selectedGroupId && (
                 <>
-                    {/* Assigned Section */}
-                    <div>
-                        <h3 className="font-semibold text-sm mb-3 text-muted-foreground flex justify-between uppercase tracking-wider">
-                            Currently Assigned
-                            <span className="bg-primary/10 text-primary px-2 py-0.5 rounded-full text-xs">
-                                {assigned.length}
-                            </span>
-                        </h3>
-                        <div className="relative mb-4">
-                            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                            <Input 
-                                placeholder="Search assigned by name or email..." 
-                                className="pl-9 h-10 text-sm"
-                                value={searchAssignedTerm}
-                                onChange={(e) => setSearchAssignedTerm(e.target.value)}
-                            />
-                        </div>
-                        <div className="space-y-2">
-                            {filteredAssigned.length === 0 ? (
-                                <p className="text-sm text-center py-6 border border-dashed rounded-lg text-muted-foreground bg-muted/20">
-                                    {searchAssignedTerm ? "No matches found" : "No students currently assigned to this group"}
-                                </p>
-                            ) : (
-                                filteredAssigned.map(student => (
-                                    <div key={student.id} className="flex items-center justify-between p-4 rounded-xl border bg-card hover:shadow-md transition-all group">
-                                        <div>
-                                            <p className="font-semibold text-sm">{student.fullName}</p>
-                                            <p className="text-xs text-muted-foreground tracking-tight">{student.email}</p>
-                                        </div>
-                                        <Button
-                                            variant="ghost"
-                                            size="sm"
-                                            className="text-destructive hover:text-destructive hover:bg-destructive/10 rounded-full h-8 opacity-90 group-hover:opacity-100"
-                                            onClick={() => handleToggle(student.id, student.fullName, 'remove')}
-                                            disabled={isPending}
-                                        >
-                                            <X className="h-4 w-4 mr-1" />
-                                            Remove
-                                        </Button>
-                                    </div>
-                                ))
-                            )}
+                    <div className="flex justify-between items-center mb-2 border-b pb-4">
+                        <p className="text-xs text-muted-foreground font-medium">
+                            Assigned: <span className="text-primary font-bold">{assigned.length}</span> / 10 max
+                        </p>
+                        <div className="flex gap-3">
+                            <Button 
+                                variant="default" 
+                                className="px-6 gap-2"
+                                onClick={() => {
+                                    if (pendingArray.length === 0) return toast("No pending modifications.")
+                                    setIsUpdateModalOpen(true)
+                                }}
+                            >
+                                Update
+                                {pendingArray.length > 0 && (
+                                    <span className="flex h-5 min-w-5 items-center justify-center rounded-full bg-white px-1.5 text-[11px] font-extrabold text-primary shadow-sm">
+                                        {pendingArray.length}
+                                    </span>
+                                )}
+                            </Button>
+                            <Button 
+                                variant="default" 
+                                className="px-6"
+                                onClick={() => setIsProgramModalOpen(true)}
+                            >
+                                Program
+                            </Button>
                         </div>
                     </div>
 
-                    {/* Unassigned Section */}
-                    <div>
-                        <h3 className="font-semibold text-sm mb-3 text-muted-foreground flex justify-between uppercase tracking-wider">
-                            Available Unassigned Students
-                            <span className="bg-muted px-2 py-0.5 rounded-full text-xs font-mono">
-                                {unassigned.length}
-                            </span>
-                        </h3>
-                        <div className="relative mb-4">
-                            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                            <Input 
-                                placeholder="Search available by name or email..." 
-                                className="pl-9 h-10 text-sm"
-                                value={searchAvailableTerm}
-                                onChange={(e) => setSearchAvailableTerm(e.target.value)}
-                            />
+                    {/* ─── Student Lists ─── */}
+                    {isLoading ? (
+                        <div className="flex justify-center p-8">
+                            <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
                         </div>
-                        <div className="space-y-2">
-                            {filteredUnassigned.length === 0 ? (
-                                <p className="text-sm text-center py-6 border border-dashed rounded-lg text-muted-foreground bg-muted/20">
-                                    {searchAvailableTerm ? "No matches found" : "No unassigned students available"}
-                                </p>
-                            ) : (
-                                filteredUnassigned.map(student => (
-                                    <div key={student.id} className="flex items-center justify-between p-4 rounded-xl border bg-card hover:shadow-md transition-all group">
-                                        <div>
-                                            <p className="font-semibold text-sm">{student.fullName}</p>
-                                            <p className="text-xs text-muted-foreground tracking-tight">{student.email}</p>
-                                        </div>
-                                        <Button
-                                            variant="secondary"
-                                            size="sm"
-                                            className="rounded-full h-8 bg-primary/10 text-primary hover:bg-primary/20 hover:text-primary transition-colors opacity-90 group-hover:opacity-100"
-                                            onClick={() => handleToggle(student.id, student.fullName, 'assign')}
-                                            disabled={isPending}
-                                        >
-                                            <Check className="h-4 w-4 mr-1" />
-                                            Assign
-                                        </Button>
-                                    </div>
-                                ))
-                            )}
-                        </div>
-                    </div>
+                    ) : (
+                        <>
+                            {/* Assigned Section */}
+                            <div>
+                                <h3 className="font-semibold text-sm mb-3 text-muted-foreground flex justify-between uppercase tracking-wider">
+                                    Currently Assigned
+                                    <span className="bg-primary/10 text-primary px-2 py-0.5 rounded-full text-xs">
+                                        {assigned.length}
+                                    </span>
+                                </h3>
+                                <div className="relative mb-4">
+                                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                                    <Input 
+                                        placeholder="Search assigned by name or email..." 
+                                        className="pl-9 h-10 text-sm"
+                                        value={searchAssignedTerm}
+                                        onChange={(e) => setSearchAssignedTerm(e.target.value)}
+                                    />
+                                </div>
+                                <div className="space-y-2">
+                                    {filteredAssigned.length === 0 ? (
+                                        <p className="text-sm text-center py-6 border border-dashed rounded-lg text-muted-foreground bg-muted/20">
+                                            {searchAssignedTerm ? "No matches found" : "No students currently assigned to this group"}
+                                        </p>
+                                    ) : (
+                                        filteredAssigned.map(student => (
+                                            <div key={student.id} className="flex items-center justify-between p-4 rounded-xl border bg-card hover:shadow-md transition-all group">
+                                                <div>
+                                                    <p className="font-semibold text-sm">{student.fullName}</p>
+                                                    <p className="text-xs text-muted-foreground tracking-tight">{student.email}</p>
+                                                </div>
+                                                <Button
+                                                    variant="ghost"
+                                                    size="sm"
+                                                    className="text-destructive hover:text-destructive hover:bg-destructive/10 rounded-full h-8 opacity-90 group-hover:opacity-100"
+                                                    onClick={() => handleToggle(student.id, student.fullName, 'remove')}
+                                                    disabled={isPending}
+                                                >
+                                                    <X className="h-4 w-4 mr-1" />
+                                                    Remove
+                                                </Button>
+                                            </div>
+                                        ))
+                                    )}
+                                </div>
+                            </div>
+
+                            {/* Unassigned Section */}
+                            <div>
+                                <h3 className="font-semibold text-sm mb-3 text-muted-foreground flex justify-between uppercase tracking-wider">
+                                    Available Unassigned Students
+                                    <span className="bg-muted px-2 py-0.5 rounded-full text-xs font-mono">
+                                        {unassigned.length}
+                                    </span>
+                                </h3>
+                                <div className="relative mb-4">
+                                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                                    <Input 
+                                        placeholder="Search available by name or email..." 
+                                        className="pl-9 h-10 text-sm"
+                                        value={searchAvailableTerm}
+                                        onChange={(e) => setSearchAvailableTerm(e.target.value)}
+                                    />
+                                </div>
+                                <div className="space-y-2">
+                                    {filteredUnassigned.length === 0 ? (
+                                        <p className="text-sm text-center py-6 border border-dashed rounded-lg text-muted-foreground bg-muted/20">
+                                            {searchAvailableTerm ? "No matches found" : "No unassigned students available"}
+                                        </p>
+                                    ) : (
+                                        filteredUnassigned.map(student => (
+                                            <div key={student.id} className="flex items-center justify-between p-4 rounded-xl border bg-card hover:shadow-md transition-all group">
+                                                <div>
+                                                    <p className="font-semibold text-sm">{student.fullName}</p>
+                                                    <p className="text-xs text-muted-foreground tracking-tight">{student.email}</p>
+                                                </div>
+                                                <Button
+                                                    variant="secondary"
+                                                    size="sm"
+                                                    className="rounded-full h-8 bg-primary/10 text-primary hover:bg-primary/20 hover:text-primary transition-colors opacity-90 group-hover:opacity-100"
+                                                    onClick={() => handleToggle(student.id, student.fullName, 'assign')}
+                                                    disabled={isPending}
+                                                >
+                                                    <Check className="h-4 w-4 mr-1" />
+                                                    Assign
+                                                </Button>
+                                            </div>
+                                        ))
+                                    )}
+                                </div>
+                            </div>
+                        </>
+                    )}
                 </>
             )}
 
