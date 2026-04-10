@@ -376,30 +376,30 @@ export function ManageGroupForm({ supervisorId, supervisorName }: ManageGroupPro
                                         <Button 
                                             variant={recurrenceType === 'current' ? 'default' : 'outline'}
                                             onClick={() => setRecurrenceType('current')}
-                                            className="w-full text-xs px-2"
+                                            className="w-full text-[11px] px-1"
                                         >
-                                            Current Month
+                                            Current Only
                                         </Button>
                                         <Button 
                                             variant={recurrenceType === 'multiple' ? 'default' : 'outline'}
                                             onClick={() => setRecurrenceType('multiple')}
-                                            className="w-full text-xs px-2"
+                                            className="w-full text-[10px] px-1 font-bold tracking-tight"
                                         >
-                                            Months
+                                            + Add Future
                                         </Button>
                                     </div>
                                 </div>
 
                                 {recurrenceType === 'multiple' && (
                                     <div className="space-y-2 animate-in fade-in zoom-in duration-200">
-                                        <label className="text-[11px] font-bold text-muted-foreground uppercase tracking-wider text-center block">Forward Count</label>
+                                        <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider text-center block">Additional Months</label>
                                         <Input 
                                             type="number" 
                                             min="1" 
                                             max="24"
                                             value={monthsForward}
                                             onChange={(e) => setMonthsForward(e.target.value)}
-                                            className="h-10 text-center font-medium bg-muted/50 border"
+                                            className="h-10 text-center font-bold text-lg bg-muted/50 border shadow-inner"
                                         />
                                     </div>
                                 )}
