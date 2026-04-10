@@ -51,6 +51,8 @@ export function ManageGroupForm({ supervisorId, supervisorName }: ManageGroupPro
     const [pendingChanges, setPendingChanges] = useState<Record<string, DraftChange>>({})
     const [isUpdateModalOpen, setIsUpdateModalOpen] = useState(false)
     const [isProgramModalOpen, setIsProgramModalOpen] = useState(false)
+    const [recurrenceType, setRecurrenceType] = useState<'current' | 'multiple'>('current')
+    const [monthsForward, setMonthsForward] = useState("1")
     const [programStart, setProgramStart] = useState("19:00")
     const [programEnd, setProgramEnd] = useState("20:30")
 
@@ -369,24 +371,38 @@ export function ManageGroupForm({ supervisorId, supervisorName }: ManageGroupPro
                         <div className="grid grid-cols-2 gap-6">
                             <div className="space-y-4">
                                 <div className="space-y-2">
-                                    <label className="text-[11px] font-bold text-muted-foreground uppercase tracking-wider text-center block">Current Month</label>
-                                    <div className="flex h-10 w-full items-center justify-center rounded-md border border-input bg-muted/50 px-3 py-2 text-sm text-muted-foreground font-medium">
-                                        <span>Current Month</span>
+                                    <label className="text-[11px] font-bold text-muted-foreground uppercase tracking-wider text-center block">Duration</label>
+                                    <div className="grid grid-cols-2 gap-2">
+                                        <Button 
+                                            variant={recurrenceType === 'current' ? 'default' : 'outline'}
+                                            onClick={() => setRecurrenceType('current')}
+                                            className="w-full text-xs px-2"
+                                        >
+                                            Current Month
+                                        </Button>
+                                        <Button 
+                                            variant={recurrenceType === 'multiple' ? 'default' : 'outline'}
+                                            onClick={() => setRecurrenceType('multiple')}
+                                            className="w-full text-xs px-2"
+                                        >
+                                            Months
+                                        </Button>
                                     </div>
                                 </div>
-                                <div className="space-y-2">
-                                    <label className="text-[11px] font-bold text-muted-foreground uppercase tracking-wider text-center block">Months</label>
-                                    <Select defaultValue="current">
-                                        <SelectTrigger className="w-full bg-background border text-center h-10">
-                                            <SelectValue placeholder="Select months" />
-                                        </SelectTrigger>
-                                        <SelectContent>
-                                            <SelectItem value="all">All Available</SelectItem>
-                                            <SelectItem value="current">Only Current</SelectItem>
-                                            <SelectItem value="next">Next Month</SelectItem>
-                                        </SelectContent>
-                                    </Select>
-                                </div>
+
+                                {recurrenceType === 'multiple' && (
+                                    <div className="space-y-2 animate-in fade-in zoom-in duration-200">
+                                        <label className="text-[11px] font-bold text-muted-foreground uppercase tracking-wider text-center block">Forward Count</label>
+                                        <Input 
+                                            type="number" 
+                                            min="1" 
+                                            max="24"
+                                            value={monthsForward}
+                                            onChange={(e) => setMonthsForward(e.target.value)}
+                                            className="h-10 text-center font-medium bg-muted/50 border"
+                                        />
+                                    </div>
+                                )}
                             </div>
 
                             <div className="space-y-4">
