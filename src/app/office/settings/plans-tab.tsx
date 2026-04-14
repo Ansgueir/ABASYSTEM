@@ -9,7 +9,6 @@ import { Plus, Edit2, Trash2, CheckCircle2, AlertCircle, Loader2, Sparkles, Doll
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from "@/components/ui/dialog"
 import { toast } from "sonner"
 import { Badge } from "@/components/ui/badge"
-import { Separator } from "@/components/ui/separator"
 
 interface Plan {
     id: string
@@ -281,7 +280,7 @@ export function PlansTab() {
                                     </div>
                                 )}
                                 {/* Financial results */}
-                                <Separator />
+                                <hr className="border-muted/40" />
                                 <div className="space-y-1.5">
                                     <div className="flex justify-between text-xs">
                                         <span className="text-muted-foreground flex items-center gap-1"><Clock className="h-3 w-3" /> Sup Hours</span>
@@ -300,7 +299,7 @@ export function PlansTab() {
                                         <span className="font-bold text-blue-700">{fmtUSD(plan.supervisionNet)}</span>
                                     </div>
                                 </div>
-                                <Separator />
+                                <hr className="border-muted/40" />
                                 {/* Monthly payment highlight */}
                                 <div className="bg-gradient-to-r from-indigo-50 to-blue-50 rounded-xl p-3 border border-indigo-100 flex items-center justify-between">
                                     <div>
