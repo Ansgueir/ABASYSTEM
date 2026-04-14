@@ -327,24 +327,51 @@ export function EditableStudentBacbFieldwork({ student, isSuperAdmin: isSuperAdm
         setPlanTemplateId(pId)
         if (pId === "PLAN MANUAL") {
             setAssignedOptionPlan("PLAN MANUAL")
-            // No auto-fill for manual
             return
         }
 
         const selectedPlan = plans.find(p => p.id === pId)
         if (selectedPlan) {
             setAssignedOptionPlan(selectedPlan.name)
-            setHoursTargetReg(String(selectedPlan.regHoursBcba + selectedPlan.regHoursBcaba))
-            setHoursTargetConc(String(selectedPlan.concHours))
-            setTotalMonths(String(selectedPlan.maxMonths || selectedPlan.totalMonths || 12))
             setFieldworkType(selectedPlan.fieldworkType || "REGULAR")
-            
-            const total = Number(selectedPlan.totalCharge) || 0
-            const payout = Number(selectedPlan.analystPayout) || 0
-            setTotalAmountContract(String(total))
-            
-            if (total > 0) {
-                const analystRate = (payout / total) * 100
+
+            // ── Hours ────────────────────────────────────────────────────────
+            const totalH   = Number(selectedPlan.totalHours) || 0
+            const supH     = Number(selectedPlan.amountSupHours) || 0
+            const indivH   = Math.round(totalH - supH)
+
+            setHoursTargetReg(String(totalH))              // Total fieldwork hours
+            setHoursTargetConc(String(0))                  // N/A in waterfall model
+            setIndependentHoursTarget(String(indivH))      // Individual hours
+            setTotalMonths(String(
+                selectedPlan.numberOfMonths ||
+                selectedPlan.totalMonths ||
+                12
+            ))
+            setHoursPerMonth(String(Number(selectedPlan.hoursPerMonth) || 130))
+            // supervisedPercentage stored as 0.05 → display as 5
+            const supPct = Number(selectedPlan.supervisedPercentage) || 0
+            setSupervisionPercentage(String((supPct * 100).toFixed(2)))
+
+            // ── Financial ────────────────────────────────────────────────────
+            const totalCost = Number(selectedPlan.totalCost)
+                           || Number(selectedPlan.totalCharge)
+                           || 0
+            setTotalAmountContract(String(totalCost))
+
+            if (selectedPlan.hourlyRate) {
+                setHourlyRate(Number(selectedPlan.hourlyRate).toFixed(2))
+            }
+
+            // Commission: use supervisorCommission from plan if set
+            const commission = Number(selectedPlan.supervisorCommission) || 0
+            if (commission > 0) {
+                setAnalystPaymentRate((commission * 100).toFixed(2))
+                setOfficePaymentRate(((1 - commission) * 100).toFixed(2))
+            } else if (totalCost > 0) {
+                // Fallback to legacy analystPayout field
+                const payout = Number(selectedPlan.analystPayout) || 0
+                const analystRate = payout > 0 ? (payout / totalCost) * 100 : 0
                 setAnalystPaymentRate(analystRate.toFixed(2))
                 setOfficePaymentRate((100 - analystRate).toFixed(2))
             }
