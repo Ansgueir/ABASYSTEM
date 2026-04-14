@@ -297,7 +297,7 @@ export function PlansTab() {
                                 </div>
                                 <hr className="border-muted/40" />
                                 {/* Monthly payment highlight */}
-                                <div className="bg-gradient-to-r from-indigo-50 to-blue-50 rounded-xl p-3 border border-indigo-100">
+                                <div className="bg-gradient-to-r from-indigo-50 to-blue-50 rounded-xl p-3 border border-indigo-100 text-left">
                                     <p className="text-[10px] uppercase font-bold text-indigo-500">Monthly Payment</p>
                                     <p className="text-lg font-black text-indigo-800">{fmtUSD(plan.monthlyPayment)}</p>
                                 </div>
