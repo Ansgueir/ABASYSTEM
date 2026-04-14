@@ -43,7 +43,6 @@ interface FormInputs {
     supervisedPercentage: string
     hourlyRate: string
     enrollmentFee: string
-    supervisorCommission: string
 }
 
 /** Mirror of the backend formula — runs instantly in the browser */
@@ -59,12 +58,15 @@ function computeLive(inputs: FormInputs) {
     }
 
     const numberOfMonths = Math.ceil(totalHours / hoursPerMonth)
-    const amountSupHours = totalHours * supervisedPercentage
+    const supervisedPct = supervisedPercentage          // e.g. 0.05
+    const individualPct = 1 - supervisedPct             // e.g. 0.95
+    const amountIndivHours = totalHours * individualPct // e.g. 1900
+    const amountSupHours = totalHours * supervisedPct   // e.g. 100
     const totalCost = amountSupHours * hourlyRate
     const supervisionNet = totalCost - enrollmentFee
     const monthlyPayment = numberOfMonths > 0 ? supervisionNet / numberOfMonths : 0
 
-    return { numberOfMonths, amountSupHours, totalCost, supervisionNet, monthlyPayment }
+    return { numberOfMonths, individualPct, amountIndivHours, amountSupHours, totalCost, supervisionNet, monthlyPayment }
 }
 
 const fmtUSD = (n: number | null | undefined) =>
@@ -81,7 +83,6 @@ const emptyForm: FormInputs = {
     supervisedPercentage: "",
     hourlyRate: "",
     enrollmentFee: "",
-    supervisorCommission: "",
 }
 
 export function PlansTab() {
@@ -129,12 +130,9 @@ export function PlansTab() {
             fieldworkType: plan.fieldworkType || "REGULAR",
             totalHours: plan.totalHours?.toString() ?? "",
             hoursPerMonth: plan.hoursPerMonth?.toString() ?? "",
-            // supervisedPercentage stored as 0.05, show as 5 in UI
             supervisedPercentage: plan.supervisedPercentage != null ? (Number(plan.supervisedPercentage) * 100).toFixed(2) : "",
             hourlyRate: plan.hourlyRate?.toString() ?? "",
             enrollmentFee: plan.enrollmentFee?.toString() ?? "",
-            // supervisorCommission stored as 0.60, show as 60 in UI
-            supervisorCommission: plan.supervisorCommission != null ? (Number(plan.supervisorCommission) * 100).toFixed(0) : "",
         })
         setDialogOpen(true)
     }
@@ -147,9 +145,7 @@ export function PlansTab() {
         try {
             const payload = {
                 ...formData,
-                // Convert from UI representation back to decimals
                 supervisedPercentage: formData.supervisedPercentage ? (parseFloat(formData.supervisedPercentage) / 100).toString() : "",
-                supervisorCommission: formData.supervisorCommission ? (parseFloat(formData.supervisorCommission) / 100).toString() : "",
             }
 
             const url = editingPlan ? `/api/office/plans/${editingPlan.id}` : "/api/office/plans"
@@ -388,13 +384,6 @@ export function PlansTab() {
                                         <Input type="number" step="0.01" value={formData.enrollmentFee} onChange={F('enrollmentFee')} placeholder="e.g. 300.00" className="pl-7" />
                                     </div>
                                 </div>
-                                <div className="space-y-2">
-                                    <Label className="text-xs font-semibold flex items-center gap-1"><Percent className="h-3 w-3" /> Supervisor Commission %</Label>
-                                    <div className="relative">
-                                        <Input type="number" step="1" min="0" max="100" value={formData.supervisorCommission} onChange={F('supervisorCommission')} placeholder="e.g. 60 (= 60%)" className="pr-8" />
-                                        <span className="absolute right-3 top-2.5 text-xs text-muted-foreground font-bold">%</span>
-                                    </div>
-                                </div>
                             </div>
                         </div>
 
@@ -415,6 +404,16 @@ export function PlansTab() {
                                         <p className="text-[10px] text-slate-400">= ⌈{formData.totalHours} ÷ {formData.hoursPerMonth}⌉</p>
                                     </div>
                                     <div className="bg-white rounded-lg p-3 border text-center shadow-sm">
+                                        <p className="text-[10px] uppercase font-bold text-slate-400 mb-1">% Individual Hours</p>
+                                        <p className="text-xl font-black text-slate-800">{(liveCalc.individualPct * 100).toFixed(0)}%</p>
+                                        <p className="text-[10px] text-slate-400">= 100% − {formData.supervisedPercentage}%</p>
+                                    </div>
+                                    <div className="bg-white rounded-lg p-3 border text-center shadow-sm">
+                                        <p className="text-[10px] uppercase font-bold text-slate-400 mb-1">Indiv. Hours</p>
+                                        <p className="text-xl font-black text-slate-800">{liveCalc.amountIndivHours.toFixed(0)}h</p>
+                                        <p className="text-[10px] text-slate-400">= {formData.totalHours}h × {(liveCalc.individualPct * 100).toFixed(0)}%</p>
+                                    </div>
+                                    <div className="bg-white rounded-lg p-3 border text-center shadow-sm">
                                         <p className="text-[10px] uppercase font-bold text-slate-400 mb-1">Supervised Hours</p>
                                         <p className="text-xl font-black text-blue-700">{liveCalc.amountSupHours.toFixed(1)}h</p>
                                         <p className="text-[10px] text-slate-400">= {formData.totalHours}h × {formData.supervisedPercentage}%</p>
@@ -429,7 +428,7 @@ export function PlansTab() {
                                         <p className="text-xl font-black text-amber-700">{fmtUSD(liveCalc.supervisionNet)}</p>
                                         <p className="text-[10px] text-slate-400">= {fmtUSD(liveCalc.totalCost)} − ${formData.enrollmentFee}</p>
                                     </div>
-                                    <div className="col-span-2 bg-gradient-to-r from-indigo-50 to-blue-50 rounded-lg p-3 border border-indigo-200 text-center shadow-sm">
+                                    <div className="col-span-3 bg-gradient-to-r from-indigo-50 to-blue-50 rounded-lg p-3 border border-indigo-200 text-center shadow-sm">
                                         <p className="text-[10px] uppercase font-bold text-indigo-500 mb-1">📋 Monthly Payment</p>
                                         <p className="text-2xl font-black text-indigo-800">{fmtUSD(liveCalc.monthlyPayment)}</p>
                                         <p className="text-[10px] text-indigo-400">= {fmtUSD(liveCalc.supervisionNet)} ÷ {liveCalc.numberOfMonths} months</p>
