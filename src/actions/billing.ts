@@ -479,7 +479,7 @@ export async function payToSupervisorFromLedger(data: {
 
         await logAudit({
             action: "CREATE",
-            entity: "SupervisorPayout",
+            entity: "Payment",
             entityId: data.ledgerEntryId,
             details: `Supervisor paid $${data.amount} via ${data.paymentMethod}. Hours supervised: ${supervisedHoursActual ?? "N/A"}`
         })
