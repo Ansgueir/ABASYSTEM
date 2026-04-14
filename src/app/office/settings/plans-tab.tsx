@@ -368,7 +368,7 @@ export function PlansTab() {
                                     <Input type="number" value={formData.hoursPerMonth} onChange={F('hoursPerMonth')} placeholder="e.g. 130" />
                                 </div>
                                 <div className="space-y-2">
-                                    <Label className="text-xs font-semibold flex items-center gap-1"><Percent className="h-3 w-3" /> % Supervised Hours</Label>
+                                    <Label className="text-xs font-semibold flex items-center gap-1"><Percent className="h-3 w-3" /> Supervised Hours</Label>
                                     <div className="relative">
                                         <Input type="number" step="0.01" value={formData.supervisedPercentage} onChange={F('supervisedPercentage')} placeholder="e.g. 5 (= 5%)" className="pr-8" />
                                         <span className="absolute right-3 top-2.5 text-xs text-muted-foreground font-bold">%</span>
