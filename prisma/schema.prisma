@@ -312,12 +312,32 @@ model SupervisorLedgerEntry {
   invoiceId                    String
   supervisorId                 String
   studentId                    String
+
+  // ── WATERFALL AUTO (calculated when student pays) ───────────────────────
   paymentFromStudent           Decimal  @db.Decimal(10, 2) // Cuánto pagó el estudiante en esta transacción
-  supervisorCapTotal           Decimal  @db.Decimal(10, 2) // Tope_Total_Supervisor = amountDue * paymentPercentage
+  supervisorCapTotal           Decimal  @db.Decimal(10, 2) // Tope_Total_Supervisor = amountDue * commission%
   supervisorCapRemainingBefore Decimal  @db.Decimal(10, 2) // Remanente ANTES de este pago
-  supervisorPayout             Decimal  @db.Decimal(10, 2) // Lo que SE LE PAGA al supervisor en esta transacción
-  officePayout                 Decimal  @db.Decimal(10, 2) // Lo que SE QUEDA la oficina en esta transacción
-  supervisorCapRemainingAfter  Decimal  @db.Decimal(10, 2) // Nuevo remanente DESPUÉS de este pago
+  supervisorPayout             Decimal  @db.Decimal(10, 2) // Pago calculado al supervisor
+  officePayout                 Decimal  @db.Decimal(10, 2) // Lo que se queda la oficina
+  supervisorCapRemainingAfter  Decimal  @db.Decimal(10, 2) // Nuevo remanente DESPUÉS
+
+  // ── PLAN SNAPSHOT (auto-filled from student plan at creation) ───────────
+  planMonthlyPayment           Decimal? @db.Decimal(10, 2) // Plan.monthlyPayment
+  planHoursPerMonth            Int?                         // Plan.hoursPerMonth
+  planSupervisedHours          Decimal? @db.Decimal(8, 2)  // Plan.amountSupHours / numberOfMonths
+  planIndividualHours          Decimal? @db.Decimal(8, 2)  // Plan.hoursPerMonth * (1 - supervisedPct)
+
+  // ── PAYOUT STATUS ────────────────────────────────────────────────────────
+  payoutStatus                 String   @default("PENDING") // PENDING | PAID
+
+  // ── MANUAL FIELDS (set by Super Office when paying supervisor) ──────────
+  supervisedHoursActual        Decimal? @db.Decimal(8, 2)  // Horas supervisadas reales del mes
+  individualHoursDelta         Decimal? @db.Decimal(8, 2)  // Delta horas individuales vs plan
+  paymentMethod                String?                      // ZELLE | ACH | WIRE | CHECK | CASH
+  paymentReference             String?                      // Número de confirmación / referencia
+  paymentNotes                 String?                      // Notas internas
+  paidAt                       DateTime?                    // Cuándo se ejecutó el pago
+
   createdAt                    DateTime @default(now())
 
   invoice    Invoice    @relation(fields: [invoiceId], references: [id])
@@ -326,6 +346,7 @@ model SupervisorLedgerEntry {
 
   @@index([invoiceId])
   @@index([supervisorId])
+  @@index([payoutStatus])
 }
 
 model Document {

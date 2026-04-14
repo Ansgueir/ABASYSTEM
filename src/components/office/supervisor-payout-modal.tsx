@@ -6,35 +6,62 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Textarea } from "@/components/ui/textarea"
-import { useState } from "react"
-import { recordSupervisorPayout } from "@/actions/billing"
+import { useState, useEffect } from "react"
+import { payToSupervisorFromLedger } from "@/actions/billing"
 import { toast } from "sonner"
 import { useRouter } from "next/navigation"
-import { Loader2 } from "lucide-react"
+import { Loader2, Clock, DollarSign, Calculator, BookOpen } from "lucide-react"
+
+interface LedgerEntry {
+    id: string
+    invoiceId: string
+    supervisorId: string
+    paymentFromStudent: number
+    supervisorCapTotal: number
+    supervisorCapRemainingBefore: number
+    supervisorPayout: number
+    officePayout: number
+    supervisorCapRemainingAfter: number
+    planMonthlyPayment: number | null
+    planHoursPerMonth: number | null
+    planSupervisedHours: number | null
+    planIndividualHours: number | null
+    student: { fullName: string }
+}
 
 interface SupervisorPayoutModalProps {
     isOpen: boolean
     onClose: () => void
-    invoiceId: string
-    supervisorId: string
-    supervisorName: string
-    remainingBalance: number
+    entry: LedgerEntry
 }
 
-export function SupervisorPayoutModal({
-    isOpen,
-    onClose,
-    invoiceId,
-    supervisorId,
-    supervisorName,
-    remainingBalance
-}: SupervisorPayoutModalProps) {
+const fmtUSD = (n: number | null | undefined) =>
+    n != null ? `$${Number(n).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` : "—"
+
+export function SupervisorPayoutModal({ isOpen, onClose, entry }: SupervisorPayoutModalProps) {
     const router = useRouter()
     const [loading, setLoading] = useState(false)
-    const [amount, setAmount] = useState(remainingBalance.toFixed(2))
+
+    // Manual fields — pre-filled from plan if not yet set by previous payment
+    const [amount, setAmount] = useState(Number(entry.supervisorPayout).toFixed(2))
+    const [supervisedHoursActual, setSupervisedHoursActual] = useState(
+        entry.planSupervisedHours != null ? Number(entry.planSupervisedHours).toFixed(1) : ""
+    )
+    const [individualHoursDelta, setIndividualHoursDelta] = useState("0")
     const [method, setMethod] = useState("ZELLE")
     const [reference, setReference] = useState("")
     const [notes, setNotes] = useState("")
+
+    useEffect(() => {
+        setAmount(Number(entry.supervisorPayout).toFixed(2))
+        setSupervisedHoursActual(entry.planSupervisedHours != null ? Number(entry.planSupervisedHours).toFixed(1) : "")
+        setIndividualHoursDelta("0")
+    }, [entry])
+
+    // Compute suggested individual hours actual from supervised hours actual
+    const indivActual = entry.planHoursPerMonth != null && supervisedHoursActual
+        ? (Number(entry.planHoursPerMonth) - Number(supervisedHoursActual)).toFixed(1)
+        : null
 
     async function handleSubmit() {
         const numAmount = Number(amount)
@@ -42,113 +69,212 @@ export function SupervisorPayoutModal({
             toast.error("Please enter a valid amount")
             return
         }
-
-        if (numAmount > remainingBalance + 0.01) {
-            toast.error("Amount exceeds the remaining balance owed to supervisor")
+        if (numAmount > Number(entry.supervisorPayout) + 0.01) {
+            toast.error(`Amount exceeds the calculated payout (${fmtUSD(entry.supervisorPayout)})`)
             return
         }
 
         setLoading(true)
         try {
-            const res = await recordSupervisorPayout({
-                invoiceId,
-                supervisorId,
+            const res = await payToSupervisorFromLedger({
+                ledgerEntryId: entry.id,
                 amount: numAmount,
-                method,
-                reference,
-                notes
+                supervisedHoursActual: supervisedHoursActual ? Number(supervisedHoursActual) : undefined,
+                individualHoursDelta: individualHoursDelta ? Number(individualHoursDelta) : undefined,
+                paymentMethod: method,
+                paymentReference: reference || undefined,
+                paymentNotes: notes || undefined
             })
 
             if (res.success) {
-                toast.success("Payout recorded successfully ✓")
+                toast.success("Supervisor payment recorded ✓")
                 onClose()
                 router.refresh()
             } else {
-                toast.error(res.error || "Failed to record payout")
+                toast.error(res.error || "Failed to record payment")
             }
-        } catch (error) {
-            toast.error("An unexpected error occurred")
+        } catch {
+            toast.error("Unexpected error. Please try again.")
         } finally {
             setLoading(false)
         }
     }
 
     return (
-        <Dialog open={isOpen} onOpenChange={(v) => !v && onClose()}>
-            <DialogContent className="sm:max-w-[425px]">
+        <Dialog open={isOpen} onOpenChange={v => !v && onClose()}>
+            <DialogContent className="sm:max-w-[580px] max-h-[95vh] overflow-y-auto">
                 <DialogHeader>
-                    <DialogTitle>Record Supervisor Payout</DialogTitle>
+                    <DialogTitle className="flex items-center gap-2">
+                        <DollarSign className="h-5 w-5 text-amber-500" />
+                        Pay Supervisor — {entry.student.fullName}
+                    </DialogTitle>
                     <DialogDescription>
-                        Payment for {supervisorName} regarding invoice #{invoiceId.slice(-6).toUpperCase()}.
+                        Invoice #{entry.invoiceId.slice(-6).toUpperCase()} · Review all data before confirming.
                     </DialogDescription>
                 </DialogHeader>
 
-                <div className="grid gap-4 py-4">
-                    {/* Amount */}
-                    <div className="grid gap-2">
-                        <Label htmlFor="amount">Amount to Pay ($)</Label>
-                        <Input
-                            id="amount"
-                            type="number"
-                            step="0.01"
-                            value={amount}
-                            onChange={(e) => setAmount(e.target.value)}
-                        />
-                        <p className="text-[10px] text-muted-foreground flex justify-between">
-                            <span>Max Payment:</span>
-                            <span className="font-bold text-amber-600">${remainingBalance.toFixed(2)}</span>
+                <div className="space-y-4 py-2">
+
+                    {/* ── BLOQUE 1: AUTO del Plan ── */}
+                    <div className="rounded-xl border border-blue-100 bg-blue-50/40 p-4 space-y-2">
+                        <p className="text-[10px] uppercase font-bold text-blue-700 flex items-center gap-1.5">
+                            <BookOpen className="h-3.5 w-3.5" /> Plan Data (Read-Only)
                         </p>
+                        <div className="grid grid-cols-4 gap-3">
+                            <div className="text-center">
+                                <p className="text-[9px] uppercase text-blue-500 font-bold">Monthly Payment</p>
+                                <p className="text-sm font-black text-blue-800">{fmtUSD(entry.planMonthlyPayment)}</p>
+                            </div>
+                            <div className="text-center">
+                                <p className="text-[9px] uppercase text-blue-500 font-bold">Hrs/Month</p>
+                                <p className="text-sm font-black text-blue-800">{entry.planHoursPerMonth != null ? `${entry.planHoursPerMonth}h` : "—"}</p>
+                            </div>
+                            <div className="text-center">
+                                <p className="text-[9px] uppercase text-blue-500 font-bold">Sup Hrs/Month</p>
+                                <p className="text-sm font-black text-blue-800">{entry.planSupervisedHours != null ? `${Number(entry.planSupervisedHours).toFixed(1)}h` : "—"}</p>
+                            </div>
+                            <div className="text-center">
+                                <p className="text-[9px] uppercase text-blue-500 font-bold">Indiv Hrs/Month</p>
+                                <p className="text-sm font-black text-blue-800">{entry.planIndividualHours != null ? `${Number(entry.planIndividualHours).toFixed(1)}h` : "—"}</p>
+                            </div>
+                        </div>
                     </div>
 
-                    {/* Method */}
-                    <div className="grid gap-2">
-                        <Label htmlFor="method">Payment Method</Label>
-                        <Select value={method} onValueChange={setMethod}>
-                            <SelectTrigger id="method">
-                                <SelectValue placeholder="Select method" />
-                            </SelectTrigger>
-                            <SelectContent>
-                                <SelectItem value="ZELLE">Zelle</SelectItem>
-                                <SelectItem value="ACH">ACH Transfer</SelectItem>
-                                <SelectItem value="WIRE">Wire Transfer</SelectItem>
-                                <SelectItem value="CHECK">Physical Check</SelectItem>
-                                <SelectItem value="VENMO">Venmo</SelectItem>
-                                <SelectItem value="CASH">Cash</SelectItem>
-                                <SelectItem value="OTHER">Other</SelectItem>
-                            </SelectContent>
-                        </Select>
+                    {/* ── BLOQUE 2: AUTO Waterfall ── */}
+                    <div className="rounded-xl border border-emerald-100 bg-emerald-50/40 p-4 space-y-2">
+                        <p className="text-[10px] uppercase font-bold text-emerald-700 flex items-center gap-1.5">
+                            <Calculator className="h-3.5 w-3.5" /> Waterfall Calculation (Read-Only)
+                        </p>
+                        <div className="grid grid-cols-3 gap-3">
+                            <div className="bg-white rounded-lg p-2 border text-center">
+                                <p className="text-[9px] uppercase text-slate-400 font-bold">Student Paid</p>
+                                <p className="text-sm font-black text-blue-700">{fmtUSD(entry.paymentFromStudent)}</p>
+                            </div>
+                            <div className="bg-white rounded-lg p-2 border text-center">
+                                <p className="text-[9px] uppercase text-slate-400 font-bold">Tope Total Sup</p>
+                                <p className="text-sm font-black text-slate-800">{fmtUSD(entry.supervisorCapTotal)}</p>
+                            </div>
+                            <div className="bg-white rounded-lg p-2 border text-center">
+                                <p className="text-[9px] uppercase text-slate-400 font-bold">Remanente Prev</p>
+                                <p className="text-sm font-black text-slate-800">{fmtUSD(entry.supervisorCapRemainingBefore)}</p>
+                            </div>
+                            <div className="bg-emerald-100 rounded-lg p-2 border border-emerald-200 text-center col-span-2">
+                                <p className="text-[9px] uppercase text-emerald-600 font-bold">Calculated Payout</p>
+                                <p className="text-lg font-black text-emerald-800">{fmtUSD(entry.supervisorPayout)}</p>
+                            </div>
+                            <div className="bg-white rounded-lg p-2 border text-center">
+                                <p className="text-[9px] uppercase text-slate-400 font-bold">Nuevo Remanente</p>
+                                <p className="text-sm font-black text-amber-700">{fmtUSD(entry.supervisorCapRemainingAfter)}</p>
+                            </div>
+                        </div>
                     </div>
 
-                    {/* Reference */}
-                    <div className="grid gap-2">
-                        <Label htmlFor="reference">Transaction / Reference ID</Label>
-                        <Input
-                            id="reference"
-                            placeholder="e.g. Bank Confirmation #12345"
-                            value={reference}
-                            onChange={(e) => setReference(e.target.value)}
-                        />
-                    </div>
+                    {/* ── BLOQUE 3: MANUAL ── */}
+                    <div className="rounded-xl border border-slate-200 bg-slate-50/40 p-4 space-y-3">
+                        <p className="text-[10px] uppercase font-bold text-slate-600 flex items-center gap-1.5">
+                            <Clock className="h-3.5 w-3.5" /> Manual Details (Editable)
+                        </p>
 
-                    {/* Notes */}
-                    <div className="grid gap-2">
-                        <Label htmlFor="notes">Notes (Optional)</Label>
-                        <Textarea
-                            id="notes"
-                            placeholder="Add internal notes..."
-                            value={notes}
-                            onChange={(e) => setNotes(e.target.value)}
-                        />
+                        <div className="grid grid-cols-2 gap-3">
+                            {/* Amount */}
+                            <div className="space-y-1 col-span-2">
+                                <Label className="text-xs font-semibold">Amount to Pay ($)</Label>
+                                <div className="relative">
+                                    <span className="absolute left-3 top-2.5 text-xs text-muted-foreground font-bold">$</span>
+                                    <Input
+                                        type="number" step="0.01"
+                                        value={amount}
+                                        onChange={e => setAmount(e.target.value)}
+                                        className="pl-7"
+                                    />
+                                </div>
+                                <p className="text-[10px] text-muted-foreground">
+                                    Max: <span className="font-bold text-amber-600">{fmtUSD(entry.supervisorPayout)}</span>
+                                </p>
+                            </div>
+
+                            {/* Supervised Hours Actual */}
+                            <div className="space-y-1">
+                                <Label className="text-xs font-semibold">Supervised Hours (Actual)</Label>
+                                <div className="relative">
+                                    <Input
+                                        type="number" step="0.5"
+                                        value={supervisedHoursActual}
+                                        onChange={e => setSupervisedHoursActual(e.target.value)}
+                                        placeholder={entry.planSupervisedHours != null ? `Plan: ${Number(entry.planSupervisedHours).toFixed(1)}h` : "e.g. 100"}
+                                        className="pr-8"
+                                    />
+                                    <span className="absolute right-3 top-2.5 text-xs text-muted-foreground">h</span>
+                                </div>
+                                {indivActual && (
+                                    <p className="text-[10px] text-muted-foreground">
+                                        → Indiv. actual: <span className="font-bold">{indivActual}h</span>
+                                    </p>
+                                )}
+                            </div>
+
+                            {/* Individual Hours Delta */}
+                            <div className="space-y-1">
+                                <Label className="text-xs font-semibold">Individual Hours Delta</Label>
+                                <div className="relative">
+                                    <Input
+                                        type="number" step="0.5"
+                                        value={individualHoursDelta}
+                                        onChange={e => setIndividualHoursDelta(e.target.value)}
+                                        placeholder="e.g. 0"
+                                        className="pr-8"
+                                    />
+                                    <span className="absolute right-3 top-2.5 text-xs text-muted-foreground">h</span>
+                                </div>
+                                <p className="text-[10px] text-muted-foreground">Difference vs. planned individual hours</p>
+                            </div>
+
+                            {/* Method */}
+                            <div className="space-y-1">
+                                <Label className="text-xs font-semibold">Payment Method</Label>
+                                <Select value={method} onValueChange={setMethod}>
+                                    <SelectTrigger><SelectValue /></SelectTrigger>
+                                    <SelectContent>
+                                        <SelectItem value="ZELLE">Zelle</SelectItem>
+                                        <SelectItem value="ACH">ACH Transfer</SelectItem>
+                                        <SelectItem value="WIRE">Wire Transfer</SelectItem>
+                                        <SelectItem value="CHECK">Physical Check</SelectItem>
+                                        <SelectItem value="VENMO">Venmo</SelectItem>
+                                        <SelectItem value="CASH">Cash</SelectItem>
+                                        <SelectItem value="OTHER">Other</SelectItem>
+                                    </SelectContent>
+                                </Select>
+                            </div>
+
+                            {/* Reference */}
+                            <div className="space-y-1">
+                                <Label className="text-xs font-semibold">Reference / Confirmation #</Label>
+                                <Input
+                                    placeholder="e.g. Zelle Conf #12345"
+                                    value={reference}
+                                    onChange={e => setReference(e.target.value)}
+                                />
+                            </div>
+
+                            {/* Notes */}
+                            <div className="space-y-1 col-span-2">
+                                <Label className="text-xs font-semibold">Internal Notes (Optional)</Label>
+                                <Textarea
+                                    placeholder="Add any internal notes about this payment..."
+                                    value={notes}
+                                    onChange={e => setNotes(e.target.value)}
+                                    rows={2}
+                                />
+                            </div>
+                        </div>
                     </div>
                 </div>
 
                 <DialogFooter>
-                    <Button variant="outline" onClick={onClose} disabled={loading}>
-                        Cancel
-                    </Button>
-                    <Button onClick={handleSubmit} disabled={loading}>
+                    <Button variant="outline" onClick={onClose} disabled={loading}>Cancel</Button>
+                    <Button onClick={handleSubmit} disabled={loading} className="bg-amber-500 hover:bg-amber-600 text-white">
                         {loading && <Loader2 className="h-4 w-4 animate-spin mr-2" />}
-                        Record Payout
+                        Confirm Payment {fmtUSD(Number(amount))}
                     </Button>
                 </DialogFooter>
             </DialogContent>

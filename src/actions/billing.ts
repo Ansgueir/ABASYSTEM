@@ -106,6 +106,36 @@ export async function markInvoiceAsPaid(
             // PASO 6: Nuevo remanente
             const supervisorCapRemainingAfter = supervisorCapRemainingBefore - supervisorPayout
 
+            // PASO 7: Plan snapshot para el modal (read del plan del alumno)
+            let planMonthlyPayment: number | null = null
+            let planHoursPerMonth: number | null = null
+            let planSupervisedHours: number | null = null
+            let planIndividualHours: number | null = null
+            if (student.planTemplateId) {
+                const plan = await (prisma as any).plan.findUnique({
+                    where: { id: student.planTemplateId },
+                    select: {
+                        monthlyPayment: true,
+                        hoursPerMonth: true,
+                        amountSupHours: true,
+                        numberOfMonths: true,
+                        supervisedPercentage: true
+                    }
+                })
+                if (plan) {
+                    planMonthlyPayment = plan.monthlyPayment ? Number(plan.monthlyPayment) : null
+                    planHoursPerMonth = plan.hoursPerMonth ?? null
+                    // Horas supervisadas por mes = amountSupHours / numberOfMonths
+                    if (plan.amountSupHours && plan.numberOfMonths && plan.numberOfMonths > 0) {
+                        planSupervisedHours = Number(plan.amountSupHours) / plan.numberOfMonths
+                    }
+                    // Horas individuales por mes = hoursPerMonth * (1 - supervisedPct)
+                    if (plan.hoursPerMonth && plan.supervisedPercentage != null) {
+                        planIndividualHours = plan.hoursPerMonth * (1 - Number(plan.supervisedPercentage))
+                    }
+                }
+            }
+
             // PERSISTIR en SupervisorLedgerEntry (doble entrada transaccional)
             await (prisma as any).supervisorLedgerEntry.create({
                 data: {
@@ -117,7 +147,14 @@ export async function markInvoiceAsPaid(
                     supervisorCapRemainingBefore,
                     supervisorPayout,
                     officePayout,
-                    supervisorCapRemainingAfter
+                    supervisorCapRemainingAfter,
+                    // Plan snapshot
+                    planMonthlyPayment,
+                    planHoursPerMonth,
+                    planSupervisedHours,
+                    planIndividualHours,
+                    // Status starts as PENDING until Super Office pays
+                    payoutStatus: "PENDING"
                 }
             })
         }
@@ -352,6 +389,105 @@ export async function recordSupervisorPayout(data: {
         return { success: true }
     } catch (error: any) {
         console.error("Payout error:", error)
+        return { error: error.message }
+    }
+}
+
+/**
+ * Pays a supervisor from a specific LedgerEntry (PENDING → PAID).
+ * Saves manual fields and creates a SupervisorPayout transaction.
+ * Pre-fills manual fields from the last PAID entry for the same student/supervisor.
+ */
+export async function payToSupervisorFromLedger(data: {
+    ledgerEntryId: string
+    amount: number
+    supervisedHoursActual?: number
+    individualHoursDelta?: number
+    paymentMethod: string
+    paymentReference?: string
+    paymentNotes?: string
+}) {
+    const session = await auth()
+    if (!session?.user) return { error: "Unauthorized" }
+
+    const role = String((session.user as any).role).toLowerCase()
+    if (role !== "office" && role !== "qa") return { error: "Unauthorized role" }
+
+    const officeRole = (session.user as any).officeRole
+    if (officeRole !== "SUPER_ADMIN") return { error: "Forbidden: Only Super Admin can pay supervisors" }
+
+    try {
+        // 1. Fetch the ledger entry
+        const entry = await (prisma as any).supervisorLedgerEntry.findUnique({
+            where: { id: data.ledgerEntryId }
+        })
+        if (!entry) return { error: "Ledger entry not found" }
+        if (entry.payoutStatus === "PAID") return { error: "This entry has already been paid" }
+
+        const maxAllowed = Number(entry.supervisorPayout)
+        if (data.amount > maxAllowed + 0.01) {
+            return { error: `Amount exceeds max allowed for this entry ($${maxAllowed.toFixed(2)})` }
+        }
+
+        // 2. Pre-fill manual fields from last PAID entry for same student/supervisor
+        //    (only used as fallback if caller didn't provide values)
+        let supervisedHoursActual = data.supervisedHoursActual ?? null
+        let individualHoursDelta = data.individualHoursDelta ?? null
+
+        if (supervisedHoursActual == null || individualHoursDelta == null) {
+            const lastPaid = await (prisma as any).supervisorLedgerEntry.findFirst({
+                where: {
+                    supervisorId: entry.supervisorId,
+                    studentId: entry.studentId,
+                    payoutStatus: "PAID"
+                },
+                orderBy: { paidAt: "desc" }
+            })
+            if (lastPaid) {
+                supervisedHoursActual ??= lastPaid.supervisedHoursActual ? Number(lastPaid.supervisedHoursActual) : null
+                individualHoursDelta ??= lastPaid.individualHoursDelta ? Number(lastPaid.individualHoursDelta) : null
+            }
+        }
+
+        const now = new Date()
+
+        // 3. Mark entry as PAID with manual data
+        await (prisma as any).supervisorLedgerEntry.update({
+            where: { id: data.ledgerEntryId },
+            data: {
+                payoutStatus: "PAID",
+                supervisedHoursActual,
+                individualHoursDelta,
+                paymentMethod: data.paymentMethod,
+                paymentReference: data.paymentReference || null,
+                paymentNotes: data.paymentNotes || null,
+                paidAt: now
+            }
+        })
+
+        // 4. Create SupervisorPayout transaction record (audit trail)
+        await (prisma as any).supervisorPayout.create({
+            data: {
+                invoiceId: entry.invoiceId,
+                supervisorId: entry.supervisorId,
+                amount: data.amount,
+                method: data.paymentMethod,
+                reference: data.paymentReference || null,
+                notes: data.paymentNotes || null
+            }
+        })
+
+        await logAudit({
+            action: "CREATE",
+            entity: "SupervisorPayout",
+            entityId: data.ledgerEntryId,
+            details: `Supervisor paid $${data.amount} via ${data.paymentMethod}. Hours supervised: ${supervisedHoursActual ?? "N/A"}`
+        })
+
+        revalidatePath("/office/payments")
+        return { success: true }
+    } catch (error: any) {
+        console.error("payToSupervisorFromLedger error:", error)
         return { error: error.message }
     }
 }

@@ -27,7 +27,7 @@ export default async function OfficePaymentsPage({
     const searchQuery = (params.search || "").toLowerCase().trim()
 
     let invoices: any[] = []
-    let supervisorLedger: any[] = []
+    let ledgerEntries: any[] = []
     let stats = {
         readyToGo: 0,
         pending: 0,
@@ -50,13 +50,13 @@ export default async function OfficePaymentsPage({
             }
         })
 
-        // ── SUPERVISOR LEDGER DATA ───────────────────────────────────────────────
-        supervisorLedger = await (prisma as any).supervisorLedgerEntry.findMany({
+        // ── SUPERVISOR LEDGER ENTRIES (source of truth for Supervisors tab) ──────
+        ledgerEntries = await (prisma as any).supervisorLedgerEntry.findMany({
             orderBy: { createdAt: 'desc' },
             include: {
-                supervisor: { select: { fullName: true, email: true, credentialType: true } },
-                student:    { select: { fullName: true } },
-                invoice:    { select: { amountDue: true, status: true } }
+                supervisor: { select: { id: true, fullName: true, email: true, credentialType: true } },
+                student:    { select: { id: true, fullName: true } },
+                invoice:    { select: { id: true, amountDue: true, status: true, invoiceDate: true } }
             }
         })
 
@@ -73,84 +73,68 @@ export default async function OfficePaymentsPage({
             .filter(i => i.status === 'PAID')
             .reduce((s, i) => s + Number(i.amountPaid), 0)
 
-        const totalOwedToSup = supervisorLedger.reduce((s, e) => s + Number(e.supervisorPayout), 0)
+        const totalPendingToSup = ledgerEntries
+            .filter((e: any) => e.payoutStatus === 'PENDING')
+            .reduce((s: number, e: any) => s + Number(e.supervisorPayout), 0)
+
+        const totalPaidToSup = ledgerEntries
+            .filter((e: any) => e.payoutStatus === 'PAID')
+            .reduce((s: number, e: any) => s + Number(e.supervisorPayout), 0)
 
         stats = {
             readyToGo: readyToGoTotal,
             pending: sentTotal,
             paid: paidTotal,
-            owedToSupervisors: totalOwedToSup,
-            paidToSupervisors: totalOwedToSup, // All recorded entries are "paid" in ledger
+            owedToSupervisors: totalPendingToSup,
+            paidToSupervisors: totalPaidToSup,
         }
 
     } catch (error) {
         console.error("Error fetching payments:", error)
     }
 
-    // ── GROUP LEDGER BY SUPERVISOR FOR DISPLAY ───────────────────────────────
-    // ── SUPERVISOR PROJECTION LOGIC — FIX #1 & #2 ───────────────────────────
+    // ── GROUP LEDGER ENTRIES BY SUPERVISOR ───────────────────────────────────
     const supervisorSummary: Record<string, {
         name: string
+        email: string
         credential: string
-        totalProjected: number
+        totalPending: number
         totalPaid: number
-        invoices: any[]
+        entries: any[]
     }> = {}
 
-    // We iterate over ALL invoices to create the mirror view for supervisors
-    for (const inv of invoices) {
-        // High-level: find the supervisor(s) involved in this invoice
-        // For simplicity in this view, we use the student's primary supervisor and their percentage
-        const supervisor = inv.student.supervisor
-        if (supervisor && inv.student.supervisorId) {
-            const id = inv.student.supervisorId
-            const payPercent = Number(supervisor.paymentPercentage || 0.54)
-            const projectedCap = Number(inv.amountDue) * payPercent
-            const collectedForSupervisor = Number(inv.amountPaid || 0) * payPercent
-            const payoutSum = (inv as any).payouts?.filter((p: any) => p.supervisorId === id).reduce((s: number, p: any) => s + Number(p.amount), 0) || 0
-            
-            // Crucial Rule: The supervisor can ONLY be paid from what the student has actually paid.
-            const payableBalance = collectedForSupervisor - payoutSum
-
-            if (!supervisorSummary[id]) {
-                supervisorSummary[id] = {
-                    name: supervisor.fullName,
-                    credential: supervisor.credentialType,
-                    totalProjected: 0,
-                    totalPaid: 0,
-                    invoices: []
-                }
+    for (const entry of ledgerEntries) {
+        const supId = entry.supervisorId
+        if (!supervisorSummary[supId]) {
+            supervisorSummary[supId] = {
+                name: entry.supervisor.fullName,
+                email: entry.supervisor.email,
+                credential: entry.supervisor.credentialType || '',
+                totalPending: 0,
+                totalPaid: 0,
+                entries: []
             }
-
-            supervisorSummary[id].totalProjected += projectedCap
-            supervisorSummary[id].totalPaid += payoutSum
-            
-            // Add this invoice to the supervisor's list
-            supervisorSummary[id].invoices.push({
-                id: inv.id,
-                studentName: inv.student.fullName,
-                date: inv.invoiceDate,
-                status: inv.status,
-                invoiceTotal: Number(inv.amountDue),
-                studentPaid: Number(inv.amountPaid || 0),
-                supervisorCap: projectedCap,
-                collectedForSupervisor: collectedForSupervisor,
-                paidAmount: payoutSum,
-                remainingCap: payableBalance // This dictates the "Pay" button availability
-            })
         }
+        const amount = Number(entry.supervisorPayout)
+        if (entry.payoutStatus === 'PENDING') {
+            supervisorSummary[supId].totalPending += amount
+        } else {
+            supervisorSummary[supId].totalPaid += amount
+        }
+        supervisorSummary[supId].entries.push(entry)
     }
 
-    // FIX #3: Scoped search for supervisors mapping
+    // Scoped search for supervisors tab
     const filteredSupervisorSummary = searchQuery
         ? Object.fromEntries(
             Object.entries(supervisorSummary).filter(([, sup]) =>
-                sup.name.toLowerCase().includes(searchQuery)
+                sup.name.toLowerCase().includes(searchQuery) ||
+                sup.email.toLowerCase().includes(searchQuery)
             )
           )
         : supervisorSummary
 
-    // Normalize invoices for PaymentsTable
+    // Normalize invoices for PaymentsTable (Students tab)
     const normalizedInvoices = invoices
         .map(inv => ({
             ...inv,
@@ -163,6 +147,7 @@ export default async function OfficePaymentsPage({
             inv.student.fullName.toLowerCase().includes(searchQuery) ||
             inv.student.email.toLowerCase().includes(searchQuery)
         )
+
 
     return (
         <DashboardLayout role="office">
@@ -179,9 +164,9 @@ export default async function OfficePaymentsPage({
                         { label: "Ready to Invoice", value: stats.readyToGo, icon: TrendingUp, color: "text-emerald-600", bg: "bg-emerald-500/10" },
                         { label: "Pending Payment", value: stats.pending,    icon: Clock,      color: "text-amber-600",   bg: "bg-amber-500/10" },
                         { label: "Collected",        value: stats.paid,      icon: CheckCircle, color: "text-green-600",  bg: "bg-green-500/10" },
-                        { label: "Owed to Supervisors", value: Object.values(supervisorSummary).reduce((s, sup) => s + sup.totalProjected - sup.totalPaid, 0), icon: UserCheck, color: "text-blue-600", bg: "bg-blue-500/10" },
-                        { label: "Paid to Supervisors", value: Object.values(supervisorSummary).reduce((s, sup) => s + sup.totalPaid, 0), icon: CheckCircle, color: "text-green-600", bg: "bg-green-500/10" },
-                        { label: "Office Net Revenue",   value: stats.paid - Object.values(supervisorSummary).reduce((s, sup) => s + sup.totalPaid, 0), icon: DollarSign, color: "text-primary", bg: "bg-primary/10" },
+                        { label: "Pending to Supervisors", value: stats.owedToSupervisors, icon: UserCheck, color: "text-blue-600", bg: "bg-blue-500/10" },
+                        { label: "Paid to Supervisors", value: stats.paidToSupervisors, icon: CheckCircle, color: "text-green-600", bg: "bg-green-500/10" },
+                        { label: "Office Net Revenue", value: stats.paid - stats.paidToSupervisors, icon: DollarSign, color: "text-primary", bg: "bg-primary/10" },
                     ].map(s => (
                         <Card key={s.label}>
                             <CardContent className="flex items-center gap-3 p-5">
