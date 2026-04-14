@@ -63,7 +63,19 @@ export async function markInvoiceAsPaid(
         let officePayout = paymentAmount
 
         if (supervisor && student.supervisorId) {
-            const payPercent = Number(supervisor.paymentPercentage || 0.54) // e.g. 0.40 o 0.54 por defecto
+            // PRIORITY: Plan.supervisorCommission → Supervisor.paymentPercentage → default 0.54
+            let payPercent = Number(supervisor.paymentPercentage || 0.54)
+
+            // Try to resolve from student's assigned Plan
+            if (student.planTemplateId) {
+                const planRecord = await (prisma as any).plan.findUnique({
+                    where: { id: student.planTemplateId },
+                    select: { supervisorCommission: true }
+                })
+                if (planRecord?.supervisorCommission != null) {
+                    payPercent = Number(planRecord.supervisorCommission)
+                }
+            }
 
             // PASO 1: Tope total del supervisor para ESTA factura
             const supervisorCapTotal = invoiceTotal * payPercent
@@ -78,8 +90,8 @@ export async function markInvoiceAsPaid(
                 ? Number(lastEntry.supervisorCapRemainingAfter)
                 : supervisorCapTotal // Primer pago: remanente = tope total
 
-            // PASO 3: Tope del 50% transaccional
-            const maxPayThisTx = paymentAmount * 0.5
+            // PASO 3: Tope transaccional = pago_ingresado * payPercent (comisión del mes)
+            const maxPayThisTx = paymentAmount * payPercent
 
             // PASO 4: Pago real al supervisor (LA REGLA DE ORO)
             if (supervisorCapRemainingBefore > 0) {

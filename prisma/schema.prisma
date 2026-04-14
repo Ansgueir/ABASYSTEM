@@ -626,13 +626,31 @@ model ImportLog {
 model Plan {
   id            String   @id @default(uuid())
   name          String   @unique
+  fieldworkType String   @default("REGULAR") // REGULAR or CONCENTRATED
+
+  // ── INPUT VARIABLES (editable by Super Office) ──────────────────────────
+  totalHours            Int?     // Total fieldwork hours (e.g. 1500)
+  hoursPerMonth         Int?     // Hours student can complete per month (e.g. 130)
+  supervisedPercentage  Decimal? @db.Decimal(5, 4) // e.g. 0.05 = 5%
+  hourlyRate            Decimal? @db.Decimal(10, 2) // Cost per supervision hour
+  enrollmentFee         Decimal? @db.Decimal(10, 2) // Matrícula (one-time fee)
+  supervisorCommission  Decimal? @db.Decimal(5, 4) // e.g. 0.60 = 60% to supervisor
+
+  // ── AUTO-CALCULATED FIELDS (stored for snapshot integrity) ───────────────
+  numberOfMonths        Int?     // ceil(totalHours / hoursPerMonth)
+  amountSupHours        Decimal? @db.Decimal(10, 2) // totalHours * supervisedPercentage
+  totalCost             Decimal? @db.Decimal(10, 2) // amountSupHours * hourlyRate
+  supervisionNet        Decimal? @db.Decimal(10, 2) // totalCost - enrollmentFee
+  monthlyPayment        Decimal? @db.Decimal(10, 2) // supervisionNet / numberOfMonths
+
+  // ── LEGACY FIELDS (kept for backward compat) ────────────────────────────
   regHoursBcba  Int      @default(0)
   regHoursBcaba Int      @default(0)
   concHours     Int      @default(0)
-  totalCharge   Decimal  @db.Decimal(10, 2)
-  analystPayout Decimal  @db.Decimal(10, 2)
+  totalCharge   Decimal  @default(0) @db.Decimal(10, 2)
+  analystPayout Decimal  @default(0) @db.Decimal(10, 2)
   totalMonths   Int      @default(12)
-  fieldworkType String   @default("REGULAR") // REGULAR or CONCENTRATED
+
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
 }
