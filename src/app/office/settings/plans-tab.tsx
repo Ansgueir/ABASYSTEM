@@ -297,17 +297,9 @@ export function PlansTab() {
                                 </div>
                                 <hr className="border-muted/40" />
                                 {/* Monthly payment highlight */}
-                                <div className="bg-gradient-to-r from-indigo-50 to-blue-50 rounded-xl p-3 border border-indigo-100 flex items-center justify-between">
-                                    <div>
-                                        <p className="text-[10px] uppercase font-bold text-indigo-500">Monthly Payment</p>
-                                        <p className="text-lg font-black text-indigo-800">{fmtUSD(plan.monthlyPayment)}</p>
-                                    </div>
-                                    <div className="text-right">
-                                        <p className="text-[10px] uppercase font-bold text-indigo-500">Sup. Commission</p>
-                                        <p className="text-lg font-black text-indigo-600">
-                                            {plan.supervisorCommission != null ? `${(Number(plan.supervisorCommission) * 100).toFixed(0)}%` : "—"}
-                                        </p>
-                                    </div>
+                                <div className="bg-gradient-to-r from-indigo-50 to-blue-50 rounded-xl p-3 border border-indigo-100">
+                                    <p className="text-[10px] uppercase font-bold text-indigo-500">Monthly Payment</p>
+                                    <p className="text-lg font-black text-indigo-800">{fmtUSD(plan.monthlyPayment)}</p>
                                 </div>
                             </CardContent>
                         </Card>
