@@ -28,6 +28,11 @@ interface Plan {
     analystPayout: number
     totalMonths: number
     fieldworkType: string
+    totalHours?: number
+    amountSupHours?: number
+    totalCost?: number
+    supervisorCommission?: number
+    numberOfMonths?: number
 }
 
 interface AddStudentDialogProps {
@@ -87,27 +92,34 @@ export function AddStudentDialog({ isSuperAdmin }: AddStudentDialogProps) {
         const plan = plans.find(p => p.id === val)
         if (plan) {
             setVcsSequence(plan.name)
-            setTotalAmount(plan.totalCharge.toString())
             
-            // MATH: Analyst Rate = (Payout / Total) * 100
-            const total = Number(plan.totalCharge)
-            const payout = Number(plan.analystPayout)
-            if (total > 0) {
-                const aRate = ((payout / total) * 100).toFixed(2)
-                const oRate = (100 - Number(aRate)).toFixed(2)
-                setAnalystRate(aRate)
-                setOfficeRate(oRate)
+            // Waterfall Math mapping
+            const totalCost = Number(plan.totalCost) || Number(plan.totalCharge) || 0
+            setTotalAmount(totalCost.toString())
+            
+            const commission = Number(plan.supervisorCommission) || 0
+            if (commission > 0) {
+                setAnalystRate((commission * 100).toFixed(2))
+                setOfficeRate(((1 - commission) * 100).toFixed(2))
+            } else if (totalCost > 0) {
+                const payout = Number(plan.analystPayout) || 0
+                const aRate = ((payout / totalCost) * 100)
+                setAnalystRate(aRate.toFixed(2))
+                setOfficeRate((100 - aRate).toFixed(2))
             } else {
                 setAnalystRate("0")
                 setOfficeRate("0")
             }
 
-            // MATH: Reg. Hours Target = Plan.bcbaHours + Plan.bcabaHours
-            const totalReg = Number(plan.regHoursBcba) + Number(plan.regHoursBcaba)
-            setRegTarget(totalReg.toString())
-            setConcTarget(plan.concHours.toString())
-            setBcabaTarget("0") // BCABA already added to reg target as per epic instructions logic
-            setTotalMonths((plan.totalMonths || 12).toString())
+            const totalH = Number(plan.totalHours) || 0
+            const supH = Number(plan.amountSupHours) || 0
+            const indivH = Math.round(totalH - supH)
+
+            setRegTarget(totalH.toString()) // Now acting as Total Hours
+            setBcabaTarget(indivH.toString()) // Acting as Indiv Hours
+            setConcTarget("0") // Redundant
+            
+            setTotalMonths((plan.numberOfMonths || plan.totalMonths || 12).toString())
             setFieldworkType(plan.fieldworkType || "REGULAR")
             
             toast.info(`Plan "${plan.name}" locked & applied!`, {
@@ -229,7 +241,7 @@ export function AddStudentDialog({ isSuperAdmin }: AddStudentDialogProps) {
                             </div>
                             <div className="grid grid-cols-1 sm:grid-cols-4 gap-6">
                                 <div className="space-y-2">
-                                    <Label htmlFor="totalAmountContract" className="text-xs font-semibold">Total Contract ($)</Label>
+                                    <Label htmlFor="totalAmountContract" className="text-xs font-semibold">Total Cost ($)</Label>
                                     <Input 
                                         id="totalAmountContract" 
                                         name="totalAmountContract" 
@@ -242,7 +254,7 @@ export function AddStudentDialog({ isSuperAdmin }: AddStudentDialogProps) {
                                     />
                                 </div>
                                 <div className="space-y-2">
-                                    <Label htmlFor="analystPaymentRate" className="text-xs font-semibold">Analyst Rate (%)</Label>
+                                    <Label htmlFor="analystPaymentRate" className="text-xs font-semibold">Sup. Commission (%)</Label>
                                     <Input 
                                         id="analystPaymentRate" 
                                         name="analystPaymentRate" 
@@ -285,12 +297,12 @@ export function AddStudentDialog({ isSuperAdmin }: AddStudentDialogProps) {
                         {/* Section: Targets */}
                         <div className="p-5 bg-muted/40 rounded-xl space-y-4 border">
                             <div className="flex items-center justify-between">
-                                <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">VCS Sequence targets</p>
+                                <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Fieldwork Tracking Targets</p>
                                 {isLocked && <Badge variant="secondary" className="bg-primary/10 text-primary text-[9px]">LOCKED BY PLAN</Badge>}
                             </div>
-                            <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
                                 <div className="space-y-2">
-                                    <Label htmlFor="hoursTargetReg" className="text-[11px] font-semibold uppercase">BCBA Regular Hours</Label>
+                                    <Label htmlFor="hoursTargetReg" className="text-[11px] font-semibold uppercase">Total Hours</Label>
                                     <Input 
                                         id="hoursTargetReg" 
                                         name="hoursTargetReg" 
@@ -302,21 +314,19 @@ export function AddStudentDialog({ isSuperAdmin }: AddStudentDialogProps) {
                                     />
                                 </div>
                                 <div className="space-y-2">
-                                    <Label htmlFor="hoursTargetConc" className="text-[11px] font-semibold uppercase">Concentrated hours</Label>
+                                    <Label htmlFor="independentHoursTarget" className="text-[11px] font-semibold uppercase">Indiv. Hours</Label>
                                     <Input 
-                                        id="hoursTargetConc" 
-                                        name="hoursTargetConc" 
+                                        id="independentHoursTarget" 
+                                        name="independentHoursTarget" 
                                         type="number" 
-                                        value={concTarget}
-                                        onChange={(e) => setConcTarget(e.target.value)}
+                                        placeholder="0" 
+                                        value={bcabaTarget} 
+                                        onChange={(e) => setBcabaTarget(e.target.value)}
                                         readOnly={isLocked}
                                         className={isLocked ? "bg-muted/50" : ""}
                                     />
                                 </div>
-                                <div className="space-y-2">
-                                    <Label htmlFor="independentHoursTarget" className="text-[11px] font-semibold uppercase text-muted-foreground/50">BCaBA Regular Hours (Legacy)</Label>
-                                    <Input id="independentHoursTarget" name="independentHoursTarget" type="number" placeholder="0" className="h-9" value={bcabaTarget} onChange={(e) => setBcabaTarget(e.target.value)} />
-                                </div>
+                                <input type="hidden" name="hoursTargetConc" value="0" />
                             </div>
                         </div>
 
