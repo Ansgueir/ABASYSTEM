@@ -33,6 +33,7 @@ interface Plan {
     totalCost?: number
     supervisorCommission?: number
     numberOfMonths?: number
+    hourlyRate?: number
 }
 
 interface AddStudentDialogProps {
@@ -56,6 +57,7 @@ export function AddStudentDialog({ isSuperAdmin }: AddStudentDialogProps) {
     const [concTarget, setConcTarget] = useState("")
     const [totalMonths, setTotalMonths] = useState("12")
     const [fieldworkType, setFieldworkType] = useState("REGULAR")
+    const [hourlyRate, setHourlyRate] = useState("")
 
     const isManual = selectedPlanId === "manual" || selectedPlanId === ""
     const isLocked = !isManual
@@ -86,6 +88,7 @@ export function AddStudentDialog({ isSuperAdmin }: AddStudentDialogProps) {
             setConcTarget("")
             setTotalMonths("12")
             setFieldworkType("REGULAR")
+            setHourlyRate("")
             return
         }
 
@@ -121,6 +124,7 @@ export function AddStudentDialog({ isSuperAdmin }: AddStudentDialogProps) {
             
             setTotalMonths((plan.numberOfMonths || plan.totalMonths || 12).toString())
             setFieldworkType(plan.fieldworkType || "REGULAR")
+            setHourlyRate(plan.hourlyRate ? plan.hourlyRate.toString() : "0")
             
             toast.info(`Plan "${plan.name}" locked & applied!`, {
                 icon: <Sparkles className="h-4 w-4 text-amber-500" />
@@ -141,6 +145,7 @@ export function AddStudentDialog({ isSuperAdmin }: AddStudentDialogProps) {
             formData.set("hoursTargetReg", regTarget)
             formData.set("hoursTargetConc", concTarget)
             formData.set("totalMonths", totalMonths)
+            if (isSuperAdmin) formData.set("hourlyRate", hourlyRate)
         } else {
              // For manual, we still need to store rate as decimal
              const aRateValue = formData.get("analystPaymentRate")
@@ -350,7 +355,17 @@ export function AddStudentDialog({ isSuperAdmin }: AddStudentDialogProps) {
                             <div className="pt-2 border-t">
                                 <div className="space-y-2">
                                     <Label htmlFor="hourlyRate" className="text-xs uppercase tracking-wider font-semibold text-primary">Hourly Rate ($)</Label>
-                                    <Input id="hourlyRate" name="hourlyRate" type="number" step="0.01" placeholder="0.00" className="h-10 border-primary/30" />
+                                    <Input 
+                                        id="hourlyRate" 
+                                        name="hourlyRate" 
+                                        type="number" 
+                                        step="0.01" 
+                                        placeholder="0.00" 
+                                        value={hourlyRate}
+                                        onChange={(e) => setHourlyRate(e.target.value)}
+                                        readOnly={isLocked}
+                                        className={`h-10 border-primary/30 ${isLocked ? 'bg-muted/50' : ''}`}
+                                    />
                                 </div>
                             </div>
                         )}
