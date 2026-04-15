@@ -33,17 +33,11 @@ export function SupervisorList({ initialSupervisors, isSuperAdmin, isQaSuper = f
     const [statusFilter, setStatusFilter] = useState<string[]>([])
     const [credentialFilter, setCredentialFilter] = useState<string[]>([])
     const [studentCountRange, setStudentCountRange] = useState<{ min?: string, max?: string }>({})
-    const [commissionFilter, setCommissionFilter] = useState<string[]>([])
     const [enrollmentDateRange, setEnrollmentDateRange] = useState<{ from?: string, to?: string }>({})
 
     const uniqueCredentials = useMemo(() => {
         const set = new Set(initialSupervisors.map(s => s.credentialType || 'BCBA'))
         return Array.from(set) as string[]
-    }, [initialSupervisors])
-
-    const uniqueCommissions = useMemo(() => {
-        const set = new Set(initialSupervisors.map(s => Number(s.paymentPercentage || 0.54)))
-        return Array.from(set).sort() as number[]
     }, [initialSupervisors])
 
     // Filter supervisors
@@ -68,10 +62,6 @@ export function SupervisorList({ initialSupervisors, isSuperAdmin, isQaSuper = f
             if (studentCountRange.min && studentsCount < Number(studentCountRange.min)) matchesStudentCount = false
             if (studentCountRange.max && studentsCount > Number(studentCountRange.max)) matchesStudentCount = false
 
-            // Commission
-            const commission = Number(supervisor.paymentPercentage || 0.54)
-            const matchesCommission = commissionFilter.length === 0 || commissionFilter.includes(commission.toString())
-
             // Enrollment Date (created at)
             let matchesEnrollmentDate = false
             if (!enrollmentDateRange.from && !enrollmentDateRange.to) matchesEnrollmentDate = true
@@ -82,13 +72,12 @@ export function SupervisorList({ initialSupervisors, isSuperAdmin, isQaSuper = f
                 matchesEnrollmentDate = isAfterFrom && isBeforeTo
             }
 
-            return matchesSearch && matchesStatus && matchesCredential && matchesStudentCount &&
-                matchesCommission && matchesEnrollmentDate
+            return matchesSearch && matchesStatus && matchesCredential && matchesStudentCount && matchesEnrollmentDate
         })
-    }, [initialSupervisors, searchTerm, statusFilter, credentialFilter, studentCountRange, commissionFilter, enrollmentDateRange])
+    }, [initialSupervisors, searchTerm, statusFilter, credentialFilter, studentCountRange, enrollmentDateRange])
 
     const activeFiltersCount =
-        statusFilter.length + credentialFilter.length + commissionFilter.length +
+        statusFilter.length + credentialFilter.length +
         (studentCountRange.min || studentCountRange.max ? 1 : 0) +
         (enrollmentDateRange.from || enrollmentDateRange.to ? 1 : 0)
 
@@ -96,7 +85,6 @@ export function SupervisorList({ initialSupervisors, isSuperAdmin, isQaSuper = f
         setStatusFilter([])
         setCredentialFilter([])
         setStudentCountRange({})
-        setCommissionFilter([])
         setEnrollmentDateRange({})
     }
 
@@ -106,7 +94,6 @@ export function SupervisorList({ initialSupervisors, isSuperAdmin, isQaSuper = f
             Email: s.email || 'No email',
             Credential: s.credentialType || 'BCBA',
             BACB: s.bacbId || '-',
-            "Commission (%)": `${Number(s.paymentPercentage || 0.54) * 100}%`,
             "Students Count": s._count?.students || 0,
             "Enrollment Date": s.createdAt ? new Date(s.createdAt).toLocaleDateString() : '-',
             Status: !s.user?.isActive ? 'INACTIVE' : (s.status || 'ACTIVE')
@@ -115,7 +102,7 @@ export function SupervisorList({ initialSupervisors, isSuperAdmin, isQaSuper = f
         const ws = XLSX.utils.json_to_sheet(exportData)
         ws['!cols'] = [
             { wch: 25 }, { wch: 30 }, { wch: 15 }, { wch: 15 },
-            { wch: 15 }, { wch: 15 }, { wch: 20 }, { wch: 15 }
+            { wch: 15 }, { wch: 20 }, { wch: 15 }
         ]
 
         const wb = XLSX.utils.book_new()
@@ -226,24 +213,6 @@ export function SupervisorList({ initialSupervisors, isSuperAdmin, isQaSuper = f
                                         </div>
                                     </div>
 
-                                    {/* Finances */}
-                                    <div className="space-y-3 pt-4 border-t">
-                                        <h4 className="font-semibold text-sm">Finances (Commission)</h4>
-                                        <div className="flex flex-wrap gap-2">
-                                            {uniqueCommissions.map(comm => (
-                                                <Button
-                                                    key={comm}
-                                                    variant={commissionFilter.includes(comm.toString()) ? "default" : "outline"}
-                                                    size="sm"
-                                                    onClick={() => toggleArrayFilter(commissionFilter, setCommissionFilter, comm.toString())}
-                                                    className="rounded-full"
-                                                >
-                                                    {comm * 100}%
-                                                </Button>
-                                            ))}
-                                        </div>
-                                    </div>
-
                                     {/* Dates Ranges */}
                                     <div className="space-y-4 pt-4 border-t">
                                         <h4 className="font-semibold text-sm text-primary">Enrollment Date</h4>
@@ -291,7 +260,6 @@ export function SupervisorList({ initialSupervisors, isSuperAdmin, isQaSuper = f
                     <span className="text-sm font-semibold text-muted-foreground mr-2">Active Filters ({filteredSupervisors.length} results):</span>
                     {statusFilter.map(s => <span key={s} className="bg-primary/10 text-primary text-xs px-2 py-1 rounded-full">{s}</span>)}
                     {credentialFilter.map(s => <span key={s} className="bg-primary/10 text-primary text-xs px-2 py-1 rounded-full">{s}</span>)}
-                    {commissionFilter.map(s => <span key={s} className="bg-primary/10 text-primary text-xs px-2 py-1 rounded-full">{Number(s) * 100}%</span>)}
                     <Button variant="ghost" size="sm" onClick={clearFilters} className="h-6 px-2 text-xs ml-auto">Clear Filters</Button>
                 </div>
             )}
@@ -323,7 +291,6 @@ export function SupervisorList({ initialSupervisors, isSuperAdmin, isQaSuper = f
                                         <th className="text-left p-4 font-semibold hidden md:table-cell">Students</th>
                                         <th className="text-left p-4 font-semibold hidden lg:table-cell">Groups</th>
                                         <th className="text-left p-4 font-semibold hidden sm:table-cell">Credential</th>
-                                        <th className="text-left p-4 font-semibold hidden sm:table-cell">Commission</th>
                                         <th className="text-right p-4 font-semibold">Actions</th>
                                     </tr>
                                 </thead>
@@ -354,11 +321,6 @@ export function SupervisorList({ initialSupervisors, isSuperAdmin, isQaSuper = f
                                             <td className="p-4 hidden sm:table-cell">
                                                 <span className="text-xs font-bold px-2 py-1 rounded border bg-amber-500/10 text-amber-600 border-amber-500/20">
                                                     {supervisor.credentialType || 'BCBA'}
-                                                </span>
-                                            </td>
-                                            <td className="p-4 hidden sm:table-cell">
-                                                <span className="font-semibold text-emerald-600 bg-emerald-500/10 px-2 py-1 rounded-sm border border-emerald-500/20">
-                                                    {Number(supervisor.paymentPercentage || 0.54) * 100}%
                                                 </span>
                                             </td>
                                             <td className="p-4 text-right">
