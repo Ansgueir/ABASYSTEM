@@ -481,10 +481,10 @@ export function EditableStudentBacbFieldwork({ student, isSuperAdmin: isSuperAdm
                     </div>
                 </div>
 
-                <div className="grid grid-cols-4 gap-3">
+                <div className="grid grid-cols-3 gap-3">
                     <div className="flex items-center gap-3 p-3 rounded-lg bg-muted/30">
                         <div className="flex-1">
-                            <p className="text-xs text-muted-foreground mb-0.5">Reg. Hours Target</p>
+                            <p className="text-xs text-muted-foreground mb-0.5">Total Hours</p>
                             {isEditing ? (
                                 <Input type="number" value={hoursTargetReg} readOnly={isLocked} onChange={(e) => setHoursTargetReg(e.target.value)} className={`w-full h-8 mt-1 ${isLocked ? 'bg-amber-50' : ''}`} />
                             ) : (
@@ -494,19 +494,9 @@ export function EditableStudentBacbFieldwork({ student, isSuperAdmin: isSuperAdm
                     </div>
                     <div className="flex items-center gap-3 p-3 rounded-lg bg-muted/30">
                         <div className="flex-1">
-                            <p className="text-xs text-muted-foreground mb-0.5">Conc. Hours Target</p>
+                            <p className="text-xs text-muted-foreground mb-0.5">Indiv. Hours</p>
                             {isEditing ? (
-                                <Input type="number" value={hoursTargetConc} readOnly={isLocked} onChange={(e) => setHoursTargetConc(e.target.value)} className={`w-full h-8 mt-1 ${isLocked ? 'bg-amber-50' : ''}`} />
-                            ) : (
-                                <p className="font-bold">{hoursTargetConc}</p>
-                            )}
-                        </div>
-                    </div>
-                    <div className="flex items-center gap-3 p-3 rounded-lg bg-muted/30">
-                        <div className="flex-1">
-                            <p className="text-xs text-muted-foreground mb-0.5">Ind. Hours Target</p>
-                            {isEditing ? (
-                                <Input type="number" value={independentHoursTarget} onChange={(e) => setIndependentHoursTarget(e.target.value)} className="w-full h-8 mt-1" />
+                                <Input type="number" value={independentHoursTarget} readOnly={isLocked} onChange={(e) => setIndependentHoursTarget(e.target.value)} className={`w-full h-8 mt-1 ${isLocked ? 'bg-amber-50' : ''}`} />
                             ) : (
                                 <p className="font-bold">{independentHoursTarget || 0}</p>
                             )}
@@ -528,7 +518,7 @@ export function EditableStudentBacbFieldwork({ student, isSuperAdmin: isSuperAdm
                     <div className="flex items-center gap-3 p-3 rounded-lg bg-muted/30">
                         <DollarSign className="h-5 w-5 text-primary/70 shrink-0" />
                         <div className="flex-1">
-                            <p className="text-xs text-muted-foreground mb-0.5">Analyst Rate (%)</p>
+                            <p className="text-xs text-muted-foreground mb-0.5">Sup. Commission (%)</p>
                             {isEditing ? (
                                 <Input type="number" step="0.0001" value={analystPaymentRate} readOnly={isLocked} onChange={(e) => setAnalystPaymentRate(e.target.value)} className={`w-full h-8 mt-1 ${isLocked ? 'bg-amber-50' : ''}`} />
                             ) : (
@@ -551,7 +541,7 @@ export function EditableStudentBacbFieldwork({ student, isSuperAdmin: isSuperAdm
 
                 <div className="flex items-center gap-3 p-3 rounded-lg bg-muted/30">
                     <div className="flex-1">
-                        <p className="text-xs text-muted-foreground mb-0.5">Total Amount Contract ($)</p>
+                        <p className="text-xs text-muted-foreground mb-0.5">Total Cost ($)</p>
                         {isEditing ? (
                             <Input type="number" step="0.01" value={totalAmountContract} readOnly={isLocked} onChange={(e) => setTotalAmountContract(e.target.value)} className={`w-full sm:w-[220px] h-8 mt-1 ${isLocked ? 'bg-amber-50' : ''}`} />
                         ) : (
