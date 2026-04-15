@@ -78,6 +78,13 @@ export async function createStudent(formData: FormData) {
         const existingUser = await prisma.user.findUnique({ where: { email } })
         if (existingUser) return { error: "User with this email already exists" }
 
+        if (bacbId && bacbId.trim() !== "PENDING" && bacbId.trim() !== "") {
+            const existingBacbId = await prisma.student.findFirst({
+                where: { bacbId: bacbId.trim() }
+            })
+            if (existingBacbId) return { error: "A student with this BACB ID already exists" }
+        }
+
         const tempPassword = generateTempPassword()
         const hashedPassword = await bcrypt.hash(tempPassword, 10)
 
@@ -563,6 +570,19 @@ export async function updateStudent(studentId: string, data: any) {
                     where: { id: student.userId },
                     data: { email: data.email }
                 })
+            }
+
+            // Check BACB ID uniqueness
+            if (data.bacbId && data.bacbId.trim() !== "PENDING" && data.bacbId.trim() !== "") {
+                const existingBacbId = await tx.student.findFirst({
+                    where: {
+                        bacbId: data.bacbId.trim(),
+                        id: { not: studentId }
+                    }
+                })
+                if (existingBacbId) {
+                    throw new Error("A student with this BACB ID already exists")
+                }
             }
 
             // Normalize rates for Decimal(5, 4)
