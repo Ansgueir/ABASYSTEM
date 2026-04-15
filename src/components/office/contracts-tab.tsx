@@ -116,7 +116,7 @@ export function OfficeContractsTab({ studentId, contracts, allSupervisors }: Off
             <CardHeader className="flex flex-row items-center justify-between">
                 <div className="flex-1 pr-4">
                     <CardTitle>Supervision Contracts</CardTitle>
-                    <CardDescription>Manage student contracts and assignments. V2.1 Refactored.</CardDescription>
+                    <CardDescription>Manage student contracts and assignments.</CardDescription>
                 </div>
                 <Button size="sm" onClick={handleCreateNew}>
                     <Plus className="mr-2 h-4 w-4" /> New Contract
