@@ -846,8 +846,8 @@ export function EditableSupervisorContactInfo({ supervisor, isSuperAdmin: isSupe
                     </div>
                 </div>
 
-                {/* Credential Type + Max Students + Payment % */}
-                <div className="grid grid-cols-3 gap-3">
+                {/* Credential Type + Max Students */}
+                <div className="grid grid-cols-2 gap-3">
                     <div className="flex items-center gap-2 p-3 rounded-lg bg-muted/30">
                         <GraduationCap className="h-5 w-5 text-primary/70 shrink-0" />
                         <div className="flex-1">
@@ -874,17 +874,6 @@ export function EditableSupervisorContactInfo({ supervisor, isSuperAdmin: isSupe
                                 <Input type="number" value={maxStudents} onChange={(e) => setMaxStudents(e.target.value)} className="w-full h-8 mt-1" />
                             ) : (
                                 <p className="font-bold text-lg">{maxStudents}</p>
-                            )}
-                        </div>
-                    </div>
-                    <div className="flex items-center gap-2 p-3 rounded-lg bg-muted/30">
-                        <Percent className="h-5 w-5 text-primary/70 shrink-0" />
-                        <div className="flex-1">
-                            <p className="text-xs text-muted-foreground mb-0.5">Pay %</p>
-                            {isEditing ? (
-                                <Input type="number" step="0.01" value={paymentPercentage} onChange={(e) => setPaymentPercentage(e.target.value)} className="w-full h-8 mt-1" />
-                            ) : (
-                                <p className="font-bold text-lg">{(Number(paymentPercentage) * 100).toFixed(0)}%</p>
                             )}
                         </div>
                     </div>

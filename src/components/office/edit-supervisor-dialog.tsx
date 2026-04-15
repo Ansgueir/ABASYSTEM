@@ -122,7 +122,7 @@ export function EditSupervisorDialog({
                         </div>
                     </div>
 
-                    <div className="grid grid-cols-3 gap-4">
+                    <div className="grid grid-cols-2 gap-4">
                         <div className="space-y-2">
                             <Label htmlFor="credentialType">Type</Label>
                             <Select name="credentialType" defaultValue={supervisor.credentialType || "BCBA"}>
@@ -140,11 +140,7 @@ export function EditSupervisorDialog({
                             <Label htmlFor="maxStudents">Max Students</Label>
                             <Input id="maxStudents" name="maxStudents" type="number" defaultValue={supervisor.maxStudents} />
                         </div>
-                        <div className="space-y-2">
-                            <Label htmlFor="paymentPercentage">Pay % (0.60)</Label>
-                            <Input id="paymentPercentage" name="paymentPercentage" type="number" step="0.01" defaultValue={Number(supervisor.paymentPercentage)} />
                         </div>
-                    </div>
 
                     <DialogFooter className="pt-4">
                         <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>Cancel</Button>
