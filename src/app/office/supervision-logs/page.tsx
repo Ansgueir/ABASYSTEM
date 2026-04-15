@@ -59,7 +59,6 @@ export default async function SupervisionLogsReviewPage({
     try {
         // Build separated filters for each model
         const supervisionWhere: any = { status: statusFilter as any }
-        const independentWhere: any = { status: statusFilter as any }
 
         // Date Period Filtering
         if (selectedYear) {
@@ -79,13 +78,11 @@ export default async function SupervisionLogsReviewPage({
             }
 
             supervisionWhere.date = { gte: startDate, lte: endDate }
-            independentWhere.date = { gte: startDate, lte: endDate }
         }
 
         if (selectedStudent) {
             const studentFilter = { fullName: { equals: selectedStudent, mode: 'insensitive' as any } }
             supervisionWhere.student = studentFilter
-            independentWhere.student = studentFilter
         }
         
         if (selectedSupervisor) {
@@ -104,34 +101,17 @@ export default async function SupervisionLogsReviewPage({
         // We use 'date' as a safe default for any unknown sortBy key
         const safeSortBy = ["date", "startTime", "hours"].includes(sortBy) ? sortBy : "date"
 
-        const [supervisionLogs, independentLogs] = await Promise.all([
-            prisma.supervisionHour.findMany({
-                where: supervisionWhere,
-                orderBy: { [safeSortBy]: order },
-                include: {
-                    student: { select: { fullName: true } },
-                    supervisor: { select: { fullName: true } }
-                }
-            }).catch(e => { console.error(e); return [] }),
-            prisma.independentHour.findMany({
-                where: independentWhere,
-                orderBy: { [safeSortBy]: order },
-                include: {
-                    student: { select: { fullName: true } }
-                }
-            }).catch(e => { console.error(e); return [] })
-        ])
+        const supervisionLogs = await prisma.supervisionHour.findMany({
+            where: supervisionWhere,
+            orderBy: { [safeSortBy]: order },
+            include: {
+                student: { select: { fullName: true } },
+                supervisor: { select: { fullName: true } }
+            }
+        }).catch(e => { console.error(e); return [] })
 
         // Safe combine logic
-        const combined = [
-            ...supervisionLogs.map(l => ({ ...l, type: 'SUPERVISED' })),
-            ...(selectedSupervisor ? [] : independentLogs.map(l => ({ 
-                ...l, 
-                type: 'INDEPENDENT', 
-                supervisor: { fullName: 'N/A (Indep.)' },
-                supervisionType: 'N/A' 
-            })))
-        ]
+        const combined = supervisionLogs.map(l => ({ ...l, type: 'SUPERVISED' }))
 
         // Refined Sort Logic with explicit any casting to avoid TS index errors
         logs = (combined as any[]).sort((a, b) => {
