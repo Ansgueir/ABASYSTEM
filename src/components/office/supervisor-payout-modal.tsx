@@ -44,24 +44,13 @@ export function SupervisorPayoutModal({ isOpen, onClose, entry }: SupervisorPayo
 
     // Manual fields — pre-filled from plan if not yet set by previous payment
     const [amount, setAmount] = useState(Number(entry.supervisorPayout).toFixed(2))
-    const [supervisedHoursActual, setSupervisedHoursActual] = useState(
-        entry.planSupervisedHours != null ? Number(entry.planSupervisedHours).toFixed(1) : ""
-    )
-    const [individualHoursDelta, setIndividualHoursDelta] = useState("0")
     const [method, setMethod] = useState("ZELLE")
     const [reference, setReference] = useState("")
     const [notes, setNotes] = useState("")
 
     useEffect(() => {
         setAmount(Number(entry.supervisorPayout).toFixed(2))
-        setSupervisedHoursActual(entry.planSupervisedHours != null ? Number(entry.planSupervisedHours).toFixed(1) : "")
-        setIndividualHoursDelta("0")
     }, [entry])
-
-    // Compute suggested individual hours actual from supervised hours actual
-    const indivActual = entry.planHoursPerMonth != null && supervisedHoursActual
-        ? (Number(entry.planHoursPerMonth) - Number(supervisedHoursActual)).toFixed(1)
-        : null
 
     async function handleSubmit() {
         const numAmount = Number(amount)
@@ -79,8 +68,6 @@ export function SupervisorPayoutModal({ isOpen, onClose, entry }: SupervisorPayo
             const res = await payToSupervisorFromLedger({
                 ledgerEntryId: entry.id,
                 amount: numAmount,
-                supervisedHoursActual: supervisedHoursActual ? Number(supervisedHoursActual) : undefined,
-                individualHoursDelta: individualHoursDelta ? Number(individualHoursDelta) : undefined,
                 paymentMethod: method,
                 paymentReference: reference || undefined,
                 paymentNotes: notes || undefined
@@ -191,42 +178,6 @@ export function SupervisorPayoutModal({ isOpen, onClose, entry }: SupervisorPayo
                                 <p className="text-[10px] text-muted-foreground">
                                     Max: <span className="font-bold text-amber-600">{fmtUSD(entry.supervisorPayout)}</span>
                                 </p>
-                            </div>
-
-                            {/* Supervised Hours Actual */}
-                            <div className="space-y-1">
-                                <Label className="text-xs font-semibold">Supervised Hours (Actual)</Label>
-                                <div className="relative">
-                                    <Input
-                                        type="number" step="0.5"
-                                        value={supervisedHoursActual}
-                                        onChange={e => setSupervisedHoursActual(e.target.value)}
-                                        placeholder={entry.planSupervisedHours != null ? `Plan: ${Number(entry.planSupervisedHours).toFixed(1)}h` : "e.g. 100"}
-                                        className="pr-8"
-                                    />
-                                    <span className="absolute right-3 top-2.5 text-xs text-muted-foreground">h</span>
-                                </div>
-                                {indivActual && (
-                                    <p className="text-[10px] text-muted-foreground">
-                                        → Indiv. actual: <span className="font-bold">{indivActual}h</span>
-                                    </p>
-                                )}
-                            </div>
-
-                            {/* Individual Hours Delta */}
-                            <div className="space-y-1">
-                                <Label className="text-xs font-semibold">Individual Hours Delta</Label>
-                                <div className="relative">
-                                    <Input
-                                        type="number" step="0.5"
-                                        value={individualHoursDelta}
-                                        onChange={e => setIndividualHoursDelta(e.target.value)}
-                                        placeholder="e.g. 0"
-                                        className="pr-8"
-                                    />
-                                    <span className="absolute right-3 top-2.5 text-xs text-muted-foreground">h</span>
-                                </div>
-                                <p className="text-[10px] text-muted-foreground">Difference vs. planned individual hours</p>
                             </div>
 
                             {/* Method */}
