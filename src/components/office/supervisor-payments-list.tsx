@@ -167,7 +167,6 @@ export function SupervisorPaymentsList({ supervisorSummary }: SupervisorPayments
                                                         <th className="text-left pb-1.5 font-medium">Date Paid</th>
                                                         <th className="text-right pb-1.5 font-medium">Amount</th>
                                                         <th className="text-right pb-1.5 font-medium">Sup Hrs</th>
-                                                        <th className="text-right pb-1.5 font-medium">Delta Hrs</th>
                                                         <th className="text-left pb-1.5 font-medium">Method</th>
                                                         <th className="text-left pb-1.5 font-medium">Reference</th>
                                                     </tr>
@@ -179,7 +178,6 @@ export function SupervisorPaymentsList({ supervisorSummary }: SupervisorPayments
                                                             <td className="py-1.5 text-muted-foreground">{fmtDate(entry.paidAt)}</td>
                                                             <td className="py-1.5 text-right font-bold text-green-700">{fmtUSD(entry.supervisorPayout)}</td>
                                                             <td className="py-1.5 text-right">{entry.supervisedHoursActual != null ? `${Number(entry.supervisedHoursActual).toFixed(1)}h` : "—"}</td>
-                                                            <td className="py-1.5 text-right">{entry.individualHoursDelta != null ? `${Number(entry.individualHoursDelta).toFixed(1)}h` : "—"}</td>
                                                             <td className="py-1.5">
                                                                 {entry.paymentMethod
                                                                     ? <Badge variant="outline" className="text-[9px]">{entry.paymentMethod}</Badge>
