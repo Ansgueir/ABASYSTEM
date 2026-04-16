@@ -24,14 +24,47 @@ export default async function SupervisorStudentsPage() {
             where: { userId: session.user.id },
             include: {
                 studentAssignments: {
-                    include: { student: true },
+                    include: { 
+                        student: {
+                            include: {
+                                independentHours: { where: { status: { not: 'REJECTED' } } },
+                                supervisionHours: { where: { status: { not: 'REJECTED' } } }
+                            }
+                        } 
+                    },
                     orderBy: { student: { fullName: 'asc' } }
                 }
             }
         })
 
         if (supervisor) {
-            students = (supervisor as any).studentAssignments.map((a: any) => a.student)
+            // Include plans for these students
+            const rawStudents = (supervisor as any).studentAssignments.map((a: any) => a.student)
+            const planIds = rawStudents.map((s: any) => s.planTemplateId).filter(Boolean)
+            const plans = await prisma.plan.findMany({
+                where: { id: { in: planIds } }
+            })
+            
+            students = rawStudents.map((s: any) => {
+                const plan = plans.find(p => p.id === s.planTemplateId)
+                const indepTotal = s.independentHours.reduce((acc: number, log: any) => acc + Number(log.hours), 0)
+                const superTotal = s.supervisionHours.reduce((acc: number, log: any) => acc + Number(log.hours), 0)
+                const totalLogged = indepTotal + superTotal
+                const required = plan?.totalHours || 2000
+                const targetSupervisedPercentage = plan?.supervisedPercentage ? Number(plan.supervisedPercentage) : 0.05
+                const planHoursPerMonth = plan?.hoursPerMonth || 130
+                const targetSupervisedHoursPerMonth = planHoursPerMonth * targetSupervisedPercentage
+
+                return {
+                    ...s,
+                    totalLogged,
+                    required,
+                    progressPercent: Math.min(100, Math.round((totalLogged / required) * 100)),
+                    planHoursPerMonth,
+                    targetSupervisedHoursPerMonth,
+                    targetSupervisedPercentage
+                }
+            })
         }
     } catch (error) {
         console.error("Error fetching students:", error)
@@ -63,7 +96,6 @@ export default async function SupervisorStudentsPage() {
                 ) : (
                     <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
                         {students.map((student) => {
-                            const progress = Math.round(Math.random() * 100) // Mock progress
                             return (
                                 <Card key={student.id} className="hover:shadow-elevated transition-all cursor-pointer">
                                     <CardContent className="pt-6">
@@ -81,19 +113,25 @@ export default async function SupervisorStudentsPage() {
 
                                         <div className="mt-4 space-y-3">
                                             <div className="flex items-center justify-between text-sm">
-                                                <span className="text-muted-foreground">Monthly Progress</span>
-                                                <span className="font-medium">{progress}%</span>
+                                                <span className="text-muted-foreground">Total Progress</span>
+                                                <span className="font-medium">{student.progressPercent}%</span>
                                             </div>
-                                            <Progress value={progress} className="h-2" />
+                                            <Progress value={student.progressPercent} className="h-2" />
+                                            <div className="text-[10px] text-muted-foreground text-right">{student.totalLogged.toFixed(1)} / {student.required} hrs</div>
 
-                                            <div className="flex items-center gap-4 text-sm text-muted-foreground">
-                                                <div className="flex items-center gap-1">
-                                                    <Clock className="h-4 w-4" />
-                                                    <span>{student.hoursPerMonth || 130}h/mo</span>
+                                            <div className="flex items-center justify-between text-sm text-muted-foreground pt-1 border-t">
+                                                <div className="flex flex-col gap-0.5">
+                                                    <span className="text-[10px] uppercase font-bold text-slate-400">Monthly Limit</span>
+                                                    <div className="flex items-center gap-1 font-medium text-slate-700">
+                                                        <Clock className="h-3 w-3" />
+                                                        <span>{student.planHoursPerMonth}h/mo</span>
+                                                    </div>
                                                 </div>
-                                                <div className="flex items-center gap-1">
-                                                    <Calendar className="h-4 w-4" />
-                                                    <span>Active</span>
+                                                <div className="flex flex-col gap-0.5 text-right">
+                                                    <span className="text-[10px] uppercase font-bold text-primary/70">Supervised Target</span>
+                                                    <div className="flex items-center justify-end gap-1 font-medium text-primary">
+                                                        <span>~{student.targetSupervisedHoursPerMonth.toFixed(1)}h ({(student.targetSupervisedPercentage*100).toFixed(0)}%)</span>
+                                                    </div>
                                                 </div>
                                             </div>
                                         </div>

@@ -41,7 +41,10 @@ export default async function StudentDashboard() {
         nextPayment: 0,
         dueDate: "March 1st",
         supervisedHours: 0,
-        independentHours: 0
+        independentHours: 0,
+        targetSupervisedPercentage: 0.05,
+        targetIndependentHoursPerMonth: 0,
+        targetSupervisedHoursPerMonth: 0
     };
     let dbError = false;
 
@@ -80,7 +83,8 @@ export default async function StudentDashboard() {
                     where: { studentId: student.id, status: { in: ['SENT', 'OVERDUE'] } },
                     _sum: { amountDue: true }
                 }),
-                prisma.generalValues.findFirst()
+                prisma.generalValues.findFirst(),
+                student.planTemplateId ? prisma.plan.findUnique({ where: { id: student.planTemplateId } }) : Promise.resolve(null)
             ])
 
             const independentHours = Number(indepMonth?._sum?.hours) || 0
@@ -88,15 +92,24 @@ export default async function StudentDashboard() {
             const hoursThisMonth = independentHours + supervisedHours
             const totalProgress = (Number(indepTotal?._sum?.hours) || 0) + (Number(supTotal?._sum?.hours) || 0)
 
+            const planHoursPerMonth = plan?.hoursPerMonth || (settings as any)?.maxHoursPerMonth || 130
+            const targetSupervisedPercentage = plan?.supervisedPercentage ? Number(plan.supervisedPercentage) : 0.05
+            
+            const targetSupervisedHoursPerMonth = planHoursPerMonth * targetSupervisedPercentage
+            const targetIndependentHoursPerMonth = planHoursPerMonth - targetSupervisedHoursPerMonth
+
             stats = {
                 hoursThisMonth,
-                maxHours: (settings as any)?.maxHoursPerMonth || 130,
+                maxHours: planHoursPerMonth,
                 totalProgress,
-                totalRequired: 2000,
+                totalRequired: plan?.totalHours || 2000,
                 nextPayment: Number(pendingInvoices?._sum?.amountDue || 0),
                 dueDate: "Currently Due",
                 supervisedHours,
-                independentHours
+                independentHours,
+                targetSupervisedPercentage,
+                targetIndependentHoursPerMonth,
+                targetSupervisedHoursPerMonth
             }
         }
     } catch (error) {
@@ -124,23 +137,37 @@ export default async function StudentDashboard() {
             {/* Monthly Stats */}
             <Card>
                 <CardHeader className="pb-3">
-                    <CardTitle className="text-base">This Month</CardTitle>
+                    <CardTitle className="text-base flex items-center justify-between">
+                        This Month
+                        <span className="text-xs text-muted-foreground font-normal">Cap: {stats.maxHours}h</span>
+                    </CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-4">
-                    <div className="flex items-center justify-between">
+                    <div className="flex items-center justify-between group cursor-help" title={`Target: ${stats.targetSupervisedHoursPerMonth.toFixed(1)}h/month`}>
                         <div className="flex items-center gap-2">
                             <div className="h-2 w-2 rounded-full bg-primary" />
                             <span className="text-sm text-muted-foreground">Supervised</span>
                         </div>
-                        <span className="font-medium">{stats.supervisedHours.toFixed(1)}h</span>
+                        <div className="text-right">
+                            <span className="font-medium text-primary">{stats.supervisedHours.toFixed(1)}h</span>
+                            <p className="text-[10px] text-muted-foreground">Limit: {stats.targetSupervisedHoursPerMonth.toFixed(1)}h</p>
+                        </div>
                     </div>
-                    <div className="flex items-center justify-between">
+                    <div className="flex items-center justify-between group cursor-help" title={`Target: ${stats.targetIndependentHoursPerMonth.toFixed(1)}h/month`}>
                         <div className="flex items-center gap-2">
                             <div className="h-2 w-2 rounded-full bg-accent" />
                             <span className="text-sm text-muted-foreground">Independent</span>
                         </div>
-                        <span className="font-medium">{stats.independentHours.toFixed(1)}h</span>
+                        <div className="text-right">
+                            <span className="font-medium text-accent-foreground">{stats.independentHours.toFixed(1)}h</span>
+                            <p className="text-[10px] text-muted-foreground">Limit: {stats.targetIndependentHoursPerMonth.toFixed(1)}h</p>
+                        </div>
                     </div>
+                    {stats.hoursThisMonth >= stats.maxHours && (
+                        <div className="mt-2 text-[10px] font-bold text-amber-600 bg-amber-50 p-2 rounded-md">
+                            ⚠️ Maximum valid monthly hours reached
+                        </div>
+                    )}
                 </CardContent>
             </Card>
 
