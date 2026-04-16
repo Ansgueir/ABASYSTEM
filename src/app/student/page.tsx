@@ -62,7 +62,7 @@ export default async function StudentDashboard() {
         if (student) {
             const currentMonthStart = startOfMonth(new Date())
 
-            const [indepMonth, supMonth, indepTotal, supTotal, pendingInvoices, settings] = await Promise.all([
+            const [indepMonth, supMonth, indepTotal, supTotal, pendingInvoices, settings, plan] = await Promise.all([
                 prisma.independentHour.aggregate({
                     where: { studentId: student.id, date: { gte: currentMonthStart }, status: { not: 'REJECTED' } },
                     _sum: { hours: true }
