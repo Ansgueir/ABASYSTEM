@@ -152,6 +152,7 @@ model Supervisor {
   ledgerEntries      SupervisorLedgerEntry[]
   payouts            SupervisorPayout[]
   managedGroups      SupervisorGroup[]
+  officeGroups       OfficeGroupSupervisor[]
   importBatchId      String?
 
   @@index([fullName])
@@ -707,4 +708,35 @@ model GroupStudent {
   @@unique([groupId, studentId])
   @@index([groupId])
   @@index([studentId])
+}
+
+// ── OFFICE-MANAGED GROUPS (Settings > Grupos) ────────────────────────────────
+model OfficeGroup {
+  id        String   @id @default(uuid())
+  name      String
+  groupType String   // REGULAR | CONCENTRATED
+  dayOfWeek String   // MONDAY | TUESDAY | WEDNESDAY | THURSDAY | FRIDAY | SATURDAY | SUNDAY
+  startTime String   // HH:MM  24h
+  endTime   String   // HH:MM  24h
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  supervisors OfficeGroupSupervisor[]
+
+  // Enforce: only 1 REGULAR + 1 CONCENTRATED per day
+  @@unique([groupType, dayOfWeek])
+}
+
+model OfficeGroupSupervisor {
+  id           String   @id @default(uuid())
+  groupId      String
+  supervisorId String
+  createdAt    DateTime @default(now())
+
+  group      OfficeGroup @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  supervisor Supervisor  @relation(fields: [supervisorId], references: [id], onDelete: Cascade)
+
+  @@unique([groupId, supervisorId])
+  @@index([groupId])
+  @@index([supervisorId])
 }

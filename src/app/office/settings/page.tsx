@@ -6,6 +6,7 @@ import { SettingsClient } from "./settings-client"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/custom-tabs"
 import { AuditLogsTab } from "./audit-logs-tab"
 import { PlansTab } from "./plans-tab"
+import { GroupsTab } from "./groups-tab"
 
 export default async function OfficeSettingsPage() {
     const session = await auth()
@@ -36,6 +37,7 @@ export default async function OfficeSettingsPage() {
                     <TabsList className="mb-6 bg-muted/50 p-1 border">
                         <TabsTrigger value="general" className="px-6 italic">General Setting</TabsTrigger>
                         <TabsTrigger value="plans" className="px-6 italic text-amber-600">Plans</TabsTrigger>
+                        <TabsTrigger value="groups" className="px-6 italic text-blue-600">Grupos</TabsTrigger>
                         <TabsTrigger value="audit" className="px-6 font-bold text-destructive">Audit logs</TabsTrigger>
                     </TabsList>
                     <TabsContent value="general">
@@ -43,6 +45,9 @@ export default async function OfficeSettingsPage() {
                     </TabsContent>
                     <TabsContent value="plans">
                         <PlansTab />
+                    </TabsContent>
+                    <TabsContent value="groups">
+                        <GroupsTab />
                     </TabsContent>
                     <TabsContent value="audit">
                         <AuditLogsTab />
