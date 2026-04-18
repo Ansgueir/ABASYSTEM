@@ -4,16 +4,16 @@ import { InvoiceStatus } from "@prisma/client"
 export async function generateMonthlyInvoices() {
     try {
         const today = new Date()
-        const firstDayOfMonth = new Date(today.getFullYear(), today.getMonth(), 1)
 
-        // 1. Find active students
-        // 1. Find all students that might have unbilled hours
-        const students = await prisma.student.findMany()
+        // Find all students with APPROVED hours not yet invoiced
+        const students = await prisma.student.findMany({
+            include: { plan: true }  // plan relation if available
+        })
 
         let generatedCount = 0
 
         for (const student of students) {
-            // Include hours from this month or previous that are APPROVED but not billed
+            // Only APPROVED hours with no invoice yet
             const unbilledHours = await prisma.supervisionHour.findMany({
                 where: {
                     studentId: student.id,
@@ -24,13 +24,27 @@ export async function generateMonthlyInvoices() {
 
             if (unbilledHours.length === 0) continue
 
-            const hourlyRate = Number(student.hourlyRate || 0)
-            const totalAmountDue = unbilledHours.reduce((sum, h) => sum + (Number(h.hours) * hourlyRate), 0)
+            // Resolve hourlyRate: plan > student fallback
+            let hourlyRate = Number((student as any).hourlyRate || 0)
+            if ((student as any).planTemplateId) {
+                const plan = await (prisma as any).plan.findUnique({
+                    where: { id: (student as any).planTemplateId },
+                    select: { hourlyRate: true }
+                })
+                if (plan?.hourlyRate) hourlyRate = Number(plan.hourlyRate)
+            }
+
+            // Use amountBilled already set on each hour (set at approval time),
+            // fall back to hourlyRate × hours only if amountBilled is 0/null
+            const totalAmountDue = unbilledHours.reduce((sum, h) => {
+                const billed = Number(h.amountBilled || 0)
+                return sum + (billed > 0 ? billed : Number(h.hours) * hourlyRate)
+            }, 0)
 
             if (totalAmountDue <= 0) continue
 
             await prisma.$transaction(async (tx) => {
-                // Create Invoice
+                // Create Invoice with computed total
                 const invoice = await tx.invoice.create({
                     data: {
                         studentId: student.id,
@@ -42,14 +56,18 @@ export async function generateMonthlyInvoices() {
                     }
                 })
 
-                // Link hours and update status to BILLED, and solidify the amount billed per hour
+                // Link hours → set status BILLED and solidify amountBilled
                 for (const h of unbilledHours) {
+                    const amountBilled = Number(h.amountBilled || 0) > 0
+                        ? Number(h.amountBilled)
+                        : Number(h.hours) * hourlyRate
+
                     await tx.supervisionHour.update({
                         where: { id: h.id },
                         data: {
                             status: "BILLED",
                             invoiceId: invoice.id,
-                            amountBilled: Number(h.hours) * hourlyRate
+                            amountBilled
                         }
                     })
                 }

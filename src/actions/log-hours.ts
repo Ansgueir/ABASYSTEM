@@ -480,13 +480,13 @@ export async function rejectSupervisionHour(logId: string, reason: string) {
                     })
                 }
 
-                // 2. Unlink from Invoice and decrement Invoice total if READY_TO_GO
+                // 2. Unlink from Invoice and decrement Invoice total (unless already PAID)
                 if (hour.invoiceId) {
                     const invoice = await tx.invoice.findUnique({
                         where: { id: hour.invoiceId }
                     })
 
-                    if (invoice && invoice.status === ("READY_TO_GO" as any)) {
+                    if (invoice && invoice.status !== ("PAID" as any)) {
                         await tx.invoice.update({
                             where: { id: invoice.id },
                             data: {
