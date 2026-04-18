@@ -124,21 +124,21 @@ function InvoiceRow({ inv, isPaidSection }: { inv: InvoiceRow; isPaidSection: bo
                 </div>
             </div>
 
-            {/* Center: Amounts */}
-            <div className="flex items-center gap-5 text-sm">
-                <div className="text-center">
+            {/* Center: Amounts — fixed widths for vertical alignment */}
+            <div className="flex items-center gap-0">
+                <div className="w-24 text-right">
                     <p className="text-[9px] uppercase text-slate-400 font-bold">Invoice</p>
-                    <p className="font-semibold text-slate-800">{fmtUSD(inv.amountDue)}</p>
+                    <p className="font-semibold text-slate-800 text-sm">{fmtUSD(inv.amountDue)}</p>
                 </div>
-                <div className="text-center">
+                <div className="w-20 text-right">
                     <p className="text-[9px] uppercase text-slate-400 font-bold">Paid</p>
-                    <p className={`font-semibold ${inv.amountPaid > 0 ? "text-green-700" : "text-muted-foreground"}`}>
+                    <p className={`font-semibold text-sm ${inv.amountPaid > 0 ? "text-green-700" : "text-muted-foreground"}`}>
                         {fmtUSD(inv.amountPaid)}
                     </p>
                 </div>
-                <div className="text-center">
+                <div className="w-24 text-right">
                     <p className="text-[9px] uppercase text-slate-400 font-bold">Balance</p>
-                    <p className={`font-bold ${balance > 0.01 ? "text-amber-600" : "text-green-600"}`}>
+                    <p className={`font-bold text-sm ${balance > 0.01 ? "text-amber-600" : "text-green-600"}`}>
                         {fmtUSD(balance)}
                     </p>
                 </div>
@@ -356,10 +356,11 @@ export function StudentInvoicesList({ studentGroups }: StudentInvoicesListProps)
                 // totalOwed    = what remains of the plan total (contract - paid)
                 // planTotal    = the full contract value from the assigned plan
                 // Invariant:  totalPaid + totalOwed = planTotal
-                const planTotal  = group.contractTotal   // plan.totalCost
+                const planTotal  = group.contractTotal
                 const totalPaid  = group.totalPaid
                 const totalOwed  = planTotal > 0 ? planTotal - totalPaid : group.totalBilled - group.totalPaid
                 const paidPct    = planTotal > 0 ? Math.min(100, (totalPaid / planTotal) * 100) : 0
+                const monthsRemaining = group.monthlyPayment > 0 ? (totalOwed / group.monthlyPayment).toFixed(1) : null
 
                 return (
                     <Card key={group.studentId} className="overflow-hidden">
@@ -435,20 +436,13 @@ export function StudentInvoicesList({ studentGroups }: StudentInvoicesListProps)
                                     </div>
                                 )}
 
-                                {/* ── Contract Summary Footer: paid / balance / monthly / total ── */}
+                                {/* Contract Summary Footer: no duplicate plan badge */}
                                 <div className="rounded-xl border border-slate-200 bg-slate-50/80 p-4 space-y-3">
 
-                                    {/* Title row */}
-                                    <div className="flex items-center justify-between">
-                                        <p className="text-[10px] uppercase font-bold text-slate-500 tracking-wider">Contract Summary</p>
-                                        {group.planName && group.planName !== "No plan assigned" && (
-                                            <span className="text-[10px] font-semibold text-primary bg-primary/10 px-2 py-0.5 rounded-full">
-                                                {group.planName}
-                                            </span>
-                                        )}
-                                    </div>
+                                    {/* Title only */}
+                                    <p className="text-[10px] uppercase font-bold text-slate-500 tracking-wider">Contract Summary</p>
 
-                                    {/* 4 metric boxes in a single row */}
+                                    {/* 4 metric boxes */}
                                     <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
                                         {/* Paid */}
                                         <div className="flex flex-col items-center justify-center bg-green-50 rounded-xl p-3 border border-green-100 text-center">
@@ -464,13 +458,15 @@ export function StudentInvoicesList({ studentGroups }: StudentInvoicesListProps)
                                             <p className="text-[9px] text-amber-600/70 mt-0.5">remaining</p>
                                         </div>
 
-                                        {/* Monthly Payment */}
+                                        {/* Monthly Payment — with months-remaining function */}
                                         <div className="flex flex-col items-center justify-center bg-indigo-50 rounded-xl p-3 border border-indigo-100 text-center">
                                             <p className="text-[9px] uppercase text-indigo-700 font-bold tracking-wider">Monthly Payment</p>
                                             <p className="text-lg font-black text-indigo-700 leading-tight">
                                                 {group.monthlyPayment > 0 ? fmtUSD(group.monthlyPayment) : "—"}
                                             </p>
-                                            <p className="text-[9px] text-indigo-600/70 mt-0.5">per invoice</p>
+                                            <p className="text-[9px] text-indigo-600/70 mt-0.5">
+                                                {monthsRemaining !== null ? `~${monthsRemaining} months left` : "per invoice"}
+                                            </p>
                                         </div>
 
                                         {/* Plan Total */}
