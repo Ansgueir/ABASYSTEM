@@ -6,9 +6,7 @@ export async function generateMonthlyInvoices() {
         const today = new Date()
 
         // Find all students with APPROVED hours not yet invoiced
-        const students = await prisma.student.findMany({
-            include: { plan: true }  // plan relation if available
-        })
+        const students = await prisma.student.findMany()
 
         let generatedCount = 0
 
