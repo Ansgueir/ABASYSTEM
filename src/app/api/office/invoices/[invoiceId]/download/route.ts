@@ -129,7 +129,10 @@ export async function GET(
                     <div class="totals-box">
                         <div class="totals-row">
                             <span>Subtotal</span>
-                            <span>$${Number(invoice.amountDue).toFixed(2)}</span>
+                            <span>$${invoice.supervisionHours.length > 0
+                                ? invoice.supervisionHours.reduce((s, h) => s + Number(h.amountBilled || 0), 0).toFixed(2)
+                                : Number(invoice.amountDue).toFixed(2)
+                            }</span>
                         </div>
                         <div class="totals-row">
                             <span>Amount Paid</span>
@@ -137,7 +140,12 @@ export async function GET(
                         </div>
                         <div class="totals-row grand-total">
                             <span>Balance Due</span>
-                            <span>$${(Number(invoice.amountDue) - Number(invoice.amountPaid)).toFixed(2)}</span>
+                            <span>$${(
+                                (invoice.supervisionHours.length > 0
+                                    ? invoice.supervisionHours.reduce((s, h) => s + Number(h.amountBilled || 0), 0)
+                                    : Number(invoice.amountDue))
+                                - Number(invoice.amountPaid)
+                            ).toFixed(2)}</span>
                         </div>
                     </div>
                 </div>
