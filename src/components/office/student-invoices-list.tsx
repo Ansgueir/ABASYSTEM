@@ -346,10 +346,18 @@ export function StudentInvoicesList({ studentGroups }: StudentInvoicesListProps)
         <div className="space-y-4">
             {studentGroups.map(group => {
                 const isExpanded = expandedStudents[group.studentId] !== false  // default expanded
-                const pending  = group.invoices.filter(i => i.status !== "PAID")
-                const paid     = group.invoices.filter(i => i.status === "PAID")
-                const remaining = group.totalBilled - group.totalPaid
-                const contractRemaining = group.contractTotal > 0 ? group.contractTotal - group.totalPaid : null
+                const pendingInvoices = group.invoices.filter(i => i.status !== "PAID")
+                const paidInvoices    = group.invoices.filter(i => i.status === "PAID")
+
+                // ── 3 core financial values derived from the plan ──────────────
+                // totalPaid    = what the student has already paid (real money received)
+                // totalOwed    = what remains of the plan total (contract - paid)
+                // planTotal    = the full contract value from the assigned plan
+                // Invariant:  totalPaid + totalOwed = planTotal
+                const planTotal  = group.contractTotal   // plan.totalCost
+                const totalPaid  = group.totalPaid
+                const totalOwed  = planTotal > 0 ? planTotal - totalPaid : group.totalBilled - group.totalPaid
+                const paidPct    = planTotal > 0 ? Math.min(100, (totalPaid / planTotal) * 100) : 0
 
                 return (
                     <Card key={group.studentId} className="overflow-hidden">
@@ -368,31 +376,21 @@ export function StudentInvoicesList({ studentGroups }: StudentInvoicesListProps)
                                 </div>
                             </div>
 
+                            {/* ── 3 core values in header ── */}
                             <div className="flex items-center gap-5">
-                                {/* Summary pills */}
                                 <div className="hidden sm:flex items-center gap-4 text-right">
-                                    {group.contractTotal > 0 && (
+                                    <div>
+                                        <p className="text-[10px] uppercase text-green-600 font-bold">Paid</p>
+                                        <p className="text-sm font-black text-green-700">{fmtUSD(totalPaid)}</p>
+                                    </div>
+                                    <div>
+                                        <p className="text-[10px] uppercase text-amber-600 font-bold">Owes</p>
+                                        <p className="text-sm font-black text-amber-700">{fmtUSD(totalOwed)}</p>
+                                    </div>
+                                    {planTotal > 0 && (
                                         <div>
-                                            <p className="text-[10px] uppercase text-slate-400 font-bold">Contract</p>
-                                            <p className="text-sm font-black text-slate-700">{fmtUSD(group.contractTotal)}</p>
-                                        </div>
-                                    )}
-                                    <div>
-                                        <p className="text-[10px] uppercase text-slate-400 font-bold">Billed</p>
-                                        <p className="text-sm font-black text-blue-700">{fmtUSD(group.totalBilled)}</p>
-                                    </div>
-                                    <div>
-                                        <p className="text-[10px] uppercase text-green-600 font-bold">Collected</p>
-                                        <p className="text-sm font-black text-green-700">{fmtUSD(group.totalPaid)}</p>
-                                    </div>
-                                    <div>
-                                        <p className="text-[10px] uppercase text-amber-600 font-bold">Pending</p>
-                                        <p className="text-sm font-black text-amber-700">{fmtUSD(remaining)}</p>
-                                    </div>
-                                    {contractRemaining !== null && contractRemaining > 0.01 && (
-                                        <div>
-                                            <p className="text-[10px] uppercase text-red-500 font-bold">Contract Rem.</p>
-                                            <p className="text-sm font-black text-red-600">{fmtUSD(contractRemaining)}</p>
+                                            <p className="text-[10px] uppercase text-slate-500 font-bold">Plan Total</p>
+                                            <p className="text-sm font-black text-slate-700">{fmtUSD(planTotal)}</p>
                                         </div>
                                     )}
                                 </div>
@@ -404,69 +402,75 @@ export function StudentInvoicesList({ studentGroups }: StudentInvoicesListProps)
                         {isExpanded && (
                             <CardContent className="px-4 pb-4 pt-0 space-y-4">
 
-                                {/* Mobile summary strip */}
-                                <div className="sm:hidden flex flex-wrap gap-3 text-sm bg-muted/30 rounded-xl p-3">
-                                    {group.contractTotal > 0 && <div><span className="text-muted-foreground text-xs">Contract: </span><span className="font-bold">{fmtUSD(group.contractTotal)}</span></div>}
-                                    <div><span className="text-muted-foreground text-xs">Billed: </span><span className="font-bold text-blue-700">{fmtUSD(group.totalBilled)}</span></div>
-                                    <div><span className="text-muted-foreground text-xs">Paid: </span><span className="font-bold text-green-700">{fmtUSD(group.totalPaid)}</span></div>
-                                    <div><span className="text-muted-foreground text-xs">Pending: </span><span className="font-bold text-amber-700">{fmtUSD(remaining)}</span></div>
-                                </div>
-
                                 {/* ── Pending/Active Invoices ── */}
-                                {pending.length > 0 && (
+                                {pendingInvoices.length > 0 && (
                                     <div className="space-y-2">
                                         <p className="text-[10px] uppercase font-bold text-amber-600 flex items-center gap-1">
-                                            <Clock className="h-3 w-3" /> Pending / Active ({pending.length})
+                                            <Clock className="h-3 w-3" /> Pending / Active ({pendingInvoices.length})
                                         </p>
-                                        {pending.map(inv => (
+                                        {pendingInvoices.map(inv => (
                                             <InvoiceRow key={inv.id} inv={inv} isPaidSection={false} />
                                         ))}
                                     </div>
                                 )}
 
                                 {/* ── Paid Invoices ── */}
-                                {paid.length > 0 && (
+                                {paidInvoices.length > 0 && (
                                     <div className="space-y-2">
                                         <p className="text-[10px] uppercase font-bold text-green-600 flex items-center gap-1">
-                                            <CheckCircle className="h-3 w-3" /> Payment History ({paid.length})
+                                            <CheckCircle className="h-3 w-3" /> Payment History ({paidInvoices.length})
                                         </p>
-                                        {paid.map(inv => (
+                                        {paidInvoices.map(inv => (
                                             <InvoiceRow key={inv.id} inv={inv} isPaidSection={true} />
                                         ))}
                                     </div>
                                 )}
 
-                                {/* ── Contract Grand Total Footer ── */}
-                                <div className="rounded-xl border border-slate-200 bg-slate-50/70 p-3 flex flex-wrap gap-4 justify-between text-sm">
-                                    <p className="text-[10px] uppercase font-bold text-slate-500 self-center">Contract Summary</p>
-                                    <div className="flex flex-wrap gap-5">
-                                        {group.contractTotal > 0 && (
-                                            <div className="text-center">
-                                                <p className="text-[9px] uppercase text-slate-400 font-bold">Contract Total</p>
-                                                <p className="font-black text-slate-700">{fmtUSD(group.contractTotal)}</p>
-                                            </div>
-                                        )}
-                                        <div className="text-center">
-                                            <p className="text-[9px] uppercase text-slate-400 font-bold">Total Billed</p>
-                                            <p className="font-black text-blue-700">{fmtUSD(group.totalBilled)}</p>
+                                {/* ── Contract Summary Footer: 3 values only ── */}
+                                <div className="rounded-xl border border-slate-200 bg-slate-50/70 p-4 space-y-3">
+                                    <p className="text-[10px] uppercase font-bold text-slate-500">Contract Summary (Plan)</p>
+
+                                    {/* 3 values */}
+                                    <div className="grid grid-cols-3 gap-2 text-center">
+                                        <div className="bg-green-50 rounded-lg p-2 border border-green-100">
+                                            <p className="text-[9px] uppercase text-green-600 font-bold">Paid</p>
+                                            <p className="text-base font-black text-green-700">{fmtUSD(totalPaid)}</p>
+                                            <p className="text-[9px] text-muted-foreground">received</p>
                                         </div>
-                                        <div className="text-center">
-                                            <p className="text-[9px] uppercase text-green-600 font-bold">Total Collected</p>
-                                            <p className="font-black text-green-700">{fmtUSD(group.totalPaid)}</p>
+                                        <div className="bg-amber-50 rounded-lg p-2 border border-amber-100">
+                                            <p className="text-[9px] uppercase text-amber-600 font-bold">Owes</p>
+                                            <p className="text-base font-black text-amber-700">{fmtUSD(totalOwed)}</p>
+                                            <p className="text-[9px] text-muted-foreground">remaining</p>
                                         </div>
-                                        <div className="text-center">
-                                            <p className="text-[9px] uppercase text-amber-600 font-bold">Still Pending</p>
-                                            <p className="font-black text-amber-700">{fmtUSD(remaining)}</p>
+                                        <div className="bg-slate-100 rounded-lg p-2 border border-slate-200">
+                                            <p className="text-[9px] uppercase text-slate-500 font-bold">Plan Total</p>
+                                            <p className="text-base font-black text-slate-700">{planTotal > 0 ? fmtUSD(planTotal) : "—"}</p>
+                                            <p className="text-[9px] text-muted-foreground">contract value</p>
                                         </div>
-                                        {contractRemaining !== null && (
-                                            <div className="text-center">
-                                                <p className="text-[9px] uppercase text-red-500 font-bold">Contract Remaining</p>
-                                                <p className={`font-black ${contractRemaining > 0.01 ? "text-red-600" : "text-green-600"}`}>
-                                                    {contractRemaining > 0.01 ? fmtUSD(contractRemaining) : "✓ Fully Paid"}
-                                                </p>
-                                            </div>
-                                        )}
                                     </div>
+
+                                    {/* Identity label */}
+                                    {planTotal > 0 && (
+                                        <p className="text-[10px] text-center text-muted-foreground">
+                                            {fmtUSD(totalPaid)} paid + {fmtUSD(totalOwed)} owed = <span className="font-bold text-slate-700">{fmtUSD(planTotal)}</span>
+                                        </p>
+                                    )}
+
+                                    {/* Progress bar */}
+                                    {planTotal > 0 && (
+                                        <div>
+                                            <div className="flex justify-between text-[9px] text-muted-foreground mb-1">
+                                                <span>{paidPct.toFixed(1)}% of contract paid</span>
+                                                <span>{(100 - paidPct).toFixed(1)}% remaining</span>
+                                            </div>
+                                            <div className="h-2 rounded-full bg-slate-200 overflow-hidden">
+                                                <div
+                                                    className="h-full bg-green-500 rounded-full transition-all"
+                                                    style={{ width: `${paidPct}%` }}
+                                                />
+                                            </div>
+                                        </div>
+                                    )}
                                 </div>
 
                             </CardContent>
