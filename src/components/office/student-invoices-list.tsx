@@ -33,7 +33,9 @@ interface StudentGroup {
     studentId: string
     fullName: string
     email: string
-    contractTotal: number   // from plan.totalCost
+    contractTotal: number   // plan.totalCost
+    monthlyPayment: number  // plan.monthlyPayment
+    planName: string        // plan.name
     totalBilled: number     // sum of all amountDue
     totalPaid: number       // sum of all amountPaid
     invoices: InvoiceRow[]
@@ -372,7 +374,14 @@ export function StudentInvoicesList({ studentGroups }: StudentInvoicesListProps)
                                 </div>
                                 <div>
                                     <h3 className="font-bold text-base leading-tight">{group.fullName}</h3>
-                                    <p className="text-xs text-muted-foreground">{group.email}</p>
+                                    <div className="flex items-center gap-2 flex-wrap">
+                                        <p className="text-xs text-muted-foreground">{group.email}</p>
+                                        {group.planName && group.planName !== "No plan assigned" && (
+                                            <span className="text-[10px] font-semibold bg-primary/10 text-primary px-2 py-0.5 rounded-full">
+                                                {group.planName}
+                                            </span>
+                                        )}
+                                    </div>
                                 </div>
                             </div>
 
@@ -384,13 +393,13 @@ export function StudentInvoicesList({ studentGroups }: StudentInvoicesListProps)
                                         <p className="text-sm font-black text-green-700">{fmtUSD(totalPaid)}</p>
                                     </div>
                                     <div>
-                                        <p className="text-[10px] uppercase text-amber-600 font-bold">Owes</p>
+                                        <p className="text-[10px] uppercase text-amber-600 font-bold">Balance</p>
                                         <p className="text-sm font-black text-amber-700">{fmtUSD(totalOwed)}</p>
                                     </div>
-                                    {planTotal > 0 && (
+                                    {group.monthlyPayment > 0 && (
                                         <div>
-                                            <p className="text-[10px] uppercase text-slate-500 font-bold">Plan Total</p>
-                                            <p className="text-sm font-black text-slate-700">{fmtUSD(planTotal)}</p>
+                                            <p className="text-[10px] uppercase text-indigo-600 font-bold">Monthly</p>
+                                            <p className="text-sm font-black text-indigo-700">{fmtUSD(group.monthlyPayment)}</p>
                                         </div>
                                     )}
                                 </div>
@@ -426,33 +435,62 @@ export function StudentInvoicesList({ studentGroups }: StudentInvoicesListProps)
                                     </div>
                                 )}
 
-                                {/* ── Contract Summary Footer: 3 values only ── */}
-                                <div className="rounded-xl border border-slate-200 bg-slate-50/70 p-4 space-y-3">
-                                    <p className="text-[10px] uppercase font-bold text-slate-500">Contract Summary (Plan)</p>
+                                {/* ── Contract Summary Footer: paid / balance / monthly / total ── */}
+                                <div className="rounded-xl border border-slate-200 bg-slate-50/80 p-4 space-y-3">
 
-                                    {/* 3 values */}
-                                    <div className="grid grid-cols-3 gap-2 text-center">
-                                        <div className="bg-green-50 rounded-lg p-2 border border-green-100">
-                                            <p className="text-[9px] uppercase text-green-600 font-bold">Paid</p>
-                                            <p className="text-base font-black text-green-700">{fmtUSD(totalPaid)}</p>
-                                            <p className="text-[9px] text-muted-foreground">received</p>
+                                    {/* Title row */}
+                                    <div className="flex items-center justify-between">
+                                        <p className="text-[10px] uppercase font-bold text-slate-500 tracking-wider">Contract Summary</p>
+                                        {group.planName && group.planName !== "No plan assigned" && (
+                                            <span className="text-[10px] font-semibold text-primary bg-primary/10 px-2 py-0.5 rounded-full">
+                                                {group.planName}
+                                            </span>
+                                        )}
+                                    </div>
+
+                                    {/* 4 metric boxes in a single row */}
+                                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                                        {/* Paid */}
+                                        <div className="flex flex-col items-center justify-center bg-green-50 rounded-xl p-3 border border-green-100 text-center">
+                                            <p className="text-[9px] uppercase text-green-700 font-bold tracking-wider">Paid</p>
+                                            <p className="text-lg font-black text-green-700 leading-tight">{fmtUSD(totalPaid)}</p>
+                                            <p className="text-[9px] text-green-600/70 mt-0.5">received</p>
                                         </div>
-                                        <div className="bg-amber-50 rounded-lg p-2 border border-amber-100">
-                                            <p className="text-[9px] uppercase text-amber-600 font-bold">Owes</p>
-                                            <p className="text-base font-black text-amber-700">{fmtUSD(totalOwed)}</p>
-                                            <p className="text-[9px] text-muted-foreground">remaining</p>
+
+                                        {/* Balance */}
+                                        <div className="flex flex-col items-center justify-center bg-amber-50 rounded-xl p-3 border border-amber-100 text-center">
+                                            <p className="text-[9px] uppercase text-amber-700 font-bold tracking-wider">Balance</p>
+                                            <p className="text-lg font-black text-amber-700 leading-tight">{fmtUSD(totalOwed)}</p>
+                                            <p className="text-[9px] text-amber-600/70 mt-0.5">remaining</p>
                                         </div>
-                                        <div className="bg-slate-100 rounded-lg p-2 border border-slate-200">
-                                            <p className="text-[9px] uppercase text-slate-500 font-bold">Plan Total</p>
-                                            <p className="text-base font-black text-slate-700">{planTotal > 0 ? fmtUSD(planTotal) : "—"}</p>
-                                            <p className="text-[9px] text-muted-foreground">contract value</p>
+
+                                        {/* Monthly Payment */}
+                                        <div className="flex flex-col items-center justify-center bg-indigo-50 rounded-xl p-3 border border-indigo-100 text-center">
+                                            <p className="text-[9px] uppercase text-indigo-700 font-bold tracking-wider">Monthly Payment</p>
+                                            <p className="text-lg font-black text-indigo-700 leading-tight">
+                                                {group.monthlyPayment > 0 ? fmtUSD(group.monthlyPayment) : "—"}
+                                            </p>
+                                            <p className="text-[9px] text-indigo-600/70 mt-0.5">per invoice</p>
+                                        </div>
+
+                                        {/* Plan Total */}
+                                        <div className="flex flex-col items-center justify-center bg-slate-100 rounded-xl p-3 border border-slate-200 text-center">
+                                            <p className="text-[9px] uppercase text-slate-600 font-bold tracking-wider">Plan Total</p>
+                                            <p className="text-lg font-black text-slate-700 leading-tight">
+                                                {planTotal > 0 ? fmtUSD(planTotal) : "—"}
+                                            </p>
+                                            <p className="text-[9px] text-slate-500 mt-0.5">contract value</p>
                                         </div>
                                     </div>
 
-                                    {/* Identity label */}
+                                    {/* Identity equation */}
                                     {planTotal > 0 && (
-                                        <p className="text-[10px] text-center text-muted-foreground">
-                                            {fmtUSD(totalPaid)} paid + {fmtUSD(totalOwed)} owed = <span className="font-bold text-slate-700">{fmtUSD(planTotal)}</span>
+                                        <p className="text-[10px] text-center text-muted-foreground pt-1">
+                                            <span className="text-green-700 font-semibold">{fmtUSD(totalPaid)}</span> paid
+                                            {" + "}
+                                            <span className="text-amber-700 font-semibold">{fmtUSD(totalOwed)}</span> balance
+                                            {" = "}
+                                            <span className="font-bold text-slate-700">{fmtUSD(planTotal)}</span> plan total
                                         </p>
                                     )}
 
@@ -460,12 +498,12 @@ export function StudentInvoicesList({ studentGroups }: StudentInvoicesListProps)
                                     {planTotal > 0 && (
                                         <div>
                                             <div className="flex justify-between text-[9px] text-muted-foreground mb-1">
-                                                <span>{paidPct.toFixed(1)}% of contract paid</span>
-                                                <span>{(100 - paidPct).toFixed(1)}% remaining</span>
+                                                <span className="text-green-700 font-semibold">{paidPct.toFixed(1)}% paid</span>
+                                                <span className="text-amber-700 font-semibold">{(100 - paidPct).toFixed(1)}% remaining</span>
                                             </div>
-                                            <div className="h-2 rounded-full bg-slate-200 overflow-hidden">
+                                            <div className="h-2.5 rounded-full bg-slate-200 overflow-hidden">
                                                 <div
-                                                    className="h-full bg-green-500 rounded-full transition-all"
+                                                    className="h-full bg-gradient-to-r from-green-500 to-green-400 rounded-full transition-all"
                                                     style={{ width: `${paidPct}%` }}
                                                 />
                                             </div>

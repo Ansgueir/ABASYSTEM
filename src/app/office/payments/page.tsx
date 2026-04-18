@@ -177,6 +177,8 @@ export default async function OfficePaymentsPage({
         contractTotal: number
         totalBilled: number
         totalPaid: number
+        planName: string
+        monthlyPayment: number
         invoices: any[]
     }> = {}
 
@@ -190,7 +192,9 @@ export default async function OfficePaymentsPage({
 
         if (!studentGroupsMap[s.id]) {
             const plan = plansMap[s.planTemplateId]
-            const contractTotal = plan?.totalCost ? Number(plan.totalCost) : 0
+            const contractTotal  = plan?.totalCost      ? Number(plan.totalCost)      : 0
+            const monthlyPayment = plan?.monthlyPayment ? Number(plan.monthlyPayment) : 0
+            const planName       = plan?.name           || "No plan assigned"
             studentGroupsMap[s.id] = {
                 studentId: s.id,
                 fullName: s.fullName,
@@ -198,6 +202,8 @@ export default async function OfficePaymentsPage({
                 contractTotal,
                 totalBilled: 0,
                 totalPaid: 0,
+                planName,
+                monthlyPayment,
                 invoices: []
             }
         }
