@@ -47,8 +47,8 @@ interface Supervisor {
 
 const DAYS = ["MONDAY", "TUESDAY", "WEDNESDAY", "THURSDAY", "FRIDAY", "SATURDAY", "SUNDAY"]
 const DAY_LABELS: Record<string, string> = {
-    MONDAY: "Lunes", TUESDAY: "Martes", WEDNESDAY: "Miercoles",
-    THURSDAY: "Jueves", FRIDAY: "Viernes", SATURDAY: "Sabado", SUNDAY: "Domingo"
+    MONDAY: "Monday", TUESDAY: "Tuesday", WEDNESDAY: "Wednesday",
+    THURSDAY: "Thursday", FRIDAY: "Friday", SATURDAY: "Saturday", SUNDAY: "Sunday"
 }
 const TYPE_COLORS: Record<string, string> = {
     REGULAR: "bg-blue-100 text-blue-700 border-blue-200",
@@ -93,7 +93,7 @@ function SupervisorPanel({
             <div className="space-y-3">
                 <div className="flex items-center justify-between">
                     <p className="text-[11px] font-bold uppercase tracking-widest text-slate-500">
-                        Supervisores Asignados
+                        Currently Assigned
                     </p>
                     <span className="text-xs font-bold text-primary bg-primary/10 rounded-full px-2 py-0.5">
                         {assigned.length}
@@ -103,7 +103,7 @@ function SupervisorPanel({
                     <Search className="absolute left-3 top-2.5 h-3.5 w-3.5 text-muted-foreground" />
                     <Input
                         className="pl-9 h-9 text-sm rounded-xl"
-                        placeholder="Buscar asignado..."
+                        placeholder="Search assigned by name or email..."
                         value={searchAssigned}
                         onChange={e => setSearchAssigned(e.target.value)}
                     />
@@ -111,7 +111,7 @@ function SupervisorPanel({
                 <div className="space-y-2 max-h-[260px] overflow-y-auto pr-1">
                     {filteredAssigned.length === 0 ? (
                         <p className="text-xs text-muted-foreground text-center py-6 border border-dashed rounded-xl">
-                            Sin supervisores asignados
+                            No supervisors assigned yet
                         </p>
                     ) : filteredAssigned.map(sup => (
                         <div key={sup.id} className="flex items-center justify-between p-3 rounded-xl border bg-card hover:bg-muted/20 transition-colors">
@@ -138,7 +138,7 @@ function SupervisorPanel({
             <div className="space-y-3">
                 <div className="flex items-center justify-between">
                     <p className="text-[11px] font-bold uppercase tracking-widest text-slate-500">
-                        Supervisores Disponibles
+                        Available Unassigned Supervisors
                     </p>
                     <span className="text-xs font-bold text-muted-foreground bg-muted rounded-full px-2 py-0.5">
                         {available.length}
@@ -148,7 +148,7 @@ function SupervisorPanel({
                     <Search className="absolute left-3 top-2.5 h-3.5 w-3.5 text-muted-foreground" />
                     <Input
                         className="pl-9 h-9 text-sm rounded-xl"
-                        placeholder="Buscar disponible..."
+                        placeholder="Search available by name or email..."
                         value={searchAvailable}
                         onChange={e => setSearchAvailable(e.target.value)}
                     />
@@ -156,7 +156,7 @@ function SupervisorPanel({
                 <div className="space-y-2 max-h-[260px] overflow-y-auto pr-1">
                     {filteredAvailable.length === 0 ? (
                         <p className="text-xs text-muted-foreground text-center py-6 border border-dashed rounded-xl">
-                            Todos asignados
+                            All supervisors assigned
                         </p>
                     ) : filteredAvailable.map(sup => (
                         <div key={sup.id} className="flex items-center justify-between p-3 rounded-xl border bg-card hover:bg-muted/20 transition-colors">
@@ -294,8 +294,8 @@ function GroupDialog({
         setForm(p => ({ ...p, [field]: e.target.value }))
 
     const handleSave = async () => {
-        if (!form.name.trim()) return toast.error("El nombre es requerido")
-        if (takenDays.has(form.dayOfWeek)) return toast.error(`Ya existe un grupo ${form.groupType} para ese dia`)
+        if (!form.name.trim()) return toast.error("Name is required")
+        if (takenDays.has(form.dayOfWeek)) return toast.error(`A ${form.groupType} group already exists for that day`)
         setSaving(true)
         await onSave(form, editing?.id)
         setSaving(false)
@@ -307,35 +307,35 @@ function GroupDialog({
                 <DialogHeader>
                     <DialogTitle className="flex items-center gap-2">
                         {editing ? <Edit2 className="h-5 w-5 text-blue-500" /> : <Plus className="h-5 w-5 text-green-500" />}
-                        {editing ? "Editar Grupo" : "Crear Nuevo Grupo"}
+                        {editing ? "Edit Group" : "New Group"}
                     </DialogTitle>
                     <DialogDescription>
-                        {editing ? "Modifica el nombre u horario del grupo." : "Define el tipo, dia y horario del grupo de supervision."}
+                        {editing ? "Update the group name or schedule." : "Define the type, day and schedule for this supervision group."}
                     </DialogDescription>
                 </DialogHeader>
 
                 <div className="space-y-4 py-2">
                     <div className="space-y-2">
-                        <Label>Nombre del Grupo</Label>
-                        <Input value={form.name} onChange={F("name")} placeholder="ej. Grupo Regular Lunes AM" />
+                        <Label>Group Name</Label>
+                        <Input value={form.name} onChange={F("name")} placeholder="e.g. Regular Group Monday AM" />
                     </div>
 
                     {!editing && (
                         <div className="grid grid-cols-2 gap-4">
                             <div className="space-y-2">
-                                <Label>Tipo</Label>
+                                <Label>Type</Label>
                                 <select
                                     value={form.groupType}
                                     onChange={F("groupType")}
                                     className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                                 >
                                     <option value="REGULAR">Regular</option>
-                                    <option value="CONCENTRATED">Concentrado</option>
+                                    <option value="CONCENTRATED">Concentrated</option>
                                 </select>
                             </div>
 
                             <div className="space-y-2">
-                                <Label>Dia</Label>
+                                <Label>Day</Label>
                                 <select
                                     value={form.dayOfWeek}
                                     onChange={F("dayOfWeek")}
@@ -343,7 +343,7 @@ function GroupDialog({
                                 >
                                     {DAYS.map(d => (
                                         <option key={d} value={d} disabled={takenDays.has(d)}>
-                                            {DAY_LABELS[d]}{takenDays.has(d) ? " (ocupado)" : ""}
+                                            {DAY_LABELS[d]}{takenDays.has(d) ? " (taken)" : ""}
                                         </option>
                                     ))}
                                 </select>
@@ -353,28 +353,28 @@ function GroupDialog({
 
                     <div className="grid grid-cols-2 gap-4">
                         <div className="space-y-2">
-                            <Label>Hora de Inicio</Label>
+                            <Label>Start Time</Label>
                             <Input type="time" value={form.startTime} onChange={F("startTime")} />
                         </div>
                         <div className="space-y-2">
-                            <Label>Hora de Fin</Label>
+                            <Label>End Time</Label>
                             <Input type="time" value={form.endTime} onChange={F("endTime")} />
                         </div>
                     </div>
 
                     {!editing && (
                         <div className="rounded-lg bg-muted/40 border p-3 text-xs text-muted-foreground">
-                            <p className="font-semibold mb-1">Regla de negocio:</p>
-                            <p>Max 1 grupo <strong>Regular</strong> + 1 grupo <strong>Concentrado</strong> por dia. Maximo 14 grupos en total.</p>
+                            <p className="font-semibold mb-1">Business Rule:</p>
+                            <p>Max 1 <strong>Regular</strong> group + 1 <strong>Concentrated</strong> group per day. Maximum 14 groups total.</p>
                         </div>
                     )}
                 </div>
 
                 <DialogFooter>
-                    <Button variant="outline" onClick={onClose} disabled={saving}>Cancelar</Button>
+                    <Button variant="outline" onClick={onClose} disabled={saving}>Cancel</Button>
                     <Button onClick={handleSave} disabled={saving}>
                         {saving && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
-                        {editing ? "Guardar Cambios" : "Crear Grupo"}
+                        {editing ? "Save Changes" : "Create Group"}
                     </Button>
                 </DialogFooter>
             </DialogContent>
@@ -400,7 +400,7 @@ export function GroupsTab() {
                 setGroups(data.groups)
                 setAllSupervisors(data.allSupervisors)
             }
-        } catch { toast.error("Error cargando grupos") }
+        } catch { toast.error("Error loading groups") }
         finally { setLoading(false) }
     }, [])
 
@@ -412,7 +412,7 @@ export function GroupsTab() {
         const res = await fetch(url, { method, headers: { "Content-Type": "application/json" }, body: JSON.stringify(form) })
         const data = await res.json()
         if (data.success) {
-            toast.success(editId ? "Grupo actualizado" : "Grupo creado")
+            toast.success(editId ? "Group updated" : "Group created")
             setDialogOpen(false)
             setEditing(null)
             load()
@@ -424,8 +424,8 @@ export function GroupsTab() {
     const handleDelete = async (id: string) => {
         const res = await fetch(`/api/office/groups/${id}`, { method: "DELETE" })
         const data = await res.json()
-        if (data.success) { toast.success("Grupo eliminado"); load() }
-        else toast.error(data.error || "Error eliminando")
+        if (data.success) { toast.success("Group deleted"); load() }
+        else toast.error(data.error || "Error deleting group")
     }
 
     const handleAssign = async (groupId: string, supervisorId: string) => {
@@ -434,7 +434,7 @@ export function GroupsTab() {
             body: JSON.stringify({ supervisorId })
         })
         const data = await res.json()
-        if (data.success) { load() } else toast.error(data.error || "Error asignando")
+        if (data.success) { load() } else toast.error(data.error || "Error assigning supervisor")
     }
 
     const handleRemove = async (groupId: string, supervisorId: string) => {
@@ -443,7 +443,7 @@ export function GroupsTab() {
             body: JSON.stringify({ supervisorId })
         })
         const data = await res.json()
-        if (data.success) { load() } else toast.error(data.error || "Error removiendo")
+        if (data.success) { load() } else toast.error(data.error || "Error removing supervisor")
     }
 
     // Group by type for display
@@ -458,15 +458,15 @@ export function GroupsTab() {
                 <div>
                     <h2 className="text-xl font-bold flex items-center gap-2">
                         <Users className="h-5 w-5 text-primary" />
-                        Gestion de Grupos de Supervision
+                        Supervision Group Management
                     </h2>
                     <p className="text-sm text-muted-foreground mt-0.5">
-                        Max 1 Regular + 1 Concentrado por dia — Maximo 14 grupos en total
+                        Max 1 Regular + 1 Concentrated per day — Maximum 14 groups total
                     </p>
                 </div>
                 <div className="flex items-center gap-3">
                     <Badge variant={maxReached ? "destructive" : "secondary"} className="h-7">
-                        {groups.length} / 14 Grupos
+                        {groups.length} / 14 Groups
                     </Badge>
                     <Button
                         onClick={() => { setEditing(null); setDialogOpen(true) }}
@@ -475,7 +475,7 @@ export function GroupsTab() {
                         variant="gradient" // fallback to default if not available
                     >
                         <Plus className="h-4 w-4 mr-2" />
-                        Nuevo Grupo
+                        New Group
                     </Button>
                 </div>
             </div>
@@ -483,16 +483,16 @@ export function GroupsTab() {
             {loading ? (
                 <div className="flex flex-col items-center justify-center py-20 text-muted-foreground bg-muted/20 rounded-3xl border border-dashed">
                     <Loader2 className="h-10 w-10 animate-spin mb-4 opacity-50" />
-                    <p className="animate-pulse font-medium">Cargando grupos...</p>
+                    <p className="animate-pulse font-medium">Loading groups...</p>
                 </div>
             ) : groups.length === 0 ? (
                 <Card className="border-dashed py-20 flex flex-col items-center justify-center bg-muted/5">
                     <div className="bg-muted p-4 rounded-full mb-4">
                         <Users className="h-10 w-10 text-muted-foreground/40" />
                     </div>
-                    <p className="text-muted-foreground font-medium">No hay grupos creados aun.</p>
+                    <p className="text-muted-foreground font-medium">No groups created yet.</p>
                     <Button variant="link" onClick={() => setDialogOpen(true)} className="mt-2">
-                        Crear el primer grupo
+                        Create the first group
                     </Button>
                 </Card>
             ) : (
@@ -502,7 +502,7 @@ export function GroupsTab() {
                         <div className="space-y-3">
                             <div className="flex items-center gap-2">
                                 <div className="h-3 w-3 rounded-full bg-blue-500" />
-                                <h3 className="text-sm font-bold text-slate-700 uppercase tracking-wider">Grupos Regulares</h3>
+                                <h3 className="text-sm font-bold text-slate-700 uppercase tracking-wider">Regular Groups</h3>
                                 <Badge variant="outline" className="text-[10px] bg-blue-50 text-blue-700 border-blue-200">{regularGroups.length} / 7</Badge>
                             </div>
                             <div className="grid gap-3 sm:grid-cols-2">
@@ -526,7 +526,7 @@ export function GroupsTab() {
                         <div className="space-y-3">
                             <div className="flex items-center gap-2">
                                 <div className="h-3 w-3 rounded-full bg-orange-500" />
-                                <h3 className="text-sm font-bold text-slate-700 uppercase tracking-wider">Grupos Concentrados</h3>
+                                <h3 className="text-sm font-bold text-slate-700 uppercase tracking-wider">Concentrated Groups</h3>
                                 <Badge variant="outline" className="text-[10px] bg-orange-50 text-orange-700 border-orange-200">{concentratedGroups.length} / 7</Badge>
                             </div>
                             <div className="grid gap-3 sm:grid-cols-2">
