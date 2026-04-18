@@ -38,7 +38,7 @@ async function main() {
         }
         if (inv.payouts && inv.payouts.length > 0) {
             console.log(`  Payouts(${inv.payouts.length}):`)
-            inv.payouts.forEach((po: any) => {
+            inv.payouts.forEach((po) => {
                 console.log(`    - $${Number(po.amount||0).toFixed(2)} | ${po.method} | ${po.paidAt?.toISOString().split('T')[0] ?? 'no date'}`)
             })
         }
