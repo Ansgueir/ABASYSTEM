@@ -41,8 +41,12 @@ export default async function OfficeStudentDetailPage({ params }: { params: Prom
                     orderBy: { createdAt: "desc" },
                     include: {
                         supervisors: {
+                            include: { supervisor: true }
+                        },
+                        groupAssignments: {
                             include: {
-                                supervisor: true
+                                supervisor: { select: { id: true, fullName: true, credentialType: true } },
+                                officeGroup: { select: { id: true, name: true, groupType: true, dayOfWeek: true, startTime: true, endTime: true } }
                             }
                         }
                     }
@@ -79,13 +83,45 @@ export default async function OfficeStudentDetailPage({ params }: { params: Prom
         )
     }
 
-    // All active supervisors for the multi-select — serialize to avoid Decimal crash
     const rawSupervisors = await prisma.supervisor.findMany({
         where: { status: "ACTIVE" },
         select: { id: true, fullName: true, bacbId: true, credentialType: true },
         orderBy: { fullName: "asc" }
     })
     const allSupervisors = serialize(rawSupervisors)
+
+    // Office groups filtered by student's plan type (for contract dialog)
+    const studentPlanType = String((student as any).fieldworkType || "REGULAR").toUpperCase()
+    const rawOfficeGroups = await (prisma as any).officeGroup.findMany({
+        where: { groupType: studentPlanType },
+        include: {
+            supervisors: {
+                include: {
+                    supervisor: {
+                        select: {
+                            id: true, fullName: true, bacbId: true,
+                            credentialType: true, maxStudents: true, status: true
+                        }
+                    }
+                }
+            }
+        },
+        orderBy: [
+            { dayOfWeek: "asc" }
+        ]
+    })
+    const officeGroups = serialize(rawOfficeGroups)
+
+    // Count current primary students per supervisor
+    const primaryCounts = await prisma.student.groupBy({
+        by: ["supervisorId"] as any,
+        _count: { id: true } as any,
+        where: { supervisorId: { not: null }, status: "ACTIVE" }
+    })
+    const supervisorCountMap: Record<string, number> = {}
+    for (const c of primaryCounts) {
+        if ((c as any).supervisorId) supervisorCountMap[(c as any).supervisorId] = (c as any)._count.id
+    }
 
     const totalHours =
         (student.independentHours ?? []).reduce((s: number, h: any) => s + Number(h.hours), 0) +
@@ -168,6 +204,9 @@ export default async function OfficeStudentDetailPage({ params }: { params: Prom
                                     studentId={studentId}
                                     contracts={safeStudent.contracts ?? []}
                                     allSupervisors={allSupervisors}
+                                    officeGroups={officeGroups}
+                                    supervisorCountMap={supervisorCountMap}
+                                    studentPlanType={studentPlanType}
                                 />
                             </DebugErrorBoundary>
                         </TabsContent>

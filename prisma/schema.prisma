@@ -153,6 +153,7 @@ model Supervisor {
   payouts            SupervisorPayout[]
   managedGroups      SupervisorGroup[]
   officeGroups       OfficeGroupSupervisor[]
+  contractGroupAssignments ContractGroupAssignment[]
   importBatchId      String?
 
   @@index([fullName])
@@ -417,6 +418,7 @@ model Contract {
   updatedAt       DateTime             @updatedAt
   student         Student              @relation(fields: [studentId], references: [id])
   supervisors     ContractSupervisor[]
+  groupAssignments ContractGroupAssignment[]
 }
 
 model ContractSupervisor {
@@ -722,6 +724,7 @@ model OfficeGroup {
   updatedAt DateTime @updatedAt
 
   supervisors OfficeGroupSupervisor[]
+  contractAssignments ContractGroupAssignment[]
 
   // Enforce: only 1 REGULAR + 1 CONCENTRATED per day
   @@unique([groupType, dayOfWeek])
@@ -739,4 +742,20 @@ model OfficeGroupSupervisor {
   @@unique([groupId, supervisorId])
   @@index([groupId])
   @@index([supervisorId])
+}
+
+// ── CONTRACT GROUP ASSIGNMENTS ────────────────────────────────────────────────
+model ContractGroupAssignment {
+  id            String   @id @default(uuid())
+  contractId    String
+  supervisorId  String
+  officeGroupId String
+  createdAt     DateTime @default(now())
+
+  contract    Contract    @relation(fields: [contractId], references: [id], onDelete: Cascade)
+  supervisor  Supervisor  @relation(fields: [supervisorId], references: [id])
+  officeGroup OfficeGroup @relation(fields: [officeGroupId], references: [id])
+
+  @@unique([contractId, supervisorId, officeGroupId])
+  @@index([contractId])
 }

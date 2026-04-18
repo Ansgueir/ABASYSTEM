@@ -1,70 +1,59 @@
-// Run migration using Prisma $executeRawUnsafe (no pg module needed)
+// Migration: add ContractGroupAssignment + run existing OfficeGroup migration if needed
+const fs = require('fs')
+const path = require('path')
 const { PrismaClient } = require('./node_modules/@prisma/client')
 const p = new PrismaClient()
 
 async function main() {
-    console.log('Running OfficeGroup migration...')
+    console.log('Running ContractGroupAssignment migration...')
 
     await p.$executeRawUnsafe(`
-        CREATE TABLE IF NOT EXISTS "OfficeGroup" (
+        CREATE TABLE IF NOT EXISTS "ContractGroupAssignment" (
             "id" TEXT NOT NULL,
-            "name" TEXT NOT NULL,
-            "groupType" TEXT NOT NULL,
-            "dayOfWeek" TEXT NOT NULL,
-            "startTime" TEXT NOT NULL,
-            "endTime" TEXT NOT NULL,
-            "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-            "updatedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-            CONSTRAINT "OfficeGroup_pkey" PRIMARY KEY ("id")
-        )
-    `)
-    console.log('OfficeGroup table OK')
-
-    await p.$executeRawUnsafe(`
-        CREATE UNIQUE INDEX IF NOT EXISTS "OfficeGroup_groupType_dayOfWeek_key" ON "OfficeGroup"("groupType", "dayOfWeek")
-    `)
-    console.log('OfficeGroup unique index OK')
-
-    await p.$executeRawUnsafe(`
-        CREATE TABLE IF NOT EXISTS "OfficeGroupSupervisor" (
-            "id" TEXT NOT NULL,
-            "groupId" TEXT NOT NULL,
+            "contractId" TEXT NOT NULL,
             "supervisorId" TEXT NOT NULL,
+            "officeGroupId" TEXT NOT NULL,
             "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-            CONSTRAINT "OfficeGroupSupervisor_pkey" PRIMARY KEY ("id")
+            CONSTRAINT "ContractGroupAssignment_pkey" PRIMARY KEY ("id")
         )
     `)
-    console.log('OfficeGroupSupervisor table OK')
+    console.log('ContractGroupAssignment table OK')
 
     await p.$executeRawUnsafe(`
-        CREATE UNIQUE INDEX IF NOT EXISTS "OfficeGroupSupervisor_groupId_supervisorId_key"
-        ON "OfficeGroupSupervisor"("groupId", "supervisorId")
+        CREATE UNIQUE INDEX IF NOT EXISTS "ContractGroupAssignment_contractId_supervisorId_officeGroupId_key"
+        ON "ContractGroupAssignment"("contractId", "supervisorId", "officeGroupId")
     `)
 
     await p.$executeRawUnsafe(`
-        CREATE INDEX IF NOT EXISTS "OfficeGroupSupervisor_groupId_idx" ON "OfficeGroupSupervisor"("groupId")
+        CREATE INDEX IF NOT EXISTS "ContractGroupAssignment_contractId_idx"
+        ON "ContractGroupAssignment"("contractId")
     `)
 
-    await p.$executeRawUnsafe(`
-        CREATE INDEX IF NOT EXISTS "OfficeGroupSupervisor_supervisorId_idx" ON "OfficeGroupSupervisor"("supervisorId")
-    `)
-
-    // Add FK constraints (skip if already exist)
     try {
         await p.$executeRawUnsafe(`
-            ALTER TABLE "OfficeGroupSupervisor" ADD CONSTRAINT "OfficeGroupSupervisor_groupId_fkey"
-            FOREIGN KEY ("groupId") REFERENCES "OfficeGroup"("id") ON DELETE CASCADE ON UPDATE CASCADE
+            ALTER TABLE "ContractGroupAssignment"
+            ADD CONSTRAINT "ContractGroupAssignment_contractId_fkey"
+            FOREIGN KEY ("contractId") REFERENCES "Contract"("id") ON DELETE CASCADE ON UPDATE CASCADE
         `)
-    } catch (e) { console.log('FK groupId already exists') }
+    } catch (e) { console.log('FK contractId already exists') }
 
     try {
         await p.$executeRawUnsafe(`
-            ALTER TABLE "OfficeGroupSupervisor" ADD CONSTRAINT "OfficeGroupSupervisor_supervisorId_fkey"
+            ALTER TABLE "ContractGroupAssignment"
+            ADD CONSTRAINT "ContractGroupAssignment_supervisorId_fkey"
             FOREIGN KEY ("supervisorId") REFERENCES "Supervisor"("id") ON DELETE CASCADE ON UPDATE CASCADE
         `)
     } catch (e) { console.log('FK supervisorId already exists') }
 
-    console.log('\nMigration complete! OfficeGroup + OfficeGroupSupervisor tables ready.')
+    try {
+        await p.$executeRawUnsafe(`
+            ALTER TABLE "ContractGroupAssignment"
+            ADD CONSTRAINT "ContractGroupAssignment_officeGroupId_fkey"
+            FOREIGN KEY ("officeGroupId") REFERENCES "OfficeGroup"("id") ON DELETE CASCADE ON UPDATE CASCADE
+        `)
+    } catch (e) { console.log('FK officeGroupId already exists') }
+
+    console.log('\nMigration complete! ContractGroupAssignment table ready.')
 }
 
 main()

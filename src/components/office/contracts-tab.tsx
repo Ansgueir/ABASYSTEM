@@ -4,20 +4,19 @@ import { useState, useTransition, useEffect } from "react"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
-import { Download, Trash2, Users, Calendar, Loader2, Star, Plus, Pencil, RotateCcw, XCircle } from "lucide-react"
+import {
+    Download, Trash2, Users, Calendar, Loader2, Star, Plus,
+    Pencil, RotateCcw, XCircle, Clock
+} from "lucide-react"
 import { format } from "date-fns"
 import { deleteContract, resendContract } from "@/actions/contracts"
 import { ContractFormDialog } from "@/components/office/contract-form-dialog"
 import { useRouter } from "next/navigation"
 import { ConfirmDialog } from "@/components/ui/confirm-dialog"
 import { toast } from "sonner"
+import { cn } from "@/lib/utils"
 
-interface Supervisor {
-    id: string
-    fullName: string
-    bacbId: string
-    credentialType: string
-}
+// ── Types ─────────────────────────────────────────────────────────────────────
 
 interface ContractEntry {
     id: string
@@ -29,24 +28,55 @@ interface ContractEntry {
         isMainSupervisor: boolean
         supervisor: { fullName: string; bacbId: string; credentialType: string }
     }[]
+    groupAssignments?: {
+        supervisorId: string
+        officeGroupId: string
+        supervisor: { fullName: string; credentialType: string }
+        officeGroup: { name: string; groupType: string; dayOfWeek: string; startTime: string; endTime: string }
+    }[]
     rejectionReason?: string | null
+}
+
+interface OfficeGroupData {
+    id: string
+    name: string
+    groupType: string
+    dayOfWeek: string
+    startTime: string
+    endTime: string
+    supervisors: {
+        supervisorId: string
+        supervisor: {
+            id: string
+            fullName: string
+            bacbId: string
+            credentialType: string
+            maxStudents: number | null
+            status: string
+        }
+    }[]
 }
 
 interface OfficeContractsTabProps {
     studentId: string
     contracts: ContractEntry[]
-    allSupervisors: Supervisor[]
+    allSupervisors: { id: string; fullName: string; bacbId: string; credentialType: string }[]
+    officeGroups: OfficeGroupData[]
+    supervisorCountMap: Record<string, number>
+    studentPlanType: string
 }
+
+// ── Helpers ───────────────────────────────────────────────────────────────────
 
 const STATUS_COLORS: Record<string, string> = {
-    DRAFT: "secondary",
-    ACTIVE: "success",
-    SENT: "default",
-    SIGNED: "outline",
-    REJECTED: "destructive",
+    DRAFT: "secondary", ACTIVE: "success", SENT: "default", SIGNED: "outline", REJECTED: "destructive"
 }
 
-/** Forced string conversion for any value to prevent React crashes */
+const DAY_LABELS: Record<string, string> = {
+    MONDAY: "Mon", TUESDAY: "Tue", WEDNESDAY: "Wed",
+    THURSDAY: "Thu", FRIDAY: "Fri", SATURDAY: "Sat", SUNDAY: "Sun"
+}
+
 const safe = (v: any) => {
     if (v === null || v === undefined) return ""
     if (typeof v === "object") {
@@ -59,7 +89,12 @@ const safe = (v: any) => {
     return String(v)
 }
 
-export function OfficeContractsTab({ studentId, contracts, allSupervisors }: OfficeContractsTabProps) {
+// ── Main Component ────────────────────────────────────────────────────────────
+
+export function OfficeContractsTab({
+    studentId, contracts, allSupervisors,
+    officeGroups, supervisorCountMap, studentPlanType
+}: OfficeContractsTabProps) {
     const router = useRouter()
     const [mounted, setMounted] = useState(false)
     const [selectedContract, setSelectedContract] = useState<ContractEntry | null>(null)
@@ -71,20 +106,43 @@ export function OfficeContractsTab({ studentId, contracts, allSupervisors }: Off
     useEffect(() => { setMounted(true) }, [])
     if (!mounted) return null
 
-    const handleCreateNew = () => {
-        setSelectedContract(null)
-        setIsDialogOpen(true)
-    }
+    // Build individual + group options from office groups
+    const individualOptions = (() => {
+        const seen = new Set<string>()
+        const opts: any[] = []
+        for (const g of officeGroups) {
+            for (const s of g.supervisors) {
+                if (seen.has(s.supervisorId)) continue
+                seen.add(s.supervisorId)
+                opts.push({
+                    id: s.supervisorId,
+                    fullName: s.supervisor.fullName,
+                    bacbId: s.supervisor.bacbId,
+                    credentialType: s.supervisor.credentialType,
+                    currentStudents: supervisorCountMap[s.supervisorId] ?? 0,
+                    maxStudents: s.supervisor.maxStudents ?? 10
+                })
+            }
+        }
+        return opts
+    })()
 
-    const handleEdit = (contract: ContractEntry) => {
-        setSelectedContract(contract)
-        setIsDialogOpen(true)
-    }
+    const groupOptions = officeGroups.flatMap(g =>
+        g.supervisors.map(s => ({
+            supervisorId: s.supervisorId,
+            supervisorName: s.supervisor.fullName,
+            credentialType: s.supervisor.credentialType,
+            groupId: g.id,
+            groupType: g.groupType,
+            dayOfWeek: g.dayOfWeek,
+            startTime: g.startTime,
+            endTime: g.endTime
+        }))
+    )
 
-    const handleDeleteClick = (id: string) => {
-        setDeletingId(safe(id))
-        setShowDeleteConfirm(true)
-    }
+    const handleCreateNew = () => { setSelectedContract(null); setIsDialogOpen(true) }
+    const handleEdit = (c: ContractEntry) => { setSelectedContract(c); setIsDialogOpen(true) }
+    const handleDeleteClick = (id: string) => { setDeletingId(safe(id)); setShowDeleteConfirm(true) }
 
     const handleConfirmDelete = () => {
         if (!deletingId) return
@@ -102,21 +160,26 @@ export function OfficeContractsTab({ studentId, contracts, allSupervisors }: Off
         startTransition(async () => {
             const res = await resendContract(id)
             if (res.error) toast.error(res.error)
-            else {
-                toast.success("Contract re-sent to student")
-                router.refresh()
-            }
+            else { toast.success("Contract re-sent to student"); router.refresh() }
         })
     }
-
-    const safeSupervisors = (allSupervisors || []).filter(s => s && s.id)
 
     return (
         <Card>
             <CardHeader className="flex flex-row items-center justify-between">
                 <div className="flex-1 pr-4">
                     <CardTitle>Supervision Contracts</CardTitle>
-                    <CardDescription>Manage student contracts and assignments.</CardDescription>
+                    <CardDescription className="flex items-center gap-2 mt-1">
+                        Manage student contracts and team assignments.
+                        <Badge variant="outline" className={cn(
+                            "text-[10px] font-bold",
+                            studentPlanType === "CONCENTRATED"
+                                ? "bg-orange-50 text-orange-700 border-orange-200"
+                                : "bg-blue-50 text-blue-700 border-blue-200"
+                        )}>
+                            {studentPlanType} Plan
+                        </Badge>
+                    </CardDescription>
                 </div>
                 <Button size="sm" onClick={handleCreateNew}>
                     <Plus className="mr-2 h-4 w-4" /> New Contract
@@ -132,9 +195,13 @@ export function OfficeContractsTab({ studentId, contracts, allSupervisors }: Off
                 ) : (
                     <div className="space-y-4">
                         {(contracts || []).map(contract => {
-                            if (!contract || !contract.id) return null
+                            if (!contract?.id) return null
+                            const primarySup = contract.supervisors?.find(s => s.isMainSupervisor)
+                            const groupAssigns = contract.groupAssignments || []
+
                             return (
                                 <div key={safe(contract.id)} className="rounded-xl border bg-card p-5 space-y-4 shadow-sm">
+                                    {/* Header row */}
                                     <div className="flex items-start justify-between gap-4">
                                         <div className="space-y-1">
                                             <div className="flex items-center gap-2">
@@ -154,8 +221,8 @@ export function OfficeContractsTab({ studentId, contracts, allSupervisors }: Off
                                                 </Badge>
                                             </div>
                                             <p className="text-[10px] text-muted-foreground uppercase">
-                                                ID: {safe(contract.id).slice(0, 8)} 
-                                                {" · "} Created: {(() => {
+                                                ID: {safe(contract.id).slice(0, 8)}
+                                                {" · "}Created: {(() => {
                                                     try {
                                                         const d = new Date(contract.createdAt as any)
                                                         return !isNaN(d.getTime()) ? format(d, "MMM d, yyyy") : "N/A"
@@ -166,13 +233,8 @@ export function OfficeContractsTab({ studentId, contracts, allSupervisors }: Off
 
                                         <div className="flex items-center gap-2">
                                             {contract.status === "REJECTED" && (
-                                                <Button 
-                                                    variant="default" 
-                                                    size="sm" 
-                                                    className="h-8 gap-1.5" 
-                                                    onClick={() => handleResend(contract.id)}
-                                                    disabled={isPending}
-                                                >
+                                                <Button variant="default" size="sm" className="h-8 gap-1.5"
+                                                    onClick={() => handleResend(contract.id)} disabled={isPending}>
                                                     {isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <RotateCcw className="h-4 w-4" />}
                                                     Resend
                                                 </Button>
@@ -187,13 +249,15 @@ export function OfficeContractsTab({ studentId, contracts, allSupervisors }: Off
                                             </Button>
                                             <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive hover:bg-destructive/10"
                                                 onClick={() => handleDeleteClick(contract.id)}
-                                                disabled={deletingId === safe(contract.id) && isPending}
-                                            >
-                                                {deletingId === safe(contract.id) && isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Trash2 className="h-4 w-4" />}
+                                                disabled={deletingId === safe(contract.id) && isPending}>
+                                                {deletingId === safe(contract.id) && isPending
+                                                    ? <Loader2 className="h-4 w-4 animate-spin" />
+                                                    : <Trash2 className="h-4 w-4" />}
                                             </Button>
                                         </div>
                                     </div>
 
+                                    {/* Rejection reason */}
                                     {contract.status === "REJECTED" && contract.rejectionReason && (
                                         <div className="bg-destructive/5 border border-destructive/20 rounded-lg p-3 text-sm">
                                             <div className="flex items-center gap-2 text-destructive font-semibold mb-1">
@@ -203,14 +267,42 @@ export function OfficeContractsTab({ studentId, contracts, allSupervisors }: Off
                                         </div>
                                     )}
 
-                                    <div className="pt-2 border-t flex flex-wrap gap-2">
-                                        {(contract.supervisors || []).map(cs => (
-                                            <div key={safe(cs.supervisorId)} className="flex items-center gap-1.5 rounded-lg border bg-muted/20 px-2.5 py-1">
-                                                {cs.isMainSupervisor && <Star className="h-3 w-3 text-yellow-500 fill-yellow-500" />}
-                                                <span className="text-xs font-semibold">{safe(cs.supervisor?.fullName)}</span>
-                                                <span className="text-[10px] text-muted-foreground">{safe(cs.supervisor?.credentialType)}</span>
+                                    {/* Team display */}
+                                    <div className="pt-2 border-t space-y-3">
+                                        {/* Individual supervisor */}
+                                        {primarySup && (
+                                            <div className="space-y-1">
+                                                <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Individual Supervision</p>
+                                                <div className="flex items-center gap-1.5 rounded-lg border bg-yellow-50 border-yellow-200 px-3 py-2 w-fit">
+                                                    <Star className="h-3 w-3 text-yellow-500 fill-yellow-500" />
+                                                    <span className="text-xs font-semibold">{safe(primarySup.supervisor?.fullName)}</span>
+                                                    <span className="text-[10px] text-muted-foreground">{safe(primarySup.supervisor?.credentialType)}</span>
+                                                </div>
                                             </div>
-                                        ))}
+                                        )}
+
+                                        {/* Group supervisors */}
+                                        {groupAssigns.length > 0 && (
+                                            <div className="space-y-1">
+                                                <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Group Sessions</p>
+                                                <div className="flex flex-wrap gap-2">
+                                                    {groupAssigns.map((ga, idx) => (
+                                                        <div key={idx} className="flex items-center gap-2 rounded-lg border bg-muted/20 px-3 py-1.5">
+                                                            <Users className="h-3 w-3 text-blue-500" />
+                                                            <span className="text-xs font-semibold">{safe(ga.supervisor?.fullName)}</span>
+                                                            <span className="text-[10px] text-muted-foreground flex items-center gap-1">
+                                                                <Calendar className="h-2.5 w-2.5" />
+                                                                {DAY_LABELS[ga.officeGroup?.dayOfWeek] || ga.officeGroup?.dayOfWeek}
+                                                            </span>
+                                                            <span className="text-[10px] text-muted-foreground flex items-center gap-1">
+                                                                <Clock className="h-2.5 w-2.5" />
+                                                                {ga.officeGroup?.startTime}–{ga.officeGroup?.endTime}
+                                                            </span>
+                                                        </div>
+                                                    ))}
+                                                </div>
+                                            </div>
+                                        )}
                                     </div>
                                 </div>
                             )
@@ -219,17 +311,23 @@ export function OfficeContractsTab({ studentId, contracts, allSupervisors }: Off
                 )}
             </CardContent>
 
-            <ContractFormDialog 
+            <ContractFormDialog
                 open={isDialogOpen}
                 onOpenChange={setIsDialogOpen}
-                studentId={safe(studentId)} 
-                supervisors={safeSupervisors}
+                studentId={safe(studentId)}
+                studentPlanType={studentPlanType}
+                individualOptions={individualOptions}
+                groupOptions={groupOptions}
                 existing={selectedContract ? {
                     id: safe(selectedContract.id),
                     effectiveDate: selectedContract.effectiveDate,
                     supervisors: (selectedContract.supervisors || []).map(s => ({
                         supervisorId: safe(s.supervisorId),
                         isMainSupervisor: !!s.isMainSupervisor
+                    })),
+                    groupAssignments: (selectedContract.groupAssignments || []).map(ga => ({
+                        supervisorId: safe(ga.supervisorId),
+                        officeGroupId: safe(ga.officeGroupId)
                     }))
                 } : undefined}
             />
@@ -239,7 +337,7 @@ export function OfficeContractsTab({ studentId, contracts, allSupervisors }: Off
                 onOpenChange={setShowDeleteConfirm}
                 onConfirm={handleConfirmDelete}
                 title="Delete Contract"
-                description="This will permanently delete the contract record. This action cannot be undone."
+                description="This will permanently delete the contract and all its assignments. This action cannot be undone."
                 confirmText="Confirm Delete"
                 variant="destructive"
                 isLoading={isPending}
