@@ -92,7 +92,7 @@ async function scheduleGroupSessions(
 // ── Queries ───────────────────────────────────────────────────────────────────
 
 export async function getContractsForStudent(studentId: string) {
-    return prisma.contract.findMany({
+    return (prisma as any).contract.findMany({
         where: { studentId },
         include: {
             supervisors: {
