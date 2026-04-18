@@ -10,16 +10,15 @@ async function guardSuperAdmin() {
     return session
 }
 
-// POST — assign supervisor to group
-export async function POST(req: NextRequest, { params }: { params: { id: string } }) {
+export async function POST(req: NextRequest, context: { params: Promise<{ id: string }> }) {
     if (!await guardSuperAdmin()) return NextResponse.json({ error: "Forbidden" }, { status: 403 })
-
+    const { id } = await context.params
     const { supervisorId } = await req.json()
     if (!supervisorId) return NextResponse.json({ error: "supervisorId required" }, { status: 400 })
 
     try {
         const entry = await (prisma as any).officeGroupSupervisor.create({
-            data: { groupId: params.id, supervisorId }
+            data: { groupId: id, supervisorId }
         })
         return NextResponse.json({ success: true, entry })
     } catch (e: any) {
@@ -28,15 +27,14 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
     }
 }
 
-// DELETE — unassign supervisor from group
-export async function DELETE(req: NextRequest, { params }: { params: { id: string } }) {
+export async function DELETE(req: NextRequest, context: { params: Promise<{ id: string }> }) {
     if (!await guardSuperAdmin()) return NextResponse.json({ error: "Forbidden" }, { status: 403 })
-
+    const { id } = await context.params
     const { supervisorId } = await req.json()
     if (!supervisorId) return NextResponse.json({ error: "supervisorId required" }, { status: 400 })
 
     await (prisma as any).officeGroupSupervisor.deleteMany({
-        where: { groupId: params.id, supervisorId }
+        where: { groupId: id, supervisorId }
     })
     return NextResponse.json({ success: true })
 }

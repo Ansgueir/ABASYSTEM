@@ -10,15 +10,14 @@ async function guardSuperAdmin() {
     return session
 }
 
-// PATCH /api/office/groups/[id] — update name/time
-export async function PATCH(req: NextRequest, { params }: { params: { id: string } }) {
+export async function PATCH(req: NextRequest, context: { params: Promise<{ id: string }> }) {
     if (!await guardSuperAdmin()) return NextResponse.json({ error: "Forbidden" }, { status: 403 })
-
+    const { id } = await context.params
     const body = await req.json()
     const { name, startTime, endTime } = body
 
     const group = await (prisma as any).officeGroup.update({
-        where: { id: params.id },
+        where: { id },
         data: {
             ...(name && { name: name.trim() }),
             ...(startTime && { startTime }),
@@ -28,10 +27,9 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
     return NextResponse.json({ success: true, group })
 }
 
-// DELETE /api/office/groups/[id]
-export async function DELETE(_req: NextRequest, { params }: { params: { id: string } }) {
+export async function DELETE(_req: NextRequest, context: { params: Promise<{ id: string }> }) {
     if (!await guardSuperAdmin()) return NextResponse.json({ error: "Forbidden" }, { status: 403 })
-
-    await (prisma as any).officeGroup.delete({ where: { id: params.id } })
+    const { id } = await context.params
+    await (prisma as any).officeGroup.delete({ where: { id } })
     return NextResponse.json({ success: true })
 }
