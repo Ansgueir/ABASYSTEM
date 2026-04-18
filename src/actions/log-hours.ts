@@ -353,7 +353,10 @@ export async function approveSupervisionHour(logId: string) {
             }
 
             const amountBilled = Number(hour.hours) * hourlyRate
-            const supervisorPay = amountBilled * percent
+
+            // GROUP hours: office income only, supervisor earns $0
+            const isGroupHour = hour.supervisionType === 'GROUP'
+            const supervisorPay = isGroupHour ? 0 : amountBilled * percent
 
             // 1. Check if there's an existing READY_TO_GO invoice for this student
             let invoice = await tx.invoice.findFirst({
@@ -395,8 +398,8 @@ export async function approveSupervisionHour(logId: string) {
                 }
             })
 
-            // --- Legacy Payment Card Logic (Keep for BC) ---
-            if (hour.student.supervisorId) {
+            // --- Supervisor Payment Card (legacy) — ONLY for INDIVIDUAL hours ---
+            if (!isGroupHour && hour.student.supervisorId) {
                 const today = new Date()
                 const firstDayOfMonth = new Date(today.getFullYear(), today.getMonth(), 1)
                 const existingPayment = await tx.supervisorPayment.findFirst({

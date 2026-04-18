@@ -77,8 +77,13 @@ export async function markInvoiceAsPaid(
                 }
             }
 
-            // PASO 1: Tope total del supervisor para ESTA factura
-            const supervisorCapTotal = invoiceTotal * payPercent
+            // PASO 1: Tope del supervisor = solo horas INDIVIDUALES (no GROUP, que son ingreso de oficina)
+            const individualSum = await prisma.supervisionHour.aggregate({
+                where: { invoiceId, supervisionType: 'INDIVIDUAL' as any },
+                _sum: { amountBilled: true }
+            })
+            const individualAmountDue = Number(individualSum._sum.amountBilled || 0)
+            const supervisorCapTotal = individualAmountDue * payPercent
 
             // PASO 2: Leer el remanente actual (última entrada del ledger para esta factura)
             const lastEntry = await (prisma as any).supervisorLedgerEntry.findFirst({
