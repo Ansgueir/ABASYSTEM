@@ -360,7 +360,11 @@ export function StudentInvoicesList({ studentGroups }: StudentInvoicesListProps)
                 const totalPaid  = group.totalPaid
                 const totalOwed  = planTotal > 0 ? planTotal - totalPaid : group.totalBilled - group.totalPaid
                 const paidPct    = planTotal > 0 ? Math.min(100, (totalPaid / planTotal) * 100) : 0
-                const monthsRemaining = group.monthlyPayment > 0 ? (totalOwed / group.monthlyPayment).toFixed(1) : null
+
+                // Last payment: most recent invoice with amountPaid > 0
+                const lastPaidInvoice = [...group.invoices]
+                    .filter(i => i.amountPaid > 0)
+                    .sort((a, b) => new Date(b.invoiceDate).getTime() - new Date(a.invoiceDate).getTime())[0] ?? null
 
                 return (
                     <Card key={group.studentId} className="overflow-hidden">
@@ -458,15 +462,24 @@ export function StudentInvoicesList({ studentGroups }: StudentInvoicesListProps)
                                             <p className="text-[9px] text-amber-600/70 mt-0.5">remaining</p>
                                         </div>
 
-                                        {/* Monthly Payment — with months-remaining function */}
+                                        {/* Last Payment */}
                                         <div className="flex flex-col items-center justify-center bg-indigo-50 rounded-xl p-3 border border-indigo-100 text-center">
-                                            <p className="text-[9px] uppercase text-indigo-700 font-bold tracking-wider">Monthly Payment</p>
-                                            <p className="text-lg font-black text-indigo-700 leading-tight">
-                                                {group.monthlyPayment > 0 ? fmtUSD(group.monthlyPayment) : "—"}
-                                            </p>
-                                            <p className="text-[9px] text-indigo-600/70 mt-0.5">
-                                                {monthsRemaining !== null ? `~${monthsRemaining} months left` : "per invoice"}
-                                            </p>
+                                            <p className="text-[9px] uppercase text-indigo-700 font-bold tracking-wider">Last Payment</p>
+                                            {lastPaidInvoice ? (
+                                                <>
+                                                    <p className="text-lg font-black text-indigo-700 leading-tight">
+                                                        {fmtUSD(lastPaidInvoice.amountPaid)}
+                                                    </p>
+                                                    <p className="text-[9px] text-indigo-600/70 mt-0.5">
+                                                        {fmtDate(lastPaidInvoice.invoiceDate)}
+                                                    </p>
+                                                </>
+                                            ) : (
+                                                <>
+                                                    <p className="text-lg font-black text-indigo-300 leading-tight">—</p>
+                                                    <p className="text-[9px] text-indigo-400 mt-0.5">no payments yet</p>
+                                                </>
+                                            )}
                                         </div>
 
                                         {/* Plan Total */}
