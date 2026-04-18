@@ -1,34 +1,72 @@
-// Run SQL migration using bundled node_modules/pg
-const fs = require('fs')
-const path = require('path')
+// Run migration using Prisma $executeRawUnsafe (no pg module needed)
+const { PrismaClient } = require('./node_modules/@prisma/client')
+const p = new PrismaClient()
 
-// Read DATABASE_URL from .env without dotenv
-const envFile = fs.readFileSync(path.join(__dirname, '.env'), 'utf8')
-const dbUrl = envFile.split('\n')
-    .map(l => l.trim())
-    .find(l => l.startsWith('DATABASE_URL='))
-    ?.replace('DATABASE_URL=', '')
-    .replace(/^["']|["']$/g, '')
-    .trim()
+async function main() {
+    console.log('Running OfficeGroup migration...')
 
-if (!dbUrl) { console.error('DATABASE_URL not found in .env'); process.exit(1) }
-console.log('Connecting to DB...')
+    await p.$executeRawUnsafe(`
+        CREATE TABLE IF NOT EXISTS "OfficeGroup" (
+            "id" TEXT NOT NULL,
+            "name" TEXT NOT NULL,
+            "groupType" TEXT NOT NULL,
+            "dayOfWeek" TEXT NOT NULL,
+            "startTime" TEXT NOT NULL,
+            "endTime" TEXT NOT NULL,
+            "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+            "updatedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+            CONSTRAINT "OfficeGroup_pkey" PRIMARY KEY ("id")
+        )
+    `)
+    console.log('OfficeGroup table OK')
 
-const { Client } = require('./node_modules/pg')
-const sql = fs.readFileSync(path.join(__dirname, 'migrate_office_groups.sql'), 'utf8')
+    await p.$executeRawUnsafe(`
+        CREATE UNIQUE INDEX IF NOT EXISTS "OfficeGroup_groupType_dayOfWeek_key" ON "OfficeGroup"("groupType", "dayOfWeek")
+    `)
+    console.log('OfficeGroup unique index OK')
 
-const client = new Client({ connectionString: dbUrl })
+    await p.$executeRawUnsafe(`
+        CREATE TABLE IF NOT EXISTS "OfficeGroupSupervisor" (
+            "id" TEXT NOT NULL,
+            "groupId" TEXT NOT NULL,
+            "supervisorId" TEXT NOT NULL,
+            "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+            CONSTRAINT "OfficeGroupSupervisor_pkey" PRIMARY KEY ("id")
+        )
+    `)
+    console.log('OfficeGroupSupervisor table OK')
 
-client.connect()
-    .then(() => {
-        console.log('Running migration...')
-        return client.query(sql)
-    })
-    .then(() => {
-        console.log('Migration applied successfully!')
-        return client.end()
-    })
-    .catch(err => {
-        console.error('Migration error:', err.message)
-        return client.end().catch(() => { }).then(() => process.exit(1))
-    })
+    await p.$executeRawUnsafe(`
+        CREATE UNIQUE INDEX IF NOT EXISTS "OfficeGroupSupervisor_groupId_supervisorId_key"
+        ON "OfficeGroupSupervisor"("groupId", "supervisorId")
+    `)
+
+    await p.$executeRawUnsafe(`
+        CREATE INDEX IF NOT EXISTS "OfficeGroupSupervisor_groupId_idx" ON "OfficeGroupSupervisor"("groupId")
+    `)
+
+    await p.$executeRawUnsafe(`
+        CREATE INDEX IF NOT EXISTS "OfficeGroupSupervisor_supervisorId_idx" ON "OfficeGroupSupervisor"("supervisorId")
+    `)
+
+    // Add FK constraints (skip if already exist)
+    try {
+        await p.$executeRawUnsafe(`
+            ALTER TABLE "OfficeGroupSupervisor" ADD CONSTRAINT "OfficeGroupSupervisor_groupId_fkey"
+            FOREIGN KEY ("groupId") REFERENCES "OfficeGroup"("id") ON DELETE CASCADE ON UPDATE CASCADE
+        `)
+    } catch (e) { console.log('FK groupId already exists') }
+
+    try {
+        await p.$executeRawUnsafe(`
+            ALTER TABLE "OfficeGroupSupervisor" ADD CONSTRAINT "OfficeGroupSupervisor_supervisorId_fkey"
+            FOREIGN KEY ("supervisorId") REFERENCES "Supervisor"("id") ON DELETE CASCADE ON UPDATE CASCADE
+        `)
+    } catch (e) { console.log('FK supervisorId already exists') }
+
+    console.log('\nMigration complete! OfficeGroup + OfficeGroupSupervisor tables ready.')
+}
+
+main()
+    .catch(e => { console.error('ERROR:', e.message); process.exit(1) })
+    .finally(() => p.$disconnect())
