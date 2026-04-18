@@ -49,7 +49,7 @@ function DataResetSection() {
             const res = await fetch("/api/office/vault/reset", { method: "POST" })
             const data = await res.json()
             if (data.success) {
-                toast.success("✓ Data Reset Complete — All invoices reverted to READY_TO_GO")
+                toast.success("✓ Clean Slate Complete — All activity records deleted. Users, plans and profiles are intact.")
                 setShowModal(false)
                 setConfirmText("")
             } else {
@@ -70,7 +70,7 @@ function DataResetSection() {
                         <Trash2 className="h-5 w-5 text-destructive" />
                     </div>
                     <div>
-                        <CardTitle className="text-destructive text-base">Factory Reset (Data Only)</CardTitle>
+                        <CardTitle className="text-destructive text-base">Clean Slate Reset � Activity & Billing</CardTitle>
                         <CardDescription className="text-xs mt-0.5">
                             Clears all payment & billing records. Code and schema remain intact.
                         </CardDescription>
@@ -79,11 +79,15 @@ function DataResetSection() {
             </CardHeader>
             <CardContent>
                 <div className="text-xs text-muted-foreground space-y-1 mb-4 border border-destructive/20 rounded-lg p-3 bg-background">
-                    <p className="font-semibold text-destructive mb-2">This will permanently delete:</p>
-                    <p>• All <code>StudentPayment</code> records</p>
-                    <p>• All <code>SupervisorLedgerEntry</code> records</p>
-                    <p>• All <code>SupervisorPayout</code> records</p>
-                    <p>• Revert all <code>Invoices</code> → <strong>READY_TO_GO</strong> with <code>amountPaid = 0</code></p>
+                    <p className="font-semibold text-destructive mb-2">Se eliminará permanentemente:</p>
+                    <p>• Horas supervisadas (PENDING, APPROVED, BILLED, REJECTED)</p>
+                    <p>• Horas independientes</p>
+                    <p>• Sesiones de supervisión grupal y asistencias</p>
+                    <p>• Facturas (todas)</p>
+                    <p>• Pagos de estudiantes y tarjetas de supervisor</p>
+                    <p>• Ledger waterfall y payouts al supervisor</p>
+                    <p>• Evaluaciones, notificaciones y audit logs</p>
+                    <p className="font-semibold text-green-700 mt-2">✓ Se conserva: Users · Students · Supervisors · Plans · Contracts · Documents</p>
                 </div>
                 <Button
                     variant="destructive"
@@ -91,7 +95,7 @@ function DataResetSection() {
                     className="w-full"
                 >
                     <AlertTriangle className="h-4 w-4 mr-2" />
-                    Initiate Factory Reset
+                    Ejecutar Clean Slate Reset
                 </Button>
             </CardContent>
 
@@ -100,11 +104,12 @@ function DataResetSection() {
                     <DialogHeader>
                         <DialogTitle className="text-destructive flex items-center gap-2">
                             <AlertTriangle className="h-5 w-5" />
-                            Confirm Factory Reset
+                            Confirmar Clean Slate Reset
                         </DialogTitle>
                         <DialogDescription>
-                            This action is <strong>irreversible</strong>. All billing and payment data will be erased.
-                            Type <strong className="text-foreground">CONFIRM</strong> below to proceed.
+                            Esta acción es <strong>irreversible</strong>. Se eliminarán todas las horas, sesiones, facturas y pagos.
+                            Los usuarios, planes y perfiles quedan intactos.
+                            Escribe <strong className="text-foreground">CONFIRM</strong> para continuar.
                         </DialogDescription>
                     </DialogHeader>
 
@@ -137,7 +142,7 @@ function DataResetSection() {
                             onClick={handleReset}
                         >
                             {loading && <Loader2 className="h-4 w-4 animate-spin mr-2" />}
-                            Execute Reset
+                            Confirmar y Ejecutar
                         </Button>
                     </DialogFooter>
                 </DialogContent>
