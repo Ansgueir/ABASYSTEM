@@ -344,7 +344,12 @@ export async function approveSupervisionHour(logId: string) {
             })
 
             if (!hour) return { error: "Hour log not found" }
-            if (hour.status === "APPROVED") return { error: "Log already approved" }
+
+            // Guard: already approved AND properly linked → skip
+            // If APPROVED but invoiceId is null = orphaned state, allow re-processing
+            if (hour.status === "APPROVED" && hour.invoiceId !== null) {
+                return { error: "Log already approved" }
+            }
 
             const hourlyRate = Number(hour.student.hourlyRate || 0)
             let percent = 0.54
