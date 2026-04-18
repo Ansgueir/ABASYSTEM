@@ -7,6 +7,7 @@ import { redirect } from "next/navigation"
 import { PaymentsTable } from "@/components/office/payments-table"
 import Link from "next/link"
 import { SupervisorPaymentsList } from "@/components/office/supervisor-payments-list"
+import { StudentInvoicesList } from "@/components/office/student-invoices-list"
 
 export default async function OfficePaymentsPage({
     searchParams
@@ -44,7 +45,15 @@ export default async function OfficePaymentsPage({
             },
             orderBy: { createdAt: 'desc' },
             include: {
-                student: { include: { supervisor: true } },
+                student: { 
+                    select: {
+                        id: true,
+                        fullName: true,
+                        email: true,
+                        planTemplateId: true,
+                        supervisor: true
+                    }
+                },
                 payouts: true,
                 supervisionHours: { include: { supervisor: true } }
             }
@@ -134,7 +143,7 @@ export default async function OfficePaymentsPage({
           )
         : supervisorSummary
 
-    // Normalize invoices for PaymentsTable (Students tab)
+    // Normalize invoices for PaymentsTable (Students tab) — kept for backward compat
     const normalizedInvoices = invoices
         .map(inv => ({
             ...inv,
@@ -147,6 +156,63 @@ export default async function OfficePaymentsPage({
             inv.student.fullName.toLowerCase().includes(searchQuery) ||
             inv.student.email.toLowerCase().includes(searchQuery)
         )
+
+    // ── GROUP INVOICES BY STUDENT ─────────────────────────────────────────────
+    // Fetch plans for all unique students that have a planTemplateId
+    const planIds = [...new Set(
+        invoices.map((i: any) => i.student.planTemplateId).filter(Boolean)
+    )] as string[]
+
+    let plansMap: Record<string, any> = {}
+    if (planIds.length > 0) {
+        const plans = await prisma.plan.findMany({ where: { id: { in: planIds } } })
+        plansMap = Object.fromEntries(plans.map(p => [p.id, p]))
+    }
+
+    // Group invoices by student
+    const studentGroupsMap: Record<string, {
+        studentId: string
+        fullName: string
+        email: string
+        contractTotal: number
+        totalBilled: number
+        totalPaid: number
+        invoices: any[]
+    }> = {}
+
+    for (const inv of invoices) {
+        const s = inv.student
+        if (
+            searchQuery &&
+            !s.fullName.toLowerCase().includes(searchQuery) &&
+            !s.email.toLowerCase().includes(searchQuery)
+        ) continue
+
+        if (!studentGroupsMap[s.id]) {
+            const plan = plansMap[s.planTemplateId]
+            const contractTotal = plan?.totalCost ? Number(plan.totalCost) : 0
+            studentGroupsMap[s.id] = {
+                studentId: s.id,
+                fullName: s.fullName,
+                email: s.email,
+                contractTotal,
+                totalBilled: 0,
+                totalPaid: 0,
+                invoices: []
+            }
+        }
+
+        studentGroupsMap[s.id].totalBilled  += Number(inv.amountDue)
+        studentGroupsMap[s.id].totalPaid    += Number(inv.amountPaid)
+        studentGroupsMap[s.id].invoices.push({
+            ...inv,
+            amountDue:  Number(inv.amountDue),
+            amountPaid: Number(inv.amountPaid),
+            student: { id: s.id, fullName: s.fullName, email: s.email }
+        })
+    }
+
+    const studentGroups = Object.values(studentGroupsMap)
 
 
     return (
@@ -216,11 +282,7 @@ export default async function OfficePaymentsPage({
 
                 {/* ── STUDENTS TAB ─────────────────────────────────────────────────── */}
                 {activeTab === "students" && (
-                    <Card>
-                        <CardContent className="pt-4 px-0 pb-0">
-                            <PaymentsTable invoices={normalizedInvoices as any} />
-                        </CardContent>
-                    </Card>
+                    <StudentInvoicesList studentGroups={studentGroups as any} />
                 )}
 
                 {/* ── SUPERVISORS TAB ───────────────────────────────────────────── */}
