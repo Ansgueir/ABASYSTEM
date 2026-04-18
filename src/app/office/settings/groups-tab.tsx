@@ -138,7 +138,7 @@ function SupervisorPanel({
             <div className="space-y-3">
                 <div className="flex items-center justify-between">
                     <p className="text-[11px] font-bold uppercase tracking-widest text-slate-500">
-                        Available Unassigned Supervisors
+                        Available
                     </p>
                     <span className="text-xs font-bold text-muted-foreground bg-muted rounded-full px-2 py-0.5">
                         {available.length}
@@ -167,7 +167,7 @@ function SupervisorPanel({
                             <Button
                                 variant="outline"
                                 size="sm"
-                                className="h-8 px-3 text-primary hover:bg-primary/10 hover:text-primary border-primary/30"
+                                className="h-8 px-3 shrink-0 text-primary hover:bg-primary/10 hover:text-primary border-primary/30 font-semibold"
                                 disabled={loading === `assign-${sup.id}`}
                                 onClick={() => handleAction(() => onAssign(group.id, sup.id), `assign-${sup.id}`)}
                             >
@@ -505,7 +505,7 @@ export function GroupsTab() {
                                 <h3 className="text-sm font-bold text-slate-700 uppercase tracking-wider">Regular Groups</h3>
                                 <Badge variant="outline" className="text-[10px] bg-blue-50 text-blue-700 border-blue-200">{regularGroups.length} / 7</Badge>
                             </div>
-                            <div className="grid gap-3 sm:grid-cols-2">
+                            <div className="space-y-3">
                                 {regularGroups.map(g => (
                                     <GroupCard
                                         key={g.id}
@@ -529,7 +529,7 @@ export function GroupsTab() {
                                 <h3 className="text-sm font-bold text-slate-700 uppercase tracking-wider">Concentrated Groups</h3>
                                 <Badge variant="outline" className="text-[10px] bg-orange-50 text-orange-700 border-orange-200">{concentratedGroups.length} / 7</Badge>
                             </div>
-                            <div className="grid gap-3 sm:grid-cols-2">
+                            <div className="space-y-3">
                                 {concentratedGroups.map(g => (
                                     <GroupCard
                                         key={g.id}
