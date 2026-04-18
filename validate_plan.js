@@ -1,61 +1,74 @@
-const { PrismaClient } = require('@prisma/client')
+// Clean all activity records, preserve: User, Student, Supervisor, OfficeMember,
+// Plan, Contract, Document, GeneralValues, FinancialPeriod, SupervisorGroup, GroupStudent
+const { PrismaClient } = require('./node_modules/@prisma/client')
 const p = new PrismaClient()
 
 async function main() {
-    // Find invoice E8D0B9 (last 6 chars match)
-    const invoices = await p.invoice.findMany({
-        where: { student: { email: 'tamaroshki@gmail.com' } },
-        include: {
-            supervisionHours: {
-                select: {
-                    id: true, date: true, activityType: true, supervisionType: true,
-                    hours: true, amountBilled: true, status: true, supervisorPay: true
-                }
-            },
-            payouts: true
-        },
-        orderBy: { invoiceDate: 'desc' }
-    })
+    console.log('Starting clean...')
 
-    for (const inv of invoices) {
-        const sumBilled = inv.supervisionHours.reduce((s, h) => s + Number(h.amountBilled || 0), 0)
-        const shortId = inv.id.slice(-6).toUpperCase()
-        console.log(`\n═══ Invoice #${shortId} ═══`)
-        console.log(`  Status        : ${inv.status}`)
-        console.log(`  invoiceDate   : ${inv.invoiceDate.toISOString().split('T')[0]}`)
-        console.log(`  amountDue(DB) : $${Number(inv.amountDue).toFixed(2)}`)
-        console.log(`  amountPaid(DB): $${Number(inv.amountPaid).toFixed(2)}`)
-        console.log(`  Linked Hours  : ${inv.supervisionHours.length} entries`)
-        console.log(`  sumAmtBilled  : $${sumBilled.toFixed(2)}`)
-        if (Math.abs(sumBilled - Number(inv.amountDue)) > 0.01) {
-            console.log(`  ⚠️  MISMATCH: amountDue($${Number(inv.amountDue).toFixed(2)}) ≠ sumBilled($${sumBilled.toFixed(2)}) — diff: $${(Number(inv.amountDue) - sumBilled).toFixed(2)}`)
-        }
-        if (inv.supervisionHours.length > 0) {
-            console.log(`  Hours detail:`)
-            inv.supervisionHours.forEach(h => {
-                console.log(`    - ${h.date.toISOString().split('T')[0]} | ${h.activityType}/${h.supervisionType} | ${h.hours}h | $${Number(h.amountBilled||0).toFixed(2)} | supervisorPay:$${Number(h.supervisorPay||0).toFixed(2)} | status:${h.status}`)
-            })
-        }
-        if (inv.payouts && inv.payouts.length > 0) {
-            console.log(`  Payouts(${inv.payouts.length}):`)
-            inv.payouts.forEach((po) => {
-                console.log(`    - $${Number(po.amount||0).toFixed(2)} | ${po.method} | ${po.paidAt?.toISOString().split('T')[0] ?? 'no date'}`)
-            })
-        }
-    }
+    // Order: children before parents to avoid FK violations
 
-    // Also check if there are supervision hours for this student NOT linked to any invoice
-    const unlinked = await p.supervisionHour.findMany({
-        where: {
-            student: { email: 'tamaroshki@gmail.com' },
-            invoiceId: null
-        },
-        select: { id: true, date: true, activityType: true, hours: true, amountBilled: true, status: true }
-    })
-    console.log(`\n═══ UNLINKED SupervisionHours (invoiceId = null): ${unlinked.length} ═══`)
-    unlinked.forEach(h => {
-        console.log(`  - ${h.date.toISOString().split('T')[0]} | ${h.activityType} | ${h.hours}h | $${Number(h.amountBilled||0).toFixed(2)} | ${h.status}`)
-    })
+    // 1. Attendance records (depend on GroupSupervisionSession)
+    const a1 = await p.groupSupervisionAttendance.deleteMany({})
+    console.log('GroupSupervisionAttendance deleted:', a1.count)
+
+    // 2. Group sessions
+    const a2 = await p.groupSupervisionSession.deleteMany({})
+    console.log('GroupSupervisionSession deleted:', a2.count)
+
+    // 3. Supervisor ledger entries (depend on Invoice)
+    const a3 = await p.supervisorLedgerEntry.deleteMany({})
+    console.log('SupervisorLedgerEntry deleted:', a3.count)
+
+    // 4. Supervisor payouts (depend on Invoice)
+    const a4 = await p.supervisorPayout.deleteMany({})
+    console.log('SupervisorPayout deleted:', a4.count)
+
+    // 5. Supervision hours (depend on Invoice)
+    const a5 = await p.supervisionHour.deleteMany({})
+    console.log('SupervisionHour deleted:', a5.count)
+
+    // 6. Independent hours
+    const a6 = await p.independentHour.deleteMany({})
+    console.log('IndependentHour deleted:', a6.count)
+
+    // 7. Invoices (must be after hours and payouts)
+    const a7 = await p.invoice.deleteMany({})
+    console.log('Invoice deleted:', a7.count)
+
+    // 8. Student payments
+    const a8 = await p.studentPayment.deleteMany({})
+    console.log('StudentPayment deleted:', a8.count)
+
+    // 9. Supervisor payments (legacy cards)
+    const a9 = await p.supervisorPayment.deleteMany({})
+    console.log('SupervisorPayment deleted:', a9.count)
+
+    // 10. Student evaluations (activity records)
+    const a10 = await p.studentEvaluation.deleteMany({})
+    console.log('StudentEvaluation deleted:', a10.count)
+
+    // 11. Repeating schedules
+    const a11 = await p.repeatingSchedule.deleteMany({})
+    console.log('RepeatingSchedule deleted:', a11.count)
+
+    // 12. Import logs and batches
+    const a12 = await p.importLog.deleteMany({})
+    console.log('ImportLog deleted:', a12.count)
+    const a13 = await p.importBatch.deleteMany({})
+    console.log('ImportBatch deleted:', a13.count)
+
+    // 13. Audit logs
+    const a14 = await p.auditLog.deleteMany({})
+    console.log('AuditLog deleted:', a14.count)
+
+    // 14. Notifications
+    const a15 = await p.notification.deleteMany({})
+    console.log('Notification deleted:', a15.count)
+
+    console.log('\nDone. Users, Students, Supervisors, Plans, Contracts, Documents are intact.')
 }
 
-main().finally(() => p.$disconnect())
+main()
+    .catch(e => { console.error('ERROR:', e); process.exit(1) })
+    .finally(() => p.$disconnect())
