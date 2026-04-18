@@ -25,7 +25,7 @@ function computePlanMath(inputs: {
     const amountSupHours = parseFloat((totalHours * supervisedPercentage).toFixed(4))
     const totalCost = parseFloat((amountSupHours * hourlyRate).toFixed(2))
     const supervisionNet = parseFloat((totalCost - enrollmentFee).toFixed(2))
-    const monthlyPayment = numberOfMonths > 0 ? parseFloat((supervisionNet / numberOfMonths).toFixed(2)) : 0
+    const monthlyPayment = numberOfMonths > 0 ? parseFloat((totalCost / numberOfMonths).toFixed(2)) : 0
     return { numberOfMonths, amountSupHours, totalCost, supervisionNet, monthlyPayment }
 }
 

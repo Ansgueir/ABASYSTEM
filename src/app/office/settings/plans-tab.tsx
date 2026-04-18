@@ -64,7 +64,7 @@ function computeLive(inputs: FormInputs) {
     const amountSupHours = totalHours * supervisedPct   // e.g. 100
     const totalCost = amountSupHours * hourlyRate
     const supervisionNet = totalCost - enrollmentFee
-    const monthlyPayment = numberOfMonths > 0 ? supervisionNet / numberOfMonths : 0
+    const monthlyPayment = numberOfMonths > 0 ? totalCost / numberOfMonths : 0
 
     return { numberOfMonths, individualPct, amountIndivHours, amountSupHours, totalCost, supervisionNet, monthlyPayment }
 }
@@ -423,7 +423,7 @@ export function PlansTab() {
                                     <div className="col-span-3 bg-gradient-to-r from-indigo-50 to-blue-50 rounded-lg p-3 border border-indigo-200 text-center shadow-sm">
                                         <p className="text-[10px] uppercase font-bold text-indigo-500 mb-1">📋 Monthly Payment</p>
                                         <p className="text-2xl font-black text-indigo-800">{fmtUSD(liveCalc.monthlyPayment)}</p>
-                                        <p className="text-[10px] text-indigo-400">= {fmtUSD(liveCalc.supervisionNet)} ÷ {liveCalc.numberOfMonths} months</p>
+                                        <p className="text-[10px] text-indigo-400">= {fmtUSD(liveCalc.totalCost)} ÷ {liveCalc.numberOfMonths} months</p>
                                     </div>
                                 </div>
                             )}
