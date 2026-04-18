@@ -1,4 +1,4 @@
-"use client"
+ï»¿"use client"
 
 import { useState, useEffect, useCallback } from "react"
 import { Button } from "@/components/ui/button"
@@ -70,7 +70,7 @@ function DataResetSection() {
                         <Trash2 className="h-5 w-5 text-destructive" />
                     </div>
                     <div>
-                        <CardTitle className="text-destructive text-base">Clean Slate Reset — Activity & Billing</CardTitle>
+                        <CardTitle className="text-destructive text-base">Clean Slate Reset - Activity & Billing</CardTitle>
                         <CardDescription className="text-xs mt-0.5">
                             Clears all payment & billing records. Code and schema remain intact.
                         </CardDescription>
