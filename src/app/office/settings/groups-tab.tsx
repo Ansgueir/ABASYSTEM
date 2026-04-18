@@ -446,9 +446,10 @@ export function GroupsTab() {
         if (data.success) { load(true) } else toast.error(data.error || "Error removing supervisor")
     }
 
-    // Group by type for display
-    const regularGroups = groups.filter(g => g.groupType === "REGULAR")
-    const concentratedGroups = groups.filter(g => g.groupType === "CONCENTRATED")
+    // Group by type and sort by day-of-week order (Mon → Sun)
+    const dayOrder = (g: OfficeGroup) => DAYS.indexOf(g.dayOfWeek)
+    const regularGroups = groups.filter(g => g.groupType === "REGULAR").sort((a, b) => dayOrder(a) - dayOrder(b))
+    const concentratedGroups = groups.filter(g => g.groupType === "CONCENTRATED").sort((a, b) => dayOrder(a) - dayOrder(b))
     const maxReached = groups.length >= 14
 
     return (
