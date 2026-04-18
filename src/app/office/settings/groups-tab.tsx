@@ -391,8 +391,8 @@ export function GroupsTab() {
     const [dialogOpen, setDialogOpen] = useState(false)
     const [editing, setEditing] = useState<OfficeGroup | null>(null)
 
-    const load = useCallback(async () => {
-        setLoading(true)
+    const load = useCallback(async (silent = false) => {
+        if (!silent) setLoading(true)
         try {
             const res = await fetch("/api/office/groups")
             const data = await res.json()
@@ -400,8 +400,8 @@ export function GroupsTab() {
                 setGroups(data.groups)
                 setAllSupervisors(data.allSupervisors)
             }
-        } catch { toast.error("Error loading groups") }
-        finally { setLoading(false) }
+        } catch { if (!silent) toast.error("Error loading groups") }
+        finally { if (!silent) setLoading(false) }
     }, [])
 
     useEffect(() => { load() }, [load])
@@ -434,7 +434,7 @@ export function GroupsTab() {
             body: JSON.stringify({ supervisorId })
         })
         const data = await res.json()
-        if (data.success) { load() } else toast.error(data.error || "Error assigning supervisor")
+        if (data.success) { load(true) } else toast.error(data.error || "Error assigning supervisor")
     }
 
     const handleRemove = async (groupId: string, supervisorId: string) => {
@@ -443,7 +443,7 @@ export function GroupsTab() {
             body: JSON.stringify({ supervisorId })
         })
         const data = await res.json()
-        if (data.success) { load() } else toast.error(data.error || "Error removing supervisor")
+        if (data.success) { load(true) } else toast.error(data.error || "Error removing supervisor")
     }
 
     // Group by type for display
