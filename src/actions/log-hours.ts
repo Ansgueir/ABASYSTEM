@@ -28,42 +28,7 @@ export type LogHoursState = {
     fieldErrors?: Record<string, string[]>
 }
 
-async function validateMonthlyLimit(studentId: string, date: Date, newHours: number) {
-    const start = startOfMonth(date)
-    const end = endOfMonth(date)
-
-    const independent = await prisma.independentHour.aggregate({
-        where: {
-            studentId,
-            date: { gte: start, lte: end }
-        },
-        _sum: { hours: true }
-    })
-
-    const supervision = await prisma.supervisionHour.aggregate({
-        where: {
-            studentId,
-            date: { gte: start, lte: end }
-        },
-        _sum: { hours: true }
-    })
-
-    const currentTotal = (Number(independent._sum.hours) || 0) + (Number(supervision._sum.hours) || 0)
-    const total = currentTotal + newHours
-
-    // Load general values
-    const settings = await prisma.generalValues.findFirst()
-    const globalLimit = (settings as any)?.maxHoursPerMonth || 130
-    
-    // Load student to see if they have a specific limit overridden, though general values config should prevail if user requested it. 
-    // Fallback to year logic if neither is set specific.
-    const year = date.getFullYear()
-    const limit = globalLimit
-
-    if (total > limit) {
-        throw new Error(`Limit Exceeded: You have reached the monthly cap of ${limit} hours. (Current: ${currentTotal.toFixed(2)}h + New: ${newHours.toFixed(2)}h)`)
-    }
-}
+import { validatePlanLimits } from "./plan-limits-helper"
 
 async function validateTimeOverlap(studentId: string, date: Date, newStart: Date, minutes: number) {
     const newEnd = new Date(newStart.getTime() + minutes * 60000)
@@ -257,8 +222,7 @@ export async function logHours(prevState: LogHoursState, formData: FormData) {
 
         if (!studentId) return { error: "Student ID missing" }
 
-        // Validate 130h limit
-        await validateMonthlyLimit(studentId, data.date, hoursDecimal)
+        await validatePlanLimits(studentId, data.date, hoursDecimal, data.type as 'independent' | 'supervision')
 
         const [hours, mins] = data.startTime.split(':').map(Number)
         const startDateTime = new Date(data.date)
@@ -646,7 +610,7 @@ export async function logBulkHours(payload: {
             const monthDate = new Date(year, month, 15)
             const matchingInThisMonth = matchingDates.filter(d => d.getFullYear() === year && d.getMonth() === month)
             const newHoursInMonth = matchingInThisMonth.length * hoursDecimal
-            await validateMonthlyLimit(studentId, monthDate, newHoursInMonth)
+            await validatePlanLimits(studentId, monthDate, newHoursInMonth, payload.type)
         }
 
         let created = 0
@@ -765,6 +729,9 @@ export async function updateIndependentHour(
         const finalActivity = (data.activityType ?? hour.activityType) as any
         const finalNotes = data.notes !== undefined ? data.notes : hour.notes
 
+        // ── Validation Guard ────────────────────────────
+        await validatePlanLimits(hour.studentId, finalDate, finalHours, data.type || 'independent', logId)
+
         // ── Type change: independent → supervision ──────────────────────────
         if (data.type === 'supervision') {
             // Find student to get supervisorId
@@ -872,6 +839,9 @@ export async function updateSupervisionHour(
         const finalActivity = (data.activityType ?? hour.activityType) as any
         const finalSupervisionType = (data.supervisionType ?? hour.supervisionType) as any
         const finalNotes = data.notes !== undefined ? data.notes : hour.notes
+
+        // ── Validation Guard ────────────────────────────
+        await validatePlanLimits(hour.studentId, finalDate, finalHours, 'supervision', logId)
 
         const updatePayload: any = {
             date: finalDate,

@@ -13,6 +13,24 @@ export async function getMonthStats(studentId: string, date: Date = new Date()) 
         where: { studentId, date: { gte: start, lte: end }, status: { not: 'REJECTED' } }
     })
 
+    const student = await prisma.student.findUnique({
+        where: { id: studentId }
+    });
+
+    let plan = null;
+    if (student?.planTemplateId) {
+        plan = await prisma.plan.findUnique({ where: { id: student.planTemplateId } })
+    }
+
+    const limit = student?.hoursPerMonth || plan?.hoursPerMonth || 130;
+    let supervisionTargetPct = 5;
+    if (student?.supervisionPercentage) {
+        const sp = Number(student.supervisionPercentage)
+        supervisionTargetPct = sp > 1 ? sp : sp * 100
+    } else if (plan?.supervisedPercentage) {
+        supervisionTargetPct = Number(plan.supervisedPercentage) * 100
+    }
+
     const totalIndependent = independent.reduce((sum, h) => sum + Number(h.hours), 0)
     const totalSupervision = supervision.reduce((sum, h) => sum + Number(h.hours), 0)
     const total = totalIndependent + totalSupervision
@@ -37,6 +55,7 @@ export async function getMonthStats(studentId: string, date: Date = new Date()) 
         totalRestricted,
         restrictedPercentage,
         supervisionPercentage,
-        limit: 130
+        supervisionTargetPct,
+        limit
     }
 }

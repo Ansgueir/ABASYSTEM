@@ -1,0 +1,1 @@
+﻿const { PrismaClient } = require('@prisma/client'); const p = new PrismaClient(); p.contract.findFirst({ orderBy: { createdAt: 'desc' }, include: { supervisors: { include: { supervisor: true } }, groupAssignments: true } }).then(c => console.log(JSON.stringify(c, null, 2))).catch(console.error).finally(() => p.disconnect());

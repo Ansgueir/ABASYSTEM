@@ -95,8 +95,9 @@ export default async function SupervisorStudentDetailPage({ params }: { params: 
         supervisorPay: h.supervisorPay ? Number(h.supervisorPay) : null
     }))
 
-    const settings = await prisma.generalValues.findFirst()
-    const globalLimit = (settings as any)?.maxHoursPerMonth || 130
+    const plan = student.planTemplateId ? await prisma.plan.findUnique({ where: { id: student.planTemplateId } }) : null
+    const totalPlanHours = student.hoursToDo || plan?.totalHours || 2000
+    const maxHoursPerMonth = student.hoursPerMonth || plan?.hoursPerMonth || 130
 
     return (
         <DashboardLayout role="supervisor">
@@ -130,7 +131,7 @@ export default async function SupervisorStudentDetailPage({ params }: { params: 
                         <div className="bg-card border rounded-xl overflow-hidden shadow-sm flex divide-x">
                             <div className="px-6 py-3 text-center">
                                 <p className="text-xs text-muted-foreground uppercase font-semibold">Total Hours</p>
-                                <p className="text-2xl font-bold">{totalHours.toFixed(1)} <span className="text-sm font-normal text-muted-foreground">/ {globalLimit}</span></p>
+                                <p className="text-2xl font-bold">{totalHours.toFixed(1)} <span className="text-sm font-normal text-muted-foreground">/ {totalPlanHours}</span></p>
                             </div>
                             <div className="px-6 py-3 text-center hidden sm:block">
                                 <p className="text-xs text-muted-foreground uppercase font-semibold">Documents</p>

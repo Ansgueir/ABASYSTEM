@@ -4,6 +4,7 @@
 import { auth } from "@/auth"
 import { prisma } from "@/lib/prisma"
 import { revalidatePath } from "next/cache"
+import { validatePlanLimits } from "./plan-limits-helper"
 
 const GENERIC_GROUP_LIMIT = 10
 
@@ -48,6 +49,8 @@ export async function createGroupSession(date: Date, startTime: string, topic: s
 
             // Generate attendance and supervision hours for each student
             for (const sId of selectedStudents) {
+                await validatePlanLimits(sId, date, durationMin / 60, 'supervision')
+
                 await tx.groupSupervisionAttendance.create({
                     data: {
                         sessionId: groupSession.id,
@@ -108,6 +111,8 @@ export async function registerStudentToGroup(sessionId: string, studentId: strin
         })
 
         if (existing) return { error: "Student already registered" }
+
+        await validatePlanLimits(studentId, groupSession.date, 1.0, 'supervision')
 
         await (prisma as any).$transaction(async (tx: any) => {
             await tx.groupSupervisionAttendance.create({
@@ -234,6 +239,8 @@ export async function updateGroupSession(sessionId: string, date: Date, time: st
             }
 
             for (const sId of toAdd) {
+                await validatePlanLimits(sId, date, durationMin / 60, 'supervision')
+
                 await tx.groupSupervisionAttendance.create({
                     data: {
                         sessionId: actualSessionId,

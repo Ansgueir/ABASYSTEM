@@ -31,7 +31,7 @@ export async function StudentStats({ studentId }: { studentId: string }) {
                     <Progress value={stats.supervisionPercentage * 20} className="h-2 mt-2" />
                     {/* Scale: 5% is minimum goal. If we map 0-5% to 0-100%, 5% = 100% logic? No, let's just show raw % but maybe color. */}
                     <p className="text-xs text-muted-foreground mt-2">
-                        Target: 5% minimum
+                        Target: {stats.supervisionTargetPct.toFixed(0)}% minimum
                     </p>
                 </CardContent>
             </Card>
