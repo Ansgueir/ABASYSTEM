@@ -6,6 +6,7 @@ import { enUS } from 'date-fns/locale'
 import 'react-big-calendar/lib/css/react-big-calendar.css'
 import { useMemo } from 'react'
 import { Badge } from "@/components/ui/badge"
+import { Users } from 'lucide-react'
 // Note: Some global CSS overrides will be necessary for Next.js app router and Tailwind 
 // to properly style the react-big-calendar elements, but this file provides the functional calendar.
 
@@ -46,7 +47,7 @@ export function TimesheetCalendar({ hours, onEventClick, role }: TimesheetCalend
                 let supName = hour.supervisor?.fullName || hour.supervisorName || hour.session?.supervisor?.fullName;
                 if (!supName && role === 'office') supName = "Unassigned";
                 
-                title = `[G] ${groupName}`;
+                title = `${groupName}`;
                 if (supName) title += ` · ${supName}`;
                 if (hour.groupTopic && hour.groupTopic !== title) title += ` (${hour.groupTopic})`;
 
@@ -67,6 +68,7 @@ export function TimesheetCalendar({ hours, onEventClick, role }: TimesheetCalend
                 start,
                 end,
                 allDay: false,
+                isGroup,
                 resource: hour
             }
         }).filter(Boolean)
@@ -99,6 +101,15 @@ export function TimesheetCalendar({ hours, onEventClick, role }: TimesheetCalend
         }
     }
 
+    const EventComponent = ({ event }: any) => {
+        return (
+            <div className="flex flex-row items-center gap-1 overflow-hidden whitespace-nowrap text-ellipsis h-full">
+                {event.isGroup && <Users className="h-3 w-3 shrink-0 opacity-90" />}
+                <span className="truncate">{event.title}</span>
+            </div>
+        )
+    }
+
     return (
         <div className="min-h-[800px] w-full flex flex-col relative z-0">
             <Calendar
@@ -110,6 +121,9 @@ export function TimesheetCalendar({ hours, onEventClick, role }: TimesheetCalend
                 defaultView="month"
                 onSelectEvent={(event) => onEventClick?.(event.resource)}
                 eventPropGetter={eventStyleGetter}
+                components={{
+                    event: EventComponent
+                }}
                 popup={true}
                 tooltipAccessor={(event: any) => `${event.title} - ${event.resource.status || 'Pending'}`}
             />
