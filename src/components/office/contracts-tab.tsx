@@ -181,9 +181,11 @@ export function OfficeContractsTab({
                         </Badge>
                     </CardDescription>
                 </div>
-                <Button size="sm" onClick={handleCreateNew}>
-                    <Plus className="mr-2 h-4 w-4" /> New Contract
-                </Button>
+                {(contracts || []).length === 0 && (
+                    <Button size="sm" onClick={handleCreateNew}>
+                        <Plus className="mr-2 h-4 w-4" /> New Contract
+                    </Button>
+                )}
             </CardHeader>
             <CardContent>
                 {(contracts || []).length === 0 ? (

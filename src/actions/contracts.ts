@@ -155,6 +155,13 @@ export async function createContract(data: {
     const student = await prisma.student.findUnique({ where: { id: data.studentId }, include: { user: true } })
     if (!student) return { error: "Student not found" }
 
+    const existingContract = await prisma.contract.findFirst({
+        where: { studentId: data.studentId }
+    })
+    if (existingContract) {
+        return { error: "Limitation: Solo se permite 1 contrato por estudiante." }
+    }
+
     const contractEffectiveDate = (student as any).startDate || new Date()
     
     // Auto-merge group assignment supervisors into the contract as secondary ones (unless primary)
