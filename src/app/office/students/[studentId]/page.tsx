@@ -65,6 +65,9 @@ export default async function OfficeStudentDetailPage({ params }: { params: Prom
                     orderBy: { session: { date: "desc" } },
                     take: 200
                 },
+                supervisors: {
+                    include: { supervisor: true }
+                }
             }
         });
     } catch (error) {
