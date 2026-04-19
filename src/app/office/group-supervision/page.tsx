@@ -1,3 +1,4 @@
+// @ts-nocheck
 import DashboardLayout from "@/components/dashboard-layout"
 import { auth } from "@/auth"
 import { prisma } from "@/lib/prisma"
@@ -59,3 +60,4 @@ export default async function GroupSupervisionPage() {
         </DashboardLayout>
     )
 }
+

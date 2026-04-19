@@ -89,6 +89,39 @@ export async function updateStudentAssignments(
                 where: { id: studentId },
                 data: { supervisorId: primarySupervisorId }
             })
+
+            // Sync with ACTIVE Contract if it exists
+            const activeContract = await tx.contract.findFirst({
+                where: { studentId, status: "ACTIVE" }
+            })
+
+            if (activeContract) {
+                await tx.contractSupervisor.deleteMany({
+                    where: { contractId: activeContract.id }
+                })
+                
+                const contractSupervisors = []
+                if (primarySupervisorId) {
+                    contractSupervisors.push({
+                        contractId: activeContract.id,
+                        supervisorId: primarySupervisorId,
+                        isMainSupervisor: true
+                    })
+                }
+                for (const supId of additionalSupervisorIds) {
+                    contractSupervisors.push({
+                        contractId: activeContract.id,
+                        supervisorId: supId,
+                        isMainSupervisor: false
+                    })
+                }
+
+                if (contractSupervisors.length > 0) {
+                    await tx.contractSupervisor.createMany({
+                        data: contractSupervisors
+                    })
+                }
+            }
         })
 
         revalidatePath("/office/supervisors")
