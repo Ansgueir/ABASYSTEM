@@ -168,8 +168,9 @@ export function GroupSupervisionClientView({ officeGroups, actualSessions, super
     const actualMap = useMemo(() => {
         const map = new Map<string, any>()
         for (const s of actualSessions) {
-            const dateStr = new Date(s.date).toDateString()
-            const key = `${s.supervisorId}_${dateStr}`
+            // Normalize to YYYY-MM-DD
+            const dateStr = s.date ? new Date(s.date).toISOString().slice(0, 10) : ""
+            const key = `${s.groupId}_${s.supervisorId}_${dateStr}`
             map.set(key, s)
         }
         return map
@@ -177,8 +178,8 @@ export function GroupSupervisionClientView({ officeGroups, actualSessions, super
 
     const allEvents = useMemo(() =>
         virtualEvents.map(ev => {
-            const dateStr = new Date(ev.date).toDateString()
-            const key = `${ev.supervisorId}_${dateStr}`
+            const dateStr = ev.date ? new Date(ev.date).toISOString().slice(0, 10) : ""
+            const key = `${ev.groupId}_${ev.supervisorId}_${dateStr}`
             const actual = actualMap.get(key)
             if (actual) {
                 return {

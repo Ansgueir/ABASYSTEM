@@ -1,0 +1,1 @@
+﻿const { PrismaClient } = require('@prisma/client'); const p = new PrismaClient(); p.groupSupervisionAttendance.findMany({ include: { session: true } }).then(items => { console.log(JSON.stringify(items, null, 2)); p.disconnect(); }).catch(console.error);

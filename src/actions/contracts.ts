@@ -299,6 +299,19 @@ export async function updateContract(data: {
             })),
             skipDuplicates: true
         })
+        
+        // Also ensure sessions are scheduled just like createContract does
+        const startDate = (currentContract.student as any).startDate || new Date()
+        const endDate = (currentContract.student as any).endDate || (() => { const d = new Date(startDate); d.setMonth(d.getMonth() + ((currentContract.student as any).totalMonths || 12)); return d })()
+        const planType = (currentContract.student as any).fieldworkType || "REGULAR"
+        
+        // First delete any future attendance to avoid piling up if they change groups
+        const todayZero = new Date(); todayZero.setHours(0,0,0,0)
+        await (prisma as any).groupSupervisionAttendance.deleteMany({
+            where: { studentId: currentContract.studentId, session: { date: { gte: todayZero } } }
+        })
+        
+        await scheduleGroupSessions(currentContract.studentId, data.groupAssignments, startDate, endDate, planType)
     }
 
     if (data.mainSupervisorId) {
