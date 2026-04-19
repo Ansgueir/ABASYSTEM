@@ -9,7 +9,6 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/custom-tabs"
 import { serialize } from "@/lib/serialize"
 import { ManageStudentsDialog, ManageStudentsForm } from "@/components/office/manage-students-dialog"
-import { ManageGroupForm } from "@/components/office/manage-group-form"
 import { EditableSupervisorContactInfo } from "@/components/shared/editable-contact-info"
 import { EditableSupervisorFinancialInfo } from "@/components/office/editable-financial-info"
 import { format } from "date-fns"
@@ -151,7 +150,6 @@ export default async function OfficeSupervisorDetailPage(props: any) {
                         <TabsTrigger value="profile" className="px-6 font-medium">Profile</TabsTrigger>
                         <TabsTrigger value="students" className="px-6 font-medium">Students</TabsTrigger>
                         <TabsTrigger value="manage" className="px-6 font-medium">Manage Students</TabsTrigger>
-                        <TabsTrigger value="groups" className="px-6 font-medium">Manage Group</TabsTrigger>
                         <TabsTrigger value="documents" className="px-6 font-medium">Documents</TabsTrigger>
                         <TabsTrigger value="activity" className="px-6 font-medium">Activity Log</TabsTrigger>
                     </TabsList>
@@ -223,23 +221,6 @@ export default async function OfficeSupervisorDetailPage(props: any) {
                         </div>
                     </TabsContent>
 
-                    <TabsContent value="groups">
-                        <div className="bg-card border rounded-2xl p-8 shadow-sm max-w-4xl">
-                            <div className="mb-6">
-                                <h3 className="text-xl font-bold flex items-center gap-2">
-                                    <Users className="h-6 w-6 text-primary" />
-                                    Manage Group Students
-                                </h3>
-                                <p className="text-sm text-muted-foreground mt-1">
-                                    Configure group settings and specific assignments for {safeSupervisor.fullName}.
-                                </p>
-                            </div>
-                            <ManageGroupForm 
-                                supervisorId={safeSupervisor.id} 
-                                supervisorName={safeSupervisor.fullName} 
-                            />
-                        </div>
-                    </TabsContent>
 
                     <TabsContent value="documents">
                         <div className="flex justify-between items-center mb-4">

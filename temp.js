@@ -1,0 +1,1 @@
+﻿const { PrismaClient } = require('@prisma/client'); const p = new PrismaClient(); p.groupSupervisionSession.count({ where: { groupId: { not: null } } }).then(c => console.log('Count:', c)).catch(console.error).finally(() => p.disconnect());
