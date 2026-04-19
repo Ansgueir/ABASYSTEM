@@ -208,9 +208,6 @@ export function GroupSessionDetailsDialog({ session, supervisors, students, chil
                                 <Button variant="ghost" size="icon" onClick={() => setIsEditing(true)} className="h-8 w-8 text-indigo-600 bg-indigo-50 hover:bg-indigo-100 rounded-full">
                                     <Edit className="h-4 w-4" />
                                 </Button>
-                                <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive bg-destructive/5 hover:bg-destructive/10 rounded-full" onClick={handleDelete}>
-                                    <Trash2 className="h-4 w-4" />
-                                </Button>
                             </div>
                         )}
                     </div>
@@ -466,49 +463,7 @@ export function GroupSessionDetailsDialog({ session, supervisors, students, chil
             </DialogContent>
         </Dialog>
 
-        {/* Chain Confirmation Dialog */}
-        <Dialog open={showChainConfirm} onOpenChange={setShowChainConfirm}>
-            <DialogContent className="sm:max-w-[420px]">
-                <DialogHeader>
-                    <DialogTitle className="text-destructive flex items-center gap-2">
-                        <Trash2 className="h-5 w-5" />
-                        Delete Recurring Session
-                    </DialogTitle>
-                    <DialogDescription>
-                        This session is part of a recurring series. How would you like to proceed?
-                    </DialogDescription>
-                </DialogHeader>
-                <div className="space-y-3 pt-4">
-                    <Button
-                        variant="outline"
-                        className="w-full h-14 justify-start text-left px-4 rounded-xl hover:border-destructive/50 hover:text-destructive transition-colors"
-                        onClick={executeSingleDelete}
-                        disabled={isPending}
-                    >
-                        <div>
-                            <p className="font-semibold text-sm">This session only</p>
-                            <p className="text-xs text-muted-foreground">Only remove this specific occurrence</p>
-                        </div>
-                    </Button>
-                    <Button
-                        variant="outline"
-                        className="w-full h-14 justify-start text-left px-4 rounded-xl hover:border-destructive/50 hover:text-destructive transition-colors"
-                        onClick={executeChainDelete}
-                        disabled={isPending}
-                    >
-                        <div>
-                            <p className="font-semibold text-sm">This and all future sessions</p>
-                            <p className="text-xs text-muted-foreground">Remove this session and every occurrence after it</p>
-                        </div>
-                    </Button>
-                </div>
-                <div className="flex justify-end pt-2">
-                    <Button variant="ghost" onClick={() => setShowChainConfirm(false)} disabled={isPending} className="rounded-full">
-                        Cancel
-                    </Button>
-                </div>
-            </DialogContent>
-        </Dialog>
+
 
         {/* Chain Edit Confirmation Dialog */}
         <Dialog open={showChainEditConfirm} onOpenChange={setShowChainEditConfirm}>
