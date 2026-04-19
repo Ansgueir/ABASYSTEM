@@ -158,39 +158,76 @@ export async function updateGroupSession(sessionId: string, date: Date, time: st
         const selectedStudents = studentIds.slice(0, finalMax)
 
         await (prisma as any).$transaction(async (tx: any) => {
-            const currentGroup = await tx.groupSupervisionSession.findUnique({
-                where: { id: sessionId },
-                include: { attendance: true }
-            })
+            const isVirtual = sessionId.startsWith('virtual_');
+            let actualSessionId = sessionId;
 
-            if (!currentGroup) throw new Error("Session not found")
+            if (isVirtual) {
+                // virtual_groupId_supervisorId_w
+                const parts = sessionId.split('_');
+                const groupId = parts[1];
+                
+                const newSession = await tx.groupSupervisionSession.create({
+                    data: {
+                        groupId,
+                        date,
+                        startTime: startDateTime,
+                        topic,
+                        maxStudents: finalMax,
+                        supervisorId
+                    }
+                });
+                actualSessionId = newSession.id;
+            } else {
+                const currentGroup = await tx.groupSupervisionSession.findUnique({
+                    where: { id: sessionId },
+                    include: { attendance: true }
+                });
 
-            await tx.groupSupervisionSession.update({
-                where: { id: sessionId },
-                data: {
-                    date,
-                    startTime: startDateTime,
-                    topic,
-                    maxStudents: finalMax,
-                    supervisorId
+                if (!currentGroup) throw new Error("Session not found");
+
+                await tx.groupSupervisionSession.update({
+                    where: { id: sessionId },
+                    data: {
+                        date,
+                        startTime: startDateTime,
+                        topic,
+                        maxStudents: finalMax,
+                        supervisorId
+                    }
+                });
+            }
+
+            let existingIds: string[] = [];
+            let currentGroupDate: Date | null = null;
+            let currentGroupStartTime: Date | null = null;
+
+            if (!isVirtual) {
+                const currentGroup = await tx.groupSupervisionSession.findUnique({
+                    where: { id: sessionId },
+                    include: { attendance: true }
+                });
+                if (currentGroup) {
+                     existingIds = currentGroup.attendance.map((a: any) => a.studentId);
+                     currentGroupDate = currentGroup.date;
+                     currentGroupStartTime = currentGroup.startTime;
                 }
-            })
+            }
 
-            const existingIds = currentGroup.attendance.map(a => a.studentId)
+           // existingIds calculated above
             const toAdd = selectedStudents.filter(id => !existingIds.includes(id))
             const toRemove = existingIds.filter(id => !selectedStudents.includes(id))
 
-            if (toRemove.length > 0) {
+            if (toRemove.length > 0 && !isVirtual && currentGroupDate && currentGroupStartTime) {
                 await tx.groupSupervisionAttendance.deleteMany({
-                    where: { sessionId, studentId: { in: toRemove } }
+                    where: { sessionId: actualSessionId, studentId: { in: toRemove } }
                 })
                 
                 // Cleanup their hours too using same time/date/student matching
                 await tx.supervisionHour.deleteMany({
                     where: { 
                         studentId: { in: toRemove },
-                        date: currentGroup.date,
-                        startTime: currentGroup.startTime,
+                        date: currentGroupDate,
+                        startTime: currentGroupStartTime,
                         supervisionType: "GROUP"
                     }
                 })
@@ -199,7 +236,7 @@ export async function updateGroupSession(sessionId: string, date: Date, time: st
             for (const sId of toAdd) {
                 await tx.groupSupervisionAttendance.create({
                     data: {
-                        sessionId: sessionId,
+                        sessionId: actualSessionId,
                         studentId: sId,
                         attended: true
                     }

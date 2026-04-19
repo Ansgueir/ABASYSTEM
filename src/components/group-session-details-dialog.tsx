@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import {
     Dialog,
@@ -21,6 +21,7 @@ import {
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { updateGroupSession, deleteGroupSession, deleteGroupSessionChain, updateGroupSessionChain } from "@/actions/groups"
+import { getBusySupervisorIds } from "@/actions/groups-busy"
 import { useRouter } from "next/navigation"
 import { CalendarIcon, Edit, Trash2, Clock, Users, Loader2, CheckCircle2 } from "lucide-react"
 import { toast } from "sonner"
@@ -58,6 +59,9 @@ export function GroupSessionDetailsDialog({ session, supervisors, students, chil
     })
     const [durationMin, setDurationMin] = useState(60)
 
+    const [busySupervisorIds, setBusySupervisorIds] = useState<string[]>([])
+
+
     const [maxStudents, setMaxStudents] = useState(session.maxStudents.toString())
     const [supervisorId, setSupervisorId] = useState(session.supervisorId)
     const [selectedStudents, setSelectedStudents] = useState<string[]>(
@@ -69,6 +73,22 @@ export function GroupSessionDetailsDialog({ session, supervisors, students, chil
     const [showChainConfirm, setShowChainConfirm] = useState(false)
     const [showChainEditConfirm, setShowChainEditConfirm] = useState(false)
     const router = useRouter()
+
+    // Query for busy supervisors whenever date or time changes while editing
+    useEffect(() => {
+        let mounted = true;
+        if (!isEditing || !date || !startTimeStr) return;
+        
+        const fetchBusy = async () => {
+            const dateStr = date.toISOString();
+            const res = await getBusySupervisorIds(dateStr, startTimeStr, session.id);
+            if (mounted && res.success) {
+                setBusySupervisorIds(res.busyIds || []);
+            }
+        };
+        fetchBusy();
+        return () => { mounted = false };
+    }, [date, startTimeStr, isEditing, session.id]);
 
     async function handleUpdate(e: React.FormEvent) {
         e.preventDefault()
@@ -86,13 +106,7 @@ export function GroupSessionDetailsDialog({ session, supervisors, students, chil
             return
         }
 
-        // If this session belongs to a recurrence chain, ask which scope
-        if (session.recurrenceId) {
-            setShowChainEditConfirm(true)
-            return
-        }
-
-        // No chain — update single session directly
+        // Always edit the single specific date block, separating it from its chain
         await executeSingleUpdate()
     }
 
@@ -110,26 +124,7 @@ export function GroupSessionDetailsDialog({ session, supervisors, students, chil
         }
     }
 
-    async function executeChainUpdate() {
-        setIsPending(true)
-        const res = await updateGroupSessionChain(
-            session.id,
-            startTimeStr,
-            topic,
-            parseInt(maxStudents),
-            supervisorId,
-            durationMin
-        )
-        setIsPending(false)
-        if ('success' in res && res.success) {
-            setIsEditing(false)
-            setShowChainEditConfirm(false)
-            toast.success(`Updated ${(res as any).updatedCount || 1} session(s) in the series!`)
-            router.refresh()
-        } else {
-            toast.error((res as any).error || "Failed to update")
-        }
-    }
+
 
     async function handleDelete() {
         // If this session belongs to a chain, ask user what to do
@@ -229,9 +224,14 @@ export function GroupSessionDetailsDialog({ session, supervisors, students, chil
                                             <SelectValue placeholder="Select supervisor..." />
                                         </SelectTrigger>
                                         <SelectContent>
-                                            {supervisors.map(sup => (
+                                            {supervisors
+                                                .filter(sup => !busySupervisorIds.includes(sup.id) || sup.id === supervisorId)
+                                                .map(sup => (
                                                 <SelectItem key={sup.id} value={sup.id}>{sup.fullName}</SelectItem>
                                             ))}
+                                            {supervisors.filter(sup => !busySupervisorIds.includes(sup.id) || sup.id === supervisorId).length === 0 && (
+                                                <div className="p-2 text-xs text-muted-foreground text-center">No available supervisors</div>
+                                            )}
                                         </SelectContent>
                                     </Select>
                                 ) : (
@@ -465,49 +465,6 @@ export function GroupSessionDetailsDialog({ session, supervisors, students, chil
 
 
 
-        {/* Chain Edit Confirmation Dialog */}
-        <Dialog open={showChainEditConfirm} onOpenChange={setShowChainEditConfirm}>
-            <DialogContent className="sm:max-w-[420px]">
-                <DialogHeader>
-                    <DialogTitle className="text-primary flex items-center gap-2">
-                        <CheckCircle2 className="h-5 w-5" />
-                        Edit Recurring Session
-                    </DialogTitle>
-                    <DialogDescription>
-                        This session is part of a recurring series. Which sessions should be updated?
-                    </DialogDescription>
-                </DialogHeader>
-                <div className="space-y-3 pt-4">
-                    <Button
-                        variant="outline"
-                        className="w-full h-14 justify-start text-left px-4 rounded-xl hover:border-primary/50 hover:text-primary transition-colors"
-                        onClick={executeSingleUpdate}
-                        disabled={isPending}
-                    >
-                        <div>
-                            <p className="font-semibold text-sm">This session only</p>
-                            <p className="text-xs text-muted-foreground">Only update this specific occurrence</p>
-                        </div>
-                    </Button>
-                    <Button
-                        variant="outline"
-                        className="w-full h-14 justify-start text-left px-4 rounded-xl hover:border-primary/50 hover:text-primary transition-colors"
-                        onClick={executeChainUpdate}
-                        disabled={isPending}
-                    >
-                        <div>
-                            <p className="font-semibold text-sm">This and all future sessions</p>
-                            <p className="text-xs text-muted-foreground">Update this session and every occurrence after it</p>
-                        </div>
-                    </Button>
-                </div>
-                <div className="flex justify-end pt-2">
-                    <Button variant="ghost" onClick={() => setShowChainEditConfirm(false)} disabled={isPending} className="rounded-full">
-                        Cancel
-                    </Button>
-                </div>
-            </DialogContent>
-        </Dialog>
         </>
     )
 }
