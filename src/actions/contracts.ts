@@ -156,6 +156,10 @@ export async function createContract(data: {
     if (!student) return { error: "Student not found" }
 
     const contractEffectiveDate = (student as any).startDate || new Date()
+    
+    // Auto-merge group assignment supervisors into the contract as secondary ones (unless primary)
+    const groupSupIds = data.groupAssignments?.map(g => g.supervisorId) || []
+    const allSupervisors = Array.from(new Set([...data.supervisorIds, ...groupSupIds]))
 
     const contract = await prisma.contract.create({
         data: {
@@ -163,7 +167,7 @@ export async function createContract(data: {
             effectiveDate: contractEffectiveDate,
             status: "SENT",
             supervisors: {
-                create: data.supervisorIds.map(supId => ({
+                create: allSupervisors.map(supId => ({
                     supervisorId: supId,
                     isMainSupervisor: supId === data.mainSupervisorId
                 }))
@@ -209,7 +213,7 @@ export async function createContract(data: {
             isPrimary: true
         })
     }
-    const secondaryIds = data.supervisorIds.filter(id => id !== data.mainSupervisorId)
+    const secondaryIds = allSupervisors.filter(id => id !== data.mainSupervisorId)
     for (const secId of secondaryIds) {
         ProfileSyncSupervisors.push({
             studentId: data.studentId,
@@ -275,6 +279,10 @@ export async function updateContract(data: {
     await prisma.contractSupervisor.deleteMany({ where: { contractId: data.contractId } })
     await (prisma as any).contractGroupAssignment.deleteMany({ where: { contractId: data.contractId } })
 
+    // Auto-merge group assignment supervisors into the contract as secondary ones (unless primary)
+    const groupSupIds = data.groupAssignments?.map(g => g.supervisorId) || []
+    const allSupervisors = Array.from(new Set([...data.supervisorIds, ...groupSupIds]))
+
     await prisma.contract.update({
         where: { id: data.contractId },
         data: {
@@ -282,7 +290,7 @@ export async function updateContract(data: {
             status: nextStatus,
             rejectionReason: nextStatus === "SENT" ? null : currentContract.rejectionReason,
             supervisors: {
-                create: data.supervisorIds.map(supId => ({
+                create: allSupervisors.map(supId => ({
                     supervisorId: supId,
                     isMainSupervisor: supId === data.mainSupervisorId
                 }))
@@ -334,7 +342,7 @@ export async function updateContract(data: {
             isPrimary: true
         })
     }
-    const secondaryIds = data.supervisorIds.filter(id => id !== data.mainSupervisorId)
+    const secondaryIds = allSupervisors.filter(id => id !== data.mainSupervisorId)
     for (const secId of secondaryIds) {
         ProfileSyncSupervisors.push({
             studentId: currentContract.studentId,
