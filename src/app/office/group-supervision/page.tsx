@@ -18,27 +18,37 @@ export default async function GroupSupervisionPage() {
         orderBy: { fullName: 'asc' }
     })
 
-    const groupSessions = await prisma.groupSupervisionSession.findMany({
+    // Load all OfficeGroups with their assigned supervisors
+    const officeGroups = await (prisma as any).officeGroup.findMany({
+        include: {
+            supervisors: {
+                include: {
+                    supervisor: { select: { id: true, fullName: true } }
+                }
+            }
+        }
+    })
+
+    // Load actual sessions with attendance for the next 8 weeks (to show real student enrollment)
+    const today = new Date()
+    today.setHours(0, 0, 0, 0)
+    const eightWeeksOut = new Date(today)
+    eightWeeksOut.setDate(eightWeeksOut.getDate() + 56)
+
+    const actualSessions = await (prisma as any).groupSupervisionSession.findMany({
+        where: { date: { gte: today, lte: eightWeeksOut } },
         include: {
             supervisor: { select: { id: true, fullName: true } },
-            group: { select: { id: true, name: true } },
             attendance: {
                 include: { student: { select: { id: true, fullName: true } } }
             }
-        },
-        orderBy: { date: 'desc' }
+        }
     })
 
-    const mappedSessions = groupSessions.map(({ attendance, supervisor, group, ...sess }) => ({
-        ...sess,
-        supervisor: { id: supervisor.id, fullName: supervisor.fullName },
-        groupName: group?.name || "Unlinked",
-        participants: attendance.map(a => ({
-            id: a.id,
-            studentId: a.studentId,
-            student: a.student ? { fullName: a.student.fullName } : undefined
-        }))
-    }))
+    // Serialize for client
+    const serialize = (obj: any): any => JSON.parse(JSON.stringify(obj, (_, v) =>
+        typeof v === "bigint" ? v.toString() : v
+    ))
 
     return (
         <DashboardLayout role="office">
@@ -53,7 +63,8 @@ export default async function GroupSupervisionPage() {
 
                 {/* Main Content (Calendar/List Switcher) */}
                 <GroupSupervisionClientView 
-                    sessions={mappedSessions} 
+                    officeGroups={serialize(officeGroups)}
+                    actualSessions={serialize(actualSessions)}
                     supervisors={supervisors} 
                 />
             </div>
