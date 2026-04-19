@@ -34,14 +34,45 @@ async function scheduleGroupSessions(
     endDate: Date,
     planType: string
 ) {
-    const intervalDays = planType === "CONCENTRATED" ? 7 : 14 // weekly vs biweekly
+    const n = groupAssignments.length
+    if (n === 0) return
 
-    for (const ga of groupAssignments) {
-        const officeGroup = await (prisma as any).officeGroup.findUnique({ where: { id: ga.officeGroupId } })
-        if (!officeGroup) continue
+    // ── Interval/offset matrix ────────────────────────────────────────────────
+    // REGULAR:  1 day→14d interval | 2 days→28d each, 14d offset between them
+    // CONC:     1 day→7d | 2→14d each, 7d offset | 4→28d each, 7d offset
+    // (3 days is blocked at the dialog level)
+    let intervalDays: number
+    let offsetMultiplierDays: number
+    if (planType === "CONCENTRATED") {
+        if (n === 1) { intervalDays = 7; offsetMultiplierDays = 0 }
+        else if (n === 2) { intervalDays = 14; offsetMultiplierDays = 7 }
+        else { intervalDays = 28; offsetMultiplierDays = 7 } // 4 days
+    } else { // REGULAR
+        if (n === 1) { intervalDays = 14; offsetMultiplierDays = 0 }
+        else { intervalDays = 28; offsetMultiplierDays = 14 } // 2 days staggered fortnightly
+    }
 
+    // Fetch all office groups and sort by day-of-week index for deterministic ordering
+    const withGroups = await Promise.all(
+        groupAssignments.map(async (ga, idx) => {
+            const officeGroup = await (prisma as any).officeGroup.findUnique({ where: { id: ga.officeGroupId } })
+            return { ga, officeGroup, idx }
+        })
+    )
+    const sorted = withGroups
+        .filter(x => x.officeGroup)
+        .sort((a, b) => (DAY_INDICES[a.officeGroup.dayOfWeek] ?? 0) - (DAY_INDICES[b.officeGroup.dayOfWeek] ?? 0))
+
+    for (let i = 0; i < sorted.length; i++) {
+        const { ga, officeGroup } = sorted[i]
         const [startHour, startMin] = String(officeGroup.startTime).split(":").map(Number)
-        const dates = generateGroupDates(startDate, endDate, officeGroup.dayOfWeek, intervalDays)
+
+        // Each assignment starts offset days later than the previous
+        const effectiveStart = new Date(startDate)
+        effectiveStart.setDate(effectiveStart.getDate() + i * offsetMultiplierDays)
+        effectiveStart.setHours(0, 0, 0, 0)
+
+        const dates = generateGroupDates(effectiveStart, endDate, officeGroup.dayOfWeek, intervalDays)
 
         for (const date of dates) {
             const sessionDate = new Date(date)
@@ -49,15 +80,11 @@ async function scheduleGroupSessions(
             const startTime = new Date(date)
             startTime.setHours(startHour, startMin, 0, 0)
 
-            // Find existing session for this supervisor on this date
             const dayStart = new Date(sessionDate); dayStart.setHours(0, 0, 0, 0)
             const dayEnd = new Date(sessionDate); dayEnd.setHours(23, 59, 59, 999)
 
             let existingSession = await (prisma as any).groupSupervisionSession.findFirst({
-                where: {
-                    supervisorId: ga.supervisorId,
-                    date: { gte: dayStart, lte: dayEnd }
-                }
+                where: { supervisorId: ga.supervisorId, date: { gte: dayStart, lte: dayEnd } }
             })
 
             let sessionId: string
