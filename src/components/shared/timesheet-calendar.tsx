@@ -38,17 +38,27 @@ export function TimesheetCalendar({ hours, onEventClick, role }: TimesheetCalend
             const durationMs = (Number(hour.hours) || 1) * 3600000
             const end = new Date(start.getTime() + durationMs)
 
-            let title = hour.activityType || (hour.type === 'SUPERVISION' || hour.type === 'supervised' ? (hour.supervisionType === 'GROUP' ? "Group Supervision" : "Supervised") : "Independent")
-            if (hour.groupTopic) title = `${title}: ${hour.groupTopic}`
-            else if (hour.supervisionType === 'GROUP' && !title.includes("Group")) title = `Group Supervision: ${title}`
+            const isGroup = hour.supervisionType === 'GROUP' || hour.groupId;
             
-            if (role === 'supervisor') {
-                const studentName = hour.student ? `${hour.student.firstName} ${hour.student.lastName}` : (hour.student?.fullName || 'Student')
-                title = `${title} (${studentName})`
-            } else if (role === 'office') {
-                const supervisorName = hour.supervisor?.fullName || 'Supervisor'
-                const studentsCount = hour.participants?.length || hour.studentsCount || 0
-                title = `${title} - ${supervisorName} (${studentsCount}/10)`
+            let title;
+            if (isGroup) {
+                const groupName = hour.groupName || hour.activityType || hour.group?.name || hour.session?.group?.name || "Group";
+                let supName = hour.supervisor?.fullName || hour.supervisorName || hour.session?.supervisor?.fullName;
+                if (!supName && role === 'office') supName = "Unassigned";
+                
+                title = `[G] ${groupName}`;
+                if (supName) title += ` · ${supName}`;
+                if (hour.groupTopic && hour.groupTopic !== title) title += ` (${hour.groupTopic})`;
+
+            } else {
+                title = hour.activityType || (hour.type === 'SUPERVISION' || hour.type === 'supervised' ? "Supervised" : "Independent");
+                if (role === 'supervisor') {
+                    const studentName = hour.student ? `${hour.student.firstName || ''} ${hour.student.lastName || ''}`.trim() : (hour.student?.fullName || 'Student');
+                    title = `${title} (${studentName})`;
+                } else if (role === 'office') {
+                    const supervisorName = hour.supervisor?.fullName || 'Supervisor';
+                    title = `${title} - ${supervisorName}`;
+                }
             }
 
             return {
