@@ -382,8 +382,8 @@ model GroupSupervisionSession {
   attendance       GroupSupervisionAttendance[]
   supervisionHours SupervisionHour[]
 
-  supervisor Supervisor       @relation(fields: [supervisorId], references: [id])
-  group      SupervisorGroup? @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  supervisor Supervisor    @relation(fields: [supervisorId], references: [id])
+  group      OfficeGroup? @relation(fields: [groupId], references: [id], onDelete: Cascade)
 }
 
 model GroupSupervisionAttendance {
@@ -688,7 +688,6 @@ model SupervisorGroup {
 
   supervisor    Supervisor                @relation(fields: [supervisorId], references: [id], onDelete: Cascade)
   students      GroupStudent[]
-  groupSessions GroupSupervisionSession[]
 
   @@unique([supervisorId, name])
   @@index([supervisorId])
@@ -723,8 +722,9 @@ model OfficeGroup {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  supervisors OfficeGroupSupervisor[]
+  supervisors         OfficeGroupSupervisor[]
   contractAssignments ContractGroupAssignment[]
+  groupSessions       GroupSupervisionSession[]
 
   // Enforce: only 1 REGULAR + 1 CONCENTRATED per day
   @@unique([groupType, dayOfWeek])
