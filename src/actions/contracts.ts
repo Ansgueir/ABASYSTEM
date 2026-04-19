@@ -84,7 +84,7 @@ async function scheduleGroupSessions(
             const dayEnd = new Date(sessionDate); dayEnd.setHours(23, 59, 59, 999)
 
             let existingSession = await (prisma as any).groupSupervisionSession.findFirst({
-                where: { supervisorId: ga.supervisorId, date: { gte: dayStart, lte: dayEnd } }
+                where: { groupId: ga.officeGroupId, supervisorId: ga.supervisorId, date: { gte: dayStart, lte: dayEnd } }
             })
 
             let sessionId: string
@@ -93,6 +93,7 @@ async function scheduleGroupSessions(
             } else {
                 const created = await (prisma as any).groupSupervisionSession.create({
                     data: {
+                        groupId: ga.officeGroupId,
                         supervisorId: ga.supervisorId,
                         date: sessionDate,
                         startTime,
@@ -188,13 +189,40 @@ export async function createContract(data: {
         await scheduleGroupSessions(data.studentId, data.groupAssignments, startDate, endDate, planType)
     }
 
-    // Update student primary supervisor
+    // Sync student profile supervisors
     if (data.mainSupervisorId) {
         await prisma.student.update({
             where: { id: data.studentId },
             data: { supervisorId: data.mainSupervisorId }
         })
     }
+    
+    await prisma.studentSupervisor.deleteMany({
+        where: { studentId: data.studentId }
+    })
+    
+    const ProfileSyncSupervisors = []
+    if (data.mainSupervisorId) {
+        ProfileSyncSupervisors.push({
+            studentId: data.studentId,
+            supervisorId: data.mainSupervisorId,
+            isPrimary: true
+        })
+    }
+    const secondaryIds = data.supervisorIds.filter(id => id !== data.mainSupervisorId)
+    for (const secId of secondaryIds) {
+        ProfileSyncSupervisors.push({
+            studentId: data.studentId,
+            supervisorId: secId,
+            isPrimary: false
+        })
+    }
+    if (ProfileSyncSupervisors.length > 0) {
+        await prisma.studentSupervisor.createMany({
+            data: ProfileSyncSupervisors
+        })
+    }
+
 
     // Notification + Email
     await (prisma as any).notification.create({
@@ -277,6 +305,33 @@ export async function updateContract(data: {
         await prisma.student.update({
             where: { id: currentContract.studentId },
             data: { supervisorId: data.mainSupervisorId }
+        })
+    }
+    
+    // Sync student profile supervisors
+    await prisma.studentSupervisor.deleteMany({
+        where: { studentId: currentContract.studentId }
+    })
+    
+    const ProfileSyncSupervisors = []
+    if (data.mainSupervisorId) {
+        ProfileSyncSupervisors.push({
+            studentId: currentContract.studentId,
+            supervisorId: data.mainSupervisorId,
+            isPrimary: true
+        })
+    }
+    const secondaryIds = data.supervisorIds.filter(id => id !== data.mainSupervisorId)
+    for (const secId of secondaryIds) {
+        ProfileSyncSupervisors.push({
+            studentId: currentContract.studentId,
+            supervisorId: secId,
+            isPrimary: false
+        })
+    }
+    if (ProfileSyncSupervisors.length > 0) {
+        await prisma.studentSupervisor.createMany({
+            data: ProfileSyncSupervisors
         })
     }
 

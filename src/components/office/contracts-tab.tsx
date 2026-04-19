@@ -197,6 +197,7 @@ export function OfficeContractsTab({
                         {(contracts || []).map(contract => {
                             if (!contract?.id) return null
                             const primarySup = contract.supervisors?.find(s => s.isMainSupervisor)
+                            const secondarySups = contract.supervisors?.filter(s => !s.isMainSupervisor) || []
                             const groupAssigns = contract.groupAssignments || []
 
                             return (
@@ -269,14 +270,25 @@ export function OfficeContractsTab({
 
                                     {/* Team display */}
                                     <div className="pt-2 border-t space-y-3">
-                                        {/* Individual supervisor */}
-                                        {primarySup && (
+                                        {/* Individual supervisors */}
+                                        {(primarySup || secondarySups.length > 0) && (
                                             <div className="space-y-1">
                                                 <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Individual Supervision</p>
-                                                <div className="flex items-center gap-1.5 rounded-lg border bg-yellow-50 border-yellow-200 px-3 py-2 w-fit">
-                                                    <Star className="h-3 w-3 text-yellow-500 fill-yellow-500" />
-                                                    <span className="text-xs font-semibold">{safe(primarySup.supervisor?.fullName)}</span>
-                                                    <span className="text-[10px] text-muted-foreground">{safe(primarySup.supervisor?.credentialType)}</span>
+                                                <div className="flex flex-wrap items-center gap-2">
+                                                    {primarySup && (
+                                                        <div className="flex items-center gap-1.5 rounded-lg border bg-yellow-50 border-yellow-200 px-3 py-2 w-fit">
+                                                            <Star className="h-3 w-3 text-yellow-500 fill-yellow-500" />
+                                                            <span className="text-xs font-semibold">{safe(primarySup.supervisor?.fullName)}</span>
+                                                            <span className="text-[10px] text-muted-foreground">{safe(primarySup.supervisor?.credentialType)}</span>
+                                                        </div>
+                                                    )}
+                                                    {secondarySups.map((sec, idx) => (
+                                                        <div key={idx} className="flex items-center gap-1.5 rounded-lg border bg-sky-50 border-sky-200 px-3 py-2 w-fit">
+                                                            <Star className="h-3 w-3 text-sky-500 fill-sky-400" />
+                                                            <span className="text-xs font-semibold">{safe(sec.supervisor?.fullName)}</span>
+                                                            <span className="text-[10px] text-muted-foreground">{safe(sec.supervisor?.credentialType)}</span>
+                                                        </div>
+                                                    ))}
                                                 </div>
                                             </div>
                                         )}
