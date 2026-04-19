@@ -172,6 +172,8 @@ export function ContractFormDialog({
         }
         if (hasConflict(opt)) { toast.warning(`Conflict: another supervisor is already on ${DAY_LABELS[opt.dayOfWeek]} ${opt.startTime}`); return }
         setGroupSelections(prev => [...prev, { supervisorId: opt.supervisorId, officeGroupId: opt.groupId }])
+        // A supervisor in a group session cannot also be a secondary individual supervisor
+        setSecondaryIds(prev => prev.filter(id => id !== opt.supervisorId))
     }
 
     // ── Individual logic ──────────────────────────────────────────────────────
@@ -272,6 +274,7 @@ export function ContractFormDialog({
                                     const isFull = sup.currentStudents >= sup.maxStudents
                                     const isPrimary = primaryId === sup.id
                                     const isSecondary = secondaryIds.includes(sup.id)
+                                    const isInGroup = groupSelections.some(g => g.supervisorId === sup.id)
                                     return (
                                         <div key={sup.id} className={cn(
                                             "grid grid-cols-[1fr_68px_52px_52px] px-4 py-2.5 items-center gap-2 transition-colors",
@@ -306,10 +309,14 @@ export function ContractFormDialog({
                                             <div className="flex justify-center">
                                                 <StarBtn
                                                     active={isSecondary}
-                                                    disabled={isPrimary}
+                                                    disabled={isPrimary || isInGroup}
                                                     color="sky"
                                                     onClick={() => toggleSecondary(sup.id)}
-                                                    title={isPrimary ? "Already Primary" : isSecondary ? "Remove secondary" : "Add as secondary"}
+                                                    title={
+                                                        isPrimary ? "Already Primary" :
+                                                        isInGroup ? "Already assigned as Group supervisor — cannot also be Secondary" :
+                                                        isSecondary ? "Remove secondary" : "Add as secondary"
+                                                    }
                                                 />
                                             </div>
                                         </div>
