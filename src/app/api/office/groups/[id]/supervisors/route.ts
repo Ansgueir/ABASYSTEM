@@ -23,11 +23,11 @@ export async function POST(req: NextRequest, context: { params: Promise<{ id: st
         // 2. Overlap validation
         const existingAssignments = await (prisma as any).officeGroupSupervisor.findMany({
             where: { supervisorId },
-            include: { officeGroup: true }
+            include: { group: true }
         })
 
         const overlap = existingAssignments.find((a: any) => {
-            const g = a.officeGroup;
+            const g = a.group;
             if (g.id === id) return false;
             if (g.dayOfWeek !== targetGroup.dayOfWeek) return false;
 
@@ -46,7 +46,7 @@ export async function POST(req: NextRequest, context: { params: Promise<{ id: st
 
         if (overlap) {
             return NextResponse.json({ 
-                error: `Conflicto de horario: Este supervisor ya está asignado al grupo '${overlap.officeGroup.name}' el ${overlap.officeGroup.dayOfWeek} a la misma hora (${overlap.officeGroup.startTime} - ${overlap.officeGroup.endTime}).` 
+                error: `Conflicto de horario: Este supervisor ya está asignado al grupo '${overlap.group.name}' el ${overlap.group.dayOfWeek} a la misma hora (${overlap.group.startTime} - ${overlap.group.endTime}).` 
             }, { status: 400 })
         }
 

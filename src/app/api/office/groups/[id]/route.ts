@@ -33,11 +33,11 @@ export async function PATCH(req: NextRequest, context: { params: Promise<{ id: s
             const supervisorId = sup.supervisorId;
             const existingAssignments = await (prisma as any).officeGroupSupervisor.findMany({
                 where: { supervisorId },
-                include: { officeGroup: true }
+                include: { group: true }
             })
 
             const overlap = existingAssignments.find((a: any) => {
-                const g = a.officeGroup;
+                const g = a.group;
                 if (g.id === id) return false;
                 if (g.dayOfWeek !== currentGroup.dayOfWeek) return false;
 
@@ -56,7 +56,7 @@ export async function PATCH(req: NextRequest, context: { params: Promise<{ id: s
 
             if (overlap) {
                 return NextResponse.json({ 
-                    error: `No puedes modificar el horario a ${finalStartTime}-${finalEndTime}. El supervisor asignado tiene conflicto con el grupo '${overlap.officeGroup.name}' en este mismo día.` 
+                    error: `No puedes modificar el horario a ${finalStartTime}-${finalEndTime}. El supervisor asignado tiene conflicto con el grupo '${overlap.group.name}' en este mismo día.` 
                 }, { status: 400 })
             }
         }
