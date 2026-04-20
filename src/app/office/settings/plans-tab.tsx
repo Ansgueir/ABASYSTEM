@@ -454,23 +454,6 @@ export function PlansTab() {
                             </div>
                         </div>
 
-                                {liveCalc && (
-                                    <div className="col-span-2 pt-2">
-                                        {((parseFloat(formData.individualSupervisedTarget) || 0) + (parseFloat(formData.groupSupervisionTarget) || 0)) > liveCalc.amountSupHours + 0.0001 ? (
-                                            <div className="flex items-center gap-2 text-xs font-bold text-red-600 bg-red-50 p-2 rounded-lg border border-red-100">
-                                                <AlertCircle className="h-4 w-4" />
-                                                Validation Error: Sum of Indiv. + Group ({(parseFloat(formData.individualSupervisedTarget) || 0) + (parseFloat(formData.groupSupervisionTarget) || 0)}h) exceeds total supervised hours ({liveCalc.amountSupHours.toFixed(1)}h).
-                                            </div>
-                                        ) : (
-                                            <div className="flex items-center gap-2 text-[10px] font-medium text-slate-500 italic px-1">
-                                                <CheckCircle2 className="h-3 w-3 text-emerald-500" />
-                                                Subdivision fits within the {liveCalc.amountSupHours.toFixed(1)}h allowed.
-                                            </div>
-                                        )}
-                                    </div>
-                                )}
-                            </div>
-                        </div>
 
                         {/* ── Section: Auto-Calculated Preview ── */}
                         <div className={`rounded-xl border p-4 space-y-3 transition-all ${liveCalc ? 'border-emerald-200 bg-emerald-50/30' : 'border-dashed border-muted bg-muted/10'}`}>
