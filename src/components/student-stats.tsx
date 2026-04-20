@@ -27,10 +27,10 @@ export async function StudentStats({ studentId }: { studentId: string }) {
                     <Clock className="h-4 w-4 text-muted-foreground" />
                 </CardHeader>
                 <CardContent>
-                    <div className="text-2xl font-bold">{stats.totalIndependent.toFixed(1)} / {stats.total.toFixed(1)}</div>
-                    <Progress value={(stats.totalIndependent / (stats.total || 1)) * 100} className="h-2 mt-2" />
+                    <div className="text-2xl font-bold">{stats.totalIndependent.toFixed(1)} / {stats.maxIndependentMonth.toFixed(1)}</div>
+                    <Progress value={(stats.totalIndependent / (stats.maxIndependentMonth || 1)) * 100} className="h-2 mt-2" />
                     <p className="text-xs text-muted-foreground mt-2">
-                        Hours of {stats.total.toFixed(1)}h total
+                        Target: {stats.maxIndependentMonth.toFixed(1)}h/month
                     </p>
                 </CardContent>
             </Card>
@@ -40,10 +40,10 @@ export async function StudentStats({ studentId }: { studentId: string }) {
                     <CheckCircle className="h-4 w-4 text-muted-foreground" />
                 </CardHeader>
                 <CardContent>
-                    <div className="text-2xl font-bold">{stats.totalSupervision.toFixed(1)} / {stats.total.toFixed(1)}</div>
-                    <Progress value={stats.supervisionPercentage * 20} className="h-2 mt-2" />
+                    <div className="text-2xl font-bold">{stats.totalSupervision.toFixed(1)} / {stats.maxSupervisionMonth.toFixed(1)}</div>
+                    <Progress value={(stats.totalSupervision / (stats.maxSupervisionMonth || 1)) * 100} className="h-2 mt-2" />
                     <p className="text-xs text-muted-foreground mt-2">
-                        Target: {stats.supervisionTargetPct.toFixed(0)}% minimum
+                        Target: {stats.supervisionTargetPct.toFixed(0)}% ({stats.maxSupervisionMonth.toFixed(1)}h)
                     </p>
                 </CardContent>
             </Card>

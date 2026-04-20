@@ -71,6 +71,8 @@ export async function getMonthStats(studentId: string, date: Date = new Date()) 
         restrictedPercentage,
         supervisionPercentage,
         supervisionTargetPct,
-        limit
+        limit,
+        maxSupervisionMonth: limit * (supervisionTargetPct / 100),
+        maxIndependentMonth: limit * (1 - supervisionTargetPct / 100)
     }
 }
