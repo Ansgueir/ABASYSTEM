@@ -34,8 +34,6 @@ export async function validatePlanLimits(studentId: string, date: Date, newHours
     let maxIndependentHours = 0
     if (student.independentHoursTarget && student.independentHoursTarget > 0) {
         maxIndependentHours = student.independentHoursTarget
-    } else if (plan?.independentHoursTarget && plan.independentHoursTarget > 0) {
-        maxIndependentHours = plan.independentHoursTarget
     } else {
         maxIndependentHours = totalPlanHours - maxSupervisedHours
     }
