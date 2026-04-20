@@ -95,7 +95,7 @@ export async function validatePlanLimits(studentId: string, date: Date, newHours
     )
 
     const extraGroupHours = groupAttLifetime
-        .filter(a => !syncedGroupSessionIds.has(a.groupId))
+        .filter(a => !syncedGroupSessionIds.has(a.sessionId))
         .length // Assuming 1 hour per session for historical fallback
 
     const totalIndep = Number(lifetimeIndep._sum.hours) || 0
@@ -169,7 +169,7 @@ export async function validatePlanLimitsBulk(studentId: string, logs: { date: Da
             select: { groupSessionId: true }
         })).map(h => h.groupSessionId)
     )
-    const extraGroupHours = groupAttLifetime.filter(a => !syncedGroupSessionIds.has(a.groupId)).length
+    const extraGroupHours = groupAttLifetime.filter(a => !syncedGroupSessionIds.has(a.sessionId)).length
 
     const totalIndep = Number(lifetimeIndep._sum.hours) || 0
     const totalSup = (Number(lifetimeSup._sum.hours) || 0) + extraGroupHours
@@ -212,8 +212,8 @@ export async function validatePlanLimitsBulk(studentId: string, logs: { date: Da
                 select: { groupSessionId: true }
             })).map(h => h.groupSessionId)
         )
-        const monthExtraGroupHours = monthGroupAtt.filter(a => !syncedMonthGroupIds.has(a.groupId)).length
 
+        const monthExtraGroupHours = monthGroupAtt.filter(a => !syncedMonthGroupIds.has(a.sessionId)).length
         const currentMonthly = (Number(mIndep._sum.hours) || 0) + (Number(mSup._sum.hours) || 0) + monthExtraGroupHours
         
         console.log(`[Plan-Validation-Debug] BULK Month ${info.month+1}/${info.year}: Current=${currentMonthly} (DB=${(Number(mIndep._sum.hours)||0)+(Number(mSup._sum.hours)||0)}, fallbackGroup=${monthExtraGroupHours}), New=${info.hours}, Max=${maxHoursPerMonth}`)
