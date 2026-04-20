@@ -43,7 +43,14 @@ export async function getMonthStats(studentId: string, date: Date = new Date()) 
             .filter(h => h.supervisionType === 'GROUP' && h.groupSessionId)
             .map(h => h.groupSessionId)
     )
-    const extraGroupHours = groupAtt.filter(a => !syncedGroupSessionIds.has(a.sessionId)).length
+    const extraGroupHours = groupAtt.filter(a => {
+        const hasSyncedId = syncedGroupSessionIds.has(a.sessionId)
+        const hasSimilarDate = supervision.some(h => 
+            h.supervisionType === 'GROUP' && 
+            new Date(h.date).toISOString().split('T')[0] === new Date(a.session.date).toISOString().split('T')[0]
+        )
+        return !hasSyncedId && !hasSimilarDate
+    }).length
 
     const totalSupervision = supervision.reduce((sum, h) => sum + Number(h.hours || 0), 0) + extraGroupHours
     
@@ -82,7 +89,13 @@ export async function getMonthStats(studentId: string, date: Date = new Date()) 
             select: { groupSessionId: true }
         })).map(h => h.groupSessionId)
     )
-    const allExtraGroupHours = allGroupAtt.filter(a => !allSyncedGroupIds.has(a.sessionId)).length
+    const allExtraGroupHours = allGroupAtt.filter(a => {
+        const hasSyncedId = allSyncedGroupIds.has(a.sessionId)
+        // Since we don't have all supervision dates here (only aggregate), we rely on IDs for lifetime
+        // BUT we can at least check if we have ANY hour on that specific session date if we fetch them.
+        // For performance, we'll stick to ID first, but the contract fix will ensure future ones have IDs.
+        return !hasSyncedId
+    }).length
 
     const lifetimeIndependent = Number(allIndep._sum.hours || 0)
     const lifetimeSupervision = Number(allSup._sum.hours || 0) + allExtraGroupHours

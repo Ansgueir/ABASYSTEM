@@ -37,18 +37,24 @@ export function StudentActivityTab({
     const safeIndependent = Array.isArray(independentHours) ? independentHours : []
     const safeGroup = Array.isArray(groupAttendance) ? groupAttendance : []
 
-    // Normalize group sessions for visualization
-    const groupLogs = safeGroup.map(att => ({
-        id: att.id,
-        date: att.session.date,
-        startTime: att.session.startTime,
-        hours: 1,
-        supervisionType: 'GROUP',
-        groupTopic: att.session.topic,
-        status: 'PENDING',
-        type: 'supervised',
-        studentId: att.studentId
-    }))
+    // Normalize group sessions for visualization - Only include those NOT already in supervisionHours
+    const groupLogs = safeGroup
+        .filter(att => !safeSupervision.some(sh => 
+            sh.supervisionType === 'GROUP' && 
+            (sh.groupSessionId === att.sessionId || 
+             (new Date(sh.date).toISOString().split('T')[0] === new Date(att.session.date).toISOString().split('T')[0]))
+        ))
+        .map(att => ({
+            id: att.id,
+            date: att.session.date,
+            startTime: att.session.startTime,
+            hours: 1,
+            supervisionType: 'GROUP',
+            groupTopic: att.session.topic,
+            status: 'PENDING',
+            type: 'supervised',
+            studentId: att.studentId
+        }))
 
     const allHours = [...safeSupervision, ...safeIndependent, ...groupLogs]
         .filter((h: any) => h && (h.status === "APPROVED" || h.status === "BILLED" || h.status === "PENDING" || h.status === "REJECTED"))
