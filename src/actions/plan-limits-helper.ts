@@ -6,6 +6,7 @@ export async function validatePlanLimits(studentId: string, date: Date, newHours
     const student = await prisma.student.findUnique({
         where: { id: studentId }
     })
+
     if (!student) throw new Error("Student not found")
 
     let plan = null;
@@ -33,6 +34,8 @@ export async function validatePlanLimits(studentId: string, date: Date, newHours
     let maxIndependentHours = 0
     if (student.independentHoursTarget && student.independentHoursTarget > 0) {
         maxIndependentHours = student.independentHoursTarget
+    } else if (plan?.independentHoursTarget && plan.independentHoursTarget > 0) {
+        maxIndependentHours = plan.independentHoursTarget
     } else {
         maxIndependentHours = totalPlanHours - maxSupervisedHours
     }
@@ -42,10 +45,12 @@ export async function validatePlanLimits(studentId: string, date: Date, newHours
     const end = endOfMonth(date)
 
     const indepCondition: any = { studentId, date: { gte: start, lte: end }, status: { not: 'REJECTED' } }
-    if (excludeLogId) indepCondition.id = { not: excludeLogId }
-    
     const supCondition: any = { studentId, date: { gte: start, lte: end }, status: { not: 'REJECTED' } }
-    if (excludeLogId) supCondition.id = { not: excludeLogId }
+
+    if (excludeLogId) {
+        indepCondition.id = { not: excludeLogId }
+        supCondition.id = { not: excludeLogId }
+    }
 
     const monthlyIndep = await prisma.independentHour.aggregate({ where: indepCondition, _sum: { hours: true } })
     const monthlySup = await prisma.supervisionHour.aggregate({ where: supCondition, _sum: { hours: true } })
@@ -60,7 +65,7 @@ export async function validatePlanLimits(studentId: string, date: Date, newHours
             select: { groupSessionId: true }
         })).map(h => h.groupSessionId)
     )
-    const monthExtraGroupHours = monthGroupAtt.filter(a => !syncedMonthGroupIds.has(a.groupId)).length
+    const monthExtraGroupHours = monthGroupAtt.filter(a => !syncedMonthGroupIds.has(a.sessionId)).length
 
     const currentMonthly = (Number(monthlyIndep._sum.hours) || 0) + (Number(monthlySup._sum.hours) || 0) + monthExtraGroupHours
     
@@ -72,21 +77,21 @@ export async function validatePlanLimits(studentId: string, date: Date, newHours
 
     // --- LIFETIME LIMIT CHECK ---
     const indepLifetimeCondition: any = { studentId, status: { not: 'REJECTED' } }
-    if (excludeLogId) indepLifetimeCondition.id = { not: excludeLogId }
-
     const supLifetimeCondition: any = { studentId, status: { not: 'REJECTED' } }
-    if (excludeLogId) supLifetimeCondition.id = { not: excludeLogId }
+
+    if (excludeLogId) {
+        indepLifetimeCondition.id = { not: excludeLogId }
+        supLifetimeCondition.id = { not: excludeLogId }
+    }
 
     const lifetimeIndep = await prisma.independentHour.aggregate({ where: indepLifetimeCondition, _sum: { hours: true } })
     const lifetimeSup = await prisma.supervisionHour.aggregate({ where: supLifetimeCondition, _sum: { hours: true } })
     
-    // FETCH GROUP ATTENDANCE FOR LIMITS
     const groupAttLifetime = await prisma.groupSupervisionAttendance.findMany({
         where: { studentId, attended: true },
         include: { session: true }
     })
 
-    // Deduplicate: only count group sessions that ARE NOT already in SupervisionHour
     const syncedGroupSessionIds = new Set(
         (await prisma.supervisionHour.findMany({
             where: { studentId, supervisionType: 'GROUP', groupSessionId: { not: null } },
@@ -96,7 +101,7 @@ export async function validatePlanLimits(studentId: string, date: Date, newHours
 
     const extraGroupHours = groupAttLifetime
         .filter(a => !syncedGroupSessionIds.has(a.sessionId))
-        .length // Assuming 1 hour per session for historical fallback
+        .length 
 
     const totalIndep = Number(lifetimeIndep._sum.hours) || 0
     const totalSup = (Number(lifetimeSup._sum.hours) || 0) + extraGroupHours 
@@ -107,7 +112,6 @@ export async function validatePlanLimits(studentId: string, date: Date, newHours
         throw new Error(`Master Plan Limit: ${student.fullName} already has ${(totalIndep + totalSup).toFixed(2)}h of the ${totalPlanHours}h total hours allowed. The current entry of ${newHours.toFixed(2)}h exceeds the plan's total cap.`);
     }
 
-    // --- MODALITY LIMIT CHECK ---
     if (hourType === 'independent') {
         if (totalIndep + newHours > maxIndependentHours) {
             throw new Error(`Independent Hours Limit: The plan allows a maximum of ${maxIndependentHours.toFixed(1)}h independent hours. Total accumulated: ${totalIndep.toFixed(2)}h. Available: ${(maxIndependentHours - totalIndep).toFixed(2)}h.`)
@@ -119,11 +123,6 @@ export async function validatePlanLimits(studentId: string, date: Date, newHours
     }
 }
 
-/**
- * Validates a bulk logging operation against plan limits.
- * Checks lifetime limits for the TOTAL hours being logged,
- * and monthly limits for each month involved.
- */
 export async function validatePlanLimitsBulk(studentId: string, logs: { date: Date, hours: number, type: 'independent' | 'supervision' }[]) {
     console.log(`[Plan-Validation-Debug] validatePlanLimitsBulk started for student ${studentId} with ${logs.length} entries`)
     if (logs.length === 0) return
@@ -159,7 +158,6 @@ export async function validatePlanLimitsBulk(studentId: string, logs: { date: Da
     const lifetimeIndep = await prisma.independentHour.aggregate({ where: { studentId, status: { not: 'REJECTED' } }, _sum: { hours: true } })
     const lifetimeSup = await prisma.supervisionHour.aggregate({ where: { studentId, status: { not: 'REJECTED' } }, _sum: { hours: true } })
 
-    // INCLUDE ATTENDANCE IN BULK LIFETIME
     const groupAttLifetime = await prisma.groupSupervisionAttendance.findMany({
         where: { studentId, attended: true }
     })
@@ -186,7 +184,6 @@ export async function validatePlanLimitsBulk(studentId: string, logs: { date: Da
         throw new Error(`Bulk Operation Rejected: The load of ${totalNewSup.toFixed(2)}h supervised hours exceeds the allowed limit (${maxSupervisedHours.toFixed(1)}h).`);
     }
 
-    // 2. MONTHLY CHECKS
     const monthsAffected = new Map<string, { year: number, month: number, hours: number }>()
     for (const log of logs) {
         const key = `${log.date.getFullYear()}-${log.date.getMonth()}`
@@ -212,8 +209,8 @@ export async function validatePlanLimitsBulk(studentId: string, logs: { date: Da
                 select: { groupSessionId: true }
             })).map(h => h.groupSessionId)
         )
-
         const monthExtraGroupHours = monthGroupAtt.filter(a => !syncedMonthGroupIds.has(a.sessionId)).length
+
         const currentMonthly = (Number(mIndep._sum.hours) || 0) + (Number(mSup._sum.hours) || 0) + monthExtraGroupHours
         
         console.log(`[Plan-Validation-Debug] BULK Month ${info.month+1}/${info.year}: Current=${currentMonthly} (DB=${(Number(mIndep._sum.hours)||0)+(Number(mSup._sum.hours)||0)}, fallbackGroup=${monthExtraGroupHours}), New=${info.hours}, Max=${maxHoursPerMonth}`)
@@ -224,4 +221,3 @@ export async function validatePlanLimitsBulk(studentId: string, logs: { date: Da
     }
     console.log(`[Plan-Validation-Debug] validatePlanLimitsBulk passed for student ${studentId}`)
 }
-
