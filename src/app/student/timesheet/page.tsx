@@ -32,6 +32,10 @@ export default async function TimesheetPage() {
             }
         })
 
+        console.log(`[TIMESHEET-DEBUG] User ID: ${session.user.id}, Student found: ${!!student}`)
+        if (student) console.log(`[TIMESHEET-DEBUG] Student ID: ${student.id}`)
+        else console.log(`[TIMESHEET-DEBUG] No student found for user ${session.user.id}`)
+
         if (student) {
             const [indepHours, supHours, groupAtt] = await Promise.all([
                 prisma.independentHour.findMany({
@@ -53,22 +57,31 @@ export default async function TimesheetPage() {
                 })
             ])
             
-            const existingHourDates = new Set(supHours.map(h => `${h.date.toISOString()}-${h.startTime.toISOString()}-${h.supervisionType}`))
+            const existingHourDates = new Set(
+                supHours
+                .filter(h => h.date && h.startTime)
+                .map(h => `${h.date.toISOString()}-${h.startTime.toISOString()}-${h.supervisionType}`)
+            )
 
             hours = [
                 ...indepHours.map(h => ({
                     ...h,
-                    hours: Number(h.hours),
+                    hours: Number(h.hours || 0),
+                    date: h.date || new Date(),
+                    startTime: h.startTime || h.date || new Date(),
                     type: 'independent' as const
                 })),
                 ...supHours.map(h => ({
                     ...h,
-                    hours: Number(h.hours),
+                    hours: Number(h.hours || 0),
+                    date: h.date || new Date(),
+                    startTime: h.startTime || h.date || new Date(),
                     amountBilled: h.amountBilled ? Number(h.amountBilled) : null,
                     supervisorPay: h.supervisorPay ? Number(h.supervisorPay) : null,
                     type: 'supervised' as const
                 })),
                 ...groupAtt
+                    .filter(a => a.session && a.session.date && a.session.startTime)
                     .filter(a => !existingHourDates.has(`${a.session.date.toISOString()}-${a.session.startTime.toISOString()}-GROUP`))
                     .map(a => ({
                         id: a.id,
@@ -81,7 +94,11 @@ export default async function TimesheetPage() {
                         supervisor: a.session.supervisor,
                         type: 'supervised' as const
                     }))
-            ].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
+            ].sort((a, b) => {
+                const dateA = new Date(a.date || a.startTime || 0).getTime()
+                const dateB = new Date(b.date || b.startTime || 0).getTime()
+                return dateB - dateA
+            })
         }
     } catch (error) {
         console.error("Error fetching timesheet:", error)
