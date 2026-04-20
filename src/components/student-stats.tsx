@@ -1,6 +1,6 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Progress } from "@/components/ui/progress"
-import { Clock, CheckCircle, AlertTriangle } from "lucide-react"
+import { Clock, CheckCircle } from "lucide-react"
 import { getMonthStats } from "@/lib/stats"
 
 export async function StudentStats({ studentId }: { studentId: string }) {
@@ -8,42 +8,44 @@ export async function StudentStats({ studentId }: { studentId: string }) {
 
     return (
         <div className="grid gap-4 md:grid-cols-3">
-            <Card>
+            <Card className="border-l-4 border-l-blue-500">
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                    <CardTitle className="text-sm font-medium">Total Hours</CardTitle>
-                    <Clock className="h-4 w-4 text-muted-foreground" />
+                    <CardTitle className="text-sm font-medium">Master Plan Total</CardTitle>
+                    <Clock className="h-4 w-4 text-blue-500" />
                 </CardHeader>
                 <CardContent>
-                    <div className="text-2xl font-bold">{stats.total.toFixed(1)} / {stats.limit}</div>
-                    <Progress value={(stats.total / stats.limit) * 100} className="h-2 mt-2" />
+                    <div className="text-2xl font-bold">{(stats.lifetimeIndependent + stats.lifetimeSupervision).toFixed(1)} / {stats.totalLifetime}</div>
+                    <Progress value={((stats.lifetimeIndependent + stats.lifetimeSupervision) / stats.totalLifetime) * 100} className="h-2 mt-2" />
                     <p className="text-xs text-muted-foreground mt-2">
-                        {((stats.total / stats.limit) * 100).toFixed(1)}% of monthly limit
+                        Monthly: {stats.total.toFixed(1)}h / {stats.limit}h limit
                     </p>
                 </CardContent>
             </Card>
-            <Card>
+
+            <Card className="border-l-4 border-l-indigo-500">
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                    <CardTitle className="text-sm font-medium">Independent</CardTitle>
-                    <Clock className="h-4 w-4 text-muted-foreground" />
+                    <CardTitle className="text-sm font-medium">Independent (Lifetime)</CardTitle>
+                    <Clock className="h-4 w-4 text-indigo-500" />
                 </CardHeader>
                 <CardContent>
-                    <div className="text-2xl font-bold">{stats.totalIndependent.toFixed(1)} / {stats.maxIndependentMonth.toFixed(1)}</div>
-                    <Progress value={(stats.totalIndependent / (stats.maxIndependentMonth || 1)) * 100} className="h-2 mt-2" />
+                    <div className="text-2xl font-bold">{stats.lifetimeIndependent.toFixed(1)} / {stats.maxIndependentTotal.toFixed(1)}</div>
+                    <Progress value={(stats.lifetimeIndependent / (stats.maxIndependentTotal || 1)) * 100} className="h-2 mt-2" />
                     <p className="text-xs text-muted-foreground mt-2">
-                        Target: {stats.maxIndependentMonth.toFixed(1)}h/month
+                        Monthly: {stats.totalIndependent.toFixed(1)}h (Target: {stats.maxIndependentMonth.toFixed(1)}h)
                     </p>
                 </CardContent>
             </Card>
-            <Card>
+
+            <Card className="border-l-4 border-l-emerald-500">
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                    <CardTitle className="text-sm font-medium">Supervision</CardTitle>
-                    <CheckCircle className="h-4 w-4 text-muted-foreground" />
+                    <CardTitle className="text-sm font-medium">Supervision (Lifetime)</CardTitle>
+                    <CheckCircle className="h-4 w-4 text-emerald-500" />
                 </CardHeader>
                 <CardContent>
-                    <div className="text-2xl font-bold">{stats.totalSupervision.toFixed(1)} / {stats.maxSupervisionMonth.toFixed(1)}</div>
-                    <Progress value={(stats.totalSupervision / (stats.maxSupervisionMonth || 1)) * 100} className="h-2 mt-2" />
+                    <div className="text-2xl font-bold">{stats.lifetimeSupervision.toFixed(1)} / {stats.maxSupervisionTotal.toFixed(1)}</div>
+                    <Progress value={(stats.lifetimeSupervision / (stats.maxSupervisionTotal || 1)) * 100} className="h-2 mt-2" />
                     <p className="text-xs text-muted-foreground mt-2">
-                        Target: {stats.supervisionTargetPct.toFixed(0)}% ({stats.maxSupervisionMonth.toFixed(1)}h)
+                        Monthly: {stats.totalSupervision.toFixed(1)}h (Target {stats.supervisionTargetPct.toFixed(0)}%: {stats.maxSupervisionMonth.toFixed(1)}h)
                     </p>
                 </CardContent>
             </Card>

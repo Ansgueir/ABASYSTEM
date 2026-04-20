@@ -328,6 +328,10 @@ model SupervisorLedgerEntry {
   planHoursPerMonth            Int?                         // Plan.hoursPerMonth
   planSupervisedHours          Decimal? @db.Decimal(8, 2)  // Plan.amountSupHours / numberOfMonths
   planIndividualHours          Decimal? @db.Decimal(8, 2)  // Plan.hoursPerMonth * (1 - supervisedPct)
+  planIndividualSupervisedTarget Decimal? @db.Decimal(8, 2)  // Plan.individualSupervisedTarget
+  planGroupSupervisionTarget      Decimal? @db.Decimal(8, 2)  // Plan.groupSupervisionTarget
+  planIndividualSupervisedDelta  Decimal? @db.Decimal(8, 2)  // Plan.individualSupervisedDelta
+  planGroupSupervisionDelta       Decimal? @db.Decimal(8, 2)  // Plan.groupSupervisionDelta
 
   // ── PAYOUT STATUS ────────────────────────────────────────────────────────
   payoutStatus                 String   @default("PENDING") // PENDING | PAID
@@ -666,6 +670,12 @@ model Plan {
   totalCost             Decimal? @db.Decimal(10, 2) // amountSupHours * hourlyRate
   supervisionNet        Decimal? @db.Decimal(10, 2) // totalCost - enrollmentFee
   monthlyPayment        Decimal? @db.Decimal(10, 2) // supervisionNet / numberOfMonths
+  
+  // ── SUPERVISION BREAKDOWN ────────────────────────────────────────────────
+  individualSupervisedTarget Decimal? @db.Decimal(10, 2)
+  groupSupervisionTarget      Decimal? @db.Decimal(10, 2)
+  individualSupervisedDelta  Decimal? @db.Decimal(10, 2)
+  groupSupervisionDelta       Decimal? @db.Decimal(10, 2)
 
   // ── LEGACY FIELDS (kept for backward compat) ────────────────────────────
   regHoursBcba  Int      @default(0)

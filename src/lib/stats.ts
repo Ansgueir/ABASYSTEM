@@ -63,6 +63,33 @@ export async function getMonthStats(studentId: string, date: Date = new Date()) 
 
     const supervisionPercentage = total > 0 ? (totalSupervision / total) * 100 : 0
 
+    // --- LIFETIME STATS ---
+    const allIndep = await prisma.independentHour.aggregate({
+        where: { studentId, status: { not: 'REJECTED' } },
+        _sum: { hours: true }
+    })
+    const allSup = await prisma.supervisionHour.aggregate({
+        where: { studentId, status: { not: 'REJECTED' } },
+        _sum: { hours: true }
+    })
+    
+    const allGroupAtt = await prisma.groupSupervisionAttendance.findMany({
+        where: { studentId, attended: true }
+    })
+    const allSyncedGroupIds = new Set(
+        (await prisma.supervisionHour.findMany({
+            where: { studentId, supervisionType: 'GROUP', groupSessionId: { not: null } },
+            select: { groupSessionId: true }
+        })).map(h => h.groupSessionId)
+    )
+    const allExtraGroupHours = allGroupAtt.filter(a => !allSyncedGroupIds.has(a.sessionId)).length
+
+    const lifetimeIndependent = Number(allIndep._sum.hours || 0)
+    const lifetimeSupervision = Number(allSup._sum.hours || 0) + allExtraGroupHours
+    
+    const maxSupervisionTotal = plan?.amountSupHours ? Number(plan.amountSupHours) : (student?.hoursToDo ?? 2000) * (supervisionTargetPct / 100)
+    const maxIndependentTotal = (student?.hoursToDo ?? 2000) - maxSupervisionTotal
+
     return {
         total,
         totalIndependent,
@@ -73,6 +100,12 @@ export async function getMonthStats(studentId: string, date: Date = new Date()) 
         supervisionTargetPct,
         limit,
         maxSupervisionMonth: limit * (supervisionTargetPct / 100),
-        maxIndependentMonth: limit * (1 - supervisionTargetPct / 100)
+        maxIndependentMonth: limit * (1 - supervisionTargetPct / 100),
+        // Lifetime
+        lifetimeIndependent,
+        lifetimeSupervision,
+        maxIndependentTotal,
+        maxSupervisionTotal,
+        totalLifetime: student?.hoursToDo ?? 2000
     }
 }

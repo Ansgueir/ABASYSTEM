@@ -222,7 +222,7 @@ export async function logHours(prevState: LogHoursState, formData: FormData) {
 
         if (!studentId) return { error: "Student ID missing" }
 
-        await validatePlanLimits(studentId, data.date, hoursDecimal, data.type as 'independent' | 'supervision')
+        await validatePlanLimits(studentId, data.date, hoursDecimal, data.type as 'independent' | 'supervision', undefined, data.supervisionFormat as 'INDIVIDUAL' | 'GROUP')
 
         const [hours, mins] = data.startTime.split(':').map(Number)
         const startDateTime = new Date(data.date)
@@ -729,7 +729,7 @@ export async function updateIndependentHour(
         const finalNotes = data.notes !== undefined ? data.notes : hour.notes
 
         // ── Validation Guard ────────────────────────────
-        await validatePlanLimits(hour.studentId, finalDate, finalHours, data.type || 'independent', logId)
+        await validatePlanLimits(hour.studentId, finalDate, finalHours, (data.type || 'independent') as any, logId)
 
         // ── Type change: independent → supervision ──────────────────────────
         if (data.type === 'supervision') {
@@ -840,7 +840,7 @@ export async function updateSupervisionHour(
         const finalNotes = data.notes !== undefined ? data.notes : hour.notes
 
         // ── Validation Guard ────────────────────────────
-        await validatePlanLimits(hour.studentId, finalDate, finalHours, 'supervision', logId)
+        await validatePlanLimits(hour.studentId, finalDate, finalHours, 'supervision', logId, finalSupervisionType as 'INDIVIDUAL' | 'GROUP')
 
         const updatePayload: any = {
             date: finalDate,

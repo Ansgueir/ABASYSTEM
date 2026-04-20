@@ -124,7 +124,11 @@ export async function markInvoiceAsPaid(
                         hoursPerMonth: true,
                         amountSupHours: true,
                         numberOfMonths: true,
-                        supervisedPercentage: true
+                        supervisedPercentage: true,
+                        individualSupervisedTarget: true,
+                        groupSupervisionTarget: true,
+                        individualSupervisedDelta: true,
+                        groupSupervisionDelta: true
                     }
                 })
                 if (plan) {
@@ -158,6 +162,10 @@ export async function markInvoiceAsPaid(
                     planHoursPerMonth,
                     planSupervisedHours,
                     planIndividualHours,
+                    planIndividualSupervisedTarget: plan?.individualSupervisedTarget ? Number(plan.individualSupervisedTarget) : null,
+                    planGroupSupervisionTarget: plan?.groupSupervisionTarget ? Number(plan.groupSupervisionTarget) : null,
+                    planIndividualSupervisedDelta: plan?.individualSupervisedDelta ? Number(plan.individualSupervisedDelta) : null,
+                    planGroupSupervisionDelta: plan?.groupSupervisionDelta ? Number(plan.groupSupervisionDelta) : null,
                     // Status starts as PENDING until Super Office pays
                     payoutStatus: "PENDING"
                 }

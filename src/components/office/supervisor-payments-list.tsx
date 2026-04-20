@@ -22,6 +22,10 @@ interface LedgerEntry {
     planHoursPerMonth: number | null
     planSupervisedHours: number | null
     planIndividualHours: number | null
+    planIndividualSupervisedTarget: number | null
+    planGroupSupervisionTarget: number | null
+    planIndividualSupervisedDelta: number | null
+    planGroupSupervisionDelta: number | null
     payoutStatus: string
     supervisedHoursActual: number | null
     individualHoursDelta: number | null

@@ -33,6 +33,11 @@ interface Plan {
     concHours: number
     totalCharge: any
     totalMonths: number
+    // Supervision Breakdown
+    individualSupervisedTarget: number | null
+    groupSupervisionTarget: number | null
+    individualSupervisedDelta: number | null
+    groupSupervisionDelta: number | null
 }
 
 interface FormInputs {
@@ -43,6 +48,11 @@ interface FormInputs {
     supervisedPercentage: string
     hourlyRate: string
     enrollmentFee: string
+    // Breakdown
+    individualSupervisedTarget: string
+    groupSupervisionTarget: string
+    individualSupervisedDelta: string
+    groupSupervisionDelta: string
 }
 
 /** Mirror of the backend formula — runs instantly in the browser */
@@ -83,6 +93,10 @@ const emptyForm: FormInputs = {
     supervisedPercentage: "",
     hourlyRate: "",
     enrollmentFee: "",
+    individualSupervisedTarget: "",
+    groupSupervisionTarget: "",
+    individualSupervisedDelta: "",
+    groupSupervisionDelta: "",
 }
 
 export function PlansTab() {
@@ -133,6 +147,10 @@ export function PlansTab() {
             supervisedPercentage: plan.supervisedPercentage != null ? (Number(plan.supervisedPercentage) * 100).toFixed(2) : "",
             hourlyRate: plan.hourlyRate?.toString() ?? "",
             enrollmentFee: plan.enrollmentFee?.toString() ?? "",
+            individualSupervisedTarget: plan.individualSupervisedTarget?.toString() ?? "",
+            groupSupervisionTarget: plan.groupSupervisionTarget?.toString() ?? "",
+            individualSupervisedDelta: plan.individualSupervisedDelta?.toString() ?? "",
+            groupSupervisionDelta: plan.groupSupervisionDelta?.toString() ?? "",
         })
         setDialogOpen(true)
     }
@@ -375,6 +393,26 @@ export function PlansTab() {
                                         <span className="absolute left-3 top-2.5 text-xs text-muted-foreground font-bold">$</span>
                                         <Input type="number" step="0.01" value={formData.enrollmentFee} onChange={F('enrollmentFee')} placeholder="e.g. 300.00" className="pl-7" />
                                     </div>
+                                </div>
+                                <div className="space-y-2 col-span-2">
+                                    <hr className="my-2 border-blue-200" />
+                                    <p className="text-[10px] font-bold text-blue-600">SUPERVISION SUBDIVISION (PLAN TOTALS)</p>
+                                </div>
+                                <div className="space-y-2">
+                                    <Label className="text-xs font-semibold flex items-center gap-1">Indiv. Supervised Target (Hrs)</Label>
+                                    <Input type="number" step="0.01" value={formData.individualSupervisedTarget} onChange={F('individualSupervisedTarget')} placeholder="e.g. 50" />
+                                </div>
+                                <div className="space-y-2">
+                                    <Label className="text-xs font-semibold flex items-center gap-1">Group Supervision Target (Hrs)</Label>
+                                    <Input type="number" step="0.01" value={formData.groupSupervisionTarget} onChange={F('groupSupervisionTarget')} placeholder="e.g. 50" />
+                                </div>
+                                <div className="space-y-2">
+                                    <Label className="text-xs font-semibold flex items-center gap-1">Indiv. Supervised Delta (Last Month)</Label>
+                                    <Input type="number" step="0.01" value={formData.individualSupervisedDelta} onChange={F('individualSupervisedDelta')} placeholder="e.g. 0.5" />
+                                </div>
+                                <div className="space-y-2">
+                                    <Label className="text-xs font-semibold flex items-center gap-1">Group Supervision Delta (Last Month)</Label>
+                                    <Input type="number" step="0.01" value={formData.groupSupervisionDelta} onChange={F('groupSupervisionDelta')} placeholder="e.g. 0.5" />
                                 </div>
                             </div>
                         </div>

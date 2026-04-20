@@ -26,6 +26,10 @@ interface LedgerEntry {
     planHoursPerMonth: number | null
     planSupervisedHours: number | null
     planIndividualHours: number | null
+    planIndividualSupervisedTarget: number | null
+    planGroupSupervisionTarget: number | null
+    planIndividualSupervisedDelta: number | null
+    planGroupSupervisionDelta: number | null
     student: { fullName: string }
 }
 
@@ -117,14 +121,27 @@ export function SupervisorPayoutModal({ isOpen, onClose, entry }: SupervisorPayo
                                 <p className="text-sm font-black text-blue-800">{entry.planHoursPerMonth != null ? `${entry.planHoursPerMonth}h` : "—"}</p>
                             </div>
                             <div className="text-center">
-                                <p className="text-[9px] uppercase text-blue-500 font-bold">Sup Hrs/Month</p>
-                                <p className="text-sm font-black text-blue-800">{entry.planSupervisedHours != null ? `${Number(entry.planSupervisedHours).toFixed(1)}h` : "—"}</p>
+                                <p className="text-[9px] uppercase text-blue-500 font-bold">Indiv Target</p>
+                                <p className="text-sm font-black text-blue-800">{entry.planIndividualSupervisedTarget != null ? `${Number(entry.planIndividualSupervisedTarget).toFixed(1)}h` : "—"}</p>
                             </div>
                             <div className="text-center">
-                                <p className="text-[9px] uppercase text-blue-500 font-bold">Indiv Hrs/Month</p>
-                                <p className="text-sm font-black text-blue-800">{entry.planIndividualHours != null ? `${Number(entry.planIndividualHours).toFixed(1)}h` : "—"}</p>
+                                <p className="text-[9px] uppercase text-blue-500 font-bold">Group Target</p>
+                                <p className="text-sm font-black text-blue-800">{entry.planGroupSupervisionTarget != null ? `${Number(entry.planGroupSupervisionTarget).toFixed(1)}h` : "—"}</p>
                             </div>
                         </div>
+                        
+                        {(entry.planIndividualSupervisedDelta != null || entry.planGroupSupervisionDelta != null) && (
+                            <div className="mt-3 pt-3 border-t border-blue-100 grid grid-cols-2 gap-3">
+                                <div className="text-center">
+                                    <p className="text-[9px] uppercase text-indigo-500 font-bold">Plan Indiv Delta</p>
+                                    <p className="text-xs font-bold text-indigo-800">{entry.planIndividualSupervisedDelta != null ? `${Number(entry.planIndividualSupervisedDelta).toFixed(1)}h` : "—"}</p>
+                                </div>
+                                <div className="text-center">
+                                    <p className="text-[9px] uppercase text-indigo-500 font-bold">Plan Group Delta</p>
+                                    <p className="text-xs font-bold text-indigo-800">{entry.planGroupSupervisionDelta != null ? `${Number(entry.planGroupSupervisionDelta).toFixed(1)}h` : "—"}</p>
+                                </div>
+                            </div>
+                        )}
                     </div>
 
                     {/* ── BLOQUE 2: AUTO Waterfall ── */}

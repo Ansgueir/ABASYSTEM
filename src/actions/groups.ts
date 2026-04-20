@@ -49,7 +49,7 @@ export async function createGroupSession(date: Date, startTime: string, topic: s
 
             // Generate attendance and supervision hours for each student
             for (const sId of selectedStudents) {
-                await validatePlanLimits(sId, date, durationMin / 60, 'supervision')
+                await validatePlanLimits(sId, date, durationMin / 60, 'supervision', undefined, 'GROUP')
 
                 await tx.groupSupervisionAttendance.create({
                     data: {
@@ -112,7 +112,7 @@ export async function registerStudentToGroup(sessionId: string, studentId: strin
 
         if (existing) return { error: "Student already registered" }
 
-        await validatePlanLimits(studentId, groupSession.date, 1.0, 'supervision')
+        await validatePlanLimits(studentId, groupSession.date, 1.0, 'supervision', undefined, 'GROUP')
 
         await (prisma as any).$transaction(async (tx: any) => {
             await tx.groupSupervisionAttendance.create({
@@ -239,7 +239,7 @@ export async function updateGroupSession(sessionId: string, date: Date, time: st
             }
 
             for (const sId of toAdd) {
-                await validatePlanLimits(sId, date, durationMin / 60, 'supervision')
+                await validatePlanLimits(sId, date, durationMin / 60, 'supervision', undefined, 'GROUP')
 
                 await tx.groupSupervisionAttendance.create({
                     data: {

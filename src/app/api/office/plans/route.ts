@@ -63,6 +63,7 @@ export async function POST(req: Request) {
         const {
             name, fieldworkType,
             totalHours, hoursPerMonth, supervisedPercentage, hourlyRate, enrollmentFee, supervisorCommission,
+            individualSupervisedTarget, groupSupervisionTarget, individualSupervisedDelta, groupSupervisionDelta,
             // legacy
             regHoursBcba, regHoursBcaba, concHours, totalMonths
         } = body
@@ -86,6 +87,10 @@ export async function POST(req: Request) {
                 hourlyRate: hourlyRate ? Number(hourlyRate) : null,
                 enrollmentFee: enrollmentFee != null ? Number(enrollmentFee) : null,
                 supervisorCommission: supervisorCommission != null ? Number(supervisorCommission) : null,
+                individualSupervisedTarget: individualSupervisedTarget != null ? Number(individualSupervisedTarget) : null,
+                groupSupervisionTarget: groupSupervisionTarget != null ? Number(groupSupervisionTarget) : null,
+                individualSupervisedDelta: individualSupervisedDelta != null ? Number(individualSupervisedDelta) : null,
+                groupSupervisionDelta: groupSupervisionDelta != null ? Number(groupSupervisionDelta) : null,
                 // auto-calculated snapshot
                 numberOfMonths: calc.numberOfMonths,
                 amountSupHours: calc.amountSupHours,

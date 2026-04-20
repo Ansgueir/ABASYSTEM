@@ -1,8 +1,15 @@
 import { prisma } from "@/lib/prisma"
 import { startOfMonth, endOfMonth } from "date-fns"
 
-export async function validatePlanLimits(studentId: string, date: Date, newHours: number, hourType: 'independent' | 'supervision', excludeLogId?: string) {
-    console.log(`[Plan-Validation-Debug] validatePlanLimits started for student ${studentId}`)
+export async function validatePlanLimits(
+    studentId: string, 
+    date: Date, 
+    newHours: number, 
+    hourType: 'independent' | 'supervision', 
+    excludeLogId?: string, 
+    format?: 'INDIVIDUAL' | 'GROUP'
+) {
+    console.log(`[Plan-Validation-Debug] validatePlanLimits started for student ${studentId} (${hourType}${format ? `:${format}` : ''})`)
     const student = await prisma.student.findUnique({
         where: { id: studentId }
     })
@@ -29,13 +36,17 @@ export async function validatePlanLimits(studentId: string, date: Date, newHours
 
     console.log(`[Plan-Validation-Debug] Student: ${student.fullName}, Monthly Limit: ${maxHoursPerMonth}, Lifetime Limit: ${totalPlanHours}, Supervised%: ${supervisedPercentage}`)
 
-    const maxSupervisedHours = Number(plan?.amountSupHours) || (totalPlanHours * supervisedPercentage)
+    const maxSupervisedHoursTotal = Number(plan?.amountSupHours) || (totalPlanHours * supervisedPercentage)
     
+    // Subdivision targets
+    const maxSupIndividual = plan?.individualSupervisedTarget ? Number(plan.individualSupervisedTarget) : null
+    const maxSupGroup = plan?.groupSupervisionTarget ? Number(plan.groupSupervisionTarget) : null
+
     let maxIndependentHours = 0
     if (student.independentHoursTarget && student.independentHoursTarget > 0) {
         maxIndependentHours = student.independentHoursTarget
     } else {
-        maxIndependentHours = totalPlanHours - maxSupervisedHours
+        maxIndependentHours = totalPlanHours - maxSupervisedHoursTotal
     }
 
     // --- MONTHLY LIMIT CHECK ---
@@ -67,7 +78,7 @@ export async function validatePlanLimits(studentId: string, date: Date, newHours
 
     const currentMonthly = (Number(monthlyIndep._sum.hours) || 0) + (Number(monthlySup._sum.hours) || 0) + monthExtraGroupHours
     
-    console.log(`[Plan-Validation-Debug] Month: ${start.toISOString()} to ${end.toISOString()}, Current: ${currentMonthly} (DB=${(Number(monthlyIndep._sum.hours)||0)+(Number(monthlySup._sum.hours)||0)}, fallbackGroup=${monthExtraGroupHours}), New: ${newHours}, Max: ${maxHoursPerMonth}`)
+    console.log(`[Plan-Validation-Debug] Month: ${start.toISOString()} to ${end.toISOString()}, Current: ${currentMonthly}, New: ${newHours}, Max: ${maxHoursPerMonth}`)
 
     if (currentMonthly + newHours > maxHoursPerMonth) {
         throw new Error(`Monthly Limit Exceeded: The plan for ${student.fullName} allows a maximum of ${maxHoursPerMonth}h per month. You tried to add ${(currentMonthly + newHours).toFixed(2)}h. Only ${(maxHoursPerMonth - currentMonthly).toFixed(2)}h are available for this month.`)
@@ -75,15 +86,18 @@ export async function validatePlanLimits(studentId: string, date: Date, newHours
 
     // --- LIFETIME LIMIT CHECK ---
     const indepLifetimeCondition: any = { studentId, status: { not: 'REJECTED' } }
-    const supLifetimeCondition: any = { studentId, status: { not: 'REJECTED' } }
+    const supIndivLifetimeCondition: any = { studentId, supervisionType: 'INDIVIDUAL', status: { not: 'REJECTED' } }
+    const supGroupLifetimeCondition: any = { studentId, supervisionType: 'GROUP', status: { not: 'REJECTED' } }
 
     if (excludeLogId) {
         indepLifetimeCondition.id = { not: excludeLogId }
-        supLifetimeCondition.id = { not: excludeLogId }
+        supIndivLifetimeCondition.id = { not: excludeLogId }
+        supGroupLifetimeCondition.id = { not: excludeLogId }
     }
 
     const lifetimeIndep = await prisma.independentHour.aggregate({ where: indepLifetimeCondition, _sum: { hours: true } })
-    const lifetimeSup = await prisma.supervisionHour.aggregate({ where: supLifetimeCondition, _sum: { hours: true } })
+    const lifetimeSupIndiv = await prisma.supervisionHour.aggregate({ where: supIndivLifetimeCondition, _sum: { hours: true } })
+    const lifetimeSupGroup = await prisma.supervisionHour.aggregate({ where: supGroupLifetimeCondition, _sum: { hours: true } })
     
     const groupAttLifetime = await prisma.groupSupervisionAttendance.findMany({
         where: { studentId, attended: true },
@@ -102,12 +116,14 @@ export async function validatePlanLimits(studentId: string, date: Date, newHours
         .length 
 
     const totalIndep = Number(lifetimeIndep._sum.hours) || 0
-    const totalSup = (Number(lifetimeSup._sum.hours) || 0) + extraGroupHours 
+    const totalSupIndiv = (Number(lifetimeSupIndiv._sum.hours) || 0)
+    const totalSupGroup = (Number(lifetimeSupGroup._sum.hours) || 0) + extraGroupHours 
+    const totalSupTotal = totalSupIndiv + totalSupGroup
     
-    console.log(`[Plan-Validation-Debug] Detailed Sup: DB=${Number(lifetimeSup._sum.hours)||0}, fallbackGroups=${extraGroupHours}`)
+    console.log(`[Plan-Validation-Debug] Lifetime Totals: Indep=${totalIndep}, SupIndiv=${totalSupIndiv}, SupGroup=${totalSupGroup} (+Fallback)`)
 
-    if (totalIndep + totalSup + newHours > totalPlanHours) {
-        throw new Error(`Master Plan Limit: ${student.fullName} already has ${(totalIndep + totalSup).toFixed(2)}h of the ${totalPlanHours}h total hours allowed. The current entry of ${newHours.toFixed(2)}h exceeds the plan's total cap.`);
+    if (totalIndep + totalSupTotal + newHours > totalPlanHours) {
+        throw new Error(`Master Plan Limit: ${student.fullName} already has ${(totalIndep + totalSupTotal).toFixed(2)}h of the ${totalPlanHours}h total allowed. The current entry of ${newHours.toFixed(2)}h exceeds the plan's total cap.`);
     }
 
     if (hourType === 'independent') {
@@ -115,8 +131,20 @@ export async function validatePlanLimits(studentId: string, date: Date, newHours
             throw new Error(`Independent Hours Limit: The plan allows a maximum of ${maxIndependentHours.toFixed(1)}h independent hours. Total accumulated: ${totalIndep.toFixed(2)}h. Available: ${(maxIndependentHours - totalIndep).toFixed(2)}h.`)
         }
     } else {
-        if (totalSup + newHours > maxSupervisedHours) {
-            throw new Error(`Supervised Hours Limit: The plan allows a maximum of ${maxSupervisedHours.toFixed(1)}h supervised hours (5% or similar). Total accumulated: ${totalSup.toFixed(2)}h. Available: ${(maxSupervisedHours - totalSup).toFixed(2)}h.`)
+        // Supervision check
+        if (totalSupTotal + newHours > maxSupervisedHoursTotal) {
+            throw new Error(`Supervised Hours Limit (Total): The plan allows total of ${maxSupervisedHoursTotal.toFixed(1)}h supervised hours. Total accumulated: ${totalSupTotal.toFixed(2)}h. Available: ${(maxSupervisedHoursTotal - totalSupTotal).toFixed(2)}h.`)
+        }
+
+        // Subdivision checks
+        if (format === 'GROUP' && maxSupGroup !== null) {
+            if (totalSupGroup + newHours > maxSupGroup) {
+                throw new Error(`Group Supervision Limit: The plan restricts group supervision to ${maxSupGroup.toFixed(1)}h. Total accumulated: ${totalSupGroup.toFixed(1)}h. Available: ${(maxSupGroup - totalSupGroup).toFixed(2)}h.`)
+            }
+        } else if (format === 'INDIVIDUAL' && maxSupIndividual !== null) {
+            if (totalSupIndiv + newHours > maxSupIndividual) {
+                throw new Error(`Individual Supervised Limit: The plan restricts individual supervised hours to ${maxSupIndividual.toFixed(1)}h. Total accumulated: ${totalSupIndiv.toFixed(1)}h. Available: ${(maxSupIndividual - totalSupIndiv).toFixed(2)}h.`)
+            }
         }
     }
 }
