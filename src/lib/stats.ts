@@ -32,7 +32,20 @@ export async function getMonthStats(studentId: string, date: Date = new Date()) 
     }
 
     const totalIndependent = independent.reduce((sum, h) => sum + Number(h.hours), 0)
-    const totalSupervision = supervision.reduce((sum, h) => sum + Number(h.hours), 0)
+    
+    // FETCH GROUP ATTENDANCE FALLBACK
+    const groupAtt = await prisma.groupSupervisionAttendance.findMany({
+        where: { studentId, attended: true, session: { date: { gte: start, lte: end } } },
+        include: { session: true }
+    })
+    const syncedGroupSessionIds = new Set(
+        supervision
+            .filter(h => h.supervisionType === 'GROUP' && h.groupSessionId)
+            .map(h => h.groupSessionId)
+    )
+    const extraGroupHours = groupAtt.filter(a => !syncedGroupSessionIds.has(a.groupId)).length
+
+    const totalSupervision = supervision.reduce((sum, h) => sum + Number(h.hours), 0) + extraGroupHours
     const total = totalIndependent + totalSupervision
 
     const restrictedIndependent = independent
