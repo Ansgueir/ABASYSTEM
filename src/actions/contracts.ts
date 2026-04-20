@@ -37,22 +37,34 @@ async function scheduleGroupSessions(
     const n = groupAssignments.length
     if (n === 0) return
 
+    // ── Fetch Plan Target ─────────────────────────────────────────────────────
+    const student = await prisma.student.findUnique({
+        where: { id: studentId },
+        select: { planTemplateId: true }
+    })
+    
+    let maxGroupHours = 26 // default fallback
+    if (student?.planTemplateId) {
+        const plan = await prisma.plan.findUnique({ where: { id: student.planTemplateId } })
+        if (plan?.groupSupervisionTarget) {
+            maxGroupHours = Number(plan.groupSupervisionTarget)
+        }
+    }
+
+    let currentScheduledHours = 0
+
     // ── Interval/offset matrix ────────────────────────────────────────────────
-    // REGULAR:  1 day→14d interval | 2 days→28d each, 14d offset between them
-    // CONC:     1 day→7d | 2→14d each, 7d offset | 4→28d each, 7d offset
-    // (3 days is blocked at the dialog level)
     let intervalDays: number
     let offsetMultiplierDays: number
     if (planType === "CONCENTRATED") {
         if (n === 1) { intervalDays = 7; offsetMultiplierDays = 0 }
         else if (n === 2) { intervalDays = 14; offsetMultiplierDays = 7 }
-        else { intervalDays = 28; offsetMultiplierDays = 7 } // 4 days
+        else { intervalDays = 28; offsetMultiplierDays = 7 }
     } else { // REGULAR
         if (n === 1) { intervalDays = 14; offsetMultiplierDays = 0 }
-        else { intervalDays = 28; offsetMultiplierDays = 14 } // 2 days staggered fortnightly
+        else { intervalDays = 28; offsetMultiplierDays = 14 }
     }
 
-    // Fetch all office groups and sort by day-of-week index for deterministic ordering
     const withGroups = await Promise.all(
         groupAssignments.map(async (ga, idx) => {
             const officeGroup = await (prisma as any).officeGroup.findUnique({ where: { id: ga.officeGroupId } })
@@ -66,8 +78,8 @@ async function scheduleGroupSessions(
     for (let i = 0; i < sorted.length; i++) {
         const { ga, officeGroup } = sorted[i]
         const [startHour, startMin] = String(officeGroup.startTime).split(":").map(Number)
+        const [endHour, endMin] = String(officeGroup.endTime).split(":").map(Number)
 
-        // Each assignment starts offset days later than the previous
         const effectiveStart = new Date(startDate)
         effectiveStart.setDate(effectiveStart.getDate() + i * offsetMultiplierDays)
         effectiveStart.setHours(0, 0, 0, 0)
@@ -75,10 +87,17 @@ async function scheduleGroupSessions(
         const dates = generateGroupDates(effectiveStart, endDate, officeGroup.dayOfWeek, intervalDays)
 
         for (const date of dates) {
+            // STOP if we reached the plan's target
+            if (currentScheduledHours >= maxGroupHours - 0.0001) break
+
             const sessionDate = new Date(date)
             sessionDate.setHours(0, 0, 0, 0)
             const startTime = new Date(date)
             startTime.setHours(startHour, startMin, 0, 0)
+            const endTime = new Date(date)
+            endTime.setHours(endHour, endMin, 0, 0)
+            const durationHours = (endTime.getTime() - startTime.getTime()) / (1000 * 60 * 60)
+            const hoursToAdd = durationHours > 0 ? durationHours : 1
 
             const dayStart = new Date(sessionDate); dayStart.setHours(0, 0, 0, 0)
             const dayEnd = new Date(sessionDate); dayEnd.setHours(23, 59, 59, 999)
@@ -102,15 +121,9 @@ async function scheduleGroupSessions(
                     }
                 })
                 sessionId = created.id
+                existingSession = created
             }
 
-            // Start/End parsing for hours calculation
-            const [endHour, endMin] = String(officeGroup.endTime).split(":").map(Number)
-            const endTime = new Date(date)
-            endTime.setHours(endHour, endMin, 0, 0)
-            const durationHours = (endTime.getTime() - startTime.getTime()) / (1000 * 60 * 60)
-
-            // Create attendance if not exists - ONLY if session is on/after student's startDate
             if (sessionDate.getTime() >= startDate.getTime()) {
                 const existingAttendance = await (prisma as any).groupSupervisionAttendance.findFirst({
                     where: { sessionId, studentId }
@@ -119,35 +132,36 @@ async function scheduleGroupSessions(
                     await (prisma as any).groupSupervisionAttendance.create({
                         data: { sessionId, studentId, attended: true }
                     })
+                }
 
-                    // ALSO CREATE THE SUPERVISION HOUR RECORD (Critical for Progress/Audit)
-                    const existingHour = await (prisma as any).supervisionHour.findFirst({
-                        where: { 
-                            studentId, 
-                            date: sessionDate, 
-                            supervisionType: "GROUP", 
-                            groupTopic: (existingSession as any)?.topic || `${officeGroup.groupType} Group`
+                // DE-DUPLICATION: Check if there is ANY group hour for this student on this day
+                const existingHour = await (prisma as any).supervisionHour.findFirst({
+                    where: { 
+                        studentId, 
+                        date: sessionDate, 
+                        supervisionType: "GROUP"
+                    }
+                })
+
+                if (!existingHour) {
+                    await (prisma as any).supervisionHour.create({
+                        data: {
+                            studentId,
+                            supervisorId: ga.supervisorId,
+                            date: sessionDate,
+                            startTime,
+                            hours: hoursToAdd,
+                            supervisionType: "GROUP",
+                            setting: "OFFICE_CLINIC",
+                            activityType: "RESTRICTED",
+                            notes: `Retroactive Group Session assigned from Contract: ${officeGroup.groupType}`,
+                            groupTopic: (existingSession as any)?.topic || `${officeGroup.groupType} Group`,
+                            status: "PENDING"
                         }
                     })
-
-                    if (!existingHour) {
-                        await (prisma as any).supervisionHour.create({
-                            data: {
-                                studentId,
-                                supervisorId: ga.supervisorId,
-                                date: sessionDate,
-                                startTime,
-                                hours: durationHours > 0 ? durationHours : 1,
-                                supervisionType: "GROUP",
-                                setting: "OFFICE_CLINIC",
-                                activityType: "RESTRICTED",
-                                notes: `Retroactive Group Session assigned from Contract: ${officeGroup.groupType}`,
-                                groupTopic: (existingSession as any)?.topic || `${officeGroup.groupType} Group`,
-                                status: "PENDING"
-                            }
-                        })
-                    }
                 }
+                
+                currentScheduledHours += hoursToAdd
             }
         }
     }
@@ -358,10 +372,19 @@ export async function updateContract(data: {
         const endDate = (currentContract.student as any).endDate ? new Date((currentContract.student as any).endDate) : (() => { const d = new Date(startDate); d.setMonth(d.getMonth() + ((currentContract.student as any).totalMonths || 12)); return d })()
         const planType = (currentContract.student as any).fieldworkType || "REGULAR"
         
-        // First delete any future attendance to avoid piling up if they change groups
+        // first delete any future attendance to avoid piling up if they change groups
         const todayZero = new Date(); todayZero.setHours(0,0,0,0)
         await (prisma as any).groupSupervisionAttendance.deleteMany({
             where: { studentId: currentContract.studentId, session: { date: { gte: todayZero } } }
+        })
+
+        // ALSO cleanup PENDING group hours to avoid duplicates on re-save
+        await (prisma as any).supervisionHour.deleteMany({
+            where: { 
+                studentId: currentContract.studentId, 
+                supervisionType: "GROUP", 
+                status: "PENDING"
+            }
         })
         
         await scheduleGroupSessions(currentContract.studentId, data.groupAssignments, startDate, endDate, planType)
