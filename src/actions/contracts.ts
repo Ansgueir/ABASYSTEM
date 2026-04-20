@@ -161,7 +161,8 @@ async function scheduleGroupSessions(
                             activityType: "RESTRICTED",
                             notes: `Retroactive Group Session assigned from Contract: ${officeGroup.groupType}`,
                             groupTopic: (existingSession as any)?.topic || `${officeGroup.groupType} Group`,
-                            status: "PENDING"
+                            status: "PENDING",
+                            groupSessionId: sessionId
                         }
                     })
                     console.log(`[SCHEDULE-DEBUG] Created hour record for ${sessionDate.toISOString().split('T')[0]}`)
