@@ -2,6 +2,7 @@ import { prisma } from "@/lib/prisma"
 import { startOfMonth, endOfMonth } from "date-fns"
 
 export async function validatePlanLimits(studentId: string, date: Date, newHours: number, hourType: 'independent' | 'supervision', excludeLogId?: string) {
+    console.log(`[Plan-Validation-Debug] validatePlanLimits started for student ${studentId}`)
     const student = await prisma.student.findUnique({
         where: { id: studentId }
     })
@@ -92,6 +93,7 @@ export async function validatePlanLimits(studentId: string, date: Date, newHours
  * and monthly limits for each month involved.
  */
 export async function validatePlanLimitsBulk(studentId: string, logs: { date: Date, hours: number, type: 'independent' | 'supervision' }[]) {
+    console.log(`[Plan-Validation-Debug] validatePlanLimitsBulk started for student ${studentId} with ${logs.length} entries`)
     if (logs.length === 0) return
 
     const student = await prisma.student.findUnique({ where: { id: studentId } })
@@ -158,9 +160,13 @@ export async function validatePlanLimitsBulk(studentId: string, logs: { date: Da
         const mSup = await prisma.supervisionHour.aggregate({ where: { studentId, date: { gte: start, lte: end }, status: { not: 'REJECTED' } }, _sum: { hours: true } })
 
         const currentMonthly = (Number(mIndep._sum.hours) || 0) + (Number(mSup._sum.hours) || 0)
+        
+        console.log(`[Plan-Validation-Debug] BULK Month ${info.month+1}/${info.year}: Current=${currentMonthly}, New=${info.hours}, Max=${maxHoursPerMonth}`)
+
         if (currentMonthly + info.hours > maxHoursPerMonth) {
             throw new Error(`Bulk Monthly Limit: For the month ${info.month + 1}/${info.year}, your massive entry of ${info.hours.toFixed(2)}h exceeds the monthly cap of ${maxHoursPerMonth}h.`);
         }
     }
+    console.log(`[Plan-Validation-Debug] validatePlanLimitsBulk passed for student ${studentId}`)
 }
 
