@@ -76,6 +76,16 @@ export async function POST(req: Request) {
             enrollmentFee: enrollmentFee != null ? Number(enrollmentFee) : undefined,
         })
 
+        // VALIDATION: Subdivision sum cannot exceed total amountSupHours
+        if (calc.amountSupHours !== null) {
+            const sumSubdivided = (Number(individualSupervisedTarget) || 0) + (Number(groupSupervisionTarget) || 0)
+            if (sumSubdivided > calc.amountSupHours + 0.0001) {
+                return NextResponse.json({ 
+                    error: `The sum of individual (${individualSupervisedTarget}) and group (${groupSupervisionTarget}) supervision hours (${sumSubdivided}) cannot exceed the total supervised hours allowed by the plan (${calc.amountSupHours}).` 
+                }, { status: 400 })
+            }
+        }
+
         const newPlan = await prisma.plan.create({
             data: {
                 name,

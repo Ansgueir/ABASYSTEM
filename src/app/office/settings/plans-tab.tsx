@@ -156,8 +156,15 @@ export function PlansTab() {
     }
 
     const handleSave = async () => {
-        if (!formData.name.trim()) return toast.error("Plan name is required")
         if (!formData.totalHours || !formData.hoursPerMonth) return toast.error("Total hours and hours per month are required")
+
+        // Subdivision validation
+        if (liveCalc) {
+            const sumSubdivided = (parseFloat(formData.individualSupervisedTarget) || 0) + (parseFloat(formData.groupSupervisionTarget) || 0)
+            if (sumSubdivided > liveCalc.amountSupHours + 0.0001) {
+                return toast.error(`The sum of individual and group targets (${sumSubdivided}h) cannot exceed the total supervised hours allowed by the plan (${liveCalc.amountSupHours.toFixed(1)}h).`)
+            }
+        }
 
         setIsSaving(true)
         try {
@@ -414,6 +421,22 @@ export function PlansTab() {
                                     <Label className="text-xs font-semibold flex items-center gap-1">Group Supervision Delta (Last Month)</Label>
                                     <Input type="number" step="0.01" value={formData.groupSupervisionDelta} onChange={F('groupSupervisionDelta')} placeholder="e.g. 0.5" />
                                 </div>
+
+                                {liveCalc && (
+                                    <div className="col-span-2 pt-2">
+                                        {((parseFloat(formData.individualSupervisedTarget) || 0) + (parseFloat(formData.groupSupervisionTarget) || 0)) > liveCalc.amountSupHours + 0.0001 ? (
+                                            <div className="flex items-center gap-2 text-xs font-bold text-red-600 bg-red-50 p-2 rounded-lg border border-red-100">
+                                                <AlertCircle className="h-4 w-4" />
+                                                Validation Error: Sum of Indiv. + Group ({(parseFloat(formData.individualSupervisedTarget) || 0) + (parseFloat(formData.groupSupervisionTarget) || 0)}h) exceeds total supervised hours ({liveCalc.amountSupHours.toFixed(1)}h).
+                                            </div>
+                                        ) : (
+                                            <div className="flex items-center gap-2 text-[10px] font-medium text-slate-500 italic px-1">
+                                                <CheckCircle2 className="h-3 w-3 text-emerald-500" />
+                                                Subdivision fits within the {liveCalc.amountSupHours.toFixed(1)}h allowed.
+                                            </div>
+                                        )}
+                                    </div>
+                                )}
                             </div>
                         </div>
 
