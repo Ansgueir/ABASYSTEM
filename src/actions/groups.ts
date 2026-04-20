@@ -79,9 +79,9 @@ export async function createGroupSession(date: Date, startTime: string, topic: s
 
         revalidatePath("/supervisor/groups")
         return { success: true }
-    } catch (error) {
+    } catch (error: any) {
         console.error("Create Group Error:", error)
-        return { error: "Failed to create group session" }
+        return { error: error.message || "Failed to create group session" }
     }
 }
 

@@ -4,6 +4,7 @@
 import { auth } from "@/auth"
 import { prisma } from "@/lib/prisma"
 import { revalidatePath } from "next/cache"
+import { validatePlanLimitsBulk } from "./plan-limits-helper"
 
 const getSessionUser = async () => {
     const session = await auth()
@@ -169,14 +170,11 @@ export async function programGroupSessions(
         
         let rangeEnd: Date
         if (recurrenceMode === 'current') {
-            // End of current month
             rangeEnd = new Date(today.getFullYear(), today.getMonth() + 1, 0)
         } else {
-            // End of current month + additionalMonths
             rangeEnd = new Date(today.getFullYear(), today.getMonth() + 1 + additionalMonths, 0)
         }
 
-        // Collect all target dates
         const targetDates: Date[] = []
         const cursor = new Date(rangeStart)
         while (cursor <= rangeEnd) {
@@ -187,6 +185,22 @@ export async function programGroupSessions(
         }
 
         if (targetDates.length === 0) return { error: "No matching dates found in the selected range." }
+
+        // --- PLAN LIMIT VALIDATION FOR ALL STUDENTS ---
+        // Prepare bulk logs summary for validation
+        const bulkLogsForValidation = targetDates.map(date => ({
+            date,
+            hours: durationHours,
+            type: 'supervision' as const
+        }))
+
+        for (const sId of studentIds) {
+            try {
+                await validatePlanLimitsBulk(sId, bulkLogsForValidation)
+            } catch (err: any) {
+                return { error: `No se pueden programar las sesiones. ${err.message}` }
+            }
+        }
 
         // Create everything in a transaction
         await (prisma as any).$transaction(async (tx) => {

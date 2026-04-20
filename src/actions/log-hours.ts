@@ -28,7 +28,7 @@ export type LogHoursState = {
     fieldErrors?: Record<string, string[]>
 }
 
-import { validatePlanLimits } from "./plan-limits-helper"
+import { validatePlanLimits, validatePlanLimitsBulk } from "./plan-limits-helper"
 
 async function validateTimeOverlap(studentId: string, date: Date, newStart: Date, minutes: number) {
     const newEnd = new Date(newStart.getTime() + minutes * 60000)
@@ -603,15 +603,14 @@ export async function logBulkHours(payload: {
             return { error: 'No matching dates found for the selected weekdays and date range.' }
         }
 
-        // Validate monthly cap for each unique month affected
-        const uniqueMonths = new Set(matchingDates.map(d => `${d.getFullYear()}-${d.getMonth()}`))
-        for (const monthKey of uniqueMonths) {
-            const [year, month] = monthKey.split('-').map(Number)
-            const monthDate = new Date(year, month, 15)
-            const matchingInThisMonth = matchingDates.filter(d => d.getFullYear() === year && d.getMonth() === month)
-            const newHoursInMonth = matchingInThisMonth.length * hoursDecimal
-            await validatePlanLimits(studentId, monthDate, newHoursInMonth, payload.type)
-        }
+        // 3. Collective Plan Validation (Robust)
+        const bulkLogs = matchingDates.map(date => ({
+            date,
+            hours: hoursDecimal,
+            type: payload.type as 'independent' | 'supervision'
+        }))
+        
+        await validatePlanLimitsBulk(studentId, bulkLogs)
 
         let created = 0
         let skipped = 0
