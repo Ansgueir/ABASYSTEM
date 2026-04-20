@@ -50,7 +50,7 @@ export async function validatePlanLimits(studentId: string, date: Date, newHours
     const currentMonthly = (Number(monthlyIndep._sum.hours) || 0) + (Number(monthlySup._sum.hours) || 0)
     
     if (currentMonthly + newHours > maxHoursPerMonth) {
-        throw new Error(`Límite Mensual Excedido: El plan de ${student.fullName} permite un máximo de ${maxHoursPerMonth}h mensuales. Has intentado sumar ${(currentMonthly + newHours).toFixed(2)}h. Solo quedan ${(maxHoursPerMonth - currentMonthly).toFixed(2)}h disponibles para este mes.`)
+        throw new Error(`Monthly Limit Exceeded: The plan for ${student.fullName} allows a maximum of ${maxHoursPerMonth}h per month. You tried to add ${(currentMonthly + newHours).toFixed(2)}h. Only ${(maxHoursPerMonth - currentMonthly).toFixed(2)}h are available for this month.`)
     }
 
     // --- LIFETIME LIMIT CHECK ---
@@ -67,17 +67,17 @@ export async function validatePlanLimits(studentId: string, date: Date, newHours
     const totalSup = Number(lifetimeSup._sum.hours) || 0
 
     if (totalIndep + totalSup + newHours > totalPlanHours) {
-        throw new Error(`Límite de Plan Maestro: ${student.fullName} ya tiene ${(totalIndep + totalSup).toFixed(2)}h de las ${totalPlanHours}h totales permitidas. El registro actual de ${newHours.toFixed(2)}h excede el tope total del plan.`);
+        throw new Error(`Master Plan Limit: ${student.fullName} already has ${(totalIndep + totalSup).toFixed(2)}h of the ${totalPlanHours}h total hours allowed. The current entry of ${newHours.toFixed(2)}h exceeds the plan's total cap.`);
     }
 
     // --- MODALITY LIMIT CHECK ---
     if (hourType === 'independent') {
         if (totalIndep + newHours > maxIndependentHours) {
-            throw new Error(`Límite de Horas Independientes: El plan permite un máximo de ${maxIndependentHours.toFixed(1)}h independientes. Total acumulado: ${totalIndep.toFixed(2)}h. Disponibles: ${(maxIndependentHours - totalIndep).toFixed(2)}h.`)
+            throw new Error(`Independent Hours Limit: The plan allows a maximum of ${maxIndependentHours.toFixed(1)}h independent hours. Total accumulated: ${totalIndep.toFixed(2)}h. Available: ${(maxIndependentHours - totalIndep).toFixed(2)}h.`)
         }
     } else {
         if (totalSup + newHours > maxSupervisedHours) {
-            throw new Error(`Límite de Horas Supervisadas: El plan permite un máximo de ${maxSupervisedHours.toFixed(1)}h supervisadas (5% o similar). Total acumulado: ${totalSup.toFixed(2)}h. Disponibles: ${(maxSupervisedHours - totalSup).toFixed(2)}h.`)
+            throw new Error(`Supervised Hours Limit: The plan allows a maximum of ${maxSupervisedHours.toFixed(1)}h supervised hours (5% or similar). Total accumulated: ${totalSup.toFixed(2)}h. Available: ${(maxSupervisedHours - totalSup).toFixed(2)}h.`)
         }
     }
 }
@@ -126,15 +126,15 @@ export async function validatePlanLimitsBulk(studentId: string, logs: { date: Da
     const totalSup = Number(lifetimeSup._sum.hours) || 0
 
     if (totalIndep + totalSup + totalNewHours > totalPlanHours) {
-        throw new Error(`Operación en Bloque Rechazada: Esta carga masiva de ${totalNewHours.toFixed(2)}h excedería el límite total del plan (${totalPlanHours}h). Actualmente llevas ${(totalIndep + totalSup).toFixed(2)}h.`);
+        throw new Error(`Bulk Operation Rejected: This massive load of ${totalNewHours.toFixed(2)}h would exceed the total plan limit (${totalPlanHours}h). You currently have ${(totalIndep + totalSup).toFixed(2)}h.`);
     }
 
     if (totalNewIndep > 0 && totalIndep + totalNewIndep > maxIndependentHours) {
-        throw new Error(`Operación en Bloque Rechazada: La carga de ${totalNewIndep.toFixed(2)}h independientes excede el límite permitido para esta modalidad (${maxIndependentHours.toFixed(1)}h).`);
+        throw new Error(`Bulk Operation Rejected: The load of ${totalNewIndep.toFixed(2)}h independent hours exceeds the allowed limit for this modality (${maxIndependentHours.toFixed(1)}h).`);
     }
 
     if (totalNewSup > 0 && totalSup + totalNewSup > maxSupervisedHours) {
-        throw new Error(`Operación en Bloque Rechazada: La carga de ${totalNewSup.toFixed(2)}h supervisadas excede el límite permitido (${maxSupervisedHours.toFixed(1)}h).`);
+        throw new Error(`Bulk Operation Rejected: The load of ${totalNewSup.toFixed(2)}h supervised hours exceeds the allowed limit (${maxSupervisedHours.toFixed(1)}h).`);
     }
 
     // 2. MONTHLY CHECKS
@@ -155,7 +155,7 @@ export async function validatePlanLimitsBulk(studentId: string, logs: { date: Da
 
         const currentMonthly = (Number(mIndep._sum.hours) || 0) + (Number(mSup._sum.hours) || 0)
         if (currentMonthly + info.hours > maxHoursPerMonth) {
-            throw new Error(`Límite Mensual en Bloque: Para el mes ${info.month + 1}/${info.year}, tu registro masivo de ${info.hours.toFixed(2)}h excede el tope mensual de ${maxHoursPerMonth}h.`);
+            throw new Error(`Bulk Monthly Limit: For the month ${info.month + 1}/${info.year}, your massive entry of ${info.hours.toFixed(2)}h exceeds the monthly cap of ${maxHoursPerMonth}h.`);
         }
     }
 }
