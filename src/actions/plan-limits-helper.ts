@@ -25,6 +25,8 @@ export async function validatePlanLimits(studentId: string, date: Date, newHours
         supervisedPercentage = Number(plan.supervisedPercentage)
     }
 
+    console.log(`[Plan-Validation-Debug] Student: ${student.fullName}, Monthly Limit: ${maxHoursPerMonth}, Lifetime Limit: ${totalPlanHours}, Supervised%: ${supervisedPercentage}`)
+
     const maxSupervisedHours = Number(plan?.amountSupHours) || (totalPlanHours * supervisedPercentage)
     
     let maxIndependentHours = 0
@@ -49,6 +51,8 @@ export async function validatePlanLimits(studentId: string, date: Date, newHours
 
     const currentMonthly = (Number(monthlyIndep._sum.hours) || 0) + (Number(monthlySup._sum.hours) || 0)
     
+    console.log(`[Plan-Validation-Debug] Month: ${start.toISOString()} to ${end.toISOString()}, Current: ${currentMonthly}, New: ${newHours}, Max: ${maxHoursPerMonth}`)
+
     if (currentMonthly + newHours > maxHoursPerMonth) {
         throw new Error(`Monthly Limit Exceeded: The plan for ${student.fullName} allows a maximum of ${maxHoursPerMonth}h per month. You tried to add ${(currentMonthly + newHours).toFixed(2)}h. Only ${(maxHoursPerMonth - currentMonthly).toFixed(2)}h are available for this month.`)
     }
