@@ -116,6 +116,10 @@ export async function markInvoiceAsPaid(
             let planHoursPerMonth: number | null = null
             let planSupervisedHours: number | null = null
             let planIndividualHours: number | null = null
+            let planIndividualSupervisedTarget: number | null = null
+            let planGroupSupervisionTarget: number | null = null
+            let planIndividualSupervisedDelta: number | null = null
+            let planGroupSupervisionDelta: number | null = null
             if (student.planTemplateId) {
                 const plan = await (prisma as any).plan.findUnique({
                     where: { id: student.planTemplateId },
@@ -142,6 +146,11 @@ export async function markInvoiceAsPaid(
                     if (plan.hoursPerMonth && plan.supervisedPercentage != null) {
                         planIndividualHours = plan.hoursPerMonth * (1 - Number(plan.supervisedPercentage))
                     }
+                    
+                    planIndividualSupervisedTarget = plan.individualSupervisedTarget ? Number(plan.individualSupervisedTarget) : null
+                    planGroupSupervisionTarget = plan.groupSupervisionTarget ? Number(plan.groupSupervisionTarget) : null
+                    planIndividualSupervisedDelta = plan.individualSupervisedDelta ? Number(plan.individualSupervisedDelta) : null
+                    planGroupSupervisionDelta = plan.groupSupervisionDelta ? Number(plan.groupSupervisionDelta) : null
                 }
             }
 
@@ -162,10 +171,10 @@ export async function markInvoiceAsPaid(
                     planHoursPerMonth,
                     planSupervisedHours,
                     planIndividualHours,
-                    planIndividualSupervisedTarget: plan?.individualSupervisedTarget ? Number(plan.individualSupervisedTarget) : null,
-                    planGroupSupervisionTarget: plan?.groupSupervisionTarget ? Number(plan.groupSupervisionTarget) : null,
-                    planIndividualSupervisedDelta: plan?.individualSupervisedDelta ? Number(plan.individualSupervisedDelta) : null,
-                    planGroupSupervisionDelta: plan?.groupSupervisionDelta ? Number(plan.groupSupervisionDelta) : null,
+                    planIndividualSupervisedTarget,
+                    planGroupSupervisionTarget,
+                    planIndividualSupervisedDelta,
+                    planGroupSupervisionDelta,
                     // Status starts as PENDING until Super Office pays
                     payoutStatus: "PENDING"
                 }
