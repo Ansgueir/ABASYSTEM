@@ -110,8 +110,56 @@ export default async function SupervisionLogsReviewPage({
             }
         }).catch(e => { console.error(e); return [] })
 
+        // FETCH GROUP ATTENDANCE FALLBACKS
+        const groupAttendanceLogs = await prisma.groupSupervisionAttendance.findMany({
+            where: {
+                attended: true,
+                student: activeTab === 'PENDING' ? (selectedStudent ? { fullName: { equals: selectedStudent, mode: 'insensitive' as any } } : {}) : undefined, // Only show in Pending if we want to match previous behavior
+            },
+            include: {
+                student: { select: { fullName: true } },
+                session: { include: { supervisor: { select: { fullName: true } } } }
+            }
+        }).catch(() => [])
+
+        // Filter group attendance by selected period/filters manually if needed or just sync it
+        const filteredGroupLogs = groupAttendanceLogs.filter(a => {
+            const date = a.session.date
+            const year = date.getFullYear()
+            const month = date.getMonth()
+            
+            if (activeTab !== 'PENDING') return false // Attendance doesn't have status, assume Pending for now
+
+            if (selectedYear && year !== parseInt(selectedYear)) return false
+            if (selectedMonth && month !== parseInt(selectedMonth)) return false
+            if (selectedStudent && a.student?.fullName?.toLowerCase() !== selectedStudent.toLowerCase()) return false
+            if (selectedSupervisor && a.session.supervisor?.fullName?.toLowerCase() !== selectedSupervisor.toLowerCase()) return false
+
+            // Check if already in supervisionLogs
+            return !supervisionLogs.some(sh => 
+                sh.studentId === a.studentId && 
+                sh.date.toISOString() === a.session.date.toISOString() &&
+                sh.startTime.toISOString() === a.session.startTime.toISOString() &&
+                sh.supervisionType === 'GROUP'
+            )
+        }).map(a => ({
+            id: a.id,
+            date: a.session.date,
+            startTime: a.session.startTime,
+            hours: 1,
+            supervisionType: 'GROUP',
+            setting: 'OFFICE_CLINIC',
+            status: 'PENDING',
+            student: a.student,
+            supervisor: a.session.supervisor,
+            type: 'SUPERVISED'
+        }))
+
         // Safe combine logic
-        const combined = supervisionLogs.map(l => ({ ...l, type: 'SUPERVISED' }))
+        const combined = [
+            ...supervisionLogs.map(l => ({ ...l, type: 'SUPERVISED' })),
+            ...filteredGroupLogs
+        ]
 
         // Refined Sort Logic with explicit any casting to avoid TS index errors
         logs = (combined as any[]).sort((a, b) => {

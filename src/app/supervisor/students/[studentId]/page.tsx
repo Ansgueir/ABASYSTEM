@@ -57,7 +57,13 @@ export default async function SupervisorStudentDetailPage({ params }: { params: 
                 }
             },
             independentHours: { orderBy: { date: 'desc' } },
-            supervisionHours: { orderBy: { date: 'desc' }, include: { supervisor: true } }
+            supervisionHours: { orderBy: { date: 'desc' }, include: { supervisor: true } },
+            groupAttendance: {
+                where: { attended: true },
+                include: { session: { include: { supervisor: true } } },
+                orderBy: { session: { date: 'desc' } },
+                take: 200
+            }
         }
     })
 
@@ -88,12 +94,31 @@ export default async function SupervisorStudentDetailPage({ params }: { params: 
         ...h,
         hours: Number(h.hours)
     }))
-    const serializedSupervision = student.supervisionHours.map(h => ({
-        ...h,
-        hours: Number(h.hours),
-        amountBilled: h.amountBilled ? Number(h.amountBilled) : null,
-        supervisorPay: h.supervisorPay ? Number(h.supervisorPay) : null
-    }))
+    const serializedSupervision = [
+        ...student.supervisionHours.map(h => ({
+            ...h,
+            hours: Number(h.hours),
+            amountBilled: h.amountBilled ? Number(h.amountBilled) : null,
+            supervisorPay: h.supervisorPay ? Number(h.supervisorPay) : null
+        })),
+        ...(student as any).groupAttendance
+            .filter((a: any) => !student.supervisionHours.some(sh => 
+                sh.date.toISOString() === a.session.date.toISOString() && 
+                sh.startTime.toISOString() === a.session.startTime.toISOString() &&
+                sh.supervisionType === 'GROUP'
+            ))
+            .map((a: any) => ({
+                id: a.id,
+                date: a.session.date,
+                startTime: a.session.startTime,
+                hours: 1,
+                supervisionType: 'GROUP',
+                groupTopic: a.session.topic,
+                status: 'PENDING',
+                supervisor: a.session.supervisor,
+                type: 'supervised'
+            }))
+    ]
 
     const plan = student.planTemplateId ? await prisma.plan.findUnique({ where: { id: student.planTemplateId } }) : null
     const totalPlanHours = student.hoursToDo || plan?.totalHours || 2000

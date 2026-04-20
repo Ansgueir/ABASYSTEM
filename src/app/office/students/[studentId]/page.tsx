@@ -128,7 +128,14 @@ export default async function OfficeStudentDetailPage({ params }: { params: Prom
 
     const totalHours =
         (student.independentHours ?? []).reduce((s: number, h: any) => s + Number(h.hours), 0) +
-        (student.supervisionHours ?? []).reduce((s: number, h: any) => s + Number(h.hours), 0)
+        (student.supervisionHours ?? []).reduce((s: number, h: any) => s + Number(h.hours), 0) +
+        (student.groupAttendance ?? [])
+            .filter((a: any) => !student.supervisionHours.some((sh: any) => 
+                sh.date.toISOString() === a.session.date.toISOString() && 
+                sh.startTime.toISOString() === a.session.startTime.toISOString() &&
+                sh.supervisionType === 'GROUP'
+            ))
+            .length // each counts as 1h by default if not in supervisionHours
 
     // Double-serialized: first pass type-converts (Decimal/Date/BigInt),
     // second pass JSON round-trip nukes any residual non-serializable object

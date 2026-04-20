@@ -55,6 +55,7 @@ export function SupervisorActivityTab({
         groupTopic: s.topic,
         status: 'PENDING',
         type: 'supervised',
+        attendance: s.attendance,
         student: { fullName: `${s.attendance?.length || 0} Students` }
     }))
 
@@ -62,7 +63,14 @@ export function SupervisorActivityTab({
 
     const filteredHours = userSelectedStudentId === "all" 
         ? allCombined 
-        : (allCombined || []).filter(hour => hour.studentId === userSelectedStudentId)
+        : (allCombined || []).filter(hour => {
+            if (hour.studentId === userSelectedStudentId) return true
+            // Support for group logs where studentId might be nested in attendance
+            if (hour.supervisionType === 'GROUP' && hour.attendance) {
+                return hour.attendance.some((att: any) => att.studentId === userSelectedStudentId)
+            }
+            return false
+        })
 
     return (
         <div className="space-y-4">
