@@ -61,12 +61,16 @@ export default async function SupervisorTimesheetPage() {
                 })
             ])
 
-            const existingLogs = new Set(superLogs.map(l => `${l.studentId}-${l.date.toISOString()}-${l.startTime.toISOString()}`))
+            const existingLogs = new Set(superLogs.map(l => {
+                const d = new Date(l.date)
+                return `${l.studentId}-${d.getUTCFullYear()}-${d.getUTCMonth()}-${d.getUTCDate()}`
+            }))
 
             const groupFallbacks: any[] = []
             for (const session of groupOwnerSessions) {
                 for (const att of session.attendance) {
-                    const key = `${att.studentId}-${session.date.toISOString()}-${session.startTime.toISOString()}`
+                    const d = new Date(session.date)
+                    const key = `${att.studentId}-${d.getUTCFullYear()}-${d.getUTCMonth()}-${d.getUTCDate()}`
                     if (!existingLogs.has(key)) {
                         groupFallbacks.push({
                             id: att.id,

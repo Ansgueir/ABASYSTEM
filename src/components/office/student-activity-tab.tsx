@@ -39,11 +39,15 @@ export function StudentActivityTab({
 
     // Normalize group sessions for visualization - Only include those NOT already in supervisionHours
     const groupLogs = safeGroup
-        .filter(att => !safeSupervision.some(sh => 
-            sh.supervisionType === 'GROUP' && 
-            (sh.groupSessionId === att.sessionId || 
-             (new Date(sh.date).toISOString().split('T')[0] === new Date(att.session.date).toISOString().split('T')[0]))
-        ))
+        .filter(att => !safeSupervision.some(sh => {
+            if (sh.supervisionType !== 'GROUP' && !sh.groupSessionId) return false
+            if (sh.groupSessionId === att.sessionId) return true
+            const d1 = new Date(sh.date)
+            const d2 = new Date(att.session.date)
+            return d1.getUTCFullYear() === d2.getUTCFullYear() && 
+                   d1.getUTCMonth() === d2.getUTCMonth() && 
+                   d1.getUTCDate() === d2.getUTCDate()
+        }))
         .map(att => ({
             id: att.id,
             date: att.session.date,

@@ -60,7 +60,10 @@ export default async function TimesheetPage() {
             const existingHourDates = new Set(
                 supHours
                 .filter(h => h.date && h.startTime)
-                .map(h => `${h.date.toISOString()}-${h.startTime.toISOString()}-${h.supervisionType}`)
+                .map(h => {
+                    const d = new Date(h.date)
+                    return `${d.getUTCFullYear()}-${d.getUTCMonth()}-${d.getUTCDate()}-${h.supervisionType}`
+                })
             )
 
             hours = [
@@ -82,7 +85,10 @@ export default async function TimesheetPage() {
                 })),
                 ...groupAtt
                     .filter(a => a.session && a.session.date && a.session.startTime)
-                    .filter(a => !existingHourDates.has(`${a.session.date.toISOString()}-${a.session.startTime.toISOString()}-GROUP`))
+                    .filter(a => {
+                        const d = new Date(a.session.date)
+                        return !existingHourDates.has(`${d.getUTCFullYear()}-${d.getUTCMonth()}-${d.getUTCDate()}-GROUP`)
+                    })
                     .map(a => ({
                         id: a.id,
                         date: a.session.date,

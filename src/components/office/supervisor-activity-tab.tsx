@@ -45,19 +45,29 @@ export function SupervisorActivityTab({
     const safeSupervision = Array.isArray(supervisionHours) ? supervisionHours : []
     const safeGroups = Array.isArray(groupSessions) ? groupSessions : []
 
-    // Normalize group logs for visualization
-    const groupLogs = safeGroups.map(s => ({
-        id: s.id,
-        date: s.date,
-        startTime: s.startTime,
-        hours: 1, // Default for group activity view
-        supervisionType: 'GROUP',
-        groupTopic: s.topic,
-        status: 'PENDING',
-        type: 'supervised',
-        attendance: s.attendance,
-        student: { fullName: `${s.attendance?.length || 0} Students` }
-    }))
+    // Normalize group logs for visualization - DEDUPLICATED
+    const groupLogs = safeGroups
+        .filter(s => !safeSupervision.some(sh => {
+            if (sh.supervisionType !== 'GROUP' && !sh.groupSessionId) return false
+            if (sh.groupSessionId === s.id) return true
+            const d1 = new Date(sh.date)
+            const d2 = new Date(s.date)
+            return d1.getUTCFullYear() === d2.getUTCFullYear() && 
+                   d1.getUTCMonth() === d2.getUTCMonth() && 
+                   d1.getUTCDate() === d2.getUTCDate()
+        }))
+        .map(s => ({
+            id: s.id,
+            date: s.date,
+            startTime: s.startTime,
+            hours: 1, 
+            supervisionType: 'GROUP',
+            groupTopic: s.topic,
+            status: 'PENDING',
+            type: 'supervised',
+            attendance: s.attendance,
+            student: { fullName: `${s.attendance?.length || 0} Students` }
+        }))
 
     const allCombined = [...safeSupervision, ...groupLogs]
 
