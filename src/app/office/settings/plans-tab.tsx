@@ -36,8 +36,6 @@ interface Plan {
     // Supervision Breakdown
     individualSupervisedTarget: number | null
     groupSupervisionTarget: number | null
-    individualSupervisedDelta: number | null
-    groupSupervisionDelta: number | null
 }
 
 interface FormInputs {
@@ -51,8 +49,6 @@ interface FormInputs {
     // Breakdown
     individualSupervisedTarget: string
     groupSupervisionTarget: string
-    individualSupervisedDelta: string
-    groupSupervisionDelta: string
 }
 
 /** Mirror of the backend formula — runs instantly in the browser */
@@ -76,7 +72,12 @@ function computeLive(inputs: FormInputs) {
     const supervisionNet = totalCost - enrollmentFee
     const monthlyPayment = numberOfMonths > 0 ? totalCost / numberOfMonths : 0
 
-    return { numberOfMonths, individualPct, amountIndivHours, amountSupHours, totalCost, supervisionNet, monthlyPayment }
+    // NEW LOGIC: Calculation of maximum group hours allowed
+    // REGULAR: Max 2 sessions/month. CONCENTRATED: Max 4 sessions/month.
+    const maxSessionsPerMonth = inputs.fieldworkType === "CONCENTRATED" ? 4 : 2
+    const maxGroupHrs = numberOfMonths * maxSessionsPerMonth
+
+    return { numberOfMonths, individualPct, amountIndivHours, amountSupHours, totalCost, supervisionNet, monthlyPayment, maxGroupHrs }
 }
 
 const fmtUSD = (n: number | null | undefined) =>
@@ -95,8 +96,6 @@ const emptyForm: FormInputs = {
     enrollmentFee: "",
     individualSupervisedTarget: "",
     groupSupervisionTarget: "",
-    individualSupervisedDelta: "",
-    groupSupervisionDelta: "",
 }
 
 export function PlansTab() {
@@ -149,8 +148,6 @@ export function PlansTab() {
             enrollmentFee: plan.enrollmentFee?.toString() ?? "",
             individualSupervisedTarget: plan.individualSupervisedTarget?.toString() ?? "",
             groupSupervisionTarget: plan.groupSupervisionTarget?.toString() ?? "",
-            individualSupervisedDelta: plan.individualSupervisedDelta?.toString() ?? "",
-            groupSupervisionDelta: plan.groupSupervisionDelta?.toString() ?? "",
         })
         setDialogOpen(true)
     }
@@ -158,19 +155,28 @@ export function PlansTab() {
     const handleSave = async () => {
         if (!formData.totalHours || !formData.hoursPerMonth) return toast.error("Total hours and hours per month are required")
 
+        const groupTarget = parseFloat(formData.groupSupervisionTarget) || 0
+
         // Subdivision validation
         if (liveCalc) {
-            const sumSubdivided = (parseFloat(formData.individualSupervisedTarget) || 0) + (parseFloat(formData.groupSupervisionTarget) || 0)
-            if (sumSubdivided > liveCalc.amountSupHours + 0.0001) {
-                return toast.error(`The sum of individual and group targets (${sumSubdivided}h) cannot exceed the total supervised hours allowed by the plan (${liveCalc.amountSupHours.toFixed(1)}h).`)
+            // Logical Check: Group target cannot exceed Max allowed (Months * MaxSessions)
+            if (groupTarget > liveCalc.maxGroupHrs + 0.0001) {
+                return toast.error(`Group supervision target (${groupTarget}h) exceeds the maximum allowed for a ${formData.fieldworkType} plan of ${liveCalc.numberOfMonths} months (${liveCalc.maxGroupHrs}h).`)
+            }
+
+            const indivTarget = liveCalc.amountSupHours - groupTarget
+            if (indivTarget < -0.0001) {
+                return toast.error(`Group supervision target exceeds total supervised hours (${liveCalc.amountSupHours.toFixed(1)}h).`)
             }
         }
 
         setIsSaving(true)
         try {
+            const indivTarget = liveCalc ? (liveCalc.amountSupHours - groupTarget) : 0
             const payload = {
                 ...formData,
                 supervisedPercentage: formData.supervisedPercentage ? (parseFloat(formData.supervisedPercentage) / 100).toString() : "",
+                individualSupervisedTarget: indivTarget.toString(),
             }
 
             const url = editingPlan ? `/api/office/plans/${editingPlan.id}` : "/api/office/plans"
@@ -403,24 +409,50 @@ export function PlansTab() {
                                 </div>
                                 <div className="space-y-2 col-span-2">
                                     <hr className="my-2 border-blue-200" />
-                                    <p className="text-[10px] font-bold text-blue-600">SUPERVISION SUBDIVISION (PLAN TOTALS)</p>
-                                </div>
-                                <div className="space-y-2">
-                                    <Label className="text-xs font-semibold flex items-center gap-1">Indiv. Supervised Target (Hrs)</Label>
-                                    <Input type="number" step="0.01" value={formData.individualSupervisedTarget} onChange={F('individualSupervisedTarget')} placeholder="e.g. 50" />
+                                    <p className="text-[10px] font-bold text-blue-600 uppercase">Supervision Subdivision (Plan Totals)</p>
                                 </div>
                                 <div className="space-y-2">
                                     <Label className="text-xs font-semibold flex items-center gap-1">Group Supervision Target (Hrs)</Label>
-                                    <Input type="number" step="0.01" value={formData.groupSupervisionTarget} onChange={F('groupSupervisionTarget')} placeholder="e.g. 50" />
+                                    <Input type="number" step="0.01" value={formData.groupSupervisionTarget} onChange={F('groupSupervisionTarget')} placeholder="e.g. 26" />
+                                    {liveCalc && (
+                                        <p className="text-[10px] text-muted-foreground">
+                                            Max allowed: {liveCalc.maxGroupHrs}h ({formData.fieldworkType === "CONCENTRATED" ? "4" : "2"} sessions × {liveCalc.numberOfMonths} months)
+                                        </p>
+                                    )}
                                 </div>
                                 <div className="space-y-2">
-                                    <Label className="text-xs font-semibold flex items-center gap-1">Indiv. Supervised Delta (Last Month)</Label>
-                                    <Input type="number" step="0.01" value={formData.individualSupervisedDelta} onChange={F('individualSupervisedDelta')} placeholder="e.g. 0.5" />
+                                    <Label className="text-xs font-semibold flex items-center gap-1">Indiv. Supervised Target (Hrs)</Label>
+                                    <Input 
+                                        type="number" 
+                                        readOnly 
+                                        value={liveCalc ? (liveCalc.amountSupHours - (parseFloat(formData.groupSupervisionTarget) || 0)).toFixed(1) : ""} 
+                                        className="bg-muted opacity-80 cursor-not-allowed font-bold"
+                                    />
+                                    <p className="text-[10px] text-muted-foreground italic">Auto-calculated: Total Supervised - Group Target</p>
                                 </div>
-                                <div className="space-y-2">
-                                    <Label className="text-xs font-semibold flex items-center gap-1">Group Supervision Delta (Last Month)</Label>
-                                    <Input type="number" step="0.01" value={formData.groupSupervisionDelta} onChange={F('groupSupervisionDelta')} placeholder="e.g. 0.5" />
-                                </div>
+
+                                {liveCalc && (
+                                    <div className="col-span-2 pt-2">
+                                        {(parseFloat(formData.groupSupervisionTarget) || 0) > liveCalc.maxGroupHrs + 0.0001 ? (
+                                            <div className="flex items-center gap-2 text-xs font-bold text-red-600 bg-red-50 p-2 rounded-lg border border-red-100">
+                                                <AlertCircle className="h-4 w-4" />
+                                                Validation Error: Group target ({parseFloat(formData.groupSupervisionTarget) || 0}h) exceeds max allowed for this {formData.fieldworkType} duration ({liveCalc.maxGroupHrs}h).
+                                            </div>
+                                        ) : (parseFloat(formData.groupSupervisionTarget) || 0) > liveCalc.amountSupHours + 0.0001 ? (
+                                            <div className="flex items-center gap-2 text-xs font-bold text-red-600 bg-red-50 p-2 rounded-lg border border-red-100">
+                                                <AlertCircle className="h-4 w-4" />
+                                                Validation Error: Group target exceeds the total supervised hours ({liveCalc.amountSupHours.toFixed(1)}h).
+                                            </div>
+                                        ) : (
+                                            <div className="flex items-center gap-2 text-[10px] font-medium text-slate-500 italic px-1">
+                                                <CheckCircle2 className="h-3 w-3 text-emerald-500" />
+                                                Subdivision is valid according to fieldwork rules.
+                                            </div>
+                                        )}
+                                    </div>
+                                )}
+                            </div>
+                        </div>
 
                                 {liveCalc && (
                                     <div className="col-span-2 pt-2">

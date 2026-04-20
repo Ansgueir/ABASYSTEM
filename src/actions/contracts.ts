@@ -104,14 +104,23 @@ async function scheduleGroupSessions(
                 sessionId = created.id
             }
 
-            // Create attendance if not exists
-            const existingAttendance = await (prisma as any).groupSupervisionAttendance.findFirst({
-                where: { sessionId, studentId }
-            })
-            if (!existingAttendance) {
-                await (prisma as any).groupSupervisionAttendance.create({
-                    data: { sessionId, studentId, attended: true }
+            // Create attendance if not exists - ONLY if session is on/after student's startDate
+            // Also skip if session already started and we are not doing a retroactive assignment
+            const now = new Date()
+            if (sessionDate.getTime() >= startDate.getTime()) {
+                // If the session is TODAY, only add if it hasn't started yet
+                if (sessionDate.toDateString() === now.toDateString() && startTime < now) {
+                    continue
+                }
+
+                const existingAttendance = await (prisma as any).groupSupervisionAttendance.findFirst({
+                    where: { sessionId, studentId }
                 })
+                if (!existingAttendance) {
+                    await (prisma as any).groupSupervisionAttendance.create({
+                        data: { sessionId, studentId, attended: true }
+                    })
+                }
             }
         }
     }
@@ -162,7 +171,9 @@ export async function createContract(data: {
         return { error: "Limitation: Solo se permite 1 contrato por estudiante." }
     }
 
-    const contractEffectiveDate = (student as any).startDate || new Date()
+    // Use student's profile start date as source of truth for contract effective date
+    const profileStart = (student as any).startDate ? new Date((student as any).startDate) : new Date()
+    const contractEffectiveDate = profileStart
     
     // Auto-merge group assignment supervisors into the contract as secondary ones (unless primary)
     const groupSupIds = data.groupAssignments?.map(g => g.supervisorId) || []
@@ -193,9 +204,9 @@ export async function createContract(data: {
             skipDuplicates: true
         })
 
-        // Schedule sessions
-        const startDate = new Date((student as any).startDate || new Date())
-        const endDate = new Date((student as any).endDate || new Date(startDate.getTime() + 365 * 2 * 24 * 60 * 60 * 1000))
+        // Schedule sessions based strictly on profile start date
+        const startDate = profileStart
+        const endDate = (student as any).endDate ? new Date((student as any).endDate) : new Date(startDate.getTime() + 365 * 2 * 24 * 60 * 60 * 1000)
         const planType = (student as any).fieldworkType || "REGULAR"
         await scheduleGroupSessions(data.studentId, data.groupAssignments, startDate, endDate, planType)
     }
@@ -316,8 +327,8 @@ export async function updateContract(data: {
         })
         
         // Also ensure sessions are scheduled just like createContract does
-        const startDate = (currentContract.student as any).startDate || new Date()
-        const endDate = (currentContract.student as any).endDate || (() => { const d = new Date(startDate); d.setMonth(d.getMonth() + ((currentContract.student as any).totalMonths || 12)); return d })()
+        const startDate = (currentContract.student as any).startDate ? new Date((currentContract.student as any).startDate) : new Date()
+        const endDate = (currentContract.student as any).endDate ? new Date((currentContract.student as any).endDate) : (() => { const d = new Date(startDate); d.setMonth(d.getMonth() + ((currentContract.student as any).totalMonths || 12)); return d })()
         const planType = (currentContract.student as any).fieldworkType || "REGULAR"
         
         // First delete any future attendance to avoid piling up if they change groups

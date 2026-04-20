@@ -45,7 +45,7 @@ export async function PATCH(req: Request, context: { params: any }) {
         const {
             name, fieldworkType,
             totalHours, hoursPerMonth, supervisedPercentage, hourlyRate, enrollmentFee, supervisorCommission,
-            individualSupervisedTarget, groupSupervisionTarget, individualSupervisedDelta, groupSupervisionDelta,
+            groupSupervisionTarget,
             regHoursBcba, regHoursBcaba, concHours, totalMonths
         } = body
 
@@ -57,15 +57,27 @@ export async function PATCH(req: Request, context: { params: any }) {
             enrollmentFee: enrollmentFee != null ? Number(enrollmentFee) : undefined,
         })
 
-        // VALIDATION: Subdivision sum cannot exceed total amountSupHours
-        if (calc.amountSupHours !== null) {
-            const sumSubdivided = (Number(individualSupervisedTarget) || 0) + (Number(groupSupervisionTarget) || 0)
-            if (sumSubdivided > calc.amountSupHours + 0.0001) {
+        // VALIDATION: Group Supervision Target Limit
+        // REGULAR: Max 2/mo. CONCENTRATED: Max 4/mo.
+        if (calc.numberOfMonths && calc.amountSupHours !== null) {
+            const maxSessionsPerMonth = fieldworkType === "CONCENTRATED" ? 4 : 2
+            const maxGroupHrs = calc.numberOfMonths * maxSessionsPerMonth
+            const gTarget = Number(groupSupervisionTarget) || 0
+
+            if (gTarget > maxGroupHrs + 0.0001) {
                 return NextResponse.json({ 
-                    error: `The sum of individual (${individualSupervisedTarget}) and group (${groupSupervisionTarget}) supervision hours (${sumSubdivided}) cannot exceed the total supervised hours allowed by the plan (${calc.amountSupHours}).` 
+                    error: `Group supervision target (${gTarget}h) exceeds the maximum allowed for a ${fieldworkType} plan of ${calc.numberOfMonths} months (${maxGroupHrs}h).` 
+                }, { status: 400 })
+            }
+
+            if (gTarget > calc.amountSupHours + 0.0001) {
+                return NextResponse.json({ 
+                    error: `Group supervision target exceeds total supervised hours allowed by the plan (${calc.amountSupHours}).` 
                 }, { status: 400 })
             }
         }
+
+        const indivTarget = calc.amountSupHours !== null ? (calc.amountSupHours - (Number(groupSupervisionTarget) || 0)) : null
 
         const updatedPlan = await prisma.plan.update({
             where: { id },
@@ -78,10 +90,8 @@ export async function PATCH(req: Request, context: { params: any }) {
                 hourlyRate: hourlyRate ? Number(hourlyRate) : null,
                 enrollmentFee: enrollmentFee != null ? Number(enrollmentFee) : null,
                 supervisorCommission: supervisorCommission != null ? Number(supervisorCommission) : null,
-                individualSupervisedTarget: individualSupervisedTarget != null ? Number(individualSupervisedTarget) : null,
+                individualSupervisedTarget: indivTarget,
                 groupSupervisionTarget: groupSupervisionTarget != null ? Number(groupSupervisionTarget) : null,
-                individualSupervisedDelta: individualSupervisedDelta != null ? Number(individualSupervisedDelta) : null,
-                groupSupervisionDelta: groupSupervisionDelta != null ? Number(groupSupervisionDelta) : null,
                 numberOfMonths: calc.numberOfMonths,
                 amountSupHours: calc.amountSupHours,
                 totalCost: calc.totalCost,

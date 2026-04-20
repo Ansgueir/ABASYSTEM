@@ -146,7 +146,7 @@ export async function programGroupSessions(
         const group = await (prisma as any).supervisorGroup.findUnique({
             where: { id: groupId },
             include: { 
-                students: { where: { status: 'ACTIVE' }, select: { studentId: true } },
+                students: { where: { status: { not: 'DISABLED' } as any }, select: { studentId: true, startDate: true } },
                 supervisor: { select: { fullName: true } }
             }
         })
@@ -194,11 +194,25 @@ export async function programGroupSessions(
             type: 'supervision' as const
         }))
 
-        for (const sId of studentIds) {
+        for (const studentAss of group.students) {
+            const sId = studentAss.studentId
+            const studentStart = new Date(studentAss.startDate)
+            studentStart.setHours(0, 0, 0, 0)
+
+            // Filter relevant target dates for this student
+            const studentDates = targetDates.filter(d => d.getTime() >= studentStart.getTime())
+            if (studentDates.length === 0) continue
+
+            const studentBulkLogs = studentDates.map(date => ({
+                date,
+                hours: durationHours,
+                type: 'supervision' as const
+            }))
+
             try {
-                await validatePlanLimitsBulk(sId, bulkLogsForValidation)
+                await validatePlanLimitsBulk(sId, studentBulkLogs)
             } catch (err: any) {
-                return { error: `No se pueden programar las sesiones. ${err.message}` }
+                return { error: `No se pueden programar las sesiones para ${sId}. ${err.message}` }
             }
         }
 
@@ -221,8 +235,14 @@ export async function programGroupSessions(
                     }
                 })
 
-                // 2. For each student: attendance + supervision hour
-                for (const sId of studentIds) {
+                // 2. For each student: attendance + supervision hour - ONLY if they have started
+                for (const studentAss of group.students) {
+                    const sId = studentAss.studentId
+                    const studentStart = new Date(studentAss.startDate)
+                    studentStart.setHours(0, 0, 0, 0)
+
+                    if (date.getTime() < studentStart.getTime()) continue;
+
                     await tx.groupSupervisionAttendance.create({
                         data: {
                             sessionId: session.id,

@@ -674,8 +674,6 @@ model Plan {
   // ── SUPERVISION BREAKDOWN ────────────────────────────────────────────────
   individualSupervisedTarget Decimal? @db.Decimal(10, 2)
   groupSupervisionTarget      Decimal? @db.Decimal(10, 2)
-  individualSupervisedDelta  Decimal? @db.Decimal(10, 2)
-  groupSupervisionDelta       Decimal? @db.Decimal(10, 2)
 
   // ── LEGACY FIELDS (kept for backward compat) ────────────────────────────
   regHoursBcba  Int      @default(0)
