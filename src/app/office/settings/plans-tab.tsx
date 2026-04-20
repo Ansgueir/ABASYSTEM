@@ -413,7 +413,18 @@ export function PlansTab() {
                                 </div>
                                 <div className="space-y-2">
                                     <Label className="text-xs font-semibold flex items-center gap-1">Group Supervision Target (Hrs)</Label>
-                                    <Input type="number" step="0.01" value={formData.groupSupervisionTarget} onChange={F('groupSupervisionTarget')} placeholder="e.g. 26" />
+                                    <Input 
+                                        type="number" 
+                                        step="1" 
+                                        value={formData.groupSupervisionTarget} 
+                                        onChange={(e) => {
+                                            const val = e.target.value;
+                                            if (val === "" || /^[0-9]+$/.test(val)) {
+                                                setFormData(p => ({ ...p, groupSupervisionTarget: val }));
+                                            }
+                                        }} 
+                                        placeholder="e.g. 26" 
+                                    />
                                     {liveCalc && (
                                         <p className="text-[10px] text-muted-foreground">
                                             Max allowed: {liveCalc.maxGroupHrs}h ({formData.fieldworkType === "CONCENTRATED" ? "4" : "2"} sessions × {liveCalc.numberOfMonths} months)

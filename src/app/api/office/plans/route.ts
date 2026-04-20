@@ -83,6 +83,10 @@ export async function POST(req: Request) {
             const maxGroupHrs = calc.numberOfMonths * maxSessionsPerMonth
             const gTarget = Number(groupSupervisionTarget) || 0
 
+            if (!Number.isInteger(gTarget)) {
+                return NextResponse.json({ error: "Group supervision target must be a whole number (integer)." }, { status: 400 })
+            }
+
             if (gTarget > maxGroupHrs + 0.0001) {
                 return NextResponse.json({ 
                     error: `Group supervision target (${gTarget}h) exceeds the maximum allowed for a ${fieldworkType} plan of ${calc.numberOfMonths} months (${maxGroupHrs}h).` 
