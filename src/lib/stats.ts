@@ -43,9 +43,11 @@ export async function getMonthStats(studentId: string, date: Date = new Date()) 
             .filter(h => h.supervisionType === 'GROUP' && h.groupSessionId)
             .map(h => h.groupSessionId)
     )
-    const extraGroupHours = groupAtt.filter(a => !syncedGroupSessionIds.has(a.groupId)).length
+    const extraGroupHours = groupAtt.filter(a => !syncedGroupSessionIds.has(a.sessionId)).length
 
-    const totalSupervision = supervision.reduce((sum, h) => sum + Number(h.hours), 0) + extraGroupHours
+    const totalSupervision = supervision.reduce((sum, h) => sum + Number(h.hours || 0), 0) + extraGroupHours
+    
+    console.log(`[STATS-DEBUG] Student: ${studentId}, Month: ${start.toISOString()}, Indep: ${totalIndependent}, Sup: ${totalSupervision - extraGroupHours}, ExtraGroup: ${extraGroupHours}`)
     const total = totalIndependent + totalSupervision
 
     const restrictedIndependent = independent
