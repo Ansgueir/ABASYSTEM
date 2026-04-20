@@ -63,7 +63,7 @@ export default async function StudentDashboard() {
         if (student) {
             const currentMonthStart = startOfMonth(new Date())
 
-            const [indepMonth, supMonth, indepTotal, supTotal, pendingInvoices, settings, plan] = await Promise.all([
+            const [indepMonth, supMonth, indepTotal, supTotal, pendingInvoices, settings, plan, groupAttMonth, groupAttTotal] = await Promise.all([
                 prisma.independentHour.aggregate({
                     where: { studentId: student.id, date: { gte: currentMonthStart }, status: { not: 'REJECTED' } },
                     _sum: { hours: true }
@@ -85,13 +85,32 @@ export default async function StudentDashboard() {
                     _sum: { amountDue: true }
                 }),
                 prisma.generalValues.findFirst(),
-                student.planTemplateId ? prisma.plan.findUnique({ where: { id: student.planTemplateId } }) : Promise.resolve(null)
+                student.planTemplateId ? prisma.plan.findUnique({ where: { id: student.planTemplateId } }) : Promise.resolve(null),
+                prisma.groupSupervisionAttendance.findMany({
+                    where: { studentId: student.id, attended: true, session: { date: { gte: currentMonthStart } } },
+                    include: { session: true }
+                }),
+                prisma.groupSupervisionAttendance.findMany({
+                    where: { studentId: student.id, attended: true },
+                    include: { session: true }
+                })
             ])
 
+            // Deduplicate synced group sessions
+            const syncedGroupSessionIds = new Set(
+                (await prisma.supervisionHour.findMany({
+                    where: { studentId: student.id, supervisionType: 'GROUP', groupSessionId: { not: null } },
+                    select: { groupSessionId: true }
+                })).map(h => h.groupSessionId)
+            )
+
+            const extraGroupHoursMonth = groupAttMonth.filter(a => !syncedGroupSessionIds.has(a.sessionId)).length
+            const extraGroupHoursTotal = groupAttTotal.filter(a => !syncedGroupSessionIds.has(a.sessionId)).length
+
             const independentHours = Number(indepMonth?._sum?.hours) || 0
-            const supervisedHours = Number(supMonth?._sum?.hours) || 0
+            const supervisedHours = (Number(supMonth?._sum?.hours) || 0) + extraGroupHoursMonth
             const hoursThisMonth = independentHours + supervisedHours
-            const totalProgress = (Number(indepTotal?._sum?.hours) || 0) + (Number(supTotal?._sum?.hours) || 0)
+            const totalProgress = (Number(indepTotal?._sum?.hours) || 0) + (Number(supTotal?._sum?.hours) || 0) + extraGroupHoursTotal
 
             const planHoursPerMonth = plan?.hoursPerMonth || (settings as any)?.maxHoursPerMonth || 130
             const targetSupervisedPercentage = plan?.supervisedPercentage ? Number(plan.supervisedPercentage) : 0.05
@@ -294,31 +313,16 @@ export default async function StudentDashboard() {
                 </div>
 
                 {/* Quick Actions */}
-                <div className="grid gap-4 md:grid-cols-2">
-                    <Link href="/student/timesheet" className="block outline-none">
-                        <Card className="cursor-pointer transition-all hover:shadow-elevated hover:-translate-y-1 h-full">
+                <div className="grid gap-4 md:grid-cols-2 text-center items-center justify-center">
+                    <Link href="/student/timesheet" className="block outline-none md:col-span-2">
+                        <Card className="cursor-pointer transition-all hover:shadow-elevated hover:-translate-y-1 h-full max-w-md mx-auto">
                             <CardContent className="flex items-center gap-4 p-6">
                                 <div className="h-12 w-12 rounded-xl bg-primary/10 flex items-center justify-center">
                                     <BookOpen className="h-6 w-6 text-primary" />
                                 </div>
-                                <div className="flex-1">
+                                <div className="flex-1 text-left">
                                     <h3 className="font-semibold">View Timesheet</h3>
                                     <p className="text-sm text-muted-foreground">Review and manage your logged hours</p>
-                                </div>
-                                <ArrowRight className="h-5 w-5 text-muted-foreground" />
-                            </CardContent>
-                        </Card>
-                    </Link>
-
-                    <Link href="/student/groups" className="block outline-none">
-                        <Card className="cursor-pointer transition-all hover:shadow-elevated hover:-translate-y-1 h-full">
-                            <CardContent className="flex items-center gap-4 p-6">
-                                <div className="h-12 w-12 rounded-xl bg-accent/30 flex items-center justify-center">
-                                    <Users className="h-6 w-6 text-accent-foreground" />
-                                </div>
-                                <div className="flex-1">
-                                    <h3 className="font-semibold">Group Sessions</h3>
-                                    <p className="text-sm text-muted-foreground">Join upcoming group supervision</p>
                                 </div>
                                 <ArrowRight className="h-5 w-5 text-muted-foreground" />
                             </CardContent>
@@ -329,4 +333,3 @@ export default async function StudentDashboard() {
         </DashboardLayout>
     )
 }
-
