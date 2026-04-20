@@ -52,6 +52,7 @@ async function scheduleGroupSessions(
     }
 
     let currentScheduledHours = 0
+    console.log(`[SCHEDULE-DEBUG] START: Student=${studentId}, Target=${maxGroupHours}, StartDate=${startDate.toISOString()}, EndDate=${endDate.toISOString()}`)
 
     // ── Interval/offset matrix ────────────────────────────────────────────────
     let intervalDays: number
@@ -99,6 +100,8 @@ async function scheduleGroupSessions(
             const durationHours = (endTime.getTime() - startTime.getTime()) / (1000 * 60 * 60)
             const hoursToAdd = durationHours > 0 ? durationHours : 1
 
+            console.log(`[SCHEDULE-DEBUG] Checking date: ${sessionDate.toISOString().split('T')[0]}, Current total: ${currentScheduledHours}/${maxGroupHours}`)
+
             const dayStart = new Date(sessionDate); dayStart.setHours(0, 0, 0, 0)
             const dayEnd = new Date(sessionDate); dayEnd.setHours(23, 59, 59, 999)
 
@@ -109,6 +112,7 @@ async function scheduleGroupSessions(
             let sessionId: string
             if (existingSession) {
                 sessionId = existingSession.id
+                console.log(`[SCHEDULE-DEBUG] Found existing session: ${sessionId}`)
             } else {
                 const created = await (prisma as any).groupSupervisionSession.create({
                     data: {
@@ -122,6 +126,7 @@ async function scheduleGroupSessions(
                 })
                 sessionId = created.id
                 existingSession = created
+                console.log(`[SCHEDULE-DEBUG] Created new session: ${sessionId}`)
             }
 
             if (sessionDate.getTime() >= startDate.getTime()) {
@@ -132,9 +137,9 @@ async function scheduleGroupSessions(
                     await (prisma as any).groupSupervisionAttendance.create({
                         data: { sessionId, studentId, attended: true }
                     })
+                    console.log(`[SCHEDULE-DEBUG] Added attendance for ${studentId}`)
                 }
 
-                // DE-DUPLICATION: Check if there is ANY group hour for this student on this day
                 const existingHour = await (prisma as any).supervisionHour.findFirst({
                     where: { 
                         studentId, 
@@ -159,6 +164,7 @@ async function scheduleGroupSessions(
                             status: "PENDING"
                         }
                     })
+                    console.log(`[SCHEDULE-DEBUG] Created hour record for ${sessionDate.toISOString().split('T')[0]}`)
                 }
                 
                 currentScheduledHours += hoursToAdd
@@ -379,13 +385,14 @@ export async function updateContract(data: {
         })
 
         // ALSO cleanup PENDING group hours to avoid duplicates on re-save
-        await (prisma as any).supervisionHour.deleteMany({
+        const delRes = await (prisma as any).supervisionHour.deleteMany({
             where: { 
                 studentId: currentContract.studentId, 
                 supervisionType: "GROUP", 
                 status: "PENDING"
             }
         })
+        console.log(`[SCHEDULE-DEBUG] Cleanup: Deleted ${delRes.count} pending group hours for student ${currentContract.studentId}`)
         
         await scheduleGroupSessions(currentContract.studentId, data.groupAssignments, startDate, endDate, planType)
     }
