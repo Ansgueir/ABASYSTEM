@@ -104,15 +104,14 @@ async function scheduleGroupSessions(
                 sessionId = created.id
             }
 
-            // Create attendance if not exists - ONLY if session is on/after student's startDate
-            // Also skip if session already started and we are not doing a retroactive assignment
-            const now = new Date()
-            if (sessionDate.getTime() >= startDate.getTime()) {
-                // If the session is TODAY, only add if it hasn't started yet
-                if (sessionDate.toDateString() === now.toDateString() && startTime < now) {
-                    continue
-                }
+            // Start/End parsing for hours calculation
+            const [endHour, endMin] = String(officeGroup.endTime).split(":").map(Number)
+            const endTime = new Date(date)
+            endTime.setHours(endHour, endMin, 0, 0)
+            const durationHours = (endTime.getTime() - startTime.getTime()) / (1000 * 60 * 60)
 
+            // Create attendance if not exists - ONLY if session is on/after student's startDate
+            if (sessionDate.getTime() >= startDate.getTime()) {
                 const existingAttendance = await (prisma as any).groupSupervisionAttendance.findFirst({
                     where: { sessionId, studentId }
                 })
@@ -120,6 +119,34 @@ async function scheduleGroupSessions(
                     await (prisma as any).groupSupervisionAttendance.create({
                         data: { sessionId, studentId, attended: true }
                     })
+
+                    // ALSO CREATE THE SUPERVISION HOUR RECORD (Critical for Progress/Audit)
+                    const existingHour = await (prisma as any).supervisionHour.findFirst({
+                        where: { 
+                            studentId, 
+                            date: sessionDate, 
+                            supervisionType: "GROUP", 
+                            groupTopic: (existingSession as any)?.topic || `${officeGroup.groupType} Group`
+                        }
+                    })
+
+                    if (!existingHour) {
+                        await (prisma as any).supervisionHour.create({
+                            data: {
+                                studentId,
+                                supervisorId: ga.supervisorId,
+                                date: sessionDate,
+                                startTime,
+                                hours: durationHours > 0 ? durationHours : 1,
+                                supervisionType: "GROUP",
+                                setting: "OFFICE_CLINIC",
+                                activityType: "RESTRICTED",
+                                notes: `Retroactive Group Session assigned from Contract: ${officeGroup.groupType}`,
+                                groupTopic: (existingSession as any)?.topic || `${officeGroup.groupType} Group`,
+                                status: "PENDING"
+                            }
+                        })
+                    }
                 }
             }
         }
