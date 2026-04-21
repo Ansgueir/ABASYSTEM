@@ -130,9 +130,7 @@ export async function markInvoiceAsPaid(
                         numberOfMonths: true,
                         supervisedPercentage: true,
                         individualSupervisedTarget: true,
-                        groupSupervisionTarget: true,
-                        individualSupervisedDelta: true,
-                        groupSupervisionDelta: true
+                        groupSupervisionTarget: true
                     }
                 })
                 if (plan) {
@@ -149,8 +147,8 @@ export async function markInvoiceAsPaid(
                     
                     planIndividualSupervisedTarget = plan.individualSupervisedTarget ? Number(plan.individualSupervisedTarget) : null
                     planGroupSupervisionTarget = plan.groupSupervisionTarget ? Number(plan.groupSupervisionTarget) : null
-                    planIndividualSupervisedDelta = plan.individualSupervisedDelta ? Number(plan.individualSupervisedDelta) : null
-                    planGroupSupervisionDelta = plan.groupSupervisionDelta ? Number(plan.groupSupervisionDelta) : null
+                    planIndividualSupervisedDelta = null
+                    planGroupSupervisionDelta = null
                 }
             }
 
