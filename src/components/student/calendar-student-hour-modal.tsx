@@ -128,9 +128,13 @@ export function CalendarStudentHourModal({ hour, open, onOpenChange }: CalendarS
                 {mode === 'view' ? (
                     <div className="space-y-4 py-4">
                         <div className="flex items-center justify-between">
-                            <span className="font-semibold text-lg">
-                                {hour.type === 'supervised' || hour.type === 'SUPERVISED' ? 'Supervised Hours' : 'Independent Hours'}
-                            </span>
+                            <div className="flex flex-col">
+                                <span className="font-bold text-lg text-primary">
+                                    {hour.supervisionType === 'GROUP' || !!hour.groupId ? 'Sesión Grupal' : 
+                                     (hour.type === 'supervised' || hour.type === 'supervision' || hour.type === 'SUPERVISION' ? 'Horas Supervisadas' : 'Horas Independientes')}
+                                </span>
+                                <span className="text-[10px] text-muted-foreground uppercase tracking-wider font-semibold">Categoría de actividad</span>
+                            </div>
                             <span className={`text-xs px-2 py-1 rounded-full font-medium ${isApproved ? 'bg-success/10 text-success' : hour.status === 'PENDING' || hour.status === 'pending' ? 'bg-warning/10 text-warning' : hour.status === 'REJECTED' || hour.status === 'rejected' ? 'bg-destructive/10 text-destructive' : 'bg-muted text-muted-foreground'}`}>
                                 {hour.status?.toUpperCase() || 'LOGGED'}
                             </span>

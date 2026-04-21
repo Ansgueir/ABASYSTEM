@@ -4,9 +4,16 @@ import { Calendar, dateFnsLocalizer } from 'react-big-calendar'
 import { format, parse, startOfWeek, getDay } from 'date-fns'
 import { enUS } from 'date-fns/locale'
 import 'react-big-calendar/lib/css/react-big-calendar.css'
-import { useMemo } from 'react'
+import { useMemo, useState } from 'react'
 import { Badge } from "@/components/ui/badge"
-import { Users } from 'lucide-react'
+import { Users, Filter } from 'lucide-react'
+import { 
+    Select, 
+    SelectContent, 
+    SelectItem, 
+    SelectTrigger, 
+    SelectValue 
+} from "@/components/ui/select"
 // Note: Some global CSS overrides will be necessary for Next.js app router and Tailwind 
 // to properly style the react-big-calendar elements, but this file provides the functional calendar.
 
@@ -29,8 +36,21 @@ interface TimesheetCalendarProps {
 }
 
 export function TimesheetCalendar({ hours, onEventClick, role }: TimesheetCalendarProps) {
+    const [filter, setFilter] = useState<'ALL' | 'INDEPENDENT' | 'SUPERVISION' | 'GROUP'>('ALL');
+
+    const filteredHours = useMemo(() => {
+        if (filter === 'ALL') return hours;
+        return hours.filter((hour: any) => {
+            const isGroup = hour.supervisionType === 'GROUP' || !!hour.groupId || !!hour.group;
+            if (filter === 'GROUP') return isGroup;
+            if (filter === 'INDEPENDENT') return !isGroup && (hour.type === 'INDEPENDENT' || hour.supervisionType === 'INDEPENDENT');
+            if (filter === 'SUPERVISION') return !isGroup && (hour.type === 'SUPERVISION' || hour.supervisionType === 'SUPERVISION' || hour.type === 'supervised');
+            return true;
+        });
+    }, [hours, filter]);
+
     const events = useMemo(() => {
-        return hours.map((hour: any) => {
+        return filteredHours.map((hour: any) => {
             // Safe parsing of dates
             const start = new Date(hour.startTime || hour.date)
             // Fix any "Invalid Date"
@@ -61,7 +81,8 @@ export function TimesheetCalendar({ hours, onEventClick, role }: TimesheetCalend
                     title = `${title} - ${supervisorName}`;
                 }
             }
-
+            const modalityLabel = isGroup ? 'Grupal' : (hour.type === 'SUPERVISION' || hour.type === 'supervised' || hour.supervisionType === 'SUPERVISION' ? "Supervisada" : "Independiente");
+            
             return {
                 id: hour.id,
                 title,
@@ -69,10 +90,11 @@ export function TimesheetCalendar({ hours, onEventClick, role }: TimesheetCalend
                 end,
                 allDay: false,
                 isGroup,
+                modalityLabel,
                 resource: hour
             }
         }).filter(Boolean)
-    }, [hours, role])
+    }, [filteredHours, role])
 
     const eventStyleGetter = (event: any) => {
         const resource = event.resource
@@ -102,16 +124,48 @@ export function TimesheetCalendar({ hours, onEventClick, role }: TimesheetCalend
     }
 
     const EventComponent = ({ event }: any) => {
+        const isGroup = event.isGroup;
+        const label = event.modalityLabel;
+        
         return (
-            <div className="flex flex-row items-center gap-1 overflow-hidden whitespace-nowrap text-ellipsis h-full">
-                {event.isGroup && <Users className="h-3 w-3 shrink-0 opacity-90" />}
-                <span className="truncate">{event.title}</span>
+            <div className="flex flex-col gap-0.5 overflow-hidden h-full py-0.5">
+                <div className="flex items-center gap-1 text-[9px] uppercase tracking-wider opacity-80 font-bold border-b border-white/20 pb-0.5 mb-0.5">
+                    {isGroup ? <Users className="h-2.5 w-2.5" /> : null}
+                    <span>{label}</span>
+                </div>
+                <div className="flex items-center gap-1 overflow-hidden whitespace-nowrap text-ellipsis">
+                    <span className="truncate">{event.title}</span>
+                </div>
             </div>
         )
     }
 
     return (
-        <div className="min-h-[800px] w-full flex flex-col relative z-0">
+        <div className="min-h-[800px] w-full flex flex-col relative z-0 gap-4">
+            <div className="flex flex-col sm:flex-row items-center justify-between gap-4 bg-primary/5 p-4 rounded-xl border-2 border-primary/20 shadow-sm mb-2">
+                <div className="flex items-center gap-3">
+                    <div className="bg-primary/10 p-2 rounded-lg">
+                        <Filter className="h-5 w-5 text-primary" />
+                    </div>
+                    <div>
+                        <h3 className="text-sm font-bold text-primary">Filtro de Actividad</h3>
+                        <p className="text-[10px] text-muted-foreground uppercase tracking-wider font-medium">Visualizar por categoría</p>
+                    </div>
+                </div>
+                <Select value={filter} onValueChange={(val: any) => setFilter(val)}>
+                    <SelectTrigger className="w-[220px] bg-background border-primary/30 h-10 font-medium">
+                        <SelectValue placeholder="Todas las categorías" />
+                    </SelectTrigger>
+                    <SelectContent>
+                        <SelectItem value="ALL">Todas las categorías</SelectItem>
+                        <SelectItem value="INDEPENDENT">Horas Independientes</SelectItem>
+                        <SelectItem value="SUPERVISION">Horas Supervisadas</SelectItem>
+                        <SelectItem value="GROUP">Sesiones Grupales</SelectItem>
+                    </SelectContent>
+                </Select>
+            </div>
+
+            <div className="flex-1">
             <Calendar
                 localizer={localizer}
                 events={events}
@@ -127,6 +181,7 @@ export function TimesheetCalendar({ hours, onEventClick, role }: TimesheetCalend
                 popup={true}
                 tooltipAccessor={(event: any) => `${event.title} - ${event.resource.status || 'Pending'}`}
             />
+            </div>
         </div>
     )
 }

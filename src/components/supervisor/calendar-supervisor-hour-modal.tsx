@@ -140,9 +140,18 @@ export function CalendarSupervisorHourModal({ hour, open, onOpenChange, onStatus
                 {mode === 'view' ? (
                     <div className="grid gap-4 py-4">
                         <div className="flex justify-between items-start">
-                            <div className="space-y-1">
-                                <p className="text-[10px] uppercase font-bold text-muted-foreground">Student Logged</p>
-                                <p className="text-sm font-semibold">{hour.student?.firstName} {hour.student?.lastName}</p>
+                            <div className="flex flex-col gap-1">
+                                <div className="space-y-0.5">
+                                    <p className="text-[10px] uppercase font-bold text-muted-foreground tracking-wider">Categoría</p>
+                                    <p className="text-sm font-bold text-primary">
+                                        {hour.supervisionType === 'GROUP' || !!hour.groupId ? 'Sesión Grupal' : 
+                                         (hour.type === 'supervised' || hour.type === 'supervision' || hour.type === 'SUPERVISION' ? 'Horas Supervisadas' : 'Horas Independientes')}
+                                    </p>
+                                </div>
+                                <div className="space-y-0.5">
+                                    <p className="text-[10px] uppercase font-bold text-muted-foreground tracking-wider">Estudiante</p>
+                                    <p className="text-sm font-semibold">{hour.student?.firstName} {hour.student?.lastName || (hour.student?.fullName || 'Multiple Students')}</p>
+                                </div>
                             </div>
                             <Badge variant={hour.status === 'APPROVED' || hour.status === 'BILLED' ? 'default' : hour.status === 'REJECTED' ? 'destructive' : 'outline'}
                                     className={hour.status === 'APPROVED' || hour.status === 'BILLED' ? 'bg-success text-success-foreground hover:bg-success/90' : ''}>
