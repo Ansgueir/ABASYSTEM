@@ -108,6 +108,8 @@ export default async function OfficePaymentsPage({
             paidToSupervisors: totalPaidToSup,
         }
 
+    } catch (error) {
+        console.error("Error fetching payments:", error)
     }
     
     // ── FETCH PLANS FOR ALL TABS ─────────────────────────────────────────────
