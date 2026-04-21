@@ -274,6 +274,7 @@ export function SupervisorPaymentsList({ supervisorSummary }: SupervisorPayments
 
             {selectedEntry && (
                 <SupervisorPayoutModal
+                    isOpen={!!selectedEntry}
                     entry={selectedEntry}
                     onClose={() => setSelectedEntry(null)}
                 />
