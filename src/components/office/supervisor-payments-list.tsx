@@ -274,6 +274,45 @@ export function SupervisorPaymentsList({ supervisorSummary }: SupervisorPayments
                                 {sup.entries.length === 0 && (
                                     <p className="text-xs text-center text-muted-foreground py-4">No entries yet for this supervisor.</p>
                                 )}
+
+                                {/* ── Supervisor Financial Summary Footer ── */}
+                                <div className="rounded-xl border border-slate-200 bg-slate-50/80 p-4 space-y-3 mt-4">
+                                    <p className="text-[10px] uppercase font-bold text-slate-500 tracking-wider">Financial Summary</p>
+                                    
+                                    <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                                        {/* Paid */}
+                                        <div className="flex flex-col items-center justify-center bg-green-50 rounded-xl p-3 border border-green-100 text-center">
+                                            <p className="text-[9px] uppercase text-green-700 font-bold tracking-wider">Paid to Supervisor</p>
+                                            <p className="text-lg font-black text-green-700 leading-tight">{fmtUSD(sup.totalPaid)}</p>
+                                            <p className="text-[9px] text-green-600/70 mt-0.5">cleared payments</p>
+                                        </div>
+                                        
+                                        {/* Pending */}
+                                        <div className="flex flex-col items-center justify-center bg-amber-50 rounded-xl p-3 border border-amber-100 text-center">
+                                            <p className="text-[9px] uppercase text-amber-700 font-bold tracking-wider">Pending Payout</p>
+                                            <p className="text-lg font-black text-amber-700 leading-tight">{fmtUSD(sup.totalPending)}</p>
+                                            <p className="text-[9px] text-amber-600/70 mt-0.5">waiting for transfer</p>
+                                        </div>
+                                        
+                                        {/* Earnings */}
+                                        <div className="flex flex-col items-center justify-center bg-slate-100 rounded-xl p-3 border border-slate-200 text-center">
+                                            <p className="text-[9px] uppercase text-slate-600 font-bold tracking-wider">Total Earnings</p>
+                                            <p className="text-lg font-black text-slate-700 leading-tight">{fmtUSD(sup.totalPaid + sup.totalPending)}</p>
+                                            <p className="text-[9px] text-slate-500 mt-0.5">lifetime derived value</p>
+                                        </div>
+                                    </div>
+                                    
+                                    {/* Identity equation */}
+                                    {(sup.totalPaid + sup.totalPending) > 0 && (
+                                        <p className="text-[10px] text-center text-muted-foreground pt-1">
+                                            <span className="text-green-700 font-semibold">{fmtUSD(sup.totalPaid)}</span> paid
+                                            {" + "}
+                                            <span className="text-amber-700 font-semibold">{fmtUSD(sup.totalPending)}</span> pending
+                                            {" = "}
+                                            <span className="font-bold text-slate-700">{fmtUSD(sup.totalPaid + sup.totalPending)}</span> total earnings
+                                        </p>
+                                    )}
+                                </div>
                             </CardContent>
                         )}
                     </Card>

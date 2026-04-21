@@ -138,6 +138,33 @@ export function OfficeRevenueList({ entries }: OfficeRevenueListProps) {
                         </tbody>
                     </table>
                 </div>
+
+                {/* ── Global Office Financial Summary Footer ── */}
+                <div className="p-5 bg-slate-50 border-t border-border mt-auto w-full">
+                    <p className="text-[10px] uppercase font-bold text-slate-500 tracking-wider mb-3">Global Financial Summary</p>
+                    <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                        {/* Total Money Received */}
+                        <div className="flex flex-col items-center justify-center bg-slate-100 rounded-xl p-3 border border-slate-200 text-center shadow-sm">
+                            <p className="text-[9px] uppercase text-slate-600 font-bold tracking-wider">Total Received</p>
+                            <p className="text-xl font-black text-slate-700 leading-tight">{fmtUSD(entries.reduce((s, e) => s + Number(e.paymentFromStudent), 0))}</p>
+                            <p className="text-[9px] text-slate-500 mt-0.5">from students</p>
+                        </div>
+                        
+                        {/* Minus Sup Share */}
+                        <div className="flex flex-col items-center justify-center bg-blue-50/50 rounded-xl p-3 border border-blue-100 text-center shadow-sm">
+                            <p className="text-[9px] uppercase text-blue-700 font-bold tracking-wider">Minus Sup. Share</p>
+                            <p className="text-xl font-black text-blue-700 leading-tight">{fmtUSD(entries.reduce((s, e) => s + Number(e.supervisorPayout), 0))}</p>
+                            <p className="text-[9px] text-blue-600/70 mt-0.5">allocated backward</p>
+                        </div>
+                        
+                        {/* Equals Office Net */}
+                        <div className="flex flex-col items-center justify-center bg-primary/10 rounded-xl p-3 border border-primary/20 text-center shadow-sm">
+                            <p className="text-[9px] uppercase text-primary font-bold tracking-wider">Office Net</p>
+                            <p className="text-xl font-black text-primary leading-tight">{fmtUSD(totalOfficeRevenue)}</p>
+                            <p className="text-[9px] text-primary/70 mt-0.5">retained capital</p>
+                        </div>
+                    </div>
+                </div>
             </CardContent>
         </Card>
     )
