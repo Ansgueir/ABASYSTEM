@@ -287,13 +287,13 @@ export default async function OfficePaymentsPage({
                         { label: "Office Net Revenue", value: stats.paid - stats.paidToSupervisors, icon: DollarSign, color: "text-primary", bg: "bg-primary/10" },
                     ].map(s => (
                         <Card key={s.label}>
-                            <CardContent className="flex items-center gap-3 p-5">
-                                <div className={`h-10 w-10 rounded-xl ${s.bg} flex items-center justify-center shrink-0`}>
-                                    <s.icon className={`h-5 w-5 ${s.color}`} />
+                            <CardContent className="flex items-center gap-3 p-4">
+                                <div className={`h-9 w-9 rounded-lg ${s.bg} flex items-center justify-center shrink-0`}>
+                                    <s.icon className={`h-4.5 w-4.5 ${s.color}`} />
                                 </div>
                                 <div className="min-w-0">
-                                    <p className="text-xs text-muted-foreground">{s.label}</p>
-                                    <p className="text-xl font-bold">${s.value.toFixed(2)}</p>
+                                    <p className="text-[10px] uppercase font-bold text-muted-foreground leading-none mb-1">{s.label}</p>
+                                    <p className="text-lg font-black text-slate-700 leading-none">{fmtUSD(s.value)}</p>
                                 </div>
                             </CardContent>
                         </Card>
