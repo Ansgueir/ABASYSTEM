@@ -126,8 +126,11 @@ export function LogHoursDialog({ disabled = false, disabledMessage, students }: 
             setLoadingAvailable(true)
             getStudentHoursRemaining(selectedStudentId, watchType as any)
                 .then(res => {
-                    if (res && 'remaining' in res) {
-                        setAvailableHours({ remaining: res.remaining, target: res.target || 0 })
+                    if (res && typeof res.remaining === 'number') {
+                        setAvailableHours({ 
+                            remaining: res.remaining, 
+                            target: (res as any).target || 0 
+                        })
                     } else {
                         setAvailableHours(null)
                     }
