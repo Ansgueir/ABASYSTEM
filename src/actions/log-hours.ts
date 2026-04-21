@@ -302,12 +302,58 @@ export async function approveSupervisionHour(logId: string) {
 
     try {
         return await prisma.$transaction(async (tx) => {
-            const hour = await tx.supervisionHour.findUnique({
+            let hour = await tx.supervisionHour.findUnique({
                 where: { id: logId },
                 include: { student: { include: { supervisor: true } } }
             })
 
-            if (!hour) return { error: "Hour log not found" }
+            // FALLBACK: If not found in SupervisionHour, it might be a Group Attendance entry
+            // that hasn't been "mirrored" to a SupervisionHour yet (Fallback logic from Review Page)
+            if (!hour) {
+                const attendance = await tx.groupSupervisionAttendance.findUnique({
+                    where: { id: logId },
+                    include: { student: { include: { supervisor: true } }, session: true }
+                })
+
+                if (!attendance) return { error: "Hour log not found (Checked Supervision and Attendance)" }
+
+                // Create the missing mirroring hour record correctly
+                // We'll use the ID of the attendance as a reference to avoid duplicates if re-clicked
+                // Wait! We can't use the same ID if they are different models in standard prisma, 
+                // but we can check if one already exists for this session/student combo
+                const existing = await tx.supervisionHour.findFirst({
+                    where: { 
+                        studentId: attendance.studentId,
+                        groupSessionId: attendance.sessionId 
+                    },
+                    include: { student: { include: { supervisor: true } } }
+                })
+
+                if (existing) {
+                    hour = existing
+                } else {
+                    // Create it on the fly
+                    hour = await tx.supervisionHour.create({
+                        data: {
+                            studentId: attendance.studentId,
+                            supervisorId: attendance.session.supervisorId,
+                            date: attendance.session.date,
+                            startTime: attendance.session.startTime,
+                            hours: 1.0, // Default for groups
+                            supervisionType: 'GROUP',
+                            setting: 'OFFICE_CLINIC',
+                            activityType: 'RESTRICTED',
+                            notes: `Auto-generated from Group Attendance: ${attendance.session.topic}`,
+                            groupTopic: attendance.session.topic,
+                            groupSessionId: attendance.sessionId,
+                            status: 'PENDING'
+                        },
+                        include: { student: { include: { supervisor: true } } }
+                    })
+                }
+            }
+
+            if (!hour) return { error: "Failed to resolve hour record" }
 
             // Guard: already approved AND properly linked → skip
             // If APPROVED but invoiceId is null = orphaned state, allow re-processing
@@ -423,9 +469,35 @@ export async function rejectSupervisionHour(logId: string, reason: string) {
 
     try {
         return await prisma.$transaction(async (tx) => {
-            const hour = await tx.supervisionHour.findUnique({
+            let hour = await tx.supervisionHour.findUnique({
                 where: { id: logId }
             })
+
+            if (!hour) {
+                // Check if it's an attendance record
+                const attendance = await tx.groupSupervisionAttendance.findUnique({
+                    where: { id: logId },
+                    include: { session: true }
+                })
+                
+                if (attendance) {
+                    // Create and immediately reject
+                    hour = await tx.supervisionHour.create({
+                        data: {
+                            studentId: attendance.studentId,
+                            supervisorId: attendance.session.supervisorId,
+                            date: attendance.session.date,
+                            startTime: attendance.session.startTime,
+                            hours: 1.0,
+                            supervisionType: 'GROUP',
+                            setting: 'OFFICE_CLINIC',
+                            activityType: 'RESTRICTED',
+                            status: 'PENDING',
+                            groupSessionId: attendance.sessionId
+                        }
+                    })
+                }
+            }
 
             if (!hour) return { error: "Log not found" }
             if (hour.status === "BILLED") return { error: "Cannot reject a log that has already been billed." }
