@@ -19,14 +19,6 @@ interface LedgerEntry {
     supervisorPayout: number
     officePayout: number
     supervisorCapRemainingAfter: number
-    planMonthlyPayment: number | null
-    planHoursPerMonth: number | null
-    planSupervisedHours: number | null
-    planIndividualHours: number | null
-    planIndividualSupervisedTarget: number | null
-    planGroupSupervisionTarget: number | null
-    planIndividualSupervisedDelta: number | null
-    planGroupSupervisionDelta: number | null
     payoutStatus: string
     supervisedHoursActual: number | null
     individualHoursDelta: number | null
@@ -37,6 +29,12 @@ interface LedgerEntry {
     createdAt: string
     student: { id: string; fullName: string }
     invoice: { id: string; amountDue: number; status: string; invoiceDate: string }
+    // Enriched math data from page.tsx
+    mathData?: {
+        individualBilledTotal: number
+        effectiveCommission: number
+        formula: string
+    }
 }
 
 interface SupervisorGroup {
@@ -70,7 +68,6 @@ export function SupervisorPaymentsList({ supervisorSummary }: SupervisorPayments
                 <CardContent className="py-16 text-center text-muted-foreground">
                     <AlertCircle className="h-10 w-10 mx-auto mb-3 opacity-30" />
                     <p className="font-medium">No supervisor payment entries found.</p>
-                    <p className="text-sm mt-1">They appear here when a student payment is registered.</p>
                 </CardContent>
             </Card>
         )
@@ -84,98 +81,101 @@ export function SupervisorPaymentsList({ supervisorSummary }: SupervisorPayments
                 const paidEntries = sup.entries.filter(e => e.payoutStatus === 'PAID')
 
                 return (
-                    <Card key={supId} className="overflow-hidden">
+                    <Card key={supId} className="overflow-hidden border-none shadow-md">
                         {/* ── Supervisor Header ── */}
                         <div
-                            className="flex items-center justify-between p-5 cursor-pointer hover:bg-muted/30 transition-colors"
+                            className="flex items-center justify-between p-5 cursor-pointer hover:bg-slate-50 transition-colors bg-white border-b"
                             onClick={() => setExpandedSups(p => ({ ...p, [supId]: !isExpanded }))}
                         >
-                            <div className="flex items-center gap-3">
-                                <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center font-bold text-primary text-sm">
+                            <div className="flex items-center gap-4">
+                                <div className="h-12 w-12 rounded-2xl bg-primary/10 flex items-center justify-center font-bold text-primary text-lg">
                                     {sup.name.charAt(0)}
                                 </div>
                                 <div>
-                                    <h3 className="font-bold text-base">{sup.name}</h3>
-                                    <p className="text-xs text-muted-foreground">{sup.credential} · {sup.email}</p>
+                                    <h3 className="font-bold text-lg text-slate-800">{sup.name}</h3>
+                                    <p className="text-xs text-slate-500 font-medium uppercase tracking-wider">{sup.credential} · {sup.email}</p>
                                 </div>
                             </div>
-                            <div className="flex items-center gap-4">
+                            <div className="flex items-center gap-6">
                                 <div className="text-right">
-                                    <p className="text-[10px] uppercase text-amber-600 font-bold">Pending</p>
-                                    <p className="text-base font-black text-amber-700">{fmtUSD(sup.totalPending)}</p>
+                                    <p className="text-[10px] uppercase text-amber-600 font-bold tracking-widest mb-1">Pending</p>
+                                    <p className="text-lg font-black text-amber-700 leading-none">{fmtUSD(sup.totalPending)}</p>
                                 </div>
                                 <div className="text-right">
-                                    <p className="text-[10px] uppercase text-green-600 font-bold">Paid</p>
-                                    <p className="text-base font-black text-green-700">{fmtUSD(sup.totalPaid)}</p>
+                                    <p className="text-[10px] uppercase text-green-600 font-bold tracking-widest mb-1">Paid</p>
+                                    <p className="text-lg font-black text-green-700 leading-none">{fmtUSD(sup.totalPaid)}</p>
                                 </div>
-                                {isExpanded ? <ChevronUp className="h-4 w-4 text-muted-foreground" /> : <ChevronDown className="h-4 w-4 text-muted-foreground" />}
+                                <div className="h-8 w-8 rounded-full hover:bg-slate-100 flex items-center justify-center transition-colors">
+                                    {isExpanded ? <ChevronUp className="h-5 w-5 text-slate-400" /> : <ChevronDown className="h-5 w-5 text-slate-400" />}
+                                </div>
                             </div>
                         </div>
 
                         {isExpanded && (
-                            <CardContent className="pt-0 px-4 pb-4 space-y-3">
+                            <CardContent className="pt-6 px-6 pb-6 space-y-6 bg-slate-50/30">
                                 {/* ── PENDING entries ── */}
                                 {pendingEntries.length > 0 && (
-                                    <div>
-                                        <p className="text-[10px] uppercase font-bold text-amber-600 mb-2 flex items-center gap-1">
-                                            <AlertCircle className="h-3 w-3" /> Pending Payment ({pendingEntries.length})
-                                        </p>
-                                        <div className="space-y-2">
+                                    <div className="space-y-3">
+                                        <div className="flex items-center gap-2 px-1">
+                                            <div className="h-1.5 w-1.5 rounded-full bg-amber-500 animate-pulse" />
+                                            <p className="text-[10px] uppercase font-black text-amber-600 tracking-[0.2em]">Pending Distributions ({pendingEntries.length})</p>
+                                        </div>
+                                        <div className="grid gap-2">
                                             {pendingEntries.map(entry => (
-                                                <React.Fragment key={entry.id}>
-                                                    <div className="flex items-center justify-between bg-amber-50 border border-amber-200 rounded-xl px-4 py-3">
-                                                        <div className="flex items-center gap-3">
-                                                            <div>
-                                                                <p className="text-xs font-bold">{entry.student.fullName}</p>
-                                                                <p className="text-[10px] text-muted-foreground">
-                                                                    Invoice #{entry.invoiceId.slice(-6).toUpperCase()} · {fmtDate(entry.createdAt)}
-                                                                </p>
-                                                            </div>
+                                                <div key={entry.id} className="group flex items-center justify-between bg-white border border-slate-200 rounded-2xl p-4 shadow-sm hover:shadow-md transition-all">
+                                                    <div className="flex items-center gap-4">
+                                                        <div className="h-10 w-10 flex items-center justify-center rounded-xl bg-slate-50 group-hover:bg-amber-50 transition-colors">
+                                                            <Clock className="h-5 w-5 text-slate-400 group-hover:text-amber-500" />
                                                         </div>
-                                                        <div className="flex items-center gap-4 text-right">
-                                                            <div>
-                                                                <p className="text-[10px] text-muted-foreground">Student Paid</p>
-                                                                <p className="text-xs font-bold text-blue-700">{fmtUSD(entry.paymentFromStudent)}</p>
-                                                            </div>
-                                                            <div>
-                                                                <p className="text-[10px] text-muted-foreground">Remanente</p>
-                                                                <p className="text-xs font-bold text-emerald-700">{fmtUSD(entry.supervisorCapRemainingAfter)}</p>
-                                                            </div>
-                                                            <Button
-                                                                size="sm"
-                                                                className="h-7 px-3 text-xs bg-amber-500 hover:bg-amber-600 text-white"
-                                                                onClick={() => setSelectedEntry(entry)}
-                                                            >
-                                                                Pay Supervisor
-                                                            </Button>
+                                                        <div>
+                                                            <p className="font-bold text-slate-800">{entry.student.fullName}</p>
+                                                            <p className="text-[10px] text-slate-400 font-mono">INV #{entry.invoiceId.slice(-6).toUpperCase()} · {fmtDate(entry.createdAt)}</p>
                                                         </div>
                                                     </div>
-                                                    <div className="mt-3 bg-white border rounded-lg p-3 text-left">
-                                                        <p className="text-[10px] font-bold text-amber-700 uppercase tracking-wide mb-2 flex items-center gap-1">
-                                                            <Calculator className="h-3 w-3" /> Explicación Matemática (Waterfall)
-                                                        </p>
-                                                        <div className="grid grid-cols-4 gap-4 text-xs">
-                                                            <div className="border-r pr-2">
-                                                                <p className="text-muted-foreground text-[10px] mb-0.5">1. Pagado por Alumno</p>
-                                                                <p className="font-bold">{fmtUSD(entry.paymentFromStudent)}</p>
-                                                            </div>
-                                                            <div className="border-r pr-2">
-                                                                <p className="text-muted-foreground text-[10px] mb-0.5">2. Tope del Supervisor</p>
-                                                                <p className="font-bold">{fmtUSD(entry.supervisorCapTotal)}</p>
-                                                                <p className="text-[9px] text-muted-foreground leading-tight mt-0.5">horas indiv. × comisión</p>
-                                                            </div>
-                                                            <div className="border-r pr-2">
-                                                                <p className="text-muted-foreground text-[10px] mb-0.5">3. Saldo Disponible</p>
-                                                                <p className="font-bold">{fmtUSD(entry.supervisorCapRemainingBefore)}</p>
-                                                            </div>
-                                                            <div className="bg-amber-50 p-2 rounded">
-                                                                <p className="text-amber-800 font-bold text-[10px] mb-0.5">4. Resulta en Sup. Share</p>
-                                                                <p className="font-black text-amber-900 text-sm">{fmtUSD(entry.supervisorPayout)}</p>
-                                                                <p className="text-[9px] text-amber-700/70 mt-0.5 leading-tight">Mínimo entre Pago (1) y Saldo (3)</p>
-                                                            </div>
+                                                    
+                                                    <div className="flex items-center gap-8">
+                                                        {/* Math Explanation Popover */}
+                                                        <div className="text-right">
+                                                            <p className="text-[9px] uppercase font-bold text-slate-400 mb-1">Logic / Share</p>
+                                                            <Popover>
+                                                                <PopoverTrigger className="flex items-center gap-1.5 font-black text-slate-800 hover:text-primary transition-colors">
+                                                                    {fmtUSD(entry.supervisorPayout)} <Calculator className="h-3.5 w-3.5 text-slate-300" />
+                                                                </PopoverTrigger>
+                                                                <PopoverContent className="w-72 p-0 overflow-hidden border-none shadow-2xl" side="left">
+                                                                    <div className="bg-slate-900 text-white p-3">
+                                                                        <div className="flex items-center gap-2">
+                                                                            <Calculator className="h-4 w-4 text-amber-400" />
+                                                                            <p className="text-[10px] font-bold uppercase tracking-widest text-amber-400">Calculation Logic</p>
+                                                                        </div>
+                                                                    </div>
+                                                                    <div className="p-4 space-y-3 bg-white text-xs">
+                                                                        <div>
+                                                                            <p className="text-[9px] uppercase font-bold text-slate-400 mb-1">Tope Factura (Individual Hours)</p>
+                                                                            <p className="font-mono bg-slate-50 p-2 rounded border border-slate-100 flex justify-between">
+                                                                                <span className="text-slate-500">{fmtUSD(entry.mathData?.individualBilledTotal)} × {(entry.mathData?.effectiveCommission || 0.6) * 100}% =</span>
+                                                                                <span className="font-bold">{fmtUSD(entry.supervisorCapTotal)}</span>
+                                                                            </p>
+                                                                        </div>
+                                                                        <div className="pt-2 border-t border-dashed">
+                                                                            <div className="flex justify-between font-bold">
+                                                                                <span className="text-slate-600">Supervisor Share</span>
+                                                                                <span className="text-amber-600">{fmtUSD(entry.supervisorPayout)}</span>
+                                                                            </div>
+                                                                        </div>
+                                                                    </div>
+                                                                </PopoverContent>
+                                                            </Popover>
                                                         </div>
+
+                                                        <Button
+                                                            size="sm"
+                                                            className="rounded-xl px-5 bg-amber-500 hover:bg-amber-600 text-white font-bold shadow-lg shadow-amber-500/20"
+                                                            onClick={() => setSelectedEntry(entry)}
+                                                        >
+                                                            Pay
+                                                        </Button>
                                                     </div>
-                                                </React.Fragment>
+                                                </div>
                                             ))}
                                         </div>
                                     </div>
@@ -183,66 +183,55 @@ export function SupervisorPaymentsList({ supervisorSummary }: SupervisorPayments
 
                                 {/* ── PAID entries ── */}
                                 {paidEntries.length > 0 && (
-                                    <div>
-                                        <p className="text-[10px] uppercase font-bold text-green-600 mb-2 flex items-center gap-1">
-                                            <CheckCircle2 className="h-3 w-3" /> Payment History ({paidEntries.length})
-                                        </p>
-                                        <div className="overflow-x-auto">
+                                    <div className="space-y-2">
+                                         <div className="flex items-center gap-2 px-1">
+                                            <div className="h-1.5 w-1.5 rounded-full bg-green-500" />
+                                            <p className="text-[10px] uppercase font-black text-green-600 tracking-[0.2em]">Settled Payments ({paidEntries.length})</p>
+                                        </div>
+                                        <div className="bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-sm">
                                             <table className="w-full text-xs">
                                                 <thead>
-                                                    <tr className="border-b text-muted-foreground">
-                                                        <th className="text-left pb-1.5 font-medium">Student</th>
-                                                        <th className="text-left pb-1.5 font-medium">Date Paid</th>
-                                                        <th className="text-right pb-1.5 font-medium">Amount</th>
-                                                        <th className="text-right pb-1.5 font-medium">Sup Hrs</th>
-                                                        <th className="text-left pb-1.5 font-medium">Method</th>
-                                                        <th className="text-left pb-1.5 font-medium">Reference</th>
+                                                    <tr className="border-b bg-slate-50/50 text-slate-500">
+                                                        <th className="text-left py-3 px-4 font-bold uppercase tracking-tighter text-[9px]">Student</th>
+                                                        <th className="text-left py-3 px-4 font-bold uppercase tracking-tighter text-[9px]">Date Paid</th>
+                                                        <th className="text-right py-3 px-4 font-bold uppercase tracking-tighter text-[9px]">Calculated Split</th>
+                                                        <th className="text-right py-3 px-4 font-bold uppercase tracking-tighter text-[9px]">Final Payout</th>
+                                                        <th className="text-left py-3 px-4 font-bold uppercase tracking-tighter text-[9px]">Method / Ref</th>
                                                     </tr>
                                                 </thead>
-                                                <tbody>
+                                                <tbody className="divide-y divide-slate-100">
                                                     {paidEntries.map(entry => (
-                                                        <React.Fragment key={entry.id}>
-                                                        <tr className="border-b border-muted/40 hover:bg-muted/10">
-                                                            <td className="py-1.5">{entry.student.fullName}</td>
-                                                            <td className="py-1.5 text-muted-foreground">{fmtDate(entry.paidAt)}</td>
-                                                            <td className="py-1.5 text-right font-bold text-green-700">{fmtUSD(entry.supervisorPayout)}</td>
-                                                            <td className="py-1.5 text-right">{entry.supervisedHoursActual != null ? `${Number(entry.supervisedHoursActual).toFixed(1)}h` : "—"}</td>
-                                                            <td className="py-1.5">
-                                                                {entry.paymentMethod
-                                                                    ? <Badge variant="outline" className="text-[9px]">{entry.paymentMethod}</Badge>
-                                                                    : "—"}
+                                                        <tr key={entry.id} className="hover:bg-slate-50/80 transition-colors">
+                                                            <td className="py-3 px-4 font-bold text-slate-700">{entry.student.fullName}</td>
+                                                            <td className="py-3 px-4 text-slate-500 italic">{fmtDate(entry.paidAt)}</td>
+                                                            <td className="py-3 px-4 text-right">
+                                                                <Popover>
+                                                                    <PopoverTrigger className="text-slate-400 hover:text-slate-600 flex items-center justify-end gap-1 w-full font-mono text-[10px]">
+                                                                        Ver Log <Info className="h-3 w-3" />
+                                                                    </PopoverTrigger>
+                                                                    <PopoverContent className="w-64 p-4 text-xs space-y-2" side="left">
+                                                                        <p className="font-bold border-b pb-1">Math Proof</p>
+                                                                        <div className="space-y-1">
+                                                                            <div className="flex justify-between text-[10px]">
+                                                                                <span>Total Cap (Invoice)</span>
+                                                                                <span>{fmtUSD(entry.supervisorCapTotal)}</span>
+                                                                            </div>
+                                                                            <div className="flex justify-between text-[10px] text-green-600 font-bold border-t pt-1">
+                                                                                <span>Final Split</span>
+                                                                                <span>{fmtUSD(entry.supervisorPayout)}</span>
+                                                                            </div>
+                                                                        </div>
+                                                                    </PopoverContent>
+                                                                </Popover>
                                                             </td>
-                                                            <td className="py-1.5 text-muted-foreground font-mono text-[10px]">{entry.paymentReference || "—"}</td>
-                                                        </tr>
-                                                        {/* EXPLICIT MATH SUB-ROW */}
-                                                        <tr className="bg-slate-50/50 border-b border-muted/40">
-                                                            <td colSpan={6} className="px-4 py-2">
-                                                                <div className="bg-white border rounded p-2 text-left mb-2 mt-1">
-                                                                    <p className="text-[9px] font-bold text-green-700 uppercase tracking-wide mb-1.5 flex items-center gap-1">
-                                                                        <Calculator className="h-3 w-3" /> Desglose (Waterfall)
-                                                                    </p>
-                                                                    <div className="grid grid-cols-4 gap-2 text-[10px]">
-                                                                        <div className="border-r">
-                                                                            <p className="text-muted-foreground mb-0.5">1. Pagado por Alumno</p>
-                                                                            <p className="font-bold">{fmtUSD(entry.paymentFromStudent)}</p>
-                                                                        </div>
-                                                                        <div className="border-r">
-                                                                            <p className="text-muted-foreground mb-0.5">2. Tope del Supervisor</p>
-                                                                            <p className="font-bold">{fmtUSD(entry.supervisorCapTotal)}</p>
-                                                                        </div>
-                                                                        <div className="border-r">
-                                                                            <p className="text-muted-foreground mb-0.5">3. Saldo Disponible</p>
-                                                                            <p className="font-bold">{fmtUSD(entry.supervisorCapRemainingBefore)}</p>
-                                                                        </div>
-                                                                        <div className="bg-green-50 px-2 rounded">
-                                                                            <p className="text-green-800 font-bold mb-0.5">4. Mínimo = Sup Share</p>
-                                                                            <p className="font-black text-green-900">{fmtUSD(entry.supervisorPayout)}</p>
-                                                                        </div>
-                                                                    </div>
+                                                            <td className="py-3 px-4 text-right font-black text-green-700">{fmtUSD(entry.supervisorPayout)}</td>
+                                                            <td className="py-3 px-4">
+                                                                <div className="flex items-center gap-2">
+                                                                    <Badge variant="outline" className="text-[8px] font-bold border-slate-300">{entry.paymentMethod || "N/A"}</Badge>
+                                                                    <span className="font-mono text-[9px] text-slate-400">{entry.paymentReference || "—"}</span>
                                                                 </div>
                                                             </td>
                                                         </tr>
-                                                        </React.Fragment>
                                                     ))}
                                                 </tbody>
                                             </table>
@@ -250,47 +239,20 @@ export function SupervisorPaymentsList({ supervisorSummary }: SupervisorPayments
                                     </div>
                                 )}
 
-                                {sup.entries.length === 0 && (
-                                    <p className="text-xs text-center text-muted-foreground py-4">No entries yet for this supervisor.</p>
-                                )}
-
-                                {/* ── Supervisor Financial Summary Footer ── */}
-                                <div className="rounded-xl border border-slate-200 bg-slate-50/80 p-4 space-y-3 mt-4">
-                                    <p className="text-[10px] uppercase font-bold text-slate-500 tracking-wider">Financial Summary</p>
-                                    
-                                    <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
-                                        {/* Paid */}
-                                        <div className="flex flex-col items-center justify-center bg-green-50 rounded-xl p-3 border border-green-100 text-center">
-                                            <p className="text-[9px] uppercase text-green-700 font-bold tracking-wider">Paid to Supervisor</p>
-                                            <p className="text-lg font-black text-green-700 leading-tight">{fmtUSD(sup.totalPaid)}</p>
-                                            <p className="text-[9px] text-green-600/70 mt-0.5">cleared payments</p>
-                                        </div>
-                                        
-                                        {/* Pending */}
-                                        <div className="flex flex-col items-center justify-center bg-amber-50 rounded-xl p-3 border border-amber-100 text-center">
-                                            <p className="text-[9px] uppercase text-amber-700 font-bold tracking-wider">Pending Payout</p>
-                                            <p className="text-lg font-black text-amber-700 leading-tight">{fmtUSD(sup.totalPending)}</p>
-                                            <p className="text-[9px] text-amber-600/70 mt-0.5">waiting for transfer</p>
-                                        </div>
-                                        
-                                        {/* Earnings */}
-                                        <div className="flex flex-col items-center justify-center bg-slate-100 rounded-xl p-3 border border-slate-200 text-center">
-                                            <p className="text-[9px] uppercase text-slate-600 font-bold tracking-wider">Total Earnings</p>
-                                            <p className="text-lg font-black text-slate-700 leading-tight">{fmtUSD(sup.totalPaid + sup.totalPending)}</p>
-                                            <p className="text-[9px] text-slate-500 mt-0.5">lifetime derived value</p>
-                                        </div>
+                                {/* ── Financial Summary Box ── */}
+                                <div className="grid grid-cols-1 md:grid-cols-3 gap-3 pt-2">
+                                    <div className="bg-white border-2 border-green-100 rounded-2xl p-4 flex flex-col items-center justify-center text-center">
+                                        <p className="text-[9px] uppercase font-black text-green-600 tracking-widest mb-1">Cleared Earnings</p>
+                                        <p className="text-xl font-black text-green-700 leading-none">{fmtUSD(sup.totalPaid)}</p>
                                     </div>
-                                    
-                                    {/* Identity equation */}
-                                    {(sup.totalPaid + sup.totalPending) > 0 && (
-                                        <p className="text-[10px] text-center text-muted-foreground pt-1">
-                                            <span className="text-green-700 font-semibold">{fmtUSD(sup.totalPaid)}</span> paid
-                                            {" + "}
-                                            <span className="text-amber-700 font-semibold">{fmtUSD(sup.totalPending)}</span> pending
-                                            {" = "}
-                                            <span className="font-bold text-slate-700">{fmtUSD(sup.totalPaid + sup.totalPending)}</span> total earnings
-                                        </p>
-                                    )}
+                                    <div className="bg-white border-2 border-amber-100 rounded-2xl p-4 flex flex-col items-center justify-center text-center">
+                                        <p className="text-[9px] uppercase font-black text-amber-600 tracking-widest mb-1">Floating Payouts</p>
+                                        <p className="text-xl font-black text-amber-700 leading-none">{fmtUSD(sup.totalPending)}</p>
+                                    </div>
+                                    <div className="bg-slate-900 rounded-2xl p-4 flex flex-col items-center justify-center text-center shadow-lg shadow-slate-900/10">
+                                        <p className="text-[9px] uppercase font-black text-slate-400 tracking-widest mb-1">Lifetime Value</p>
+                                        <p className="text-xl font-black text-white leading-none">{fmtUSD(sup.totalPaid + sup.totalPending)}</p>
+                                    </div>
                                 </div>
                             </CardContent>
                         )}
@@ -298,12 +260,10 @@ export function SupervisorPaymentsList({ supervisorSummary }: SupervisorPayments
                 )
             })}
 
-            {/* ── Payout Modal ── */}
             {selectedEntry && (
                 <SupervisorPayoutModal
-                    isOpen={!!selectedEntry}
-                    onClose={() => setSelectedEntry(null)}
                     entry={selectedEntry}
+                    onClose={() => setSelectedEntry(null)}
                 />
             )}
         </div>

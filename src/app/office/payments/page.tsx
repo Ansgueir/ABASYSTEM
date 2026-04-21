@@ -10,6 +10,9 @@ import { SupervisorPaymentsList } from "@/components/office/supervisor-payments-
 import { StudentInvoicesList } from "@/components/office/student-invoices-list"
 import { OfficeRevenueList } from "@/components/office/office-revenue-list"
 import { Building2 } from "lucide-react"
+const fmtUSD = (n: number | null | undefined) =>
+    n != null ? `$${Number(n).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` : "$0.00"
+
 export default async function OfficePaymentsPage({
     searchParams
 }: {
@@ -64,9 +67,15 @@ export default async function OfficePaymentsPage({
         ledgerEntries = await (prisma as any).supervisorLedgerEntry.findMany({
             orderBy: { createdAt: 'desc' },
             include: {
-                supervisor: { select: { id: true, fullName: true, email: true, credentialType: true } },
-                student:    { select: { id: true, fullName: true } },
-                invoice:    { select: { id: true, amountDue: true, status: true, invoiceDate: true } }
+                supervisor: { select: { id: true, fullName: true, email: true, credentialType: true, paymentPercentage: true } },
+                student:    { select: { id: true, fullName: true, planTemplateId: true } },
+                invoice:    { 
+                    include: { 
+                        supervisionHours: { 
+                            where: { supervisionType: "INDIVIDUAL" as any }
+                        } 
+                    } 
+                }
             }
         })
 
@@ -116,6 +125,24 @@ export default async function OfficePaymentsPage({
     for (const entry of ledgerEntries) {
         // HIDE FROM SUPERVISOR TAB IF PAYOUT IS ZERO
         if (Number(entry.supervisorPayout) <= 0) continue;
+
+        // Calculate math explanation data
+        const individualBilledTotal = entry.invoice.supervisionHours.reduce((s: number, h: any) => s + Number(h.amountBilled), 0);
+        
+        let effectiveCommission = Number(entry.supervisor.paymentPercentage || 0.54);
+        if (entry.student.planTemplateId && plansMap[entry.student.planTemplateId]) {
+            const plan = plansMap[entry.student.planTemplateId];
+            if (plan.supervisorCommission != null) {
+                effectiveCommission = Number(plan.supervisorCommission);
+            }
+        }
+
+        // Attach to entry
+        (entry as any).mathData = {
+            individualBilledTotal,
+            effectiveCommission,
+            formula: `${fmtUSD(individualBilledTotal)} × ${(effectiveCommission * 100).toFixed(0)}% = ${fmtUSD(Number(entry.supervisorCapTotal))}`
+        };
 
         const supId = entry.supervisorId
         if (!supervisorSummary[supId]) {

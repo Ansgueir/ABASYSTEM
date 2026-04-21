@@ -2,7 +2,7 @@
 
 import React from "react"
 import { Card, CardContent } from "@/components/ui/card"
-import { DollarSign, ArrowRight, Building2, Calculator, Info } from "lucide-react"
+import { DollarSign, Building2, Calculator, Info, ExternalLink } from "lucide-react"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 
 interface LedgerEntry {
@@ -20,6 +20,12 @@ interface LedgerEntry {
     student: { id: string; fullName: string }
     supervisor: { id: string; fullName: string }
     invoice: { id: string; amountDue: number; status: string; invoiceDate: string }
+    // Enriched math data from page.tsx
+    mathData?: {
+        individualBilledTotal: number
+        effectiveCommission: number
+        formula: string
+    }
 }
 
 interface OfficeRevenueListProps {
@@ -47,46 +53,22 @@ export function OfficeRevenueList({ entries }: OfficeRevenueListProps) {
     const totalOfficeRevenue = entries.reduce((acc, curr) => acc + Number(curr.officePayout), 0)
 
     return (
-        <Card className="overflow-hidden">
-            <div className="flex items-center justify-between p-5 bg-primary/5 border-b border-border">
-                <div className="flex items-center gap-3">
-                    <div className="h-10 w-10 rounded-xl bg-primary/20 flex items-center justify-center font-bold text-primary">
-                        <Building2 className="h-5 w-5" />
-                    </div>
-                    <div>
-                        <h3 className="font-bold text-base">Office Retained Revenue</h3>
-                        <p className="text-xs text-muted-foreground">Portion of student payments kept by the office</p>
-                    </div>
+        <Card className="overflow-hidden border-none shadow-lg">
+            {/* ── Dashboard Stats Overlay (CLEAN) ── */}
+            <div className="grid grid-cols-1 md:grid-cols-3 bg-slate-50 border-b border-slate-200">
+                <div className="p-6 border-r border-slate-200">
+                    <p className="text-[10px] uppercase font-bold text-slate-500 tracking-wider mb-1">Total Student Payments</p>
+                    <p className="text-2xl font-black text-slate-700">{fmtUSD(entries.reduce((s, e) => s + Number(e.paymentFromStudent), 0))}</p>
                 </div>
-                <div className="text-right">
-                    <p className="text-[10px] uppercase text-primary font-bold">Total Office Net</p>
-                    <p className="text-xl font-black text-primary">{fmtUSD(totalOfficeRevenue)}</p>
+                <div className="p-6 border-r border-slate-200">
+                    <p className="text-[10px] uppercase font-bold text-blue-600 tracking-wider mb-1">Total Supervisor Shares</p>
+                    <p className="text-2xl font-black text-blue-700">{fmtUSD(entries.reduce((s, e) => s + Number(e.supervisorPayout), 0))}</p>
                 </div>
-            </div>
-
-            {/* ── Global Office Financial Summary Header ── */}
-            <div className="p-5 bg-slate-50 border-b border-border w-full">
-                <p className="text-[10px] uppercase font-bold text-slate-500 tracking-wider mb-3">Global Financial Summary</p>
-                <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-                    {/* Total Money Received */}
-                    <div className="flex flex-col items-center justify-center bg-slate-100 rounded-xl p-3 border border-slate-200 text-center shadow-sm">
-                        <p className="text-[9px] uppercase text-slate-600 font-bold tracking-wider">Total Received</p>
-                        <p className="text-xl font-black text-slate-700 leading-tight">{fmtUSD(entries.reduce((s, e) => s + Number(e.paymentFromStudent), 0))}</p>
-                        <p className="text-[9px] text-slate-500 mt-0.5">from students</p>
-                    </div>
-                    
-                    {/* Minus Sup Share */}
-                    <div className="flex flex-col items-center justify-center bg-blue-50/50 rounded-xl p-3 border border-blue-100 text-center shadow-sm">
-                        <p className="text-[9px] uppercase text-blue-700 font-bold tracking-wider">Minus Sup. Share</p>
-                        <p className="text-xl font-black text-blue-700 leading-tight">{fmtUSD(entries.reduce((s, e) => s + Number(e.supervisorPayout), 0))}</p>
-                        <p className="text-[9px] text-blue-600/70 mt-0.5">allocated backward</p>
-                    </div>
-                    
-                    {/* Equals Office Net */}
-                    <div className="flex flex-col items-center justify-center bg-primary/10 rounded-xl p-3 border border-primary/20 text-center shadow-sm">
-                        <p className="text-[9px] uppercase text-primary font-bold tracking-wider">Office Net</p>
-                        <p className="text-xl font-black text-primary leading-tight">{fmtUSD(totalOfficeRevenue)}</p>
-                        <p className="text-[9px] text-primary/70 mt-0.5">retained capital</p>
+                <div className="p-6 bg-primary/5">
+                    <p className="text-[10px] uppercase font-bold text-primary tracking-wider mb-1">Net Office Revenue</p>
+                    <div className="flex items-baseline gap-2">
+                        <p className="text-3xl font-black text-primary leading-tight">{fmtUSD(totalOfficeRevenue)}</p>
+                        <span className="text-[10px] font-bold text-primary/60 px-1.5 py-0.5 rounded bg-primary/10">PROFIT</span>
                     </div>
                 </div>
             </div>
@@ -95,67 +77,76 @@ export function OfficeRevenueList({ entries }: OfficeRevenueListProps) {
                 <div className="overflow-x-auto">
                     <table className="w-full text-xs">
                         <thead>
-                            <tr className="border-b bg-muted/20 text-muted-foreground">
-                                <th className="text-left py-3 px-4 font-medium">Date</th>
-                                <th className="text-left py-3 px-4 font-medium">Student</th>
-                                <th className="text-left py-3 px-4 font-medium">Invoice</th>
-                                <th className="text-left py-3 px-4 font-medium">Linked Supervisor</th>
-                                <th className="text-right py-3 px-4 font-medium">Total Paid (Student)</th>
-                                <th className="text-right py-3 px-4 font-medium">Sup. Share</th>
-                                <th className="text-right py-3 px-4 font-medium text-primary">Office Share</th>
+                            <tr className="border-b bg-slate-50/50 text-slate-500">
+                                <th className="text-left py-4 px-6 font-bold uppercase tracking-wider text-[10px]">Date</th>
+                                <th className="text-left py-4 px-6 font-bold uppercase tracking-wider text-[10px]">Entity / Student</th>
+                                <th className="text-left py-4 px-6 font-bold uppercase tracking-wider text-[10px]">Invoice</th>
+                                <th className="text-right py-4 px-6 font-bold uppercase tracking-wider text-[10px]">Received</th>
+                                <th className="text-right py-4 px-6 font-bold uppercase tracking-wider text-[10px]">Logic / Split</th>
+                                <th className="text-right py-4 px-6 font-bold uppercase tracking-wider text-[10px] text-primary bg-primary/5">Net Stays</th>
                             </tr>
                         </thead>
-                        <tbody>
+                        <tbody className="divide-y divide-slate-100">
                             {entries.map(entry => (
-                                <React.Fragment key={entry.id}>
-                                <tr key={entry.id} className="border-b border-muted/40 hover:bg-muted/10 transition-colors">
-                                    <td className="py-3 px-4 text-muted-foreground">{fmtDate(entry.createdAt)}</td>
-                                    <td className="py-3 px-4 font-semibold">{entry.student.fullName}</td>
-                                    <td className="py-3 px-4">
-                                        <span className="font-mono text-[10px] bg-muted px-1.5 py-0.5 rounded">
+                                <tr key={entry.id} className="group hover:bg-slate-50/80 transition-colors">
+                                    <td className="py-4 px-6 text-slate-500 whitespace-nowrap">{fmtDate(entry.createdAt)}</td>
+                                    <td className="py-4 px-6">
+                                        <p className="font-bold text-slate-800">{entry.student.fullName}</p>
+                                        <p className="text-[10px] text-slate-400">Sup: {entry.supervisor.fullName}</p>
+                                    </td>
+                                    <td className="py-4 px-6">
+                                        <span className="font-mono text-[10px] bg-slate-100 text-slate-600 px-2 py-1 rounded border border-slate-200">
                                             #{entry.invoiceId.slice(-6).toUpperCase()}
                                         </span>
                                     </td>
-                                    <td className="py-3 px-4 text-muted-foreground">{entry.supervisor.fullName}</td>
-                                    <td className="py-3 px-4 text-right font-medium">{fmtUSD(entry.paymentFromStudent)}</td>
-                                    <td className="py-3 px-4 text-right text-muted-foreground">{fmtUSD(entry.supervisorPayout)}</td>
-                                    <td className="py-3 px-4 text-right font-bold text-primary bg-primary/5">{fmtUSD(entry.officePayout)}</td>
-                                </tr>
-                                {/* WATERFALL EXPLANATION SUB-ROW */}
-                                <tr key={`doc-${entry.id}`} className="bg-slate-50/50 border-b border-muted">
-                                    <td colSpan={7} className="px-4 py-3">
-                                        <div className="bg-white border text-left p-3 rounded-lg shadow-sm w-full max-w-4xl">
-                                            <p className="text-[10px] font-bold text-primary uppercase tracking-wide mb-2 flex items-center gap-1">
-                                                <Calculator className="h-3 w-3" /> Lógica de Cálculo (Waterfall)
-                                            </p>
-                                            <div className="grid grid-cols-5 gap-4 text-xs items-center">
-                                                <div className="border-r pr-2">
-                                                    <p className="text-muted-foreground text-[10px] mb-0.5">1. Pagado por Alumno</p>
-                                                    <p className="font-bold">{fmtUSD(entry.paymentFromStudent)}</p>
+                                    <td className="py-4 px-6 text-right font-semibold text-slate-700">{fmtUSD(entry.paymentFromStudent)}</td>
+                                    <td className="py-4 px-6 text-right">
+                                        <Popover>
+                                            <PopoverTrigger className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-blue-50 text-blue-700 hover:bg-blue-100 transition-colors border border-blue-100">
+                                                <Calculator className="h-3 w-3" />
+                                                <span className="font-bold">Split Math</span>
+                                                <Info className="h-3 w-3 opacity-50" />
+                                            </PopoverTrigger>
+                                            <PopoverContent className="w-80 p-0 overflow-hidden border-none shadow-2xl" side="left">
+                                                <div className="bg-slate-900 text-white p-4">
+                                                    <div className="flex items-center gap-2 mb-1">
+                                                        <Calculator className="h-4 w-4 text-blue-400" />
+                                                        <p className="text-xs font-bold uppercase tracking-widest text-blue-400">Waterfall Calculation</p>
+                                                    </div>
+                                                    <p className="text-[10px] text-slate-400 leading-relaxed italic">
+                                                        Regla: Solo las horas individuales generan comisión para el supervisor.
+                                                    </p>
                                                 </div>
-                                                <div className="border-r pr-2">
-                                                    <p className="text-muted-foreground text-[10px] mb-0.5">2. Tope del Supervisor</p>
-                                                    <p className="font-bold">{fmtUSD(entry.supervisorCapTotal)}</p>
+                                                <div className="p-4 space-y-4 bg-white">
+                                                    {/* Step 1: Total Cap */}
+                                                    <div>
+                                                        <p className="text-[9px] uppercase font-bold text-slate-400 mb-1.5">1. Tope Total para esta Factura</p>
+                                                        <div className="flex items-center justify-between text-xs font-mono bg-slate-50 p-2 rounded border border-slate-100">
+                                                            <span className="text-slate-500">{fmtUSD(entry.mathData?.individualBilledTotal)} × {(entry.mathData?.effectiveCommission || 0.6) * 100}%</span>
+                                                            <span className="font-bold text-slate-800">{fmtUSD(entry.supervisorCapTotal)}</span>
+                                                        </div>
+                                                    </div>
+
+                                                    {/* Step 2: Distribution */}
+                                                    <div>
+                                                        <p className="text-[9px] uppercase font-bold text-slate-400 mb-1.5">2. Distribución de este Pago</p>
+                                                        <div className="space-y-1.5">
+                                                            <div className="flex justify-between text-xs">
+                                                                <span className="text-slate-600">Supervisor Share</span>
+                                                                <span className="font-bold text-blue-600">− {fmtUSD(entry.supervisorPayout)}</span>
+                                                            </div>
+                                                            <div className="flex justify-between text-xs pt-1.5 border-t border-dashed">
+                                                                <span className="font-bold text-slate-800 uppercase text-[9px]">Retenido por Oficina</span>
+                                                                <span className="font-black text-primary text-sm">{fmtUSD(entry.officePayout)}</span>
+                                                            </div>
+                                                        </div>
+                                                    </div>
                                                 </div>
-                                                <div className="border-r pr-2">
-                                                    <p className="text-muted-foreground text-[10px] mb-0.5">3. Saldo Disponible</p>
-                                                    <p className="font-bold">{fmtUSD(entry.supervisorCapRemainingBefore)}</p>
-                                                </div>
-                                                <div className="border-r pr-2 bg-slate-100 p-2 rounded">
-                                                    <p className="text-slate-600 font-bold text-[10px] mb-0.5">4. Resulta en Sup. Share</p>
-                                                    <p className="font-black text-slate-800">{fmtUSD(entry.supervisorPayout)}</p>
-                                                    <p className="text-[9px] text-muted-foreground italic mt-0.5 leading-tight">Mínimo entre el Pago (1) y Saldo (3)</p>
-                                                </div>
-                                                <div className="bg-primary/5 p-2 rounded">
-                                                    <p className="text-primary font-bold text-[10px] mb-0.5">5. Remanente hacia Office</p>
-                                                    <p className="font-black text-primary text-sm">{fmtUSD(entry.officePayout)}</p>
-                                                    <p className="text-[9px] text-primary/70 mt-0.5 leading-tight">Se resta (1) - (4)</p>
-                                                </div>
-                                            </div>
-                                        </div>
+                                            </PopoverContent>
+                                        </Popover>
                                     </td>
+                                    <td className="py-4 px-6 text-right font-black text-primary bg-primary/5 text-sm">{fmtUSD(entry.officePayout)}</td>
                                 </tr>
-                                </React.Fragment>
                             ))}
                         </tbody>
                     </table>
