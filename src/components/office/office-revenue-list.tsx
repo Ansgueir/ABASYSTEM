@@ -155,7 +155,8 @@ export function OfficeRevenueList({ entries }: OfficeRevenueListProps) {
                                         </div>
                                     </td>
                                 </tr>
-                            </>
+                                </React.Fragment>
+                            ))}
                         </tbody>
                     </table>
                 </div>

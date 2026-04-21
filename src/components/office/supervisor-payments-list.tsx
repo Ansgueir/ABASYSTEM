@@ -122,20 +122,32 @@ export function SupervisorPaymentsList({ supervisorSummary }: SupervisorPayments
                                         </p>
                                         <div className="space-y-2">
                                             {pendingEntries.map(entry => (
-                                                <div key={entry.id} className="flex items-center justify-between bg-amber-50 border border-amber-200 rounded-xl px-4 py-3">
-                                                    <div className="flex items-center gap-3">
-                                                        <div>
-                                                            <p className="text-xs font-bold">{entry.student.fullName}</p>
-                                                            <p className="text-[10px] text-muted-foreground">
-                                                                Invoice #{entry.invoiceId.slice(-6).toUpperCase()} · {fmtDate(entry.createdAt)}
-                                                            </p>
+                                                <React.Fragment key={entry.id}>
+                                                    <div className="flex items-center justify-between bg-amber-50 border border-amber-200 rounded-xl px-4 py-3">
+                                                        <div className="flex items-center gap-3">
+                                                            <div>
+                                                                <p className="text-xs font-bold">{entry.student.fullName}</p>
+                                                                <p className="text-[10px] text-muted-foreground">
+                                                                    Invoice #{entry.invoiceId.slice(-6).toUpperCase()} · {fmtDate(entry.createdAt)}
+                                                                </p>
+                                                            </div>
                                                         </div>
-                                                    </div>
-                                                    <div className="flex items-center gap-4 text-right">
-                                                        <div>
-                                                            <p className="text-[10px] text-muted-foreground">Student Paid</p>
-                                                            <p className="text-xs font-bold text-blue-700">{fmtUSD(entry.paymentFromStudent)}</p>
-                                                        </div>
+                                                        <div className="flex items-center gap-4 text-right">
+                                                            <div>
+                                                                <p className="text-[10px] text-muted-foreground">Student Paid</p>
+                                                                <p className="text-xs font-bold text-blue-700">{fmtUSD(entry.paymentFromStudent)}</p>
+                                                            </div>
+                                                            <div>
+                                                                <p className="text-[10px] text-muted-foreground">Remanente</p>
+                                                                <p className="text-xs font-bold text-emerald-700">{fmtUSD(entry.supervisorCapRemainingAfter)}</p>
+                                                            </div>
+                                                            <Button
+                                                                size="sm"
+                                                                className="h-7 px-3 text-xs bg-amber-500 hover:bg-amber-600 text-white"
+                                                                onClick={() => setSelectedEntry(entry)}
+                                                            >
+                                                                Pay Supervisor
+                                                            </Button>
                                                         </div>
                                                     </div>
                                                     <div className="mt-3 bg-white border rounded-lg p-3 text-left">
@@ -163,7 +175,7 @@ export function SupervisorPaymentsList({ supervisorSummary }: SupervisorPayments
                                                             </div>
                                                         </div>
                                                     </div>
-                                                </div>
+                                                </React.Fragment>
                                             ))}
                                         </div>
                                     </div>
