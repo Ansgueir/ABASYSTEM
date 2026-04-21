@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import React, { useState } from "react"
 import { SupervisorPayoutModal } from "./supervisor-payout-modal"
-import { Clock, CheckCircle2, AlertCircle, ChevronDown, ChevronUp, Calculator, Info } from "lucide-react"
+import { Clock, Calculator, Info, FileText, Eye, ChevronDown, ChevronUp } from "lucide-react"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 
 interface LedgerEntry {
@@ -76,9 +76,8 @@ export function SupervisorPaymentsList({ supervisorSummary }: SupervisorPayments
 
     if (entries.length === 0) {
         return (
-            <Card>
+            <Card className="border-none shadow-sm">
                 <CardContent className="py-16 text-center text-muted-foreground">
-                    <AlertCircle className="h-10 w-10 mx-auto mb-3 opacity-30" />
                     <p className="font-medium">No supervisor payment entries found.</p>
                 </CardContent>
             </Card>
@@ -91,101 +90,128 @@ export function SupervisorPaymentsList({ supervisorSummary }: SupervisorPayments
                 const isExpanded = expandedSups[supId] !== false
                 const pendingEntries = sup.entries.filter(e => e.payoutStatus === 'PENDING')
                 const paidEntries = sup.entries.filter(e => e.payoutStatus === 'PAID')
+                const totalAllocated = sup.totalPaid + sup.totalPending
 
                 return (
-                    <Card key={supId} className="overflow-hidden border border-border shadow-sm">
-                        {/* ── Supervisor Header ── */}
+                    <Card key={supId} className="overflow-hidden border border-border shadow-sm rounded-3xl bg-white">
+                        {/* ── HEADER (Student Style) ── */}
                         <div
-                            className="flex items-center justify-between p-5 cursor-pointer hover:bg-muted/30 transition-colors bg-white border-b border-border"
+                            className="flex items-center justify-between p-6 cursor-pointer"
                             onClick={() => setExpandedSups(p => ({ ...p, [supId]: !isExpanded }))}
                         >
                             <div className="flex items-center gap-4">
-                                <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center font-bold text-primary">
+                                <div className="h-14 w-14 rounded-full bg-violet-100 flex items-center justify-center font-bold text-primary text-lg">
                                     {sup.name.charAt(0)}
                                 </div>
-                                <div>
-                                    <h3 className="font-bold text-base">{sup.name}</h3>
-                                    <p className="text-[10px] text-muted-foreground uppercase tracking-widest leading-none mt-1">
-                                        {sup.credential} · {sup.email}
-                                    </p>
+                                <div className="space-y-0.5">
+                                    <h3 className="font-bold text-xl text-slate-800">{sup.name}</h3>
+                                    <div className="flex items-center gap-2">
+                                        <p className="text-sm text-slate-400">{sup.email}</p>
+                                        <Badge variant="secondary" className="bg-violet-50 text-primary hover:bg-violet-50 border-none px-2.5 py-0.5 text-[11px] font-semibold rounded-full uppercase">
+                                            {sup.credential}
+                                        </Badge>
+                                    </div>
                                 </div>
                             </div>
-                            <div className="flex items-center gap-4">
-                                <div className="text-right border-r pr-4 border-border">
-                                    <p className="text-[9px] uppercase text-amber-600 font-bold tracking-widest">Pending</p>
-                                    <p className="text-base font-black text-amber-600">{fmtUSD(sup.totalPending)}</p>
+                            
+                            <div className="flex items-center gap-8">
+                                <div className="text-right">
+                                    <p className="text-[10px] uppercase font-bold tracking-widest text-green-600 mb-1">PAID</p>
+                                    <p className="text-xl font-bold text-slate-700">{fmtUSD(sup.totalPaid)}</p>
                                 </div>
                                 <div className="text-right">
-                                    <p className="text-[9px] uppercase text-green-600 font-bold tracking-widest">Paid</p>
-                                    <p className="text-base font-black text-green-600">{fmtUSD(sup.totalPaid)}</p>
+                                    <p className="text-[10px] uppercase font-bold tracking-widest text-amber-600 mb-1">PENDING</p>
+                                    <p className="text-xl font-bold text-slate-700">{fmtUSD(sup.totalPending)}</p>
                                 </div>
-                                <div className="ml-2">
-                                    {isExpanded ? <ChevronUp className="h-4 w-4 text-muted-foreground" /> : <ChevronDown className="h-4 w-4 text-muted-foreground" />}
+                                <div className="text-right">
+                                    <p className="text-[10px] uppercase font-bold tracking-widest text-primary mb-1">LIFETIME</p>
+                                    <p className="text-xl font-bold text-slate-700">{fmtUSD(totalAllocated)}</p>
+                                </div>
+                                <div className="pl-4">
+                                    {isExpanded ? <ChevronUp className="h-5 w-5 text-slate-300" /> : <ChevronDown className="h-5 w-5 text-slate-300" />}
                                 </div>
                             </div>
                         </div>
 
                         {isExpanded && (
-                            <CardContent className="pt-6 px-6 pb-6 space-y-6">
-                                {/* ── PENDING entries ── */}
+                            <CardContent className="pt-0 px-6 pb-6 space-y-6">
+                                {/* ── Pending Distributions (Invoice Rows Style) ── */}
                                 {pendingEntries.length > 0 && (
                                     <div className="space-y-3">
-                                        <div className="flex items-center gap-2">
-                                            <div className="h-3 w-1.5 rounded-full bg-amber-500" />
-                                            <p className="text-[10px] uppercase font-bold text-amber-600 tracking-wider">Payments to Settle ({pendingEntries.length})</p>
+                                        <div className="flex items-center gap-2 text-green-500 font-bold text-[11px] uppercase tracking-wider">
+                                            <div className="h-4 w-4 bg-green-500 rounded-full flex items-center justify-center">
+                                                <svg className="h-2.5 w-2.5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
+                                                </svg>
+                                            </div>
+                                            PAYMENTS PENDING ({pendingEntries.length})
                                         </div>
-                                        <div className="grid gap-2">
+                                        
+                                        <div className="space-y-2">
                                             {pendingEntries.map(entry => (
-                                                <div key={entry.id} className="flex items-center justify-between bg-amber-50/40 border border-amber-100 rounded-xl p-4 transition-all hover:bg-amber-50">
+                                                <div key={entry.id} className="group relative flex items-center justify-between border border-border rounded-3xl p-5 hover:bg-slate-50/50 transition-all">
                                                     <div className="flex items-center gap-4">
-                                                        <Clock className="h-4 w-4 text-amber-500 opacity-60" />
+                                                        <div className="font-mono text-xs text-slate-300 bg-slate-50 px-2 py-1 rounded">
+                                                            #{entry.invoiceId.slice(-6).toUpperCase()}
+                                                        </div>
                                                         <div>
-                                                            <p className="text-xs font-bold">{entry.student.fullName}</p>
-                                                            <p className="text-[10px] text-muted-foreground">Invoice #{entry.invoiceId.slice(-6).toUpperCase()} · {fmtDate(entry.createdAt)}</p>
+                                                            <p className="text-[11px] text-slate-400 font-bold mb-0.5">{fmtDate(entry.createdAt)}</p>
+                                                            <Badge variant="outline" className="bg-slate-100 text-slate-500 border-none px-2 rounded-full text-[10px] uppercase font-bold py-0.5">
+                                                                Pending
+                                                            </Badge>
                                                         </div>
                                                     </div>
                                                     
-                                                    <div className="flex items-center gap-8">
-                                                        {/* Math Explanation Popover */}
-                                                        <div className="text-right">
-                                                            <p className="text-[9px] uppercase font-bold text-muted-foreground mb-0.5">Calculated Share</p>
+                                                    <div className="flex items-center gap-12">
+                                                         <div className="text-center w-24">
+                                                            <p className="text-[10px] text-slate-400 uppercase font-bold tracking-wider mb-1">Student</p>
+                                                            <p className="text-sm font-bold text-slate-700">{entry.student.fullName.split(' ')[0]}</p>
+                                                        </div>
+                                                        <div className="text-center w-24">
+                                                            <p className="text-[10px] text-slate-400 uppercase font-bold tracking-wider mb-1">Paid</p>
+                                                            <p className="text-sm font-bold text-slate-700">{fmtUSD(entry.paymentFromStudent)}</p>
+                                                        </div>
+                                                        <div className="text-center w-24">
+                                                            <p className="text-[10px] text-slate-400 uppercase font-bold tracking-wider mb-1">Share</p>
+                                                            <p className="text-sm font-bold text-green-600">{fmtUSD(entry.supervisorPayout)}</p>
+                                                        </div>
+                                                        
+                                                        <div className="flex items-center gap-4 border-l pl-8 border-slate-100">
                                                             <Popover>
-                                                                <PopoverTrigger className="flex items-center justify-end gap-1 font-black text-slate-800 hover:text-primary transition-colors text-xs">
-                                                                    {fmtUSD(entry.supervisorPayout)} <Calculator className="h-3 w-3 opacity-40" />
+                                                                <PopoverTrigger className="text-slate-400 hover:text-primary transition-colors flex items-center gap-1.5 text-[11px] font-bold">
+                                                                    <FileText className="h-4 w-4" /> Math
                                                                 </PopoverTrigger>
-                                                                <PopoverContent className="w-72 p-4 shadow-xl border-border" side="top">
-                                                                    <div className="space-y-3">
-                                                                        <div className="flex items-center gap-2 border-b pb-2">
-                                                                            <Calculator className="h-4 w-4 text-primary" />
-                                                                            <p className="text-[10px] font-bold uppercase tracking-widest text-primary">Calculation Logic</p>
+                                                                <PopoverContent className="w-80 p-5 rounded-3xl shadow-2xl border-none">
+                                                                    <p className="text-[11px] font-black text-primary uppercase tracking-widest mb-4">Calculation Formula</p>
+                                                                    <div className="space-y-4">
+                                                                        <div className="bg-slate-50 p-4 rounded-2xl border border-dashed border-slate-200">
+                                                                            <p className="text-[10px] text-slate-400 uppercase font-bold mb-2">Invoice Cap (Indiv Hours)</p>
+                                                                            <p className="font-mono text-sm font-bold text-slate-800">
+                                                                                {fmtUSD(entry.mathData?.individualBilledTotal)} × {(entry.mathData?.effectiveCommission || 0.6) * 100}% = {fmtUSD(entry.supervisorCapTotal)}
+                                                                            </p>
                                                                         </div>
-                                                                        <div className="space-y-2">
-                                                                            <div>
-                                                                                <p className="text-[9px] uppercase font-bold text-muted-foreground mb-1">Total Cap (Invoice Indiv Hours)</p>
-                                                                                <p className="text-xs font-mono bg-muted p-2 rounded flex justify-between">
-                                                                                    <span className="text-muted-foreground">{fmtUSD(entry.mathData?.individualBilledTotal)} × {(entry.mathData?.effectiveCommission || 0.6) * 100}% =</span>
-                                                                                    <span className="font-bold">{fmtUSD(entry.supervisorCapTotal)}</span>
-                                                                                </p>
-                                                                            </div>
-                                                                            <div className="pt-2 border-t border-dashed">
-                                                                                <div className="flex justify-between font-bold text-xs">
-                                                                                    <span className="text-muted-foreground">Supervisor Share</span>
-                                                                                    <span className="text-amber-600">{fmtUSD(entry.supervisorPayout)}</span>
-                                                                                </div>
+                                                                        <div className="pt-2">
+                                                                            <div className="flex justify-between items-center bg-green-50 p-3 rounded-xl">
+                                                                                <span className="text-[10px] font-black text-green-700 uppercase">Supervisor Share</span>
+                                                                                <span className="font-black text-green-700">{fmtUSD(entry.supervisorPayout)}</span>
                                                                             </div>
                                                                         </div>
+                                                                        <p className="text-[9px] text-slate-400 italic">
+                                                                            * Only individual supervising hours are commissionable.
+                                                                        </p>
                                                                     </div>
                                                                 </PopoverContent>
                                                             </Popover>
+                                                            
+                                                            <Button
+                                                                size="sm"
+                                                                variant="outline"
+                                                                className="rounded-full h-9 px-4 text-xs font-bold border-slate-200 hover:bg-slate-50"
+                                                                onClick={() => setSelectedEntry(entry)}
+                                                            >
+                                                                <Eye className="h-3.5 w-3.5 mr-2" /> Pay
+                                                            </Button>
                                                         </div>
-
-                                                        <Button
-                                                            size="sm"
-                                                            className="rounded-lg px-4 bg-amber-500 hover:bg-amber-600 text-white text-xs h-8"
-                                                            onClick={() => setSelectedEntry(entry)}
-                                                        >
-                                                            Pay Dist.
-                                                        </Button>
                                                     </div>
                                                 </div>
                                             ))}
@@ -193,80 +219,71 @@ export function SupervisorPaymentsList({ supervisorSummary }: SupervisorPayments
                                     </div>
                                 )}
 
-                                {/* ── PAID entries (Clean Table) ── */}
-                                {paidEntries.length > 0 && (
-                                    <div className="space-y-3">
-                                        <div className="flex items-center gap-2">
-                                            <div className="h-3 w-1.5 rounded-full bg-green-500" />
-                                            <p className="text-[10px] uppercase font-bold text-green-600 tracking-wider">Settled Distributions ({paidEntries.length})</p>
+                                {/* ── FINAL SUMMARY (Exact Contract Summary Style) ── */}
+                                <div className="pt-6 border-t border-slate-100 space-y-5">
+                                    <div className="bg-slate-50/50 rounded-[2.5rem] p-8 border border-slate-100">
+                                        <p className="text-[10px] uppercase font-bold text-slate-400 tracking-widest mb-6">FINANCIAL SUMMARY</p>
+                                        
+                                        <div className="grid grid-cols-1 sm:grid-cols-4 gap-3">
+                                            {/* Paid Box */}
+                                            <div className="flex flex-col items-center justify-center bg-green-50 rounded-3xl p-6 border border-green-100 text-center">
+                                                <p className="text-[10px] uppercase text-green-700 font-bold tracking-wider mb-2">PAID</p>
+                                                <p className="text-3xl font-black text-green-700 leading-tight">{fmtUSD(sup.totalPaid)}</p>
+                                                <p className="text-[10px] text-green-600/70 mt-1 uppercase font-bold">received</p>
+                                            </div>
+                                            
+                                            {/* Balance Box */}
+                                            <div className="flex flex-col items-center justify-center bg-amber-50 rounded-3xl p-6 border border-amber-100 text-center">
+                                                <p className="text-[10px] uppercase text-amber-700 font-bold tracking-wider mb-2">BALANCE</p>
+                                                <p className="text-3xl font-black text-amber-700 leading-tight">{fmtUSD(sup.totalPending)}</p>
+                                                <p className="text-[10px] text-amber-600/70 mt-1 uppercase font-bold">remaining</p>
+                                            </div>
+                                            
+                                            {/* Last Payout Box */}
+                                            <div className="flex flex-col items-center justify-center bg-violet-50 rounded-3xl p-6 border border-violet-100 text-center">
+                                                <p className="text-[10px] uppercase text-primary font-bold tracking-wider mb-2">LAST PAYOUT</p>
+                                                {paidEntries.length > 0 ? (
+                                                    <>
+                                                        <p className="text-3xl font-black text-primary leading-tight">{fmtUSD(paidEntries[0].supervisorPayout)}</p>
+                                                        <p className="text-[10px] text-primary/70 mt-1 uppercase font-bold">{fmtDate(paidEntries[0].paidAt)}</p>
+                                                    </>
+                                                ) : (
+                                                    <>
+                                                        <p className="text-3xl font-black text-violet-200 leading-tight">—</p>
+                                                        <p className="text-[10px] text-violet-300 mt-1 uppercase font-bold">none yet</p>
+                                                    </>
+                                                )}
+                                            </div>
+                                            
+                                            {/* Total Box */}
+                                            <div className="flex flex-col items-center justify-center bg-slate-100/50 rounded-3xl p-6 border border-slate-200 text-center">
+                                                <p className="text-[10px] uppercase text-slate-500 font-bold tracking-wider mb-2">TOTAL VALUE</p>
+                                                <p className="text-3xl font-black text-slate-700 leading-tight">{fmtUSD(totalAllocated)}</p>
+                                                <p className="text-[10px] text-slate-500 mt-1 uppercase font-bold">lifetime allocated</p>
+                                            </div>
                                         </div>
-                                        <div className="bg-white rounded-xl border border-border overflow-hidden">
-                                            <table className="w-full text-xs">
-                                                <thead>
-                                                    <tr className="border-b bg-muted/30 text-muted-foreground">
-                                                        <th className="text-left py-2.5 px-4 font-bold uppercase tracking-tighter text-[9px]">Student</th>
-                                                        <th className="text-left py-2.5 px-4 font-bold uppercase tracking-tighter text-[9px]">Date Paid</th>
-                                                        <th className="text-right py-2.5 px-4 font-bold uppercase tracking-tighter text-[9px]">Proof</th>
-                                                        <th className="text-right py-2.5 px-4 font-bold uppercase tracking-tighter text-[9px]">Final Payout</th>
-                                                    </tr>
-                                                </thead>
-                                                <tbody className="divide-y">
-                                                    {paidEntries.map(entry => (
-                                                        <tr key={entry.id} className="hover:bg-muted/20">
-                                                            <td className="py-2.5 px-4 font-bold">{entry.student.fullName}</td>
-                                                            <td className="py-2.5 px-4 text-muted-foreground italic">{fmtDate(entry.paidAt)}</td>
-                                                            <td className="py-2.5 px-4 text-right">
-                                                                <Popover>
-                                                                    <PopoverTrigger className="text-muted-foreground hover:text-primary transition-colors inline-flex items-center gap-1">
-                                                                        <Info className="h-3 w-3" /> <span className="text-[9px] uppercase font-bold">Logic</span>
-                                                                    </PopoverTrigger>
-                                                                    <PopoverContent className="w-64 p-3 text-xs" side="left">
-                                                                        <p className="font-bold border-b pb-1 text-primary text-[10px] uppercase tracking-widest mb-2">Math Proof</p>
-                                                                        <div className="space-y-1 text-[10px]">
-                                                                            <div className="flex justify-between">
-                                                                                <span>Total Cap (Invoice)</span>
-                                                                                <span className="font-mono">{fmtUSD(entry.supervisorCapTotal)}</span>
-                                                                            </div>
-                                                                            <div className="flex justify-between text-green-600 font-bold border-t pt-1 mt-1">
-                                                                                <span>Final Split</span>
-                                                                                <span>{fmtUSD(entry.supervisorPayout)}</span>
-                                                                            </div>
-                                                                        </div>
-                                                                    </PopoverContent>
-                                                                </Popover>
-                                                            </td>
-                                                            <td className="py-2.5 px-4 text-right font-black text-green-700">{fmtUSD(entry.supervisorPayout)}</td>
-                                                        </tr>
-                                                    ))}
-                                                </tbody>
-                                            </table>
-                                        </div>
-                                    </div>
-                                )}
 
-                                {/* ── FINAL SUMMARY BLOCK (Match Student Tab Maravillosa style) ── */}
-                                <div className="space-y-3 pt-2">
-                                    <p className="text-[10px] uppercase font-bold text-muted-foreground tracking-widest text-center">Cumulative Supervisor Earnings</p>
-                                    <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
-                                        <div className="flex flex-col items-center justify-center bg-green-50 rounded-xl p-3 border border-green-100 text-center">
-                                            <p className="text-[9px] uppercase text-green-700 font-bold tracking-wider">Cleared</p>
-                                            <p className="text-lg font-black text-green-700 leading-tight">{fmtUSD(sup.totalPaid)}</p>
-                                            <p className="text-[9px] text-green-600/70 mt-0.5">received by super</p>
+                                        {/* Equation Text */}
+                                        <div className="mt-6 flex justify-center">
+                                            <p className="text-[11px] text-center font-medium text-slate-500 animate-fade-in">
+                                                <span className="text-green-600 font-bold">{fmtUSD(sup.totalPaid)}</span> paid + <span className="text-amber-600 font-bold">{fmtUSD(sup.totalPending)}</span> balance = <span className="font-black text-slate-800">{fmtUSD(totalAllocated)}</span> total allocated
+                                            </p>
                                         </div>
-                                        <div className="flex flex-col items-center justify-center bg-amber-50 rounded-xl p-3 border border-amber-100 text-center">
-                                            <p className="text-[9px] uppercase text-amber-700 font-bold tracking-wider">Pending</p>
-                                            <p className="text-lg font-black text-amber-700 leading-tight">{fmtUSD(sup.totalPending)}</p>
-                                            <p className="text-[9px] text-amber-600/70 mt-0.5">floating payouts</p>
-                                        </div>
-                                        <div className="flex flex-col items-center justify-center bg-primary/10 rounded-xl p-3 border border-primary/20 text-center sm:col-span-1 col-span-2">
-                                            <p className="text-[9px] uppercase text-primary font-bold tracking-wider">Lifetime</p>
-                                            <p className="text-lg font-black text-primary leading-tight">{fmtUSD(sup.totalPaid + sup.totalPending)}</p>
-                                            <p className="text-[9px] text-primary/70 mt-0.5">total allocated</p>
+
+                                        {/* Progress Bar */}
+                                        <div className="mt-6">
+                                            <div className="flex justify-between text-[10px] font-black uppercase mb-1.5 tracking-tighter">
+                                                <span className="text-green-600">{((sup.totalPaid / (totalAllocated || 1)) * 100).toFixed(1)}% PAID</span>
+                                                <span className="text-amber-600">{((sup.totalPending / (totalAllocated || 1)) * 100).toFixed(1)}% REMAINING</span>
+                                            </div>
+                                            <div className="h-3 rounded-full bg-slate-100 overflow-hidden border border-slate-200/50 p-0.5">
+                                                <div
+                                                    className="h-full bg-gradient-to-r from-green-500 to-green-400 rounded-full transition-all duration-1000 ease-out"
+                                                    style={{ width: `${(sup.totalPaid / (totalAllocated || 1)) * 100}%` }}
+                                                />
+                                            </div>
                                         </div>
                                     </div>
-                                    <p className="text-[10px] text-center text-muted-foreground pt-1">
-                                        <span className="text-green-700 font-semibold">{fmtUSD(sup.totalPaid)}</span> cleared + <span className="text-amber-700 font-semibold">{fmtUSD(sup.totalPending)}</span> pending = <span className="font-bold text-primary">{fmtUSD(sup.totalPaid + sup.totalPending)}</span> allocated to this supervisor.
-                                    </p>
                                 </div>
                             </CardContent>
                         )}

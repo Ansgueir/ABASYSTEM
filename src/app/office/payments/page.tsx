@@ -269,10 +269,11 @@ export default async function OfficePaymentsPage({
     return (
         <DashboardLayout role="office">
             <div className="space-y-6">
-                {/* Header */}
-                <div>
-                    <h1 className="text-2xl font-bold">Payments</h1>
-                    <p className="text-muted-foreground">Waterfall payout engine — manage invoices and supervisor distributions</p>
+                <div className="flex items-center justify-between">
+                    <div>
+                        <h1 className="text-3xl font-black text-slate-800 tracking-tight">Payments</h1>
+                        <p className="text-xs text-slate-400 font-bold uppercase tracking-widest mt-1">Waterfall Settlement Engine</p>
+                    </div>
                 </div>
 
                 {/* Stats */}
@@ -299,8 +300,8 @@ export default async function OfficePaymentsPage({
                     ))}
                 </div>
 
-                {/* Tabs + Scoped Search — FIX #3 */}
-                <div className="flex items-center justify-between border-b border-border">
+                {/* Tabs + Scoped Search */}
+                <div className="flex items-center justify-between border-b border-slate-100 pb-0">
                     <div className="flex items-center gap-1">
                         {[
                             { key: "students",    label: "Students",    icon: Users },
@@ -310,25 +311,36 @@ export default async function OfficePaymentsPage({
                             <Link
                                 key={t.key}
                                 href={`/office/payments?tab=${t.key}`}
-                                className={`flex items-center gap-2 px-5 py-2.5 text-sm font-medium border-b-2 transition-colors ${
+                                className={`flex items-center gap-2 px-6 py-4 text-sm font-bold transition-all relative ${
                                     activeTab === t.key
-                                        ? "border-primary text-foreground"
-                                        : "border-transparent text-muted-foreground hover:text-foreground"
+                                        ? "text-primary bg-violet-50/50"
+                                        : "text-slate-400 hover:text-slate-600"
                                 }`}
                             >
-                                <t.icon className="h-4 w-4" /> {t.label}
+                                <t.icon className="h-4 w-4" />
+                                {t.label}
+                                {activeTab === t.key && (
+                                    <div className="absolute bottom-0 left-0 right-0 h-1 bg-primary rounded-t-full shadow-[0_-2px_8px_rgba(124,92,252,0.3)]" />
+                                )}
                             </Link>
                         ))}
                     </div>
-                    {/* Scoped search - URL driven so it only affects active tab */}
-                    <form method="get" action="/office/payments" className="flex items-center gap-2 pb-1">
+
+                    <form method="get" action="/office/payments" className="flex items-center gap-2 pb-2">
                         <input type="hidden" name="tab" value={activeTab} />
-                        <input
-                            name="search"
-                            defaultValue={searchQuery}
-                            placeholder={activeTab === "students" ? "Search students..." : activeTab === "office" ? "Search office revenue..." : "Search supervisors..."}
-                            className="h-8 w-52 rounded-lg border border-input bg-background px-3 text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-primary"
-                        />
+                        <div className="relative group">
+                            <input
+                                name="search"
+                                defaultValue={searchQuery}
+                                placeholder={activeTab === "students" ? "Search students..." : activeTab === "office" ? "Search office..." : "Search supervisors..."}
+                                className="h-10 w-64 rounded-full border border-slate-200 bg-slate-50/50 px-5 text-xs font-bold text-slate-700 placeholder:text-slate-300 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all pr-10"
+                            />
+                            <div className="absolute right-3 top-2.5 text-slate-300">
+                                <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                                </svg>
+                            </div>
+                        </div>
                     </form>
                 </div>
 
