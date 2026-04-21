@@ -81,7 +81,7 @@ export function TimesheetCalendar({ hours, onEventClick, role }: TimesheetCalend
                     title = `${title} - ${supervisorName}`;
                 }
             }
-            const modalityLabel = isGroup ? 'Grupal' : (hour.type === 'SUPERVISION' || hour.type === 'supervised' || hour.supervisionType === 'SUPERVISION' ? "Supervisada" : "Independiente");
+            const modalityLabel = isGroup ? 'Group' : (hour.type === 'SUPERVISION' || hour.type === 'supervised' || hour.supervisionType === 'SUPERVISION' ? "Supervised" : "Independent");
             
             return {
                 id: hour.id,
@@ -142,25 +142,16 @@ export function TimesheetCalendar({ hours, onEventClick, role }: TimesheetCalend
 
     return (
         <div className="min-h-[800px] w-full flex flex-col relative z-0 gap-4">
-            <div className="flex flex-col sm:flex-row items-center justify-between gap-4 bg-primary/5 p-4 rounded-xl border-2 border-primary/20 shadow-sm mb-2">
-                <div className="flex items-center gap-3">
-                    <div className="bg-primary/10 p-2 rounded-lg">
-                        <Filter className="h-5 w-5 text-primary" />
-                    </div>
-                    <div>
-                        <h3 className="text-sm font-bold text-primary">Filtro de Actividad</h3>
-                        <p className="text-[10px] text-muted-foreground uppercase tracking-wider font-medium">Visualizar por categoría</p>
-                    </div>
-                </div>
+            <div className="flex justify-start mb-2">
                 <Select value={filter} onValueChange={(val: any) => setFilter(val)}>
-                    <SelectTrigger className="w-[220px] bg-background border-primary/30 h-10 font-medium">
-                        <SelectValue placeholder="Todas las categorías" />
+                    <SelectTrigger className="w-[220px] bg-background border-border h-10 font-medium rounded-xl">
+                        <SelectValue placeholder="All Activities" />
                     </SelectTrigger>
                     <SelectContent>
-                        <SelectItem value="ALL">Todas las categorías</SelectItem>
-                        <SelectItem value="INDEPENDENT">Horas Independientes</SelectItem>
-                        <SelectItem value="SUPERVISION">Horas Supervisadas</SelectItem>
-                        <SelectItem value="GROUP">Sesiones Grupales</SelectItem>
+                        <SelectItem value="ALL">All Activities</SelectItem>
+                        <SelectItem value="INDEPENDENT">Independent Hours</SelectItem>
+                        <SelectItem value="SUPERVISION">Supervised Hours</SelectItem>
+                        <SelectItem value="GROUP">Group Sessions</SelectItem>
                     </SelectContent>
                 </Select>
             </div>
