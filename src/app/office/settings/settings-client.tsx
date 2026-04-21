@@ -25,7 +25,8 @@ export function SettingsClient({ settings }: SettingsClientProps) {
         maxHours: settings?.maxHoursPerMonth?.toString() || "130",
         restrictedAlert: settings?.restrictedAlertPercent?.toString() || "40",
         bcabaRate: "60",
-        invoiceDay: "1"
+        invoiceDay: "1",
+        emailNotificationsEnabled: settings?.emailNotificationsEnabled ?? true
     })
     const [exportOpen, setExportOpen] = useState(false)
     const [startPeriod, setStartPeriod] = useState("1")
@@ -46,6 +47,7 @@ export function SettingsClient({ settings }: SettingsClientProps) {
             data.append("bcbaRate", formData.bcbaRate)
             data.append("maxHours", formData.maxHours)
             data.append("restrictedAlert", formData.restrictedAlert)
+            data.append("emailNotificationsEnabled", formData.emailNotificationsEnabled.toString())
             // Add other fields when supported by backend or schema DB changes
 
             const result = await updateGeneralSettings(data)
@@ -129,8 +131,13 @@ export function SettingsClient({ settings }: SettingsClientProps) {
                             <p className="font-medium">Email Notifications</p>
                             <p className="text-sm text-muted-foreground">Send invoice and payment reminders</p>
                         </div>
-                        <Button variant="outline" size="sm" className="rounded-xl">
-                            Enabled
+                        <Button 
+                            variant={formData.emailNotificationsEnabled ? "default" : "outline"} 
+                            size="sm" 
+                            className="rounded-xl w-24"
+                            onClick={() => setFormData(prev => ({ ...prev, emailNotificationsEnabled: !prev.emailNotificationsEnabled }))}
+                        >
+                            {formData.emailNotificationsEnabled ? "Enabled" : "Disabled"}
                         </Button>
                     </div>
                 </CardContent>

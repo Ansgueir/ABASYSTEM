@@ -450,6 +450,7 @@ model GeneralValues {
   companyLogoUrl              String   @default("")
   maxHoursPerMonth            Int      @default(130)
   restrictedAlertPercent      Int      @default(40)
+  emailNotificationsEnabled   Boolean  @default(true)
   updatedAt                   DateTime @updatedAt
 }
 

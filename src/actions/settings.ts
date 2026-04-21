@@ -24,7 +24,8 @@ export async function getGeneralSettings() {
                     companyTaxId: "XX-XXXXXXX",
                     companyLogoUrl: "",
                     maxHoursPerMonth: 130,
-                    restrictedAlertPercent: 40
+                    restrictedAlertPercent: 40,
+                    emailNotificationsEnabled: true
                 } as any // Use as any to prevent build failing on local without DB push generated
             })
         }
@@ -59,6 +60,7 @@ export async function updateGeneralSettings(formData: FormData) {
 
         const maxHoursPerMonth = parseInt(formData.get("maxHours") as string) || (settings as any).maxHoursPerMonth || 130
         const restrictedAlertPercent = parseInt(formData.get("restrictedAlert") as string) || (settings as any).restrictedAlertPercent || 40
+        const emailNotificationsEnabled = formData.get("emailNotificationsEnabled") === "true"
 
         const rawBcbaRate = parseFloat(formData.get("bcbaRate") as string)
         const supervisorPaymentPercentage = rawBcbaRate ? rawBcbaRate / 100 : settings.supervisorPaymentPercentage
@@ -72,7 +74,8 @@ export async function updateGeneralSettings(formData: FormData) {
                 companyAddress: companyAddress || settings.companyAddress,
                 supervisorPaymentPercentage,
                 maxHoursPerMonth,
-                restrictedAlertPercent
+                restrictedAlertPercent,
+                emailNotificationsEnabled
             } as any
         })
 
@@ -89,7 +92,8 @@ export async function updateGeneralSettings(formData: FormData) {
                 companyAddress: companyAddress || settings.companyAddress,
                 supervisorPaymentPercentage,
                 maxHoursPerMonth,
-                restrictedAlertPercent
+                restrictedAlertPercent,
+                emailNotificationsEnabled
             }
         })
 

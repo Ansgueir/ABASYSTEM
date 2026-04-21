@@ -20,15 +20,23 @@ export async function sendEmail({
     html: string
 }) {
     let fromName = process.env.SMTP_FROM_NAME
-    if (!fromName) {
-        try {
-            const { prisma } = await import("@/lib/prisma")
-            const gv = await prisma.generalValues.findFirst()
-            fromName = gv?.companyName || "ABA Supervision System"
-        } catch {
-            fromName = "ABA Supervision System"
+    try {
+        const { prisma } = await import("@/lib/prisma")
+        const gv = await prisma.generalValues.findFirst()
+        
+        // CHECK TOGGLE
+        if (gv && gv.emailNotificationsEnabled === false) {
+            console.log(`[EMAIL-BLOCKED] Global notifications are DISABLED. Skipping email to: ${to}`)
+            return { success: true, disabledBySystem: true }
         }
+
+        if (!fromName) {
+            fromName = gv?.companyName || "ABA Supervision System"
+        }
+    } catch (e) {
+        if (!fromName) fromName = "ABA Supervision System"
     }
+
     const fromEmail = process.env.SMTP_FROM_EMAIL || "no-reply@abasystem.com"
     const from = `"${fromName}" <${fromEmail}>`
 
