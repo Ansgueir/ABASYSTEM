@@ -3,7 +3,7 @@
 import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
-import { useState } from "react"
+import React, { useState } from "react"
 import { SupervisorPayoutModal } from "./supervisor-payout-modal"
 import { Clock, DollarSign, CheckCircle2, AlertCircle, ChevronDown, ChevronUp, Calculator, Info } from "lucide-react"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
@@ -136,58 +136,32 @@ export function SupervisorPaymentsList({ supervisorSummary }: SupervisorPayments
                                                             <p className="text-[10px] text-muted-foreground">Student Paid</p>
                                                             <p className="text-xs font-bold text-blue-700">{fmtUSD(entry.paymentFromStudent)}</p>
                                                         </div>
-                                                        <div>
-                                                            <p className="text-[10px] text-muted-foreground text-center">Sup. Share</p>
-                                                            <div className="flex justify-center">
-                                                                <Popover>
-                                                                    <PopoverTrigger className="flex items-center gap-1 w-full justify-center text-xs font-bold text-slate-800 hover:text-slate-500 transition-colors">
-                                                                        {fmtUSD(entry.supervisorPayout)} <Info className="h-3 w-3 opacity-60" />
-                                                                    </PopoverTrigger>
-                                                                    <PopoverContent className="w-80 p-4" side="top">
-                                                                        <div className="space-y-3 text-sm text-left">
-                                                                            <div className="flex items-center gap-2 border-b pb-2">
-                                                                                <Calculator className="h-4 w-4 text-slate-700" />
-                                                                                <p className="font-bold">Waterfall Math</p>
-                                                                            </div>
-                                                                            
-                                                                            <div className="space-y-1">
-                                                                                <div className="flex justify-between text-muted-foreground">
-                                                                                    <span>Student Paid</span>
-                                                                                    <span>{fmtUSD(entry.paymentFromStudent)}</span>
-                                                                                </div>
-                                                                                <div className="flex justify-between text-muted-foreground">
-                                                                                    <span>Sup Total Cap (Invoice)</span>
-                                                                                    <span>{fmtUSD(entry.supervisorCapTotal)}</span>
-                                                                                </div>
-                                                                                <div className="flex justify-between text-muted-foreground">
-                                                                                    <span>Sup Remainder Prev.</span>
-                                                                                    <span>{fmtUSD(entry.supervisorCapRemainingBefore)}</span>
-                                                                                </div>
-                                                                            </div>
-                                                                            
-                                                                            <div className="bg-muted p-2 rounded text-xs space-y-1 mt-2">
-                                                                                <p className="text-muted-foreground italic">Rule: Supervisor gets paid up to their remaining invoice cap.</p>
-                                                                                <div className="flex justify-between font-bold text-slate-800">
-                                                                                    <span>Supervisor Share</span>
-                                                                                    <span>{fmtUSD(entry.supervisorPayout)}</span>
-                                                                                </div>
-                                                                            </div>
-                                                                        </div>
-                                                                    </PopoverContent>
-                                                                </Popover>
+                                                        </div>
+                                                    </div>
+                                                    <div className="mt-3 bg-white border rounded-lg p-3 text-left">
+                                                        <p className="text-[10px] font-bold text-amber-700 uppercase tracking-wide mb-2 flex items-center gap-1">
+                                                            <Calculator className="h-3 w-3" /> Explicación Matemática (Waterfall)
+                                                        </p>
+                                                        <div className="grid grid-cols-4 gap-4 text-xs">
+                                                            <div className="border-r pr-2">
+                                                                <p className="text-muted-foreground text-[10px] mb-0.5">1. Pagado por Alumno</p>
+                                                                <p className="font-bold">{fmtUSD(entry.paymentFromStudent)}</p>
+                                                            </div>
+                                                            <div className="border-r pr-2">
+                                                                <p className="text-muted-foreground text-[10px] mb-0.5">2. Tope del Supervisor</p>
+                                                                <p className="font-bold">{fmtUSD(entry.supervisorCapTotal)}</p>
+                                                                <p className="text-[9px] text-muted-foreground leading-tight mt-0.5">horas indiv. × comisión</p>
+                                                            </div>
+                                                            <div className="border-r pr-2">
+                                                                <p className="text-muted-foreground text-[10px] mb-0.5">3. Saldo Disponible</p>
+                                                                <p className="font-bold">{fmtUSD(entry.supervisorCapRemainingBefore)}</p>
+                                                            </div>
+                                                            <div className="bg-amber-50 p-2 rounded">
+                                                                <p className="text-amber-800 font-bold text-[10px] mb-0.5">4. Resulta en Sup. Share</p>
+                                                                <p className="font-black text-amber-900 text-sm">{fmtUSD(entry.supervisorPayout)}</p>
+                                                                <p className="text-[9px] text-amber-700/70 mt-0.5 leading-tight">Mínimo entre Pago (1) y Saldo (3)</p>
                                                             </div>
                                                         </div>
-                                                        <div>
-                                                            <p className="text-[10px] text-muted-foreground">Remanente</p>
-                                                            <p className="text-xs font-bold text-emerald-700">{fmtUSD(entry.supervisorCapRemainingAfter)}</p>
-                                                        </div>
-                                                        <Button
-                                                            size="sm"
-                                                            className="h-7 px-3 text-xs bg-amber-500 hover:bg-amber-600 text-white"
-                                                            onClick={() => setSelectedEntry(entry)}
-                                                        >
-                                                            Pay Supervisor
-                                                        </Button>
                                                     </div>
                                                 </div>
                                             ))}
@@ -215,47 +189,11 @@ export function SupervisorPaymentsList({ supervisorSummary }: SupervisorPayments
                                                 </thead>
                                                 <tbody>
                                                     {paidEntries.map(entry => (
-                                                        <tr key={entry.id} className="border-b border-muted/40 hover:bg-muted/10">
+                                                        <React.Fragment key={entry.id}>
+                                                        <tr className="border-b border-muted/40 hover:bg-muted/10">
                                                             <td className="py-1.5">{entry.student.fullName}</td>
                                                             <td className="py-1.5 text-muted-foreground">{fmtDate(entry.paidAt)}</td>
-                                                            <td className="py-1.5 text-right font-bold text-green-700">
-                                                                <Popover>
-                                                                    <PopoverTrigger className="flex items-center justify-end gap-1 w-full hover:text-green-600 transition-colors">
-                                                                        {fmtUSD(entry.supervisorPayout)} <Info className="h-3 w-3 opacity-50" />
-                                                                    </PopoverTrigger>
-                                                                    <PopoverContent className="w-80 p-4" side="top">
-                                                                        <div className="space-y-3 text-sm">
-                                                                            <div className="flex items-center gap-2 border-b pb-2">
-                                                                                <Calculator className="h-4 w-4 text-green-600" />
-                                                                                <p className="font-bold">Waterfall Math</p>
-                                                                            </div>
-                                                                            
-                                                                            <div className="space-y-1">
-                                                                                <div className="flex justify-between text-muted-foreground">
-                                                                                    <span>Student Paid</span>
-                                                                                    <span>{fmtUSD(entry.paymentFromStudent)}</span>
-                                                                                </div>
-                                                                                <div className="flex justify-between text-muted-foreground">
-                                                                                    <span>Sup Total Cap (Invoice)</span>
-                                                                                    <span>{fmtUSD(entry.supervisorCapTotal)}</span>
-                                                                                </div>
-                                                                                <div className="flex justify-between text-muted-foreground">
-                                                                                    <span>Sup Remainder Prev.</span>
-                                                                                    <span>{fmtUSD(entry.supervisorCapRemainingBefore)}</span>
-                                                                                </div>
-                                                                            </div>
-                                                                            
-                                                                            <div className="bg-muted p-2 rounded text-xs space-y-1 mt-2">
-                                                                                <p className="text-muted-foreground italic">Rule: Supervisor gets paid up to their remaining invoice cap.</p>
-                                                                                <div className="flex justify-between font-bold text-green-700">
-                                                                                    <span>Supervisor Share</span>
-                                                                                    <span>{fmtUSD(entry.supervisorPayout)}</span>
-                                                                                </div>
-                                                                            </div>
-                                                                        </div>
-                                                                    </PopoverContent>
-                                                                </Popover>
-                                                            </td>
+                                                            <td className="py-1.5 text-right font-bold text-green-700">{fmtUSD(entry.supervisorPayout)}</td>
                                                             <td className="py-1.5 text-right">{entry.supervisedHoursActual != null ? `${Number(entry.supervisedHoursActual).toFixed(1)}h` : "—"}</td>
                                                             <td className="py-1.5">
                                                                 {entry.paymentMethod
@@ -264,6 +202,35 @@ export function SupervisorPaymentsList({ supervisorSummary }: SupervisorPayments
                                                             </td>
                                                             <td className="py-1.5 text-muted-foreground font-mono text-[10px]">{entry.paymentReference || "—"}</td>
                                                         </tr>
+                                                        {/* EXPLICIT MATH SUB-ROW */}
+                                                        <tr className="bg-slate-50/50 border-b border-muted/40">
+                                                            <td colSpan={6} className="px-4 py-2">
+                                                                <div className="bg-white border rounded p-2 text-left mb-2 mt-1">
+                                                                    <p className="text-[9px] font-bold text-green-700 uppercase tracking-wide mb-1.5 flex items-center gap-1">
+                                                                        <Calculator className="h-3 w-3" /> Desglose (Waterfall)
+                                                                    </p>
+                                                                    <div className="grid grid-cols-4 gap-2 text-[10px]">
+                                                                        <div className="border-r">
+                                                                            <p className="text-muted-foreground mb-0.5">1. Pagado por Alumno</p>
+                                                                            <p className="font-bold">{fmtUSD(entry.paymentFromStudent)}</p>
+                                                                        </div>
+                                                                        <div className="border-r">
+                                                                            <p className="text-muted-foreground mb-0.5">2. Tope del Supervisor</p>
+                                                                            <p className="font-bold">{fmtUSD(entry.supervisorCapTotal)}</p>
+                                                                        </div>
+                                                                        <div className="border-r">
+                                                                            <p className="text-muted-foreground mb-0.5">3. Saldo Disponible</p>
+                                                                            <p className="font-bold">{fmtUSD(entry.supervisorCapRemainingBefore)}</p>
+                                                                        </div>
+                                                                        <div className="bg-green-50 px-2 rounded">
+                                                                            <p className="text-green-800 font-bold mb-0.5">4. Mínimo = Sup Share</p>
+                                                                            <p className="font-black text-green-900">{fmtUSD(entry.supervisorPayout)}</p>
+                                                                        </div>
+                                                                    </div>
+                                                                </div>
+                                                            </td>
+                                                        </tr>
+                                                        </React.Fragment>
                                                     ))}
                                                 </tbody>
                                             </table>

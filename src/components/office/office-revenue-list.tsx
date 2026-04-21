@@ -1,5 +1,6 @@
 "use client"
 
+import React from "react"
 import { Card, CardContent } from "@/components/ui/card"
 import { DollarSign, ArrowRight, Building2, Calculator, Info } from "lucide-react"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
@@ -63,6 +64,33 @@ export function OfficeRevenueList({ entries }: OfficeRevenueListProps) {
                 </div>
             </div>
 
+            {/* ── Global Office Financial Summary Header ── */}
+            <div className="p-5 bg-slate-50 border-b border-border w-full">
+                <p className="text-[10px] uppercase font-bold text-slate-500 tracking-wider mb-3">Global Financial Summary</p>
+                <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                    {/* Total Money Received */}
+                    <div className="flex flex-col items-center justify-center bg-slate-100 rounded-xl p-3 border border-slate-200 text-center shadow-sm">
+                        <p className="text-[9px] uppercase text-slate-600 font-bold tracking-wider">Total Received</p>
+                        <p className="text-xl font-black text-slate-700 leading-tight">{fmtUSD(entries.reduce((s, e) => s + Number(e.paymentFromStudent), 0))}</p>
+                        <p className="text-[9px] text-slate-500 mt-0.5">from students</p>
+                    </div>
+                    
+                    {/* Minus Sup Share */}
+                    <div className="flex flex-col items-center justify-center bg-blue-50/50 rounded-xl p-3 border border-blue-100 text-center shadow-sm">
+                        <p className="text-[9px] uppercase text-blue-700 font-bold tracking-wider">Minus Sup. Share</p>
+                        <p className="text-xl font-black text-blue-700 leading-tight">{fmtUSD(entries.reduce((s, e) => s + Number(e.supervisorPayout), 0))}</p>
+                        <p className="text-[9px] text-blue-600/70 mt-0.5">allocated backward</p>
+                    </div>
+                    
+                    {/* Equals Office Net */}
+                    <div className="flex flex-col items-center justify-center bg-primary/10 rounded-xl p-3 border border-primary/20 text-center shadow-sm">
+                        <p className="text-[9px] uppercase text-primary font-bold tracking-wider">Office Net</p>
+                        <p className="text-xl font-black text-primary leading-tight">{fmtUSD(totalOfficeRevenue)}</p>
+                        <p className="text-[9px] text-primary/70 mt-0.5">retained capital</p>
+                    </div>
+                </div>
+            </div>
+
             <CardContent className="p-0">
                 <div className="overflow-x-auto">
                     <table className="w-full text-xs">
@@ -79,6 +107,7 @@ export function OfficeRevenueList({ entries }: OfficeRevenueListProps) {
                         </thead>
                         <tbody>
                             {entries.map(entry => (
+                                <React.Fragment key={entry.id}>
                                 <tr key={entry.id} className="border-b border-muted/40 hover:bg-muted/10 transition-colors">
                                     <td className="py-3 px-4 text-muted-foreground">{fmtDate(entry.createdAt)}</td>
                                     <td className="py-3 px-4 font-semibold">{entry.student.fullName}</td>
@@ -90,80 +119,45 @@ export function OfficeRevenueList({ entries }: OfficeRevenueListProps) {
                                     <td className="py-3 px-4 text-muted-foreground">{entry.supervisor.fullName}</td>
                                     <td className="py-3 px-4 text-right font-medium">{fmtUSD(entry.paymentFromStudent)}</td>
                                     <td className="py-3 px-4 text-right text-muted-foreground">{fmtUSD(entry.supervisorPayout)}</td>
-                                    <td className="py-3 px-4 text-right font-bold text-primary bg-primary/5">
-                                        <Popover>
-                                            <PopoverTrigger className="flex items-center justify-end gap-1 w-full hover:text-primary/70 transition-colors">
-                                                {fmtUSD(entry.officePayout)} <Info className="h-3 w-3 opacity-50" />
-                                            </PopoverTrigger>
-                                            <PopoverContent className="w-80 p-4" side="left">
-                                                <div className="space-y-3 text-sm">
-                                                    <div className="flex items-center gap-2 border-b pb-2">
-                                                        <Calculator className="h-4 w-4 text-primary" />
-                                                        <p className="font-bold">Waterfall Math</p>
-                                                    </div>
-                                                    
-                                                    <div className="space-y-1">
-                                                        <div className="flex justify-between text-muted-foreground">
-                                                            <span>Student Paid</span>
-                                                            <span>{fmtUSD(entry.paymentFromStudent)}</span>
-                                                        </div>
-                                                        <div className="flex justify-between text-muted-foreground">
-                                                            <span>Sup Total Cap (Invoice)</span>
-                                                            <span>{fmtUSD(entry.supervisorCapTotal)}</span>
-                                                        </div>
-                                                        <div className="flex justify-between text-muted-foreground">
-                                                            <span>Sup Remainder Prev.</span>
-                                                            <span>{fmtUSD(entry.supervisorCapRemainingBefore)}</span>
-                                                        </div>
-                                                    </div>
-                                                    
-                                                    <div className="bg-muted p-2 rounded text-xs space-y-1">
-                                                        <p className="text-muted-foreground italic">Rule: Supervisor gets paid up to their remaining invoice cap.</p>
-                                                        <div className="flex justify-between font-medium text-slate-700">
-                                                            <span>Supervisor Share</span>
-                                                            <span>{fmtUSD(entry.supervisorPayout)}</span>
-                                                        </div>
-                                                    </div>
-
-                                                    <div className="flex justify-between font-bold text-primary border-t pt-2">
-                                                        <span>Office Retained (Rest)</span>
-                                                        <span>{fmtUSD(entry.officePayout)}</span>
-                                                    </div>
+                                    <td className="py-3 px-4 text-right font-bold text-primary bg-primary/5">{fmtUSD(entry.officePayout)}</td>
+                                </tr>
+                                {/* WATERFALL EXPLANATION SUB-ROW */}
+                                <tr key={`doc-${entry.id}`} className="bg-slate-50/50 border-b border-muted">
+                                    <td colSpan={7} className="px-4 py-3">
+                                        <div className="bg-white border text-left p-3 rounded-lg shadow-sm w-full max-w-4xl">
+                                            <p className="text-[10px] font-bold text-primary uppercase tracking-wide mb-2 flex items-center gap-1">
+                                                <Calculator className="h-3 w-3" /> Lógica de Cálculo (Waterfall)
+                                            </p>
+                                            <div className="grid grid-cols-5 gap-4 text-xs items-center">
+                                                <div className="border-r pr-2">
+                                                    <p className="text-muted-foreground text-[10px] mb-0.5">1. Pagado por Alumno</p>
+                                                    <p className="font-bold">{fmtUSD(entry.paymentFromStudent)}</p>
                                                 </div>
-                                            </PopoverContent>
-                                        </Popover>
+                                                <div className="border-r pr-2">
+                                                    <p className="text-muted-foreground text-[10px] mb-0.5">2. Tope del Supervisor</p>
+                                                    <p className="font-bold">{fmtUSD(entry.supervisorCapTotal)}</p>
+                                                </div>
+                                                <div className="border-r pr-2">
+                                                    <p className="text-muted-foreground text-[10px] mb-0.5">3. Saldo Disponible</p>
+                                                    <p className="font-bold">{fmtUSD(entry.supervisorCapRemainingBefore)}</p>
+                                                </div>
+                                                <div className="border-r pr-2 bg-slate-100 p-2 rounded">
+                                                    <p className="text-slate-600 font-bold text-[10px] mb-0.5">4. Resulta en Sup. Share</p>
+                                                    <p className="font-black text-slate-800">{fmtUSD(entry.supervisorPayout)}</p>
+                                                    <p className="text-[9px] text-muted-foreground italic mt-0.5 leading-tight">Mínimo entre el Pago (1) y Saldo (3)</p>
+                                                </div>
+                                                <div className="bg-primary/5 p-2 rounded">
+                                                    <p className="text-primary font-bold text-[10px] mb-0.5">5. Remanente hacia Office</p>
+                                                    <p className="font-black text-primary text-sm">{fmtUSD(entry.officePayout)}</p>
+                                                    <p className="text-[9px] text-primary/70 mt-0.5 leading-tight">Se resta (1) - (4)</p>
+                                                </div>
+                                            </div>
+                                        </div>
                                     </td>
                                 </tr>
-                            ))}
+                            </>
                         </tbody>
                     </table>
-                </div>
-
-                {/* ── Global Office Financial Summary Footer ── */}
-                <div className="p-5 bg-slate-50 border-t border-border mt-auto w-full">
-                    <p className="text-[10px] uppercase font-bold text-slate-500 tracking-wider mb-3">Global Financial Summary</p>
-                    <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-                        {/* Total Money Received */}
-                        <div className="flex flex-col items-center justify-center bg-slate-100 rounded-xl p-3 border border-slate-200 text-center shadow-sm">
-                            <p className="text-[9px] uppercase text-slate-600 font-bold tracking-wider">Total Received</p>
-                            <p className="text-xl font-black text-slate-700 leading-tight">{fmtUSD(entries.reduce((s, e) => s + Number(e.paymentFromStudent), 0))}</p>
-                            <p className="text-[9px] text-slate-500 mt-0.5">from students</p>
-                        </div>
-                        
-                        {/* Minus Sup Share */}
-                        <div className="flex flex-col items-center justify-center bg-blue-50/50 rounded-xl p-3 border border-blue-100 text-center shadow-sm">
-                            <p className="text-[9px] uppercase text-blue-700 font-bold tracking-wider">Minus Sup. Share</p>
-                            <p className="text-xl font-black text-blue-700 leading-tight">{fmtUSD(entries.reduce((s, e) => s + Number(e.supervisorPayout), 0))}</p>
-                            <p className="text-[9px] text-blue-600/70 mt-0.5">allocated backward</p>
-                        </div>
-                        
-                        {/* Equals Office Net */}
-                        <div className="flex flex-col items-center justify-center bg-primary/10 rounded-xl p-3 border border-primary/20 text-center shadow-sm">
-                            <p className="text-[9px] uppercase text-primary font-bold tracking-wider">Office Net</p>
-                            <p className="text-xl font-black text-primary leading-tight">{fmtUSD(totalOfficeRevenue)}</p>
-                            <p className="text-[9px] text-primary/70 mt-0.5">retained capital</p>
-                        </div>
-                    </div>
                 </div>
             </CardContent>
         </Card>
