@@ -108,8 +108,18 @@ export default async function OfficePaymentsPage({
             paidToSupervisors: totalPaidToSup,
         }
 
-    } catch (error) {
-        console.error("Error fetching payments:", error)
+    }
+    
+    // ── FETCH PLANS FOR ALL TABS ─────────────────────────────────────────────
+    const planIds = [...new Set([
+        ...invoices.map((i: any) => i.student.planTemplateId),
+        ...ledgerEntries.map((e: any) => e.student.planTemplateId)
+    ])].filter(Boolean) as string[]
+
+    let plansMap: Record<string, any> = {}
+    if (planIds.length > 0) {
+        const plans = await prisma.plan.findMany({ where: { id: { in: planIds } } })
+        plansMap = Object.fromEntries(plans.map(p => [p.id, p]))
     }
 
     // ── GROUP LEDGER ENTRIES BY SUPERVISOR ───────────────────────────────────
@@ -200,16 +210,7 @@ export default async function OfficePaymentsPage({
         )
 
     // ── GROUP INVOICES BY STUDENT ─────────────────────────────────────────────
-    // Fetch plans for all unique students that have a planTemplateId
-    const planIds = [...new Set(
-        invoices.map((i: any) => i.student.planTemplateId).filter(Boolean)
-    )] as string[]
-
-    let plansMap: Record<string, any> = {}
-    if (planIds.length > 0) {
-        const plans = await prisma.plan.findMany({ where: { id: { in: planIds } } })
-        plansMap = Object.fromEntries(plans.map(p => [p.id, p]))
-    }
+    // Fetch plans for all unique students that have a planTemplateId (already done above)
 
     // Group invoices by student
     const studentGroupsMap: Record<string, {
