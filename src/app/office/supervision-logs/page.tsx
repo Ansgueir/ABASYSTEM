@@ -45,6 +45,7 @@ export default async function SupervisionLogsReviewPage({
     // Excel-style Filters
     const selectedStudent = params.student || ""
     const selectedSupervisor = params.supervisor || ""
+    const selectedType = params.type || "" // INDIVIDUAL | GROUP
     const selectedMonth = params.month // could be "0" to "11"
     const selectedYear = params.year || new Date().getFullYear().toString()
 
@@ -89,6 +90,10 @@ export default async function SupervisionLogsReviewPage({
             supervisionWhere.supervisor = { fullName: { equals: selectedSupervisor, mode: 'insensitive' as any } }
         }
 
+        if (selectedType) {
+            supervisionWhere.supervisionType = selectedType as any
+        }
+
         // Fetch dynamic lists for the filter dropdowns (defensive fetch)
         const [allPossibleStudents, allPossibleSupervisors] = await Promise.all([
             prisma.student.findMany({ select: { fullName: true }, orderBy: { fullName: 'asc' } }).catch(() => []),
@@ -111,7 +116,7 @@ export default async function SupervisionLogsReviewPage({
         }).catch(e => { console.error(e); return [] })
 
         // FETCH GROUP ATTENDANCE FALLBACKS
-        const groupAttendanceLogs = await prisma.groupSupervisionAttendance.findMany({
+        const groupAttendanceLogs = (selectedType && selectedType !== 'GROUP') ? [] : await prisma.groupSupervisionAttendance.findMany({
             where: {
                 attended: true,
                 student: activeTab === 'PENDING' ? (selectedStudent ? { fullName: { equals: selectedStudent, mode: 'insensitive' as any } } : {}) : undefined, // Only show in Pending if we want to match previous behavior
@@ -123,7 +128,7 @@ export default async function SupervisionLogsReviewPage({
         }).catch(() => [])
 
         // Filter group attendance by selected period/filters manually if needed or just sync it
-        const filteredGroupLogs = groupAttendanceLogs.filter(a => {
+        const filteredGroupLogs = groupAttendanceLogs.filter((a: any) => {
             const date = a.session.date
             const year = date.getFullYear()
             const month = date.getMonth()
@@ -142,7 +147,7 @@ export default async function SupervisionLogsReviewPage({
                 sh.startTime.toISOString() === a.session.startTime.toISOString() &&
                 sh.supervisionType === 'GROUP'
             )
-        }).map(a => ({
+        }).map((a: any) => ({
             id: a.id,
             date: a.session.date,
             startTime: a.session.startTime,
@@ -210,7 +215,7 @@ export default async function SupervisionLogsReviewPage({
                     </div>
                    <div className="flex items-center gap-2">
                         <a 
-                            href={`/api/office/supervision-logs/export?status=${statusFilter}&student=${selectedStudent}&supervisor=${selectedSupervisor}&month=${selectedMonth}&year=${selectedYear}`} 
+                            href={`/api/office/supervision-logs/export?status=${statusFilter}&student=${selectedStudent}&supervisor=${selectedSupervisor}&type=${selectedType}&month=${selectedMonth}&year=${selectedYear}`} 
                             target="_blank" 
                             rel="noopener noreferrer"
                         >
@@ -228,6 +233,7 @@ export default async function SupervisionLogsReviewPage({
                     supervisors={filterOptions.supervisors}
                     selectedStudent={selectedStudent}
                     selectedSupervisor={selectedSupervisor}
+                    selectedType={selectedType}
                     activeTab={activeTab}
                 />
 
@@ -236,7 +242,7 @@ export default async function SupervisionLogsReviewPage({
                     {validTabs.map((tab) => (
                         <Link
                             key={tab}
-                            href={`/office/supervision-logs?tab=${tab.toLowerCase()}&student=${selectedStudent}&supervisor=${selectedSupervisor}&sortBy=${sortBy}&order=${order}`}
+                            href={`/office/supervision-logs?tab=${tab.toLowerCase()}&student=${selectedStudent}&supervisor=${selectedSupervisor}&type=${selectedType}&sortBy=${sortBy}&order=${order}`}
                             className={`px-4 py-2 text-sm font-medium border-b-2 transition-colors ${activeTab === tab
                                 ? "border-primary text-foreground"
                                 : "border-transparent text-muted-foreground hover:text-foreground hover:border-border"

@@ -9,6 +9,7 @@ interface LogFiltersProps {
     supervisors: string[]
     selectedStudent: string
     selectedSupervisor: string
+    selectedType: string
     activeTab: string
 }
 
@@ -17,6 +18,7 @@ export function LogFilters({
     supervisors, 
     selectedStudent, 
     selectedSupervisor,
+    selectedType,
     activeTab 
 }: LogFiltersProps) {
     const router = useRouter()
@@ -50,7 +52,7 @@ export function LogFilters({
 
     return (
         <div className="bg-muted/30 p-4 rounded-2xl border border-border flex flex-wrap items-end gap-4 mb-6 transition-all duration-300">
-            <div className="space-y-1.5 flex-1 min-w-[180px]">
+            <div className="space-y-1.5 flex-1 min-w-[150px]">
                 <Label className="text-[10px] uppercase font-bold text-muted-foreground ml-1">Student</Label>
                 <select 
                     value={selectedStudent}
@@ -64,7 +66,7 @@ export function LogFilters({
                 </select>
             </div>
 
-            <div className="space-y-1.5 flex-1 min-w-[180px]">
+            <div className="space-y-1.5 flex-1 min-w-[150px]">
                 <Label className="text-[10px] uppercase font-bold text-muted-foreground ml-1">Supervisor</Label>
                 <select 
                     value={selectedSupervisor}
@@ -75,6 +77,19 @@ export function LogFilters({
                     {supervisors.map(s => (
                         <option key={s} value={s}>{s}</option>
                     ))}
+                </select>
+            </div>
+
+            <div className="space-y-1.5 w-[130px]">
+                <Label className="text-[10px] uppercase font-bold text-muted-foreground ml-1">Type</Label>
+                <select 
+                    value={selectedType}
+                    onChange={(e) => updateFilter("type", e.target.value)}
+                    className="w-full h-10 px-3 bg-background border border-input rounded-xl text-sm focus:ring-2 focus:ring-primary outline-none font-medium"
+                >
+                    <option value="">- All -</option>
+                    <option value="INDIVIDUAL">Individual</option>
+                    <option value="GROUP">Group</option>
                 </select>
             </div>
 
@@ -105,7 +120,7 @@ export function LogFilters({
                 </select>
             </div>
 
-            {(selectedStudent || selectedSupervisor || selectedMonth) && (
+            {(selectedStudent || selectedSupervisor || selectedMonth || selectedType) && (
                 <Button 
                     variant="ghost" 
                     className="h-10 text-xs text-muted-foreground hover:text-destructive transition-colors"
