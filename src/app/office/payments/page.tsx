@@ -8,7 +8,8 @@ import { PaymentsTable } from "@/components/office/payments-table"
 import Link from "next/link"
 import { SupervisorPaymentsList } from "@/components/office/supervisor-payments-list"
 import { StudentInvoicesList } from "@/components/office/student-invoices-list"
-
+import { OfficeRevenueList } from "@/components/office/office-revenue-list"
+import { Building2 } from "lucide-react"
 export default async function OfficePaymentsPage({
     searchParams
 }: {
@@ -24,7 +25,7 @@ export default async function OfficePaymentsPage({
     if (officeRole !== "SUPER_ADMIN") redirect("/office")
 
     const params = await searchParams
-    const activeTab = params.tab === "supervisors" ? "supervisors" : "students"
+    const activeTab = params.tab === "supervisors" ? "supervisors" : params.tab === "office" ? "office" : "students"
     const searchQuery = (params.search || "").toLowerCase().trim()
 
     let invoices: any[] = []
@@ -113,6 +114,9 @@ export default async function OfficePaymentsPage({
     }> = {}
 
     for (const entry of ledgerEntries) {
+        // HIDE FROM SUPERVISOR TAB IF PAYOUT IS ZERO
+        if (Number(entry.supervisorPayout) <= 0) continue;
+
         const supId = entry.supervisorId
         if (!supervisorSummary[supId]) {
             supervisorSummary[supId] = {
@@ -142,6 +146,17 @@ export default async function OfficePaymentsPage({
             )
           )
         : supervisorSummary
+
+    // ── OFFICE REVENUE ENTRIES (officePayout > 0) ────────────────────────────
+    const officeEntries = ledgerEntries.filter((e: any) => Number(e.officePayout) > 0)
+    
+    // Scoped search for Office tab
+    const filteredOfficeEntries = searchQuery
+        ? officeEntries.filter((e: any) => 
+            e.student.fullName.toLowerCase().includes(searchQuery) ||
+            e.supervisor.fullName.toLowerCase().includes(searchQuery)
+          )
+        : officeEntries
 
     // Normalize invoices for PaymentsTable (Students tab) — kept for backward compat
     const normalizedInvoices = invoices
@@ -260,6 +275,7 @@ export default async function OfficePaymentsPage({
                         {[
                             { key: "students",    label: "Students",    icon: Users },
                             { key: "supervisors", label: "Supervisors", icon: UserCheck },
+                            { key: "office",      label: "Office",      icon: Building2 },
                         ].map(t => (
                             <Link
                                 key={t.key}
@@ -280,7 +296,7 @@ export default async function OfficePaymentsPage({
                         <input
                             name="search"
                             defaultValue={searchQuery}
-                            placeholder={activeTab === "students" ? "Search students..." : "Search supervisors..."}
+                            placeholder={activeTab === "students" ? "Search students..." : activeTab === "office" ? "Search office revenue..." : "Search supervisors..."}
                             className="h-8 w-52 rounded-lg border border-input bg-background px-3 text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-primary"
                         />
                     </form>
@@ -294,6 +310,11 @@ export default async function OfficePaymentsPage({
                 {/* ── SUPERVISORS TAB ───────────────────────────────────────────── */}
                 {activeTab === "supervisors" && (
                     <SupervisorPaymentsList supervisorSummary={filteredSupervisorSummary} />
+                )}
+
+                {/* ── OFFICE TAB ────────────────────────────────────────────────── */}
+                {activeTab === "office" && (
+                    <OfficeRevenueList entries={filteredOfficeEntries} />
                 )}
             </div>
         </DashboardLayout>
