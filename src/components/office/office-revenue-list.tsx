@@ -2,7 +2,7 @@
 
 import React from "react"
 import { Card, CardContent } from "@/components/ui/card"
-import { Building2, CheckCircle } from "lucide-react"
+import { Building2, CheckCircle, HelpCircle } from "lucide-react"
 
 interface LedgerEntry {
     id: string
@@ -106,19 +106,28 @@ export function OfficeRevenueList({ entries }: OfficeRevenueListProps) {
                                 </tr>
                             </thead>
                             <tbody className="divide-y divide-muted/30">
-                                {entries.map(entry => (
-                                    <tr key={entry.id} className="hover:bg-muted/10 transition-colors">
-                                        <td className="py-2.5 px-4 font-extrabold text-slate-700">{entry.student.fullName}</td>
-                                        <td className="py-2.5 px-4 text-slate-400">{fmtDate(entry.createdAt)}</td>
-                                        <td className="py-2.5 px-4 text-right font-bold text-slate-600">
-                                            {fmtUSD(entry.mathData?.officeIndivNet)}
-                                        </td>
-                                        <td className="py-2.5 px-4 text-right font-bold text-indigo-600">
-                                            {fmtUSD(entry.mathData?.officeGroupNet)}
-                                        </td>
-                                        <td className="py-2.5 px-4 text-right font-black text-primary text-sm">{fmtUSD(entry.officePayout)}</td>
-                                    </tr>
-                                ))}
+                                {entries.map(entry => {
+                                    const hasHours = (entry.mathData?.individualBilledTotal || 0) > 0 || (entry.mathData?.groupBilledTotal || 0) > 0;
+                                    
+                                    return (
+                                        <tr key={entry.id} className="hover:bg-muted/10 transition-colors">
+                                            <td className="py-2.5 px-4 font-extrabold text-slate-700">{entry.student.fullName}</td>
+                                            <td className="py-2.5 px-4 text-slate-400">{fmtDate(entry.createdAt)}</td>
+                                            <td className="py-2.5 px-4 text-right font-bold text-slate-600">
+                                                <div className="flex items-center justify-end gap-1">
+                                                    {!hasHours && (
+                                                        <span className="text-[8px] text-amber-500 font-bold bg-amber-50 px-1 rounded-sm border border-amber-100 uppercase" title="No detailed hours linked. Attributed to Individual.">Plan</span>
+                                                    )}
+                                                    {fmtUSD(entry.mathData?.officeIndivNet)}
+                                                </div>
+                                            </td>
+                                            <td className="py-2.5 px-4 text-right font-bold text-indigo-600">
+                                                {fmtUSD(entry.mathData?.officeGroupNet)}
+                                            </td>
+                                            <td className="py-2.5 px-4 text-right font-black text-primary text-sm">{fmtUSD(entry.officePayout)}</td>
+                                        </tr>
+                                    );
+                                })}
                             </tbody>
                         </table>
                     </div>
@@ -129,28 +138,24 @@ export function OfficeRevenueList({ entries }: OfficeRevenueListProps) {
                     <p className="text-[10px] uppercase font-bold text-slate-500 tracking-widest text-center">REVENUE RECONCILIATION</p>
                     
                     <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-                        {/* Box 1 */}
                         <div className="flex flex-col items-center justify-center bg-indigo-50 rounded-xl p-3 border border-indigo-100 text-center shadow-sm">
                             <p className="text-[9px] uppercase text-indigo-700 font-bold tracking-wider mb-1">Gross</p>
                             <p className="text-lg font-black text-indigo-700 leading-tight">{fmtUSD(totalReceived)}</p>
                             <p className="text-[9px] text-indigo-600/70 mt-0.5 font-bold uppercase tracking-tighter">collected</p>
                         </div>
                         
-                        {/* Box 2 */}
                         <div className="flex flex-col items-center justify-center bg-amber-50 rounded-xl p-3 border border-amber-100 text-center shadow-sm">
                             <p className="text-[9px] uppercase text-amber-700 font-bold tracking-wider mb-1">Payouts</p>
                             <p className="text-lg font-black text-amber-700 leading-tight">{fmtUSD(totalToSup)}</p>
                             <p className="text-[9px] text-amber-600/70 mt-0.5 font-bold uppercase tracking-tighter">expense</p>
                         </div>
                         
-                        {/* Box 3 */}
                         <div className="flex flex-col items-center justify-center bg-slate-100 rounded-xl p-3 border border-slate-200 text-center shadow-sm">
                             <p className="text-[9px] uppercase text-slate-600 font-bold tracking-wider mb-1">Margin</p>
                             <p className="text-lg font-black text-slate-700 leading-tight">{netPct.toFixed(1)}%</p>
                             <p className="text-[9px] text-slate-500 mt-0.5 font-bold uppercase tracking-tighter">retention</p>
                         </div>
                         
-                        {/* Box 4 */}
                         <div className="flex flex-col items-center justify-center bg-primary rounded-xl p-3 border border-primary text-center shadow-md">
                             <p className="text-[9px] uppercase text-white font-bold tracking-wider mb-1">Office Net</p>
                             <p className="text-lg font-black text-white leading-tight">{fmtUSD(totalOfficeRevenue)}</p>

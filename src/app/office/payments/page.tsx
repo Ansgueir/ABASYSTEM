@@ -136,13 +136,16 @@ export default async function OfficePaymentsPage({
 
     for (const entry of ledgerEntries) {
         // Calculate math explanation data (INDIVIDUAL only for supervisor commission)
-        const individualValue = entry.invoice.supervisionHours
-            .filter((h: any) => h.supervisionType === 'INDIVIDUAL')
-            .reduce((s: number, h: any) => s + Number(h.amountBilled), 0);
+        // Calculate math explanation data (INDIVIDUAL only for supervisor commission)
+        const supervisionHours = entry.invoice.supervisionHours || [];
+        
+        const individualValue = supervisionHours
+            .filter((h: any) => String(h.supervisionType || '').toUpperCase() === 'INDIVIDUAL')
+            .reduce((s: number, h: any) => s + Number(h.amountBilled || 0), 0);
             
-        const groupValue = entry.invoice.supervisionHours
-            .filter((h: any) => h.supervisionType === 'GROUP')
-            .reduce((s: number, h: any) => s + Number(h.amountBilled), 0);
+        const groupValue = supervisionHours
+            .filter((h: any) => String(h.supervisionType || '').toUpperCase() === 'GROUP')
+            .reduce((s: number, h: any) => s + Number(h.amountBilled || 0), 0);
         
         let effectiveCommission = Number(entry.supervisor.paymentPercentage || 0.54);
         if (entry.student.planTemplateId && plansMap[entry.student.planTemplateId]) {
