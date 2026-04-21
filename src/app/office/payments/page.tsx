@@ -135,9 +135,6 @@ export default async function OfficePaymentsPage({
     }> = {}
 
     for (const entry of ledgerEntries) {
-        // HIDE FROM SUPERVISOR TAB IF PAYOUT IS ZERO
-        if (Number(entry.supervisorPayout) <= 0) continue;
-
         // Calculate math explanation data (INDIVIDUAL only for supervisor commission)
         const individualValue = entry.invoice.supervisionHours
             .filter((h: any) => h.type === 'INDIVIDUAL')
@@ -155,35 +152,38 @@ export default async function OfficePaymentsPage({
             }
         }
 
-        // Attach to entry
+        // Attach to entry (REMOVED Skip so Office tab shows values for ALL entries)
         (entry as any).mathData = {
             individualBilledTotal: individualValue,
             groupBilledTotal: groupValue,
             effectiveCommission,
             formula: `${fmtUSD(individualValue)} × ${(effectiveCommission * 100).toFixed(0)}% = ${fmtUSD(Number(entry.supervisorCapTotal))}`,
-            // Revenue breakdown for Office columns
             officeIndivNet: Number(entry.officePayout) - groupValue, 
             officeGroupNet: groupValue
         };
 
         const supId = entry.supervisorId
-        if (!supervisorSummary[supId]) {
-            supervisorSummary[supId] = {
-                name: entry.supervisor.fullName,
-                email: entry.supervisor.email,
-                credential: entry.supervisor.credentialType || '',
-                totalPending: 0,
-                totalPaid: 0,
-                entries: []
-            }
-        }
         const amount = Number(entry.supervisorPayout)
-        if (entry.payoutStatus === 'PENDING') {
-            supervisorSummary[supId].totalPending += amount
-        } else {
-            supervisorSummary[supId].totalPaid += amount
+
+        // Only group for supervisor tab if there is a non-zero payout
+        if (amount > 0) {
+            if (!supervisorSummary[supId]) {
+                supervisorSummary[supId] = {
+                    name: entry.supervisor.fullName,
+                    email: entry.supervisor.email,
+                    credential: entry.supervisor.credentialType || '',
+                    totalPending: 0,
+                    totalPaid: 0,
+                    entries: []
+                }
+            }
+            if (entry.payoutStatus === 'PENDING') {
+                supervisorSummary[supId].totalPending += amount
+            } else {
+                supervisorSummary[supId].totalPaid += amount
+            }
+            supervisorSummary[supId].entries.push(entry)
         }
-        supervisorSummary[supId].entries.push(entry)
     }
 
     // Scoped search for supervisors tab
