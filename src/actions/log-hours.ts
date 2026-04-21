@@ -934,3 +934,63 @@ export async function updateLogStatus(
         return { error: 'Failed to update log status' }
     }
 }
+
+export async function getStudentHoursRemaining(studentId: string, type: 'independent' | 'supervision') {
+    try {
+        const student = await prisma.student.findUnique({
+            where: { id: studentId }
+        })
+        if (!student) return { error: "Student not found" }
+
+        let plan = null;
+        if (student.planTemplateId) {
+            plan = await prisma.plan.findUnique({ where: { id: student.planTemplateId } })
+        }
+
+        const totalPlanHours = student.hoursToDo || plan?.totalHours || 2000
+        
+        let supervisedPercentage = 0.05
+        if (student.supervisionPercentage) {
+            const sp = Number(student.supervisionPercentage)
+            supervisedPercentage = sp > 1 ? sp / 100 : sp
+        } else if (plan?.supervisedPercentage) {
+            supervisedPercentage = Number(plan.supervisedPercentage)
+        }
+
+        const maxSupervisedHoursTotal = Number(plan?.amountSupHours) || (totalPlanHours * supervisedPercentage)
+        const maxIndependentHours = (student.independentHoursTarget && student.independentHoursTarget > 0) 
+            ? student.independentHoursTarget 
+            : totalPlanHours - maxSupervisedHoursTotal
+
+        if (type === 'independent') {
+            const lifetimeIndep = await prisma.independentHour.aggregate({ 
+                where: { studentId, status: { not: 'REJECTED' } }, 
+                _sum: { hours: true } 
+            })
+            const accumulated = Number(lifetimeIndep._sum.hours) || 0
+            return { remaining: Math.max(0, maxIndependentHours - accumulated), target: maxIndependentHours }
+        } else {
+            const lifetimeSup = await prisma.supervisionHour.aggregate({ 
+                where: { studentId, status: { not: 'REJECTED' } }, 
+                _sum: { hours: true } 
+            })
+            
+            const groupAttLifetime = await prisma.groupSupervisionAttendance.findMany({
+                where: { studentId, attended: true }
+            })
+            const syncedGroupSessionIds = new Set(
+                (await prisma.supervisionHour.findMany({
+                    where: { studentId, supervisionType: 'GROUP', groupSessionId: { not: null } },
+                    select: { groupSessionId: true }
+                })).map(h => h.groupSessionId)
+            )
+            const extraGroupHours = groupAttLifetime.filter(a => !syncedGroupSessionIds.has(a.sessionId)).length
+
+            const accumulated = (Number(lifetimeSup._sum.hours) || 0) + extraGroupHours
+            return { remaining: Math.max(0, maxSupervisedHoursTotal - accumulated), target: maxSupervisedHoursTotal }
+        }
+    } catch (error) {
+        console.error("Error fetching remaining hours:", error)
+        return { error: "Failed to calculate remaining hours" }
+    }
+}

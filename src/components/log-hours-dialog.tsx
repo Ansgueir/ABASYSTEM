@@ -40,8 +40,9 @@ import {
     PopoverTrigger,
 } from "@/components/ui/popover"
 import { cn } from "@/lib/utils"
-import { logHours, logBulkHours } from "@/actions/log-hours"
+import { logHours, logBulkHours, getStudentHoursRemaining } from "@/actions/log-hours"
 import { toast } from "sonner"
+import { useEffect } from "react"
 
 const SettingTypeOptions = ["CLIENTS_HOME", "SCHOOL", "DAYCARE", "OFFICE_CLINIC", "GROUP_HOME", "COMMUNITY", "OTHERS"] as const
 const ActivityTypeOptions = ["RESTRICTED", "UNRESTRICTED"] as const
@@ -88,6 +89,8 @@ export function LogHoursDialog({ disabled = false, disabledMessage, students }: 
     const [selectedStudentId, setSelectedStudentId] = useState<string>(students?.[0]?.id || "")
     const [errorDialogOpen, setErrorDialogOpen] = useState(false)
     const [errorMessage, setErrorMessage] = useState("")
+    const [availableHours, setAvailableHours] = useState<{ remaining: number; target: number } | null>(null)
+    const [loadingAvailable, setLoadingAvailable] = useState(false)
 
     const form = useForm<z.infer<typeof formSchema>>({
         resolver: zodResolver(formSchema) as any,
@@ -115,6 +118,25 @@ export function LogHoursDialog({ disabled = false, disabledMessage, students }: 
     const watchStartTime = form.watch("startTime")
     const watchEndTime = form.watch("endTime")
     const watchMinutes = form.watch("minutes")
+    const watchType = form.watch("type")
+
+    // Fetch available hours when student or type changes
+    useEffect(() => {
+        if (isSupervisorMode && selectedStudentId && watchType) {
+            setLoadingAvailable(true)
+            getStudentHoursRemaining(selectedStudentId, watchType as any)
+                .then(res => {
+                    if (res && 'remaining' in res) {
+                        setAvailableHours({ remaining: res.remaining, target: res.target || 0 })
+                    } else {
+                        setAvailableHours(null)
+                    }
+                })
+                .finally(() => setLoadingAvailable(false))
+        } else {
+            setAvailableHours(null)
+        }
+    }, [isSupervisorMode, selectedStudentId, watchType])
 
     // Auto-calculate minutes from Start/End Time
     useMemo(() => {
@@ -347,7 +369,27 @@ export function LogHoursDialog({ disabled = false, disabledMessage, students }: 
                                                     <SelectItem value="supervision">Supervised</SelectItem>
                                                 </SelectContent>
                                             </Select>
-                                            <FormMessage />
+                                            
+                                            {/* Available Hours Display */}
+                                            {isSupervisorMode && selectedStudentId && (
+                                                <div className="flex items-center gap-2 p-2 px-3 rounded-lg bg-indigo-50 border border-indigo-100 mt-1">
+                                                    <div className="h-2 w-2 rounded-full bg-indigo-500 animate-pulse" />
+                                                    {loadingAvailable ? (
+                                                        <span className="text-xs text-indigo-600 font-medium flex items-center gap-1">
+                                                            <Loader2 className="h-3 w-3 animate-spin" />
+                                                            Calculating availability...
+                                                        </span>
+                                                    ) : availableHours ? (
+                                                        <span className="text-xs text-indigo-700 font-semibold">
+                                                            Available {watchType === 'independent' ? 'Independent' : 'Supervised'}: 
+                                                            <span className="ml-1 text-indigo-900">{availableHours.remaining.toFixed(1)}h</span> 
+                                                            <span className="text-indigo-500/70 ml-1 font-normal">of {availableHours.target.toFixed(0)}h total</span>
+                                                        </span>
+                                                    ) : (
+                                                        <span className="text-xs text-muted-foreground italic">No target data found for this student.</span>
+                                                    )}
+                                                </div>
+                                            )}
                                         </FormItem>
                                     )}
                                 />
