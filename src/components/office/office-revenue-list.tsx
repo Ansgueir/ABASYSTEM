@@ -17,9 +17,21 @@ interface LedgerEntry {
     officePayout: number
     supervisorCapRemainingAfter: number
     createdAt: string
+    
+    // Plan Snapshot fields
+    planMonthlyPayment: number | null
+    planHoursPerMonth: number | null
+    planSupervisedHours: number | null
+    planIndividualHours: number | null
+    planIndividualSupervisedTarget: number | null
+    planGroupSupervisionTarget: number | null
+    planIndividualSupervisedDelta: number | null
+    planGroupSupervisionDelta: number | null
+
     student: { id: string; fullName: string }
     supervisor: { id: string; fullName: string }
     invoice: { id: string; amountDue: number; status: string; invoiceDate: string }
+    
     // Enriched math data from page.tsx
     mathData?: {
         individualBilledTotal: number

@@ -27,8 +27,20 @@ interface LedgerEntry {
     paymentNotes: string | null
     paidAt: string | null
     createdAt: string
+    
+    // Plan Snapshot fields (required by modal)
+    planMonthlyPayment: number | null
+    planHoursPerMonth: number | null
+    planSupervisedHours: number | null
+    planIndividualHours: number | null
+    planIndividualSupervisedTarget: number | null
+    planGroupSupervisionTarget: number | null
+    planIndividualSupervisedDelta: number | null
+    planGroupSupervisionDelta: number | null
+    
     student: { id: string; fullName: string }
     invoice: { id: string; amountDue: number; status: string; invoiceDate: string }
+    
     // Enriched math data from page.tsx
     mathData?: {
         individualBilledTotal: number
