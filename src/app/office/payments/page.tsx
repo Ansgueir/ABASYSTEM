@@ -137,11 +137,11 @@ export default async function OfficePaymentsPage({
     for (const entry of ledgerEntries) {
         // Calculate math explanation data (INDIVIDUAL only for supervisor commission)
         const individualValue = entry.invoice.supervisionHours
-            .filter((h: any) => h.type === 'INDIVIDUAL')
+            .filter((h: any) => h.supervisionType === 'INDIVIDUAL')
             .reduce((s: number, h: any) => s + Number(h.amountBilled), 0);
             
         const groupValue = entry.invoice.supervisionHours
-            .filter((h: any) => h.type === 'GROUP')
+            .filter((h: any) => h.supervisionType === 'GROUP')
             .reduce((s: number, h: any) => s + Number(h.amountBilled), 0);
         
         let effectiveCommission = Number(entry.supervisor.paymentPercentage || 0.54);
