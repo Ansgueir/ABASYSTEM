@@ -144,8 +144,8 @@ export function CalendarSupervisorHourModal({ hour, open, onOpenChange, onStatus
                                 <div className="space-y-0.5">
                                     <p className="text-[10px] uppercase font-bold text-muted-foreground tracking-wider">Categoría</p>
                                     <p className="text-sm font-bold text-primary">
-                                        {hour.supervisionType === 'GROUP' || !!hour.groupId ? 'Sesión Grupal' : 
-                                         (hour.type === 'supervised' || hour.type === 'supervision' || hour.type === 'SUPERVISION' ? 'Horas Supervisadas' : 'Horas Independientes')}
+                                        {hour.supervisionType === 'GROUP' || !!hour.groupId ? 'Grupal' : 
+                                         (hour.type === 'supervised' || hour.type === 'supervision' || hour.type === 'SUPERVISION' ? 'Supervisada' : 'Independiente')}
                                     </p>
                                 </div>
                                 <div className="space-y-0.5">

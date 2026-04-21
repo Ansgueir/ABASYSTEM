@@ -130,8 +130,8 @@ export function CalendarStudentHourModal({ hour, open, onOpenChange }: CalendarS
                         <div className="flex items-center justify-between">
                             <div className="flex flex-col">
                                 <span className="font-bold text-lg text-primary">
-                                    {hour.supervisionType === 'GROUP' || !!hour.groupId ? 'Sesión Grupal' : 
-                                     (hour.type === 'supervised' || hour.type === 'supervision' || hour.type === 'SUPERVISION' ? 'Horas Supervisadas' : 'Horas Independientes')}
+                                    {hour.supervisionType === 'GROUP' || !!hour.groupId ? 'Grupal' : 
+                                     (hour.type === 'supervised' || hour.type === 'supervision' || hour.type === 'SUPERVISION' ? 'Supervisada' : 'Independiente')}
                                 </span>
                                 <span className="text-[10px] text-muted-foreground uppercase tracking-wider font-semibold">Categoría de actividad</span>
                             </div>
