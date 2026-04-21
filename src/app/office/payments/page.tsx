@@ -138,8 +138,14 @@ export default async function OfficePaymentsPage({
         // HIDE FROM SUPERVISOR TAB IF PAYOUT IS ZERO
         if (Number(entry.supervisorPayout) <= 0) continue;
 
-        // Calculate math explanation data
-        const individualBilledTotal = entry.invoice.supervisionHours.reduce((s: number, h: any) => s + Number(h.amountBilled), 0);
+        // Calculate math explanation data (INDIVIDUAL only for supervisor commission)
+        const individualValue = entry.invoice.supervisionHours
+            .filter((h: any) => h.type === 'INDIVIDUAL')
+            .reduce((s: number, h: any) => s + Number(h.amountBilled), 0);
+            
+        const groupValue = entry.invoice.supervisionHours
+            .filter((h: any) => h.type === 'GROUP')
+            .reduce((s: number, h: any) => s + Number(h.amountBilled), 0);
         
         let effectiveCommission = Number(entry.supervisor.paymentPercentage || 0.54);
         if (entry.student.planTemplateId && plansMap[entry.student.planTemplateId]) {
@@ -151,9 +157,13 @@ export default async function OfficePaymentsPage({
 
         // Attach to entry
         (entry as any).mathData = {
-            individualBilledTotal,
+            individualBilledTotal: individualValue,
+            groupBilledTotal: groupValue,
             effectiveCommission,
-            formula: `${fmtUSD(individualBilledTotal)} × ${(effectiveCommission * 100).toFixed(0)}% = ${fmtUSD(Number(entry.supervisorCapTotal))}`
+            formula: `${fmtUSD(individualValue)} × ${(effectiveCommission * 100).toFixed(0)}% = ${fmtUSD(Number(entry.supervisorCapTotal))}`,
+            // Revenue breakdown for Office columns
+            officeIndivNet: Number(entry.officePayout) - groupValue, 
+            officeGroupNet: groupValue
         };
 
         const supId = entry.supervisorId
