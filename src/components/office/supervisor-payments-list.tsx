@@ -137,8 +137,45 @@ export function SupervisorPaymentsList({ supervisorSummary }: SupervisorPayments
                                                             <p className="text-xs font-bold text-blue-700">{fmtUSD(entry.paymentFromStudent)}</p>
                                                         </div>
                                                         <div>
-                                                            <p className="text-[10px] text-muted-foreground">Sup. Share</p>
-                                                            <p className="text-xs font-bold text-slate-800">{fmtUSD(entry.supervisorPayout)}</p>
+                                                            <p className="text-[10px] text-muted-foreground text-center">Sup. Share</p>
+                                                            <div className="flex justify-center">
+                                                                <Popover>
+                                                                    <PopoverTrigger className="flex items-center gap-1 w-full justify-center text-xs font-bold text-slate-800 hover:text-slate-500 transition-colors">
+                                                                        {fmtUSD(entry.supervisorPayout)} <Info className="h-3 w-3 opacity-60" />
+                                                                    </PopoverTrigger>
+                                                                    <PopoverContent className="w-80 p-4" side="top">
+                                                                        <div className="space-y-3 text-sm text-left">
+                                                                            <div className="flex items-center gap-2 border-b pb-2">
+                                                                                <Calculator className="h-4 w-4 text-slate-700" />
+                                                                                <p className="font-bold">Waterfall Math</p>
+                                                                            </div>
+                                                                            
+                                                                            <div className="space-y-1">
+                                                                                <div className="flex justify-between text-muted-foreground">
+                                                                                    <span>Student Paid</span>
+                                                                                    <span>{fmtUSD(entry.paymentFromStudent)}</span>
+                                                                                </div>
+                                                                                <div className="flex justify-between text-muted-foreground">
+                                                                                    <span>Sup Total Cap (Invoice)</span>
+                                                                                    <span>{fmtUSD(entry.supervisorCapTotal)}</span>
+                                                                                </div>
+                                                                                <div className="flex justify-between text-muted-foreground">
+                                                                                    <span>Sup Remainder Prev.</span>
+                                                                                    <span>{fmtUSD(entry.supervisorCapRemainingBefore)}</span>
+                                                                                </div>
+                                                                            </div>
+                                                                            
+                                                                            <div className="bg-muted p-2 rounded text-xs space-y-1 mt-2">
+                                                                                <p className="text-muted-foreground italic">Rule: Supervisor gets paid up to their remaining invoice cap.</p>
+                                                                                <div className="flex justify-between font-bold text-slate-800">
+                                                                                    <span>Supervisor Share</span>
+                                                                                    <span>{fmtUSD(entry.supervisorPayout)}</span>
+                                                                                </div>
+                                                                            </div>
+                                                                        </div>
+                                                                    </PopoverContent>
+                                                                </Popover>
+                                                            </div>
                                                         </div>
                                                         <div>
                                                             <p className="text-[10px] text-muted-foreground">Remanente</p>
