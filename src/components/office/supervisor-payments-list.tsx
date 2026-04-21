@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import React, { useState } from "react"
 import { SupervisorPayoutModal } from "./supervisor-payout-modal"
-import { Clock, Calculator, Eye, ChevronDown, ChevronUp, CheckCircle } from "lucide-react"
+import { Clock, Calculator, Eye, ChevronDown, ChevronUp, CheckCircle, Info } from "lucide-react"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 
 interface LedgerEntry {
@@ -41,7 +41,7 @@ interface LedgerEntry {
     student: { id: string; fullName: string }
     invoice: { id: string; amountDue: number; status: string; invoiceDate: string }
     
-    // Enriched math data from page.tsx
+    // Enriched math data from page.tsx (MUST BE USED FOR EXPLICIT MATH)
     mathData?: {
         individualBilledTotal: number
         effectiveCommission: number
@@ -94,7 +94,7 @@ export function SupervisorPaymentsList({ supervisorSummary }: SupervisorPayments
 
                 return (
                     <Card key={supId} className="overflow-hidden border border-border shadow-sm rounded-xl bg-white transition-all duration-200">
-                        {/* ── HEADER (Aligned with Student Header) ── */}
+                        {/* ── HEADER ── */}
                         <div
                             className="flex items-center justify-between p-5 cursor-pointer hover:bg-muted/20"
                             onClick={() => setExpandedSups(p => ({ ...p, [supId]: !isExpanded }))}
@@ -104,7 +104,7 @@ export function SupervisorPaymentsList({ supervisorSummary }: SupervisorPayments
                                     {sup.name.charAt(0)}
                                 </div>
                                 <div>
-                                    <h3 className="font-bold text-base leading-tight">{sup.name}</h3>
+                                    <h3 className="font-bold text-base leading-tight text-slate-800">{sup.name}</h3>
                                     <div className="flex items-center gap-2 flex-wrap mt-0.5">
                                         <p className="text-xs text-muted-foreground">{sup.email}</p>
                                         <Badge variant="secondary" className="bg-primary/10 text-primary hover:bg-primary/10 border-none px-2 py-0.5 text-[10px] font-semibold rounded-full uppercase">
@@ -135,52 +135,48 @@ export function SupervisorPaymentsList({ supervisorSummary }: SupervisorPayments
 
                         {isExpanded && (
                             <CardContent className="px-4 pb-4 pt-0 space-y-4">
-                                {/* ── Pending Distributions (Aligned with InvoiceRow) ── */}
+                                {/* ── Pending Distributions (Explicit Logic Included) ── */}
                                 {pendingInvoicesSection(pendingEntries, setSelectedEntry)}
 
-                                {/* ── Settled (Paid) Distributions ── */}
+                                {/* ── Settled Distributions (Explicit Logic Re-added) ── */}
                                 {settledInvoicesSection(paidEntries)}
 
-                                {/* ── Financial Summary (Exact Match for Contract Summary) ── */}
+                                {/* ── Financial Summary ── */}
                                 <div className="rounded-xl border border-border bg-slate-50/80 p-4 space-y-3">
                                     <p className="text-[10px] uppercase font-bold text-slate-500 tracking-wider">FINANCIAL RECONCILIATION</p>
                                     
                                     <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-                                        {/* Box Paid */}
                                         <div className="flex flex-col items-center justify-center bg-green-50 rounded-xl p-3 border border-green-100 text-center">
                                             <p className="text-[9px] uppercase text-green-700 font-bold tracking-wider">Cleared</p>
                                             <p className="text-lg font-black text-green-700 leading-tight">{fmtUSD(sup.totalPaid)}</p>
-                                            <p className="text-[9px] text-green-600/70 mt-0.5 uppercase font-bold">paid</p>
+                                            <p className="text-[9px] text-green-600/70 mt-0.5 uppercase font-bold tracking-tight">payouts settled</p>
                                         </div>
                                         
-                                        {/* Box Pending */}
                                         <div className="flex flex-col items-center justify-center bg-amber-50 rounded-xl p-3 border border-amber-100 text-center">
                                             <p className="text-[9px] uppercase text-amber-700 font-bold tracking-wider">Pending</p>
                                             <p className="text-lg font-black text-amber-700 leading-tight">{fmtUSD(sup.totalPending)}</p>
-                                            <p className="text-[9px] text-amber-600/70 mt-0.5 uppercase font-bold">remaining</p>
+                                            <p className="text-[9px] text-amber-600/70 mt-0.5 uppercase font-bold tracking-tight">accrued balance</p>
                                         </div>
                                         
-                                        {/* Box Last Payout */}
                                         <div className="flex flex-col items-center justify-center bg-indigo-50 rounded-xl p-3 border border-indigo-100 text-center">
                                             <p className="text-[9px] uppercase text-indigo-700 font-bold tracking-wider">Last Payout</p>
                                             {paidEntries.length > 0 ? (
                                                 <>
                                                     <p className="text-lg font-black text-indigo-700 leading-tight">{fmtUSD(paidEntries[0].supervisorPayout)}</p>
-                                                    <p className="text-[9px] text-indigo-600/70 mt-0.5 uppercase font-bold">{fmtDate(paidEntries[0].paidAt)}</p>
+                                                    <p className="text-[9px] text-indigo-600/70 mt-0.5 uppercase font-bold tracking-tight">{fmtDate(paidEntries[0].paidAt)}</p>
                                                 </>
                                             ) : (
                                                 <>
                                                     <p className="text-lg font-black text-indigo-300 leading-tight">—</p>
-                                                    <p className="text-[9px] text-indigo-400 mt-0.5 uppercase font-bold">none yet</p>
+                                                    <p className="text-[9px] text-indigo-400 mt-0.5 uppercase font-bold tracking-tight">none yet</p>
                                                 </>
                                             )}
                                         </div>
                                         
-                                        {/* Box Total */}
                                         <div className="flex flex-col items-center justify-center bg-slate-100 rounded-xl p-3 border border-slate-200 text-center">
                                             <p className="text-[9px] uppercase text-slate-600 font-bold tracking-wider">Lifetime Total</p>
                                             <p className="text-lg font-black text-slate-700 leading-tight">{fmtUSD(totalAllocated)}</p>
-                                            <p className="text-[9px] text-slate-500 mt-0.5 uppercase font-bold">allocated</p>
+                                            <p className="text-[9px] text-slate-500 mt-0.5 uppercase font-bold tracking-tight">cumulative earnings</p>
                                         </div>
                                     </div>
 
@@ -196,9 +192,9 @@ export function SupervisorPaymentsList({ supervisorSummary }: SupervisorPayments
                                                 <span className="text-green-700 font-semibold">{((sup.totalPaid / totalAllocated) * 100).toFixed(1)}% paid</span>
                                                 <span className="text-amber-700 font-semibold">{((sup.totalPending / totalAllocated) * 100).toFixed(1)}% remaining</span>
                                             </div>
-                                            <div className="h-2.5 rounded-full bg-slate-200 overflow-hidden">
+                                            <div className="h-2.5 rounded-full bg-slate-200 overflow-hidden shadow-inner">
                                                 <div
-                                                    className="h-full bg-gradient-to-r from-green-500 to-green-400 rounded-full transition-all"
+                                                    className="h-full bg-gradient-to-r from-green-500 to-green-400 rounded-full transition-all duration-1000"
                                                     style={{ width: `${(sup.totalPaid / totalAllocated) * 100}%` }}
                                                 />
                                             </div>
@@ -231,46 +227,52 @@ function pendingInvoicesSection(entries: LedgerEntry[], setSelected: any) {
             </p>
             {entries.map(entry => (
                 <div key={entry.id} className="group flex items-center justify-between border border-border rounded-xl p-3 hover:bg-muted/10 transition-colors">
-                    <div className="flex items-center gap-3">
+                    <div className="flex items-center gap-4">
+                        <div className="flex flex-col min-w-[70px]">
+                            <span className="text-[9px] font-bold text-slate-400 uppercase tracking-tighter leading-none mb-1">#{entry.invoiceId.slice(-6).toUpperCase()}</span>
+                            <span className="text-xs font-bold text-slate-700">{fmtDate(entry.createdAt)}</span>
+                        </div>
                         <div className="flex flex-col">
-                            <span className="text-[10px] font-bold text-slate-400 uppercase tracking-tighter leading-none mb-1">INV #{entry.invoiceId.slice(-6).toUpperCase()}</span>
-                            <div className="flex items-center gap-2">
-                                <span className="text-xs font-bold text-slate-700">{fmtDate(entry.createdAt)}</span>
-                                <Badge variant="secondary" className="bg-amber-100 text-amber-700 border-none px-2 py-0 h-4 text-[9px] font-black uppercase">Pending</Badge>
-                            </div>
+                            <span className="text-[9px] uppercase font-black text-slate-300 tracking-widest leading-none mb-1">Student</span>
+                            <span className="text-xs font-bold text-slate-700">{entry.student.fullName}</span>
                         </div>
                     </div>
                     
                     <div className="flex items-center gap-6">
                         <div className="text-right">
-                            <p className="text-[9px] text-slate-400 uppercase font-black tracking-widest leading-none mb-1">Student</p>
-                            <p className="text-xs font-bold text-slate-700">{entry.student.fullName.split(' ')[0]}</p>
+                             <p className="text-[9px] text-slate-300 uppercase font-black tracking-widest leading-none mb-1">Math Basis</p>
+                             <div className="flex flex-col items-end">
+                                <span className="text-[10px] font-mono text-slate-400">
+                                    {fmtUSD(entry.mathData?.individualBilledTotal)} × {(entry.mathData?.effectiveCommission || 0.6) * 100}%
+                                </span>
+                             </div>
                         </div>
-                        <div className="text-right">
-                            <p className="text-[9px] text-slate-400 uppercase font-black tracking-widest leading-none mb-1">Share</p>
-                            <p className="text-xs font-bold text-green-700">{fmtUSD(entry.supervisorPayout)}</p>
+
+                        <div className="text-right border-l pl-4 border-slate-100">
+                            <p className="text-[9px] text-primary uppercase font-black tracking-widest leading-none mb-1">Supervisor Share</p>
+                            <p className="text-sm font-black text-green-700 leading-none">{fmtUSD(entry.supervisorPayout)}</p>
                         </div>
                         
-                        <div className="flex items-center gap-2 pl-4 border-l">
+                        <div className="flex items-center gap-2 pl-4 border-l border-slate-100">
                             <Popover>
                                 <PopoverTrigger asChild>
-                                    <Button variant="ghost" size="sm" className="h-8 px-2 text-muted-foreground hover:text-primary">
-                                        <Calculator className="h-3.5 w-3.5 mr-1" /> <span className="text-[10px] font-bold uppercase">Math</span>
+                                    <Button variant="ghost" size="sm" className="h-8 w-8 p-0 text-slate-300 hover:text-primary">
+                                        <Calculator className="h-3.5 w-3.5" />
                                     </Button>
                                 </PopoverTrigger>
-                                <PopoverContent className="w-64 p-3 rounded-xl shadow-lg border-border">
-                                    <p className="text-[10px] font-bold text-primary uppercase tracking-widest mb-2 border-b pb-1">Waterfall Logic</p>
+                                <PopoverContent className="w-64 p-3 rounded-xl shadow-lg border-border" align="end">
+                                    <p className="text-[10px] font-bold text-primary uppercase tracking-widest mb-2 border-b pb-1">Calculation Proof</p>
                                     <div className="space-y-1.5 text-[10px]">
                                         <div className="flex justify-between text-muted-foreground">
-                                            <span>Individual Billed</span>
+                                            <span>Individual Billed Volume</span>
                                             <span>{fmtUSD(entry.mathData?.individualBilledTotal)}</span>
                                         </div>
                                         <div className="flex justify-between text-muted-foreground">
-                                            <span>Commission ({(entry.mathData?.effectiveCommission || 0.6) * 100}%)</span>
-                                            <span className="font-bold">{fmtUSD(entry.supervisorCapTotal)}</span>
+                                            <span>Effective Cap Rate ({(entry.mathData?.effectiveCommission || 0.6) * 100}%)</span>
+                                            <span className="font-bold text-slate-700">{fmtUSD(entry.supervisorCapTotal)}</span>
                                         </div>
                                         <div className="pt-1.5 mt-1.5 border-t border-dashed flex justify-between font-black text-xs text-primary">
-                                            <span>Available Payout</span>
+                                            <span>Final Share Payout</span>
                                             <span>{fmtUSD(entry.supervisorPayout)}</span>
                                         </div>
                                     </div>
@@ -280,10 +282,10 @@ function pendingInvoicesSection(entries: LedgerEntry[], setSelected: any) {
                             <Button
                                 size="sm"
                                 variant="outline"
-                                className="h-8 px-3 text-[10px] font-bold border-slate-200 hover:bg-slate-50 uppercase"
+                                className="h-8 px-3 text-[10px] font-bold border-slate-200 hover:bg-primary hover:text-white transition-all uppercase rounded-lg shadow-sm"
                                 onClick={(e) => { e.stopPropagation(); setSelected(entry);}}
                             >
-                                Pay Supervisor
+                                Pay Now
                             </Button>
                         </div>
                     </div>
@@ -300,26 +302,51 @@ function settledInvoicesSection(entries: LedgerEntry[]) {
             <p className="text-[10px] uppercase font-bold text-green-600 flex items-center gap-1">
                 <CheckCircle className="h-3 w-3" /> Payment History ({entries.length})
             </p>
-            <div className="bg-white rounded-xl border border-border overflow-hidden">
-                <table className="w-full text-xs">
+            <div className="bg-white rounded-xl border border-border overflow-hidden shadow-sm">
+                <table className="w-full text-[11px]">
                     <thead>
                         <tr className="border-b bg-muted/40 text-muted-foreground">
                             <th className="text-left py-2 px-4 font-bold uppercase text-[9px]">Student</th>
-                            <th className="text-left py-2 px-4 font-bold uppercase text-[9px]">Date Paid</th>
+                            <th className="text-left py-2 px-4 font-bold uppercase text-[9px]">Settled Date</th>
+                            <th className="text-center py-2 px-4 font-bold uppercase text-[9px]">Formula Proof</th>
                             <th className="text-right py-2 px-4 font-bold uppercase text-[9px]">Final Payout</th>
-                            <th className="text-left py-2 px-4 font-bold uppercase text-[9px]">Reference</th>
+                            <th className="text-left py-2 px-4 font-bold uppercase text-[9px]">Method</th>
                         </tr>
                     </thead>
-                    <tbody className="divide-y">
+                    <tbody className="divide-y divide-muted/40">
                         {entries.map(entry => (
                             <tr key={entry.id} className="hover:bg-muted/10 transition-colors">
-                                <td className="py-2.5 px-4 font-bold text-slate-700">{entry.student.fullName}</td>
-                                <td className="py-2.5 px-4 text-muted-foreground">{fmtDate(entry.paidAt || entry.createdAt)}</td>
-                                <td className="py-2.5 px-4 text-right font-black text-green-700">{fmtUSD(entry.supervisorPayout)}</td>
+                                <td className="py-2.5 px-4 font-extrabold text-slate-700">{entry.student.fullName}</td>
+                                <td className="py-2.5 px-4 text-slate-400 font-medium">{fmtDate(entry.paidAt || entry.createdAt)}</td>
+                                <td className="py-2.5 px-4 text-center">
+                                    <Popover>
+                                        <PopoverTrigger className="text-[10px] font-mono text-slate-400 bg-slate-50 px-2 py-0.5 rounded border border-slate-100 hover:text-primary transition-colors">
+                                            {fmtUSD(entry.mathData?.individualBilledTotal)} × {(entry.mathData?.effectiveCommission || 0.6) * 100}%
+                                        </PopoverTrigger>
+                                        <PopoverContent className="w-64 p-3 rounded-xl border-border shadow-lg" side="top">
+                                            <p className="text-[10px] font-black text-primary uppercase tracking-widest mb-2 border-b pb-1">Waterfall Settlement Proof</p>
+                                            <div className="space-y-1 text-[10px]">
+                                                <div className="flex justify-between">
+                                                    <span>Billed Indiv Hours</span>
+                                                    <span className="font-bold">{fmtUSD(entry.mathData?.individualBilledTotal)}</span>
+                                                </div>
+                                                <div className="flex justify-between text-slate-400">
+                                                    <span>Supervisor Rate</span>
+                                                    <span>{(entry.mathData?.effectiveCommission || 0.6) * 100}%</span>
+                                                </div>
+                                                <div className="flex justify-between font-black text-green-700 border-t pt-1 mt-1">
+                                                    <span>Settled Payout</span>
+                                                    <span>{fmtUSD(entry.supervisorPayout)}</span>
+                                                </div>
+                                            </div>
+                                        </PopoverContent>
+                                    </Popover>
+                                </td>
+                                <td className="py-2.5 px-4 text-right font-black text-green-700 text-sm">{fmtUSD(entry.supervisorPayout)}</td>
                                 <td className="py-2.5 px-4">
                                     <div className="flex items-center gap-2">
-                                        <Badge variant="outline" className="text-[8px] font-bold border-slate-300 py-0 h-4">{entry.paymentMethod || "N/A"}</Badge>
-                                        <span className="font-mono text-[9px] text-muted-foreground truncate max-w-[80px]">{entry.paymentReference || "—"}</span>
+                                        <Badge variant="outline" className="text-[8px] font-bold border-slate-200 py-0 h-4 uppercase">{entry.paymentMethod || "ZELLE"}</Badge>
+                                        <span className="font-mono text-[9px] text-slate-300 truncate max-w-[60px] tracking-tighter">#{entry.paymentReference?.slice(-4) || "—"}</span>
                                     </div>
                                 </td>
                             </tr>
