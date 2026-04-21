@@ -133,15 +133,6 @@ export function SettingsClient({ settings }: SettingsClientProps) {
                             Enabled
                         </Button>
                     </div>
-                    <div className="flex items-center justify-between p-4 rounded-xl bg-muted/50">
-                        <div>
-                            <p className="font-medium">Hours Limit Alerts</p>
-                            <p className="text-sm text-muted-foreground">Alert when approaching monthly limits</p>
-                        </div>
-                        <Button variant="outline" size="sm" className="rounded-xl">
-                            Enabled
-                        </Button>
-                    </div>
                 </CardContent>
             </Card>
 
