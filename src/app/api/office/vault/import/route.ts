@@ -133,6 +133,9 @@ export async function POST(request: Request) {
                 const bacbId = cellStr(row, "E")
                 const qual = cellStr(row, "F")
 
+                const phone = cellStr(row, "G") || "000-000-0000"
+                const address = cellStr(row, "H") || "N/A"
+
                 const existingSup = existingSupervisors.find(
                     s => s.fullName.toLowerCase().trim() === name.toLowerCase().trim() || (email && s.user.email === email)
                 )
@@ -142,6 +145,8 @@ export async function POST(request: Request) {
                         id: existingSup.id, 
                         bacbId, 
                         credentialType: normalizeCredentialType(qual || "BCBA"), 
+                        phone,
+                        address,
                         rowNumber: i, 
                         sourceSheet: "SUPERVISORS" 
                     })
@@ -152,6 +157,8 @@ export async function POST(request: Request) {
                         email, 
                         password, 
                         bacbId, 
+                        phone,
+                        address,
                         credentialType: normalizeCredentialType(qual || "BCBA"), 
                         rowNumber: i, 
                         sourceSheet: "SUPERVISORS" 
@@ -194,7 +201,7 @@ export async function POST(request: Request) {
                 
                 const fields = {
                     credential:             normalizeCredentialType(cellStr(row, "F")),
-                    phone:                 cellStr(row, "H"),
+                    phone:                 cellStr(row, "H") || "000-000-0000",
                     startDate:             cellDate(row, "I"),
                     endDate:               cellDate(row, "J"),
                     hoursPerMonth:         cellNum(row, "K") || 130,
@@ -207,7 +214,15 @@ export async function POST(request: Request) {
                     independentHoursTarget: cellNum(row, "R") || null,
                     totalAmountContract:   cellNum(row, "S") || null,
                     analystPaymentRate:    cellNum(row, "T") || null,
-                    officePaymentRate:     cellNum(row, "U") || null
+                    officePaymentRate:     cellNum(row, "U") || null,
+                    city:                  cellStr(row, "V") || "N/A",
+                    state:                 cellStr(row, "W") || "N/A",
+                    school:                cellStr(row, "X") || "N/A",
+                    level:                 (cellStr(row, "Y") || "BCBA") as any,
+                    supervisionPercentage: 0.05,
+                    supervisionType:       "REGULAR",
+                    hoursToPay:            0,
+                    amountToPay:           0.0,
                 }
 
                 if (!existingStud) {
@@ -293,7 +308,16 @@ export async function POST(request: Request) {
                     const user = await tx.user.create({
                         data: {
                             email: sup.email, passwordHash: hash, role: "SUPERVISOR", isActive: true,
-                            supervisor: { create: { fullName: sup.fullName, email: sup.email, bacbId: sup.bacbId || "N/A", credentialType: sup.credentialType, importBatchId: batch.id } }
+                            supervisor: { create: { 
+                                fullName: sup.fullName, 
+                                email: sup.email, 
+                                phone: sup.phone,
+                                address: sup.address,
+                                bacbId: sup.bacbId || "N/A", 
+                                certificantNumber: sup.certificantNumber || "N/A",
+                                credentialType: sup.credentialType, 
+                                importBatchId: batch.id 
+                            } }
                         } as any,
                         include: { supervisor: true } as any
                     })
@@ -329,6 +353,9 @@ export async function POST(request: Request) {
                                 endDate: nu.fields.endDate ? new Date(nu.fields.endDate) : new Date(),
                                 hoursPerMonth: nu.fields.hoursPerMonth, hoursToDo: nu.fields.hoursToDo,
                                 credential: nu.fields.credential, phone: nu.fields.phone, status: nu.fields.status,
+                                city: nu.fields.city, state: nu.fields.state, school: nu.fields.school, level: nu.fields.level,
+                                supervisionPercentage: nu.fields.supervisionPercentage, supervisionType: nu.fields.supervisionType,
+                                hoursToPay: nu.fields.hoursToPay, amountToPay: nu.fields.amountToPay,
                                 vcsSequence: nu.fields.vcsSequence, assignedOptionPlan: nu.fields.assignedOptionPlan,
                                 hoursTargetReg: nu.fields.hoursTargetReg, hoursTargetConc: nu.fields.hoursTargetConc,
                                 independentHoursTarget: nu.fields.independentHoursTarget, totalAmountContract: nu.fields.totalAmountContract,
