@@ -69,10 +69,19 @@ export async function POST(request: Request) {
             const workbook = new ExcelJS.Workbook()
             await workbook.xlsx.load(await file.arrayBuffer() as any)
 
-            const sheetStudents    = workbook.getWorksheet("STUDENTS") || workbook.getWorksheet("Supervisados")
-            const sheetSupervisors = workbook.getWorksheet("SUPERVISORS") || workbook.getWorksheet("Parametros")
-            const sheetOffices     = workbook.getWorksheet("OFFICES")
-            const sheetFinancial   = workbook.getWorksheet("FINANCIALS") || workbook.getWorksheet("Cobros")
+            // Case-insensitive worksheet detection
+            let sheetStudents: ExcelJS.Worksheet | undefined
+            let sheetSupervisors: ExcelJS.Worksheet | undefined
+            let sheetOffices: ExcelJS.Worksheet | undefined
+            let sheetFinancial: ExcelJS.Worksheet | undefined
+
+            workbook.eachSheet((sheet) => {
+                const name = sheet.name.toUpperCase().trim()
+                if (name === "STUDENTS" || name === "SUPERVISADOS") sheetStudents = sheet
+                if (name === "SUPERVISORS" || name === "PARAMETROS") sheetSupervisors = sheet
+                if (name === "OFFICES") sheetOffices = sheet
+                if (name === "FINANCIALS" || name === "COBROS") sheetFinancial = sheet
+            })
 
             if (!sheetStudents || !sheetSupervisors) {
                 return NextResponse.json({ 
