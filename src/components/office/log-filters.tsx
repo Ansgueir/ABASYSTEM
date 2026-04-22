@@ -48,8 +48,6 @@ export function LogFilters({
         { value: "9", label: "October" }, { value: "10", label: "November" }, { value: "11", label: "December" }
     ]
 
-    const currentYear = new Date().getFullYear()
-    const years = Array.from({ length: 8 }, (_, i) => (currentYear + 2 - i).toString())
 
     return (
         <div className="bg-muted/30 p-4 rounded-2xl border border-border flex flex-wrap items-end gap-4 mb-6 transition-all duration-300">
@@ -110,15 +108,13 @@ export function LogFilters({
 
             <div className="space-y-1.5 w-[100px]">
                 <Label className="text-[10px] uppercase font-bold text-muted-foreground ml-1">Year</Label>
-                <select 
+                <input 
+                    type="number"
                     value={selectedYear}
                     onChange={(e) => updateFilter("year", e.target.value)}
                     className="w-full h-10 px-3 bg-background border border-input rounded-xl text-sm focus:ring-2 focus:ring-primary outline-none"
-                >
-                    {years.map(y => (
-                        <option key={y} value={y}>{y}</option>
-                    ))}
-                </select>
+                    placeholder="Year"
+                />
             </div>
 
             {(selectedStudent || selectedSupervisor || selectedMonth || selectedType) && (
