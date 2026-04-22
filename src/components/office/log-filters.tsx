@@ -48,7 +48,8 @@ export function LogFilters({
         { value: "9", label: "October" }, { value: "10", label: "November" }, { value: "11", label: "December" }
     ]
 
-    const years = Array.from({ length: 5 }, (_, i) => (new Date().getFullYear() - i).toString())
+    const currentYear = new Date().getFullYear()
+    const years = Array.from({ length: 8 }, (_, i) => (currentYear + 2 - i).toString())
 
     return (
         <div className="bg-muted/30 p-4 rounded-2xl border border-border flex flex-wrap items-end gap-4 mb-6 transition-all duration-300">
