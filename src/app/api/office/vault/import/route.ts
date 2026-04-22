@@ -450,6 +450,8 @@ export async function POST(request: Request) {
                     await (tx as any).importLog.create({ 
                         data: { batchId: batch.id, tableName: "FinancialPeriod", recordId: created.id, action: "CREATE", oldData: {}, newData: created } 
                     })
+                }
+
                 for (const rp of (newRawPayments ?? [])) {
                     if (rp.type === "STUDENT_PAYMENT") {
                         const studentId = studentMap.get(rp.targetName?.toLowerCase().trim())
