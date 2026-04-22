@@ -100,6 +100,7 @@ export async function POST(request: Request) {
                 officeExists: !!(prisma as any).office,
                 importBatchExists: !!(prisma as any).importBatch
             })
+            console.log("[PRISMA MODELS FOUND]:", Object.keys(prisma).filter(k => !k.startsWith("_") && !k.startsWith("$")))
 
             const existingSupervisors = await prisma.supervisor.findMany({ 
                 include: { user: true } 
