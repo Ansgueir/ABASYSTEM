@@ -105,7 +105,7 @@ export async function POST(request: Request) {
             const existingSupervisors = await prisma.supervisor.findMany({ 
                 include: { user: true } 
             })
-            const existingOffices = await (prisma as any).office.findMany({ 
+            const existingOffices = await (prisma as any).officeMember.findMany({ 
                 include: { user: true } 
             })
             const existingEmails = new Set(
@@ -279,7 +279,7 @@ export async function POST(request: Request) {
                     const user = await tx.user.create({
                         data: {
                             email: off.email, passwordHash: hash, role: "OFFICE", isActive: true,
-                            office: { create: { fullName: off.fullName, email: off.email, importBatchId: batch.id } }
+                            officeMember: { create: { fullName: off.fullName, officeRole: off.officeRole || "ADMIN" } }
                         } as any
                     })
                     await (tx as any).importLog.create({ 

@@ -50,7 +50,7 @@ export async function POST(request: Request) {
                 await (tx as any).supervisor.deleteMany({
                     where: { userId: { in: userIdsToDelete } }
                 })
-                await (tx as any).office.deleteMany({
+                await (tx as any).officeMember.deleteMany({
                     where: { userId: { in: userIdsToDelete } }
                 })
                 await (tx as any).user.deleteMany({
