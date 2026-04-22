@@ -134,7 +134,6 @@ export default async function OfficePaymentsPage({
 
     for (const entry of ledgerEntries) {
         // Calculate math explanation data (INDIVIDUAL only for supervisor commission)
-        // Calculate math explanation data (INDIVIDUAL only for supervisor commission)
         const supervisionHours = entry.invoice.supervisionHours || [];
         
         const individualValue = supervisionHours
@@ -153,14 +152,28 @@ export default async function OfficePaymentsPage({
             }
         }
 
-        // Attach to entry (REMOVED Skip so Office tab shows values for ALL entries)
+        // ── PROPORTIONAL BREAKDOWN ──────────────────────────────────────────
+        // Goal: Attribute the collected payment (entry.paymentFromStudent) to 
+        // Individual and Group based on the billed ratio of the entire invoice.
+        const totalBilledForInvoice = individualValue + groupValue;
+        const groupRatio = totalBilledForInvoice > 0 ? (groupValue / totalBilledForInvoice) : 0;
+        
+        // This is the portion of the COLLECTED payment that belongs to Group hours
+        const collectedGroupPortion = Number(entry.paymentFromStudent) * groupRatio;
+        
+        // The office keeps 100% of the Group portion + whatever is left of their share of Individual
+        // So the "Group Column" should show exactly what we collected for groups.
+        // The "Individual Column" is the remainder of the office payout.
+        const officeGroupNet = collectedGroupPortion;
+        const officeIndivNet  = Number(entry.officePayout) - officeGroupNet;
+
         (entry as any).mathData = {
             individualBilledTotal: individualValue,
             groupBilledTotal: groupValue,
             effectiveCommission,
             formula: `${fmtUSD(individualValue)} × ${(effectiveCommission * 100).toFixed(0)}% = ${fmtUSD(Number(entry.supervisorCapTotal))}`,
-            officeIndivNet: Number(entry.officePayout) - groupValue, 
-            officeGroupNet: groupValue
+            officeIndivNet, 
+            officeGroupNet
         };
 
         const supId = entry.supervisorId
