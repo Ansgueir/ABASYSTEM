@@ -39,6 +39,16 @@ function cellDate(row: ExcelJS.Row, col: string | number): Date | null {
     return isNaN(d.getTime()) ? null : d
 }
 
+function mapHeaders(sheet: ExcelJS.Worksheet): Record<string, number> {
+    const headerRow = sheet.getRow(1)
+    const mapping: Record<string, number> = {}
+    headerRow.eachCell((cell, colNumber) => {
+        const val = String(cell.value || "").toLowerCase().trim().replace(/_/g, "")
+        mapping[val] = colNumber
+    })
+    return mapping
+}
+
 function normalizeCredentialType(val: string): string {
     const v = val.toUpperCase().trim()
     if (v.includes("BCABA")) return "BCaBA"
@@ -80,6 +90,8 @@ export async function POST(request: Request) {
             let sheetInvoices: ExcelJS.Worksheet | undefined
             let sheetStudentPayments: ExcelJS.Worksheet | undefined
             let sheetSupervisorPayments: ExcelJS.Worksheet | undefined
+            let sheetLedgerEntries: ExcelJS.Worksheet | undefined
+            let sheetStudentSupervisors: ExcelJS.Worksheet | undefined
 
             workbook.eachSheet((sheet) => {
                 const name = sheet.name.toUpperCase().trim()
@@ -87,9 +99,11 @@ export async function POST(request: Request) {
                 if (name.includes("SUPERVISOR") && !name.includes("PAYMENT") && !name.includes("LEDGER") && !name.includes("PAYOUT") && !name.includes("STUDENT")) sheetSupervisors = sheet
                 if (name.includes("OFFICE")) sheetOffices = sheet
                 if (name.includes("FINANCIAL") || name.includes("COBROS")) sheetFinancial = sheet
-                if (name.includes("STUDENT") && name.includes("PAYMENT")) sheetStudentPayments = sheet
-                if (name.includes("SUPERVISOR") && name.includes("PAYMENT")) sheetSupervisorPayments = sheet
+                if (name.includes("STUDENTPAYMENT")) sheetStudentPayments = sheet
+                if (name.includes("SUPERVISORPAYMENT")) sheetSupervisorPayments = sheet
                 if (name.includes("INVOICE")) sheetInvoices = sheet
+                if (name.includes("LEDGER")) sheetLedgerEntries = sheet
+                if (name.includes("STUDENTSUPERVISOR")) sheetStudentSupervisors = sheet
             })
 
             if (!sheetStudents || !sheetSupervisors) {
@@ -273,43 +287,27 @@ export async function POST(request: Request) {
             }
 
             // ── §5 Parse RAW PAYMENTS ────────────────────────
-            if (sheetStudentPayments) {
-                for (let i = 2; i <= sheetStudentPayments.rowCount; i++) {
-                    const row = sheetStudentPayments.getRow(i)
-                    const target = cellStr(row, "B") // Can be Name or ID
-                    if (!target) continue
-                    newRawPayments.push({ 
-                        type: "STUDENT_PAYMENT", 
-                        target, 
-                        date: cellDate(row, "C"),
-                        amount: cellNum(row, "D"),
-                        paymentType: cellStr(row, "E") || "ZELLE",
-                        notes: cellStr(row, "F"),
-                        rowNumber: i, 
-                        sourceSheet: "STUDENTPAYMENT" 
+            const parseFinancialSheet = (sheet: ExcelJS.Worksheet | undefined, type: string) => {
+                if (!sheet) return
+                const m = mapHeaders(sheet)
+                for (let i = 2; i <= sheet.rowCount; i++) {
+                    const row = sheet.getRow(i)
+                    const data: any = { type, rowNumber: i, sourceSheet: sheet.name }
+                    Object.keys(m).forEach(key => {
+                        const col = m[key]
+                        if (key.includes("date")) data[key] = cellDate(row, col)
+                        else if (key.includes("amount") || key.includes("due") || key.includes("paid") || key.includes("balance") || key.includes("period")) data[key] = cellNum(row, col)
+                        else data[key] = cellStr(row, col)
                     })
+                    newRawPayments.push(data)
                 }
             }
-            if (sheetSupervisorPayments) {
-                for (let i = 2; i <= sheetSupervisorPayments.rowCount; i++) {
-                    const row = sheetSupervisorPayments.getRow(i)
-                    const supTarget = cellStr(row, "B")
-                    const studTarget = cellStr(row, "C")
-                    if (!supTarget) continue
-                    newRawPayments.push({ 
-                        type: "SUPERVISOR_PAYMENT", 
-                        supTarget,
-                        studTarget,
-                        monthYear: cellDate(row, "D"),
-                        amountDue: cellNum(row, "E"),
-                        amountPaid: cellNum(row, "F"),
-                        amountAlreadyPaid: cellNum(row, "G"),
-                        balanceDue: cellNum(row, "H"),
-                        rowNumber: i, 
-                        sourceSheet: "SUPERVISORPAYMENT" 
-                    })
-                }
-            }
+
+            parseFinancialSheet(sheetStudentPayments, "STUDENT_PAYMENT")
+            parseFinancialSheet(sheetSupervisorPayments, "SUPERVISOR_PAYMENT")
+            parseFinancialSheet(sheetInvoices, "INVOICE")
+            parseFinancialSheet(sheetLedgerEntries, "LEDGER_ENTRY")
+            parseFinancialSheet(sheetStudentSupervisors, "STUDENT_SUPERVISOR")
 
             return NextResponse.json({
                 studentsStats: { new: newUsers.length, updated: validData.studentsToUpdate.length },
@@ -471,38 +469,84 @@ export async function POST(request: Request) {
                     return supervisorMap.get(clean) || null
                 }
 
+                const invoiceMap = new Map<string, string>()
+
                 for (const rp of (newRawPayments ?? [])) {
-                    if (rp.type === "STUDENT_PAYMENT") {
-                        const studentId = findStudentId(rp.target)
+                    if (rp.type === "INVOICE") {
+                        const studentId = findStudentId(rp.studentid || rp.studentname)
+                        if (!studentId) continue
+                        const inv = await (tx as any).invoice.create({
+                            data: {
+                                id: rp.id && rp.id.length === 36 ? rp.id : undefined,
+                                studentId,
+                                invoiceDate: rp.invoicedate || new Date(),
+                                amountDue: rp.amountdue || 0,
+                                amountPaid: rp.amountpaid || 0,
+                                status: (rp.status || "SENT") as any,
+                                sentAt: rp.sentat,
+                                createdAt: rp.createdat
+                            }
+                        })
+                        if (rp.id) invoiceMap.set(rp.id, inv.id)
+                    } else if (rp.type === "STUDENT_PAYMENT") {
+                        const studentId = findStudentId(rp.studentid || rp.target)
                         if (!studentId) continue
                         await (tx as any).studentPayment.create({
                             data: {
                                 studentId,
-                                amount: rp.amount,
-                                paymentDate: rp.date ? new Date(rp.date) : new Date(),
-                                paymentType: (rp.paymentType || "ZELLE") as any,
+                                amount: rp.amount || 0,
+                                paymentDate: rp.paymentdate || rp.date || new Date(),
+                                paymentType: (rp.paymenttype || rp.paymentType || "ZELLE") as any,
                                 notes: rp.notes,
                                 importBatchId: batch.id
                             }
                         })
                     } else if (rp.type === "SUPERVISOR_PAYMENT") {
-                        const supervisorId = findSupervisorId(rp.supTarget)
-                        const studentId = findStudentId(rp.studTarget)
+                        const supervisorId = findSupervisorId(rp.supervisorid || rp.supTarget)
+                        const studentId = findStudentId(rp.studentid || rp.studTarget)
                         if (!supervisorId || !studentId) continue
                         await (tx as any).supervisorPayment.create({
                             data: {
                                 supervisorId, studentId,
-                                monthYear: rp.monthYear ? new Date(rp.monthYear) : new Date(),
-                                amountDue: rp.amountDue,
-                                amountPaidThisMonth: rp.amountPaid,
-                                amountAlreadyPaid: rp.amountAlreadyPaid,
-                                balanceDue: rp.balanceDue,
+                                monthYear: rp.monthyear || rp.monthYear || new Date(),
+                                amountDue: rp.amountdue || rp.amountDue || 0,
+                                amountPaidThisMonth: rp.amountpaidthismonth || rp.amountPaid || 0,
+                                amountAlreadyPaid: rp.amountalreadypaid || rp.amountAlreadyPaid || 0,
+                                balanceDue: rp.balancedue || rp.balanceDue || 0,
                                 importBatchId: batch.id
                             }
                         })
+                    } else if (rp.type === "STUDENT_SUPERVISOR") {
+                        const studentId = findStudentId(rp.studentid)
+                        const supervisorId = findSupervisorId(rp.supervisorid)
+                        if (studentId && supervisorId) {
+                            await (tx as any).studentSupervisor.upsert({
+                                where: { studentId_supervisorId: { studentId, supervisorId } },
+                                update: { isPrimary: rp.isprimary === "true" || rp.isprimary === true },
+                                create: { studentId, supervisorId, isPrimary: rp.isprimary === "true" || rp.isprimary === true }
+                            })
+                        }
+                    } else if (rp.type === "LEDGER_ENTRY") {
+                        const supervisorId = findSupervisorId(rp.supervisorid)
+                        const studentId = findStudentId(rp.studentid)
+                        const invId = rp.invoiceid ? (invoiceMap.get(rp.invoiceid) || rp.invoiceid) : null
+                        if (supervisorId && studentId && invId) {
+                            await (tx as any).supervisorLedgerEntry.create({
+                                data: {
+                                    invoiceId: invId, supervisorId, studentId,
+                                    paymentFromStudent: rp.paymentfromstudent || 0,
+                                    supervisorCapTotal: rp.supervisorcaptotal || 0,
+                                    supervisorCapRemainingBefore: rp.supervisorcapremainingbefore || 0,
+                                    supervisorPayout: rp.supervisorpayout || 0,
+                                    officePayout: rp.officepayout || 0,
+                                    supervisorCapRemainingAfter: rp.supervisorcapremainingafter || 0,
+                                    payoutStatus: rp.payoutstatus || "PENDING"
+                                }
+                            } as any)
+                        }
                     }
                 }
-            }, { timeout: 300000 })
+            }, { timeout: 600000 })
             return NextResponse.json({ success: true })
         }
         return NextResponse.json({ error: "Invalid content type" }, { status: 400 })
