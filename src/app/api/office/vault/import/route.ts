@@ -94,6 +94,13 @@ export async function POST(request: Request) {
             const existingStudents = await (prisma as any).student.findMany({ 
                 include: { user: true, financialPeriods: true, supervisor: true } 
             })
+            console.log("[PRISMA DEBUG] Status:", {
+                prismaExists: !!prisma,
+                supervisorExists: !!(prisma as any).supervisor,
+                officeExists: !!(prisma as any).office,
+                importBatchExists: !!(prisma as any).importBatch
+            })
+
             const existingSupervisors = await prisma.supervisor.findMany({ 
                 include: { user: true } 
             })
