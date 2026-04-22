@@ -261,7 +261,7 @@ export async function POST(request: Request) {
                         data: {
                             email: off.email, passwordHash: hash, role: "OFFICE", isActive: true,
                             office: { create: { fullName: off.fullName, email: off.email, importBatchId: batch.id } }
-                        }
+                        } as any
                     })
                     await (tx as any).importLog.create({ 
                         data: { batchId: batch.id, tableName: "User", recordId: user.id, action: "CREATE", oldData: {}, newData: { email: off.email, role: "OFFICE" } } 
@@ -275,8 +275,8 @@ export async function POST(request: Request) {
                         data: {
                             email: sup.email, passwordHash: hash, role: "SUPERVISOR", isActive: true,
                             supervisor: { create: { fullName: sup.fullName, email: sup.email, bacbId: sup.bacbId || "N/A", credentialType: sup.credentialType, importBatchId: batch.id } }
-                        },
-                        include: { supervisor: true }
+                        } as any,
+                        include: { supervisor: true } as any
                     })
                     const s = (user as any).supervisor
                     if (s) supervisorMap.set(s.fullName.toLowerCase().trim(), s.id)
@@ -288,7 +288,7 @@ export async function POST(request: Request) {
                 for (const supUpd of (supervisorUpdates ?? [])) {
                     const { id, rowNumber, sourceSheet, ...fields } = supUpd
                     const old = await tx.supervisor.findUnique({ where: { id } })
-                    await tx.supervisor.update({ where: { id }, data: { ...fields, importBatchId: batch.id } })
+                    await tx.supervisor.update({ where: { id }, data: { ...fields, importBatchId: batch.id } as any })
                     await (tx as any).importLog.create({ 
                         data: { batchId: batch.id, tableName: "Supervisor", recordId: id, action: "UPDATE", oldData: old, newData: fields } 
                     })
@@ -317,8 +317,8 @@ export async function POST(request: Request) {
                                 supervisorId: nu.supervisorName ? supervisorMap.get(nu.supervisorName.toLowerCase().trim()) : null,
                                 importBatchId: batch.id
                             } }
-                        },
-                        include: { student: true }
+                        } as any,
+                        include: { student: true } as any
                     })
                     const s = (user as any).student
                     if (s) studentMap.set(s.fullName.toLowerCase().trim(), s.id)
@@ -331,7 +331,7 @@ export async function POST(request: Request) {
                     const { id, supervisorName, rowNumber, sourceSheet, ...fields } = upd
                     const old = await tx.student.findUnique({ where: { id } })
                     const supervisorId = supervisorName ? supervisorMap.get(supervisorName.toLowerCase().trim()) : undefined
-                    await tx.student.update({ where: { id }, data: { ...fields, supervisorId, importBatchId: batch.id } })
+                    await tx.student.update({ where: { id }, data: { ...fields, supervisorId, importBatchId: batch.id } as any })
                     await (tx as any).importLog.create({ 
                         data: { batchId: batch.id, tableName: "Student", recordId: id, action: "UPDATE", oldData: old, newData: { ...fields, supervisorId } } 
                     })
@@ -344,7 +344,7 @@ export async function POST(request: Request) {
                     const old = await tx.financialPeriod.findUnique({ where: { id: conflict.periodId } })
                     if (!old) continue
                     const amount = res === "sum" ? Number(old.amountDueOffice) + Number(conflict.excelAmount) : Number(conflict.excelAmount)
-                    await tx.financialPeriod.update({ where: { id: conflict.periodId }, data: { amountDueOffice: amount, importBatchId: batch.id } })
+                    await tx.financialPeriod.update({ where: { id: conflict.periodId }, data: { amountDueOffice: amount, importBatchId: batch.id } as any })
                     await (tx as any).importLog.create({ 
                         data: { batchId: batch.id, tableName: "FinancialPeriod", recordId: conflict.periodId, action: "UPDATE", oldData: old, newData: { amountDueOffice: amount } } 
                     })
@@ -357,7 +357,7 @@ export async function POST(request: Request) {
                         where: { studentId_periodNumber: { studentId, periodNumber: fp.periodNumber } },
                         update: { amountDueOffice: fp.amountDueOffice, importBatchId: batch.id },
                         create: { studentId, periodNumber: fp.periodNumber, amountDueOffice: fp.amountDueOffice, importBatchId: batch.id, monthYearLabel: `Periodo ${fp.periodNumber}` }
-                    })
+                    } as any)
                     await (tx as any).importLog.create({ 
                         data: { batchId: batch.id, tableName: "FinancialPeriod", recordId: created.id, action: "CREATE", oldData: {}, newData: created } 
                     })
