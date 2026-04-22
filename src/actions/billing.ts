@@ -95,8 +95,21 @@ export async function markInvoiceAsPaid(
                 ? Number(lastEntry.supervisorCapRemainingAfter)
                 : supervisorCapTotal // Primer pago: remanente = tope total
 
-            // PASO 3: Tope transaccional = pago_ingresado * payPercent (comisión del mes)
-            const maxPayThisTx = paymentAmount * payPercent
+            // PASO 3: Atribución Proporcional del Pago
+            // El estudiante paga por horas Individuales y Grupales. El supervisor solo comisiona sobre las Individuales.
+            const groupSum = await prisma.supervisionHour.aggregate({
+                where: { invoiceId, supervisionType: 'GROUP' as any },
+                _sum: { amountBilled: true }
+            })
+            const groupAmountDue = Number(groupSum._sum.amountBilled || 0)
+            const totalBilledCalculated = individualAmountDue + groupAmountDue
+            
+            // Calculamos qué parte del pago recibido ($paymentAmount) corresponde a horas individuales
+            const individualRatio = totalBilledCalculated > 0 ? (individualAmountDue / totalBilledCalculated) : 0
+            const paymentIndividualPortion = paymentAmount * individualRatio
+
+            // El tope transaccional ahora se basa SOLO en la porción individual del pago
+            const maxPayThisTx = paymentIndividualPortion * payPercent
 
             // PASO 4: Pago real al supervisor (LA REGLA DE ORO)
             if (supervisorCapRemainingBefore > 0) {
