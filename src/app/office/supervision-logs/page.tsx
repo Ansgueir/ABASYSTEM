@@ -26,6 +26,7 @@ export default async function SupervisionLogsReviewPage({
         search?: string, 
         student?: string, 
         supervisor?: string,
+        type?: string,
         month?: string,
         year?: string
     }>
