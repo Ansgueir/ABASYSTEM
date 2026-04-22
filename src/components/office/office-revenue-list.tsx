@@ -137,7 +137,7 @@ export function OfficeRevenueList({ entries }: OfficeRevenueListProps) {
                 <div className="rounded-xl border border-border bg-slate-50/80 p-5 space-y-4">
                     <p className="text-[10px] uppercase font-bold text-slate-500 tracking-widest text-center">REVENUE RECONCILIATION</p>
                     
-                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                         <div className="flex flex-col items-center justify-center bg-indigo-50 rounded-xl p-3 border border-indigo-100 text-center shadow-sm">
                             <p className="text-[9px] uppercase text-indigo-700 font-bold tracking-wider mb-1">Gross</p>
                             <p className="text-lg font-black text-indigo-700 leading-tight">{fmtUSD(totalReceived)}</p>
@@ -148,12 +148,6 @@ export function OfficeRevenueList({ entries }: OfficeRevenueListProps) {
                             <p className="text-[9px] uppercase text-amber-700 font-bold tracking-wider mb-1">Payouts</p>
                             <p className="text-lg font-black text-amber-700 leading-tight">{fmtUSD(totalToSup)}</p>
                             <p className="text-[9px] text-amber-600/70 mt-0.5 font-bold uppercase tracking-tighter">expense</p>
-                        </div>
-                        
-                        <div className="flex flex-col items-center justify-center bg-slate-100 rounded-xl p-3 border border-slate-200 text-center shadow-sm">
-                            <p className="text-[9px] uppercase text-slate-600 font-bold tracking-wider mb-1">Margin</p>
-                            <p className="text-lg font-black text-slate-700 leading-tight">{netPct.toFixed(1)}%</p>
-                            <p className="text-[9px] text-slate-500 mt-0.5 font-bold uppercase tracking-tighter">retention</p>
                         </div>
                         
                         <div className="flex flex-col items-center justify-center bg-primary rounded-xl p-3 border border-primary text-center shadow-md">
@@ -168,21 +162,6 @@ export function OfficeRevenueList({ entries }: OfficeRevenueListProps) {
                             <span className="text-indigo-700 font-black">{fmtUSD(totalReceived)}</span> collected — <span className="text-amber-700 font-black">{fmtUSD(totalToSup)}</span> distributed = <span className="font-black text-primary">{fmtUSD(totalOfficeRevenue)}</span> net revenue
                         </p>
                     </div>
-
-                    {totalReceived > 0 && (
-                        <div className="pt-2">
-                            <div className="flex justify-between text-[10px] font-bold text-muted-foreground mb-1 tracking-widest uppercase">
-                                <span>Distribution {(100 - netPct).toFixed(1)}%</span>
-                                <span>Retention {netPct.toFixed(1)}%</span>
-                            </div>
-                            <div className="h-2 rounded-full bg-slate-200 overflow-hidden p-0.5 border border-slate-100 shadow-inner">
-                                <div
-                                    className="h-full bg-gradient-to-r from-primary to-indigo-400 rounded-full transition-all duration-1000 shadow-sm"
-                                    style={{ width: `${netPct}%` }}
-                                />
-                            </div>
-                        </div>
-                    )}
                 </div>
             </CardContent>
         </Card>

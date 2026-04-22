@@ -71,9 +71,7 @@ export default async function OfficePaymentsPage({
                 student:    { select: { id: true, fullName: true, planTemplateId: true } },
                 invoice:    { 
                     include: { 
-                        supervisionHours: { 
-                            where: { supervisionType: "INDIVIDUAL" as any }
-                        } 
+                        supervisionHours: true 
                     } 
                 }
             }
