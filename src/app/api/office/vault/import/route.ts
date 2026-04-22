@@ -226,7 +226,7 @@ export async function POST(request: Request) {
                     amountToPay:           0.0,
                 }
 
-                const existingStud = existingStudents.find((s: any) => s.bacbId === bacbId || (email && s.user.email === email))
+
                 
                 if (!existingStud) {
                     if (email && !existingEmails.has(email) && !claimedEmailsInBatch.has(email)) {
