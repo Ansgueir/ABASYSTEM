@@ -77,12 +77,19 @@ export async function POST(request: Request) {
 
             console.log("[IMPORT DEBUG] Worksheets found:", workbook.worksheets.map(s => `"${s.name}"`))
 
+            let sheetInvoices: ExcelJS.Worksheet | undefined
+            let sheetStudentPayments: ExcelJS.Worksheet | undefined
+            let sheetSupervisorPayments: ExcelJS.Worksheet | undefined
+
             workbook.eachSheet((sheet) => {
                 const name = sheet.name.toUpperCase().trim()
                 if (name === "STUDENTS" || name === "STUDENT" || name === "SUPERVISADOS") sheetStudents = sheet
                 if (name === "SUPERVISORS" || name === "SUPERVISOR" || name === "PARAMETROS") sheetSupervisors = sheet
                 if (name === "OFFICES" || name === "OFFICE") sheetOffices = sheet
                 if (name === "FINANCIALS" || name === "FINANCIAL" || name === "COBROS") sheetFinancial = sheet
+                if (name === "STUDENTPAYMENT") sheetStudentPayments = sheet
+                if (name === "SUPERVISORPAYMENT") sheetSupervisorPayments = sheet
+                if (name === "INVOICE") sheetInvoices = sheet
             })
 
             if (!sheetStudents || !sheetSupervisors) {
@@ -116,11 +123,12 @@ export async function POST(request: Request) {
             const newUsers: any[] = []
             const newSupervisors: any[] = []
             const newOffices: any[] = []
-            const supervisorUpdates: any[] = []
+            const supervisorUpdates: any[] = [] // Will be kept empty to protect existing
             const conflicts: any[] = []
             const newFinancialPeriods: any[] = []
+            const newRawPayments: any[] = []
             const headlessUsers: any[] = []
-            const validData: any = { studentsToUpdate: [] }
+            const validData: any = { studentsToUpdate: [] } // Will be kept empty to protect existing
 
             // ── §1 Parse SUPERVISORS ───────────────────────────
             for (let i = 2; i <= sheetSupervisors.rowCount; i++) {
@@ -141,15 +149,8 @@ export async function POST(request: Request) {
                 )
 
                 if (existingSup) {
-                    supervisorUpdates.push({ 
-                        id: existingSup.id, 
-                        bacbId, 
-                        credentialType: normalizeCredentialType(qual || "BCBA"), 
-                        phone,
-                        address,
-                        rowNumber: i, 
-                        sourceSheet: "SUPERVISORS" 
-                    })
+                    // SKIP UPDATES to protect existing users
+                    continue
                 } else if (email && !existingEmails.has(email) && !claimedEmailsInBatch.has(email)) {
                     claimedEmailsInBatch.set(email, { rowNumber: i, sheetName: "SUPERVISORS" })
                     newSupervisors.push({ 
@@ -225,6 +226,8 @@ export async function POST(request: Request) {
                     amountToPay:           0.0,
                 }
 
+                const existingStud = existingStudents.find((s: any) => s.bacbId === bacbId || (email && s.user.email === email))
+                
                 if (!existingStud) {
                     if (email && !existingEmails.has(email) && !claimedEmailsInBatch.has(email)) {
                         claimedEmailsInBatch.set(email, { rowNumber: i, sheetName: "STUDENTS" })
@@ -233,7 +236,8 @@ export async function POST(request: Request) {
                         headlessUsers.push({ name, email: email || "(vacio)", rowNumber: i, sourceSheet: "STUDENTS", collisionType: "EMAIL_DUPLICATE" })
                     }
                 } else {
-                    validData.studentsToUpdate.push({ id: existingStud.id, supervisorName, ...fields, rowNumber: i, sourceSheet: "STUDENTS" })
+                    // SKIP UPDATES to protect existing users
+                    continue
                 }
             }
 
@@ -268,11 +272,50 @@ export async function POST(request: Request) {
                 }
             }
 
+            // ── §5 Parse RAW PAYMENTS ────────────────────────
+            if (sheetStudentPayments) {
+                for (let i = 2; i <= sheetStudentPayments.rowCount; i++) {
+                    const row = sheetStudentPayments.getRow(i)
+                    const studentName = cellStr(row, "B")
+                    if (!studentName) continue
+                    newRawPayments.push({ 
+                        type: "STUDENT_PAYMENT", 
+                        targetName: studentName, 
+                        date: cellDate(row, "C"),
+                        amount: cellNum(row, "D"),
+                        paymentType: cellStr(row, "E") || "ZELLE",
+                        notes: cellStr(row, "F"),
+                        rowNumber: i, 
+                        sourceSheet: "STUDENTPAYMENT" 
+                    })
+                }
+            }
+            if (sheetSupervisorPayments) {
+                for (let i = 2; i <= sheetSupervisorPayments.rowCount; i++) {
+                    const row = sheetSupervisorPayments.getRow(i)
+                    const supName = cellStr(row, "B")
+                    const studName = cellStr(row, "C")
+                    if (!supName) continue
+                    newRawPayments.push({ 
+                        type: "SUPERVISOR_PAYMENT", 
+                        supervisorName: supName,
+                        studentName: studName,
+                        monthYear: cellDate(row, "D"),
+                        amountDue: cellNum(row, "E"),
+                        amountPaid: cellNum(row, "F"),
+                        amountAlreadyPaid: cellNum(row, "G"),
+                        balanceDue: cellNum(row, "H"),
+                        rowNumber: i, 
+                        sourceSheet: "SUPERVISORPAYMENT" 
+                    })
+                }
+            }
+
             return NextResponse.json({
                 studentsStats: { new: newUsers.length, updated: validData.studentsToUpdate.length },
                 supervisorsStats: { new: newSupervisors.length, updated: supervisorUpdates.length },
-                financialStats: { clean: newFinancialPeriods.length, conflicts: conflicts.length },
-                newUsers, newSupervisors, newOffices, supervisorUpdates, conflicts, newFinancialPeriods, validData, headlessUsers, ignoredRows: []
+                financialStats: { clean: newFinancialPeriods.length, conflicts: conflicts.length, raw: newRawPayments.length },
+                newUsers, newSupervisors, newOffices, supervisorUpdates, conflicts, newFinancialPeriods, newRawPayments, validData, headlessUsers, ignoredRows: []
             })
 
         // ══════════════════════════════════════════
@@ -280,7 +323,7 @@ export async function POST(request: Request) {
         // ══════════════════════════════════════════
         } else if (contentType.includes("application/json")) {
             const body = await request.json()
-            const { newUsers, newSupervisors, newOffices, supervisorUpdates, resolutions, conflicts, newFinancialPeriods, validData } = body
+            const { newUsers, newSupervisors, newOffices, supervisorUpdates, resolutions, conflicts, newFinancialPeriods, newRawPayments, validData } = body
             const batchString = `IMP_${new Date().toISOString().replace(/[:.]/g, "").slice(0, 15)}`
 
             await prisma.$transaction(async (tx) => {
@@ -407,8 +450,38 @@ export async function POST(request: Request) {
                     await (tx as any).importLog.create({ 
                         data: { batchId: batch.id, tableName: "FinancialPeriod", recordId: created.id, action: "CREATE", oldData: {}, newData: created } 
                     })
+                for (const rp of (newRawPayments ?? [])) {
+                    if (rp.type === "STUDENT_PAYMENT") {
+                        const studentId = studentMap.get(rp.targetName?.toLowerCase().trim())
+                        if (!studentId) continue
+                        await (tx as any).studentPayment.create({
+                            data: {
+                                studentId,
+                                amount: rp.amount,
+                                paymentDate: rp.date ? new Date(rp.date) : new Date(),
+                                paymentType: (rp.paymentType || "ZELLE") as any,
+                                notes: rp.notes,
+                                importBatchId: batch.id
+                            }
+                        })
+                    } else if (rp.type === "SUPERVISOR_PAYMENT") {
+                        const supervisorId = supervisorMap.get(rp.supervisorName?.toLowerCase().trim())
+                        const studentId = studentMap.get(rp.studentName?.toLowerCase().trim())
+                        if (!supervisorId || !studentId) continue
+                        await (tx as any).supervisorPayment.create({
+                            data: {
+                                supervisorId, studentId,
+                                monthYear: rp.monthYear ? new Date(rp.monthYear) : new Date(),
+                                amountDue: rp.amountDue,
+                                amountPaidThisMonth: rp.amountPaid,
+                                amountAlreadyPaid: rp.amountAlreadyPaid,
+                                balanceDue: rp.balanceDue,
+                                importBatchId: batch.id
+                            }
+                        })
+                    }
                 }
-            }, { timeout: 180000 })
+            }, { timeout: 300000 })
             return NextResponse.json({ success: true })
         }
         return NextResponse.json({ error: "Invalid content type" }, { status: 400 })
