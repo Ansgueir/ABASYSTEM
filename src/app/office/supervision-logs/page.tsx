@@ -128,6 +128,17 @@ export default async function SupervisionLogsReviewPage({
             }
         }).catch(() => [])
 
+        // Get IDs of all group sessions that already have a SupervisionHour record (to avoid duplicates)
+        const existingGroupHours = await prisma.supervisionHour.findMany({
+            where: {
+                groupSessionId: { not: null },
+                date: supervisionWhere.date // Match the same period
+            },
+            select: { groupSessionId: true, studentId: true }
+        });
+
+        const accountedSessions = new Set(existingGroupHours.map(h => `${h.studentId}-${h.groupSessionId}`));
+
         // Filter group attendance by selected period/filters manually if needed or just sync it
         const filteredGroupLogs = groupAttendanceLogs.filter((a: any) => {
             const date = a.session.date
@@ -141,15 +152,8 @@ export default async function SupervisionLogsReviewPage({
             if (selectedStudent && a.student?.fullName?.toLowerCase() !== selectedStudent.toLowerCase()) return false
             if (selectedSupervisor && a.session.supervisor?.fullName?.toLowerCase() !== selectedSupervisor.toLowerCase()) return false
 
-            // Check if there is ANY SupervisionHour record for this session/student combo (regardless of status)
-            // This prevents approved group logs from showing up as pending attendance fallback
-            const hasExistingHour = await prisma.supervisionHour.findFirst({
-                where: {
-                    studentId: a.studentId,
-                    groupSessionId: a.sessionId
-                }
-            });
-            return !hasExistingHour;
+            // Check if there is already a SupervisionHour record for this session/student combo
+            return !accountedSessions.has(`${a.studentId}-${a.sessionId}`);
         }).map((a: any) => ({
             id: a.id,
             date: a.session.date,
