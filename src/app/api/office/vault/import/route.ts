@@ -79,10 +79,10 @@ export async function POST(request: Request) {
 
             workbook.eachSheet((sheet) => {
                 const name = sheet.name.toUpperCase().trim()
-                if (name === "STUDENTS" || name === "SUPERVISADOS") sheetStudents = sheet
-                if (name === "SUPERVISORS" || name === "PARAMETROS") sheetSupervisors = sheet
-                if (name === "OFFICES") sheetOffices = sheet
-                if (name === "FINANCIALS" || name === "COBROS") sheetFinancial = sheet
+                if (name === "STUDENTS" || name === "STUDENT" || name === "SUPERVISADOS") sheetStudents = sheet
+                if (name === "SUPERVISORS" || name === "SUPERVISOR" || name === "PARAMETROS") sheetSupervisors = sheet
+                if (name === "OFFICES" || name === "OFFICE") sheetOffices = sheet
+                if (name === "FINANCIALS" || name === "FINANCIAL" || name === "COBROS") sheetFinancial = sheet
             })
 
             if (!sheetStudents || !sheetSupervisors) {
