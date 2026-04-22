@@ -453,11 +453,12 @@ export async function POST(request: Request) {
                 }
 
                 // Helper to resolve IDs from mixed Name/ID targets
+                const allStudents = await tx.student.findMany()
                 const findStudentId = (target: string) => {
                     if (!target) return null
                     const clean = target.toLowerCase().trim()
                     // Try by ID directly first
-                    const byId = existingStudents.find(s => s.id === target || s.userId === target)
+                    const byId = allStudents.find(s => s.id === target || s.userId === target)
                     if (byId) return byId.id
                     // Try by Name
                     return studentMap.get(clean) || null
