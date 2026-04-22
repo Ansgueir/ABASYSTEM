@@ -145,112 +145,105 @@ export async function POST(request: Request) {
             const validData: any = { studentsToUpdate: [] } // Will be kept empty to protect existing
 
             // ── §1 Parse SUPERVISORS ───────────────────────────
+            const spm = mapHeaders(sheetSupervisors)
             for (let i = 2; i <= sheetSupervisors.rowCount; i++) {
                 const row = sheetSupervisors.getRow(i)
-                const name = cellStr(row, "B")
+                const name = cellStr(row, spm.fullname || spm.name || spm.id || 2)
                 if (!name) continue
 
-                const email = cellStr(row, "C").toLowerCase()
-                const password = cellStr(row, "D") || "Aba12345*"
-                const bacbId = cellStr(row, "E")
-                const qual = cellStr(row, "F")
-
-                const phone = cellStr(row, "G") || "000-000-0000"
-                const address = cellStr(row, "H") || "N/A"
+                const email = cellStr(row, spm.email || 3).toLowerCase()
+                const password = cellStr(row, spm.password || 4) || "Aba12345*"
+                const bacbId = cellStr(row, spm.bacbid || spm.bacb_id || 5)
+                const qual = cellStr(row, spm.qualification || spm.credentialtype || spm.credential || 6)
+                const phone = cellStr(row, spm.phone || 7) || "000-000-0000"
+                const address = cellStr(row, spm.address || 8) || "N/A"
 
                 const existingSup = existingSupervisors.find(
                     s => s.id === name || s.userId === name || s.fullName.toLowerCase().trim() === name.toLowerCase().trim() || (email && s.user.email === email)
                 )
 
                 if (existingSup) {
-                    // SKIP UPDATES to protect existing users
                     continue
-                } else if (email && !existingEmails.has(email) && !claimedEmailsInBatch.has(email)) {
+                } else if (email && email.includes("@") && !existingEmails.has(email) && !claimedEmailsInBatch.has(email)) {
                     claimedEmailsInBatch.set(email, { rowNumber: i, sheetName: "SUPERVISORS" })
                     newSupervisors.push({ 
-                        fullName: name, 
-                        email, 
-                        password, 
-                        bacbId, 
-                        phone,
-                        address,
+                        fullName: name, email, password, bacbId, phone, address,
                         credentialType: normalizeCredentialType(qual || "BCBA"), 
-                        rowNumber: i, 
-                        sourceSheet: "SUPERVISORS" 
+                        rowNumber: i, sourceSheet: "SUPERVISORS" 
                     })
-                } else {
+                } else if (email && email.includes("@")) {
                     headlessUsers.push({ name, email: email || "(vacio)", rowNumber: i, sourceSheet: "SUPERVISORS", collisionType: "EMAIL_DUPLICATE" })
                 }
             }
 
             // ── §2 Parse OFFICES ───────────────────────────
             if (sheetOffices) {
+                const opm = mapHeaders(sheetOffices)
                 for (let i = 2; i <= sheetOffices.rowCount; i++) {
                     const row = sheetOffices.getRow(i)
-                    const name = cellStr(row, "B")
-                    const email = cellStr(row, "C").toLowerCase()
-                    const password = cellStr(row, "D") || "Aba12345*"
+                    const name = cellStr(row, opm.fullname || opm.name || opm.id || 2)
+                    const email = cellStr(row, opm.email || 3).toLowerCase()
+                    const password = cellStr(row, opm.password || 4) || "Aba12345*"
                     if (!name || !email) continue
 
-                    if (!existingEmails.has(email) && !claimedEmailsInBatch.has(email)) {
+                    if (email.includes("@") && !existingEmails.has(email) && !claimedEmailsInBatch.has(email)) {
                         claimedEmailsInBatch.set(email, { rowNumber: i, sheetName: "OFFICES" })
                         newOffices.push({ fullName: name, email, password, rowNumber: i, sourceSheet: "OFFICES" })
-                    } else {
+                    } else if (email.includes("@")) {
                         headlessUsers.push({ name, email: email || "(vacio)", rowNumber: i, sourceSheet: "OFFICES", collisionType: "EMAIL_DUPLICATE" })
                     }
                 }
             }
 
             // ── §3 Parse STUDENTS ────────────────────────────
+            const stm = mapHeaders(sheetStudents)
             for (let i = 2; i <= sheetStudents.rowCount; i++) {
                 const row = sheetStudents.getRow(i)
-                const name = cellStr(row, "B")
+                const name = cellStr(row, stm.fullname || stm.name || stm.id || 2)
                 if (!name) continue
 
-                const email = cellStr(row, "C").toLowerCase()
-                const password = cellStr(row, "D") || "Aba12345*"
-                const bacbId = cellStr(row, "E")
-                const supervisorName = cellStr(row, "G")
+                const email = cellStr(row, stm.email || 3).toLowerCase()
+                const password = cellStr(row, stm.password || 4) || "Aba12345*"
+                const bacbId = cellStr(row, stm.bacbid || stm.bacb_id || 5)
+                const supervisorName = cellStr(row, stm.supervisorname || stm.supervisor_id || 7)
 
                 const existingStud = existingStudents.find((s: any) => s.id === name || s.userId === name || s.bacbId === bacbId || (email && s.user.email === email))
                 
-                const fields = {
-                    credential:             normalizeCredentialType(cellStr(row, "F")),
-                    phone:                 cellStr(row, "H") || "000-000-0000",
-                    startDate:             cellDate(row, "I"),
-                    endDate:               cellDate(row, "J"),
-                    hoursPerMonth:         cellNum(row, "K") || 130,
-                    hoursToDo:             cellNum(row, "L") || 2000,
-                    status:                cellStr(row, "M") || "ACTIVE",
-                    vcsSequence:           cellStr(row, "N") || null,
-                    assignedOptionPlan:    cellStr(row, "O") || "PLAN MANUAL",
-                    hoursTargetReg:        cellNum(row, "P") || null,
-                    hoursTargetConc:       cellNum(row, "Q") || null,
-                    independentHoursTarget: cellNum(row, "R") || null,
-                    totalAmountContract:   cellNum(row, "S") || null,
-                    analystPaymentRate:    cellNum(row, "T") || null,
-                    officePaymentRate:     cellNum(row, "U") || null,
-                    city:                  cellStr(row, "V") || "N/A",
-                    state:                 cellStr(row, "W") || "N/A",
-                    school:                cellStr(row, "X") || "N/A",
-                    level:                 (cellStr(row, "Y") || "BCBA") as any,
+                const fields: any = {
+                    credential:             normalizeCredentialType(cellStr(row, stm.credential || 6)),
+                    phone:                 cellStr(row, stm.phone || 8) || "000-000-0000",
+                    startDate:             cellDate(row, stm.startdate || 9),
+                    endDate:               cellDate(row, stm.enddate || 10),
+                    hoursPerMonth:         cellNum(row, stm.hourspermonth || 11) || 130,
+                    hoursToDo:             cellNum(row, stm.hourstodo || 12) || 2000,
+                    status:                cellStr(row, stm.status || 13) || "ACTIVE",
+                    vcsSequence:           cellStr(row, stm.vcssequence || 14) || null,
+                    assignedOptionPlan:    cellStr(row, stm.assignedoptionplan || 15) || "PLAN MANUAL",
+                    hoursTargetReg:        cellNum(row, stm.hourstargetreg || 16) || null,
+                    hoursTargetConc:       cellNum(row, stm.hourstargetconc || 17) || null,
+                    independentHoursTarget: cellNum(row, stm.independenthourstarget || 18) || null,
+                    totalAmountContract:   cellNum(row, stm.totalamountcontract || 19) || null,
+                    analystPaymentRate:    cellNum(row, stm.analystpaymentrate || 20) || null,
+                    officePaymentRate:     cellNum(row, stm.officepaymentrate || 21) || null,
+                    city:                  cellStr(row, stm.city || 22) || "N/A",
+                    state:                 cellStr(row, stm.state || 23) || "N/A",
+                    school:                cellStr(row, stm.school || 24) || "N/A",
+                    level:                 (cellStr(row, stm.level || 25) || "BCBA") as any,
                     supervisionPercentage: 0.05,
                     supervisionType:       "REGULAR",
                     hoursToPay:            0,
                     amountToPay:           0.0,
+                    totalMonths:           cellNum(row, stm.totalmonths || 26) || 0,
                 }
-
-
                 
                 if (!existingStud) {
-                    if (email && !existingEmails.has(email) && !claimedEmailsInBatch.has(email)) {
+                    if (email && email.includes("@") && !existingEmails.has(email) && !claimedEmailsInBatch.has(email)) {
                         claimedEmailsInBatch.set(email, { rowNumber: i, sheetName: "STUDENTS" })
                         newUsers.push({ fullName: name, email, password, supervisorName, fields, rowNumber: i, sourceSheet: "STUDENTS" })
-                    } else {
+                    } else if (email && email.includes("@")) {
                         headlessUsers.push({ name, email: email || "(vacio)", rowNumber: i, sourceSheet: "STUDENTS", collisionType: "EMAIL_DUPLICATE" })
                     }
                 } else {
-                    // SKIP UPDATES to protect existing users
                     continue
                 }
             }
@@ -402,6 +395,7 @@ export async function POST(request: Request) {
                                 independentHoursTarget: nu.fields.independentHoursTarget, totalAmountContract: nu.fields.totalAmountContract,
                                 analystPaymentRate: nu.fields.analystPaymentRate, officePaymentRate: nu.fields.officePaymentRate,
                                 supervisorId: nu.supervisorName ? supervisorMap.get(nu.supervisorName.toLowerCase().trim()) : null,
+                                totalMonths: nu.fields.totalMonths || 0,
                                 importBatchId: batch.id
                             } }
                         } as any,
