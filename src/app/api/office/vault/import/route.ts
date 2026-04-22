@@ -75,6 +75,8 @@ export async function POST(request: Request) {
             let sheetOffices: ExcelJS.Worksheet | undefined
             let sheetFinancial: ExcelJS.Worksheet | undefined
 
+            console.log("[IMPORT DEBUG] Worksheets found:", workbook.worksheets.map(s => `"${s.name}"`))
+
             workbook.eachSheet((sheet) => {
                 const name = sheet.name.toUpperCase().trim()
                 if (name === "STUDENTS" || name === "SUPERVISADOS") sheetStudents = sheet
