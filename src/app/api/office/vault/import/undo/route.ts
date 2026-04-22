@@ -36,7 +36,7 @@ export async function POST(request: Request) {
 
             // 1. Borrar FinancialPeriods creados
             if (fpIdsToDelete.length > 0) {
-                await tx.financialPeriod.deleteMany({
+                await (tx as any).financialPeriod.deleteMany({
                     where: { id: { in: fpIdsToDelete } }
                 })
             }
@@ -44,16 +44,16 @@ export async function POST(request: Request) {
             // 2. Borrar Students, Supervisors, Offices y Users creados
             // Importante: Borrar entidades relacionadas antes que User
             if (userIdsToDelete.length > 0) {
-                await tx.student.deleteMany({
+                await (tx as any).student.deleteMany({
                     where: { userId: { in: userIdsToDelete } }
                 })
-                await tx.supervisor.deleteMany({
+                await (tx as any).supervisor.deleteMany({
                     where: { userId: { in: userIdsToDelete } }
                 })
-                await tx.office.deleteMany({
+                await (tx as any).office.deleteMany({
                     where: { userId: { in: userIdsToDelete } }
                 })
-                await tx.user.deleteMany({
+                await (tx as any).user.deleteMany({
                     where: { id: { in: userIdsToDelete } }
                 })
             }
@@ -64,7 +64,7 @@ export async function POST(request: Request) {
                 if (!oldData) continue
 
                 if (log.tableName === "FinancialPeriod") {
-                    await tx.financialPeriod.update({
+                    await (tx as any).financialPeriod.update({
                         where: { id: log.recordId },
                         data: {
                             amountDueOffice:        oldData.amountDueOffice,
@@ -93,12 +93,12 @@ export async function POST(request: Request) {
                         endDate:                oldData.endDate ? new Date(oldData.endDate) : undefined,
                         importBatchId:          null
                     }
-                    await tx.student.update({
+                    await (tx as any).student.update({
                         where: { id: log.recordId },
                         data: studentData
                     }).catch(() => {})
                 } else if (log.tableName === "Supervisor") {
-                    await tx.supervisor.update({
+                    await (tx as any).supervisor.update({
                         where: { id: log.recordId },
                         data: {
                             certificantNumber: oldData.certificantNumber,
