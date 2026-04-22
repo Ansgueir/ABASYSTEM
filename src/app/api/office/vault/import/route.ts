@@ -83,12 +83,12 @@ export async function POST(request: Request) {
 
             workbook.eachSheet((sheet) => {
                 const name = sheet.name.toUpperCase().trim()
-                if (name.includes("STUDENT") && !name.includes("PAYMENT")) sheetStudents = sheet
-                if (name.includes("SUPERVISOR") && !name.includes("PAYMENT") && !name.includes("LEDGER") && !name.includes("PAYOUT")) sheetSupervisors = sheet
+                if (name.includes("STUDENT") && !name.includes("PAYMENT") && !name.includes("SUPERVISOR")) sheetStudents = sheet
+                if (name.includes("SUPERVISOR") && !name.includes("PAYMENT") && !name.includes("LEDGER") && !name.includes("PAYOUT") && !name.includes("STUDENT")) sheetSupervisors = sheet
                 if (name.includes("OFFICE")) sheetOffices = sheet
                 if (name.includes("FINANCIAL") || name.includes("COBROS")) sheetFinancial = sheet
-                if (name.includes("STUDENTPAYMENT")) sheetStudentPayments = sheet
-                if (name.includes("SUPERVISORPAYMENT")) sheetSupervisorPayments = sheet
+                if (name.includes("STUDENT") && name.includes("PAYMENT")) sheetStudentPayments = sheet
+                if (name.includes("SUPERVISOR") && name.includes("PAYMENT")) sheetSupervisorPayments = sheet
                 if (name.includes("INVOICE")) sheetInvoices = sheet
             })
 
@@ -145,7 +145,7 @@ export async function POST(request: Request) {
                 const address = cellStr(row, "H") || "N/A"
 
                 const existingSup = existingSupervisors.find(
-                    s => s.fullName.toLowerCase().trim() === name.toLowerCase().trim() || (email && s.user.email === email)
+                    s => s.id === name || s.userId === name || s.fullName.toLowerCase().trim() === name.toLowerCase().trim() || (email && s.user.email === email)
                 )
 
                 if (existingSup) {
@@ -198,7 +198,7 @@ export async function POST(request: Request) {
                 const bacbId = cellStr(row, "E")
                 const supervisorName = cellStr(row, "G")
 
-                const existingStud = existingStudents.find((s: any) => s.bacbId === bacbId || (email && s.user.email === email))
+                const existingStud = existingStudents.find((s: any) => s.id === name || s.userId === name || s.bacbId === bacbId || (email && s.user.email === email))
                 
                 const fields = {
                     credential:             normalizeCredentialType(cellStr(row, "F")),
