@@ -396,7 +396,7 @@ export async function approveSupervisionHour(logId: string) {
 
             // 2. Update the log status and link to the invoice
             await tx.supervisionHour.update({
-                where: { id: logId },
+                where: { id: hour.id },
                 data: {
                     status: "APPROVED",
                     amountBilled,
@@ -542,7 +542,7 @@ export async function rejectSupervisionHour(logId: string, reason: string) {
             }
 
             await tx.supervisionHour.update({
-                where: { id: logId },
+                where: { id: hour.id },
                 data: {
                     status: "REJECTED",
                     rejectReason: reason,

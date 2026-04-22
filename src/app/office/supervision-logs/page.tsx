@@ -141,13 +141,15 @@ export default async function SupervisionLogsReviewPage({
             if (selectedStudent && a.student?.fullName?.toLowerCase() !== selectedStudent.toLowerCase()) return false
             if (selectedSupervisor && a.session.supervisor?.fullName?.toLowerCase() !== selectedSupervisor.toLowerCase()) return false
 
-            // Check if already in supervisionLogs
-            return !supervisionLogs.some(sh => 
-                sh.studentId === a.studentId && 
-                sh.date.toISOString() === a.session.date.toISOString() &&
-                sh.startTime.toISOString() === a.session.startTime.toISOString() &&
-                sh.supervisionType === 'GROUP'
-            )
+            // Check if there is ANY SupervisionHour record for this session/student combo (regardless of status)
+            // This prevents approved group logs from showing up as pending attendance fallback
+            const hasExistingHour = await prisma.supervisionHour.findFirst({
+                where: {
+                    studentId: a.studentId,
+                    groupSessionId: a.sessionId
+                }
+            });
+            return !hasExistingHour;
         }).map((a: any) => ({
             id: a.id,
             date: a.session.date,
