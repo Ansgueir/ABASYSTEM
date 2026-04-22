@@ -72,7 +72,7 @@ export function TimesheetCalendar({ hours, onEventClick, role }: TimesheetCalend
                 if (hour.groupTopic && hour.groupTopic !== title) title += ` (${hour.groupTopic})`;
 
             } else {
-                title = hour.activityType || (hour.type === 'SUPERVISION' || hour.type === 'supervised' ? "Supervised" : "Independent");
+                title = hour.activityType || (String(hour.type).toLowerCase().includes('supervis') ? "Supervised" : "Independent");
                 if (role === 'supervisor') {
                     const studentName = hour.student ? `${hour.student.firstName || ''} ${hour.student.lastName || ''}`.trim() : (hour.student?.fullName || 'Student');
                     title = `${title} (${studentName})`;
@@ -81,7 +81,7 @@ export function TimesheetCalendar({ hours, onEventClick, role }: TimesheetCalend
                     title = `${title} - ${supervisorName}`;
                 }
             }
-            const modalityLabel = isGroup ? 'Group' : (hour.type === 'SUPERVISION' || hour.type === 'supervised' || hour.supervisionType === 'SUPERVISION' ? "Supervised" : "Independent");
+            const modalityLabel = isGroup ? 'Group' : (String(hour.type).toLowerCase().includes('supervis') || String(hour.supervisionType).toLowerCase().includes('supervis') ? "Supervised" : "Independent");
             
             return {
                 id: hour.id,

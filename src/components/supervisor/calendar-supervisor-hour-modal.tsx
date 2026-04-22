@@ -145,7 +145,7 @@ export function CalendarSupervisorHourModal({ hour, open, onOpenChange, onStatus
                                     <p className="text-[10px] uppercase font-bold text-muted-foreground tracking-wider">Categoría</p>
                                     <p className="text-sm font-bold text-primary">
                                         {hour.supervisionType === 'GROUP' || !!hour.groupId ? 'Grupal' : 
-                                         (hour.type === 'supervised' || hour.type === 'supervision' || hour.type === 'SUPERVISION' ? 'Supervisada' : 'Independiente')}
+                                         (String(hour.type).toLowerCase().includes('supervis') ? 'Supervisada' : 'Independiente')}
                                     </p>
                                 </div>
                                 <div className="space-y-0.5">
@@ -176,9 +176,9 @@ export function CalendarSupervisorHourModal({ hour, open, onOpenChange, onStatus
                                     <span className="text-[10px] uppercase font-bold text-muted-foreground">Service Window</span>
                                 </div>
                                 <p className="text-sm font-semibold">
-                                    {format(new Date(hour.startTime || hour.date), 'h:mm a')} - {
+                                    {format(new Date(new Date(hour.startTime || hour.date).getTime() + (new Date().getTimezoneOffset() * 60000)), 'h:mm a')} - {
                                     (() => {
-                                        const start = new Date(hour.startTime || hour.date);
+                                        const start = new Date(new Date(hour.startTime || hour.date).getTime() + (new Date().getTimezoneOffset() * 60000));
                                         const durationMs = (getHours(hour) || 1) * 3600000;
                                         const end = new Date(start.getTime() + durationMs);
                                         return format(end, 'h:mm a');

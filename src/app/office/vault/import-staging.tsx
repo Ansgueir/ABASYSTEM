@@ -24,6 +24,7 @@ interface StagingResult {
     transactionStats?: { new: number }
     newUsers: any[]
     newSupervisors: any[]
+    newOffices: any[] // Added
     conflicts: any[]
     headlessUsers: HeadlessUser[]
     mergedRecords: any[]
@@ -38,6 +39,7 @@ const collisionBadge: Record<string, { label: string; className: string }> = {
     EMAIL_EMPTY:            { label: "Email Vacío",                   className: "bg-gray-100 text-gray-600 border-gray-300" },
     EMAIL_IN_DB:            { label: "Email ya existe en BD",         className: "bg-red-100 text-red-700 border-red-300" },
     EMAIL_DUPLICATE_IN_FILE: { label: "Email duplicado en Excel",     className: "bg-orange-100 text-orange-700 border-orange-300" },
+    EMAIL_DUPLICATE:         { label: "Email Duplicado",              className: "bg-orange-100 text-orange-700 border-orange-300" }, // Added
 }
 
 export function ImportStaging() {
@@ -50,10 +52,11 @@ export function ImportStaging() {
     const [showHeadless,    setShowHeadless]    = useState(false)
     const [showStudents,    setShowStudents]    = useState(false)
     const [showSupervisors, setShowSupervisors] = useState(false)
+    const [showOffices,     setShowOffices]     = useState(false) // Added
     const [showFinancial,   setShowFinancial]   = useState(false)
     const [showRawPayments, setShowRawPayments] = useState(false)
     const [showConflicts,   setShowConflicts]   = useState(false)
-    const [showUsers,       setShowUsers]       = useState(false) // Added for Perfiles Staff
+    const [showUsers,       setShowUsers]       = useState(false)
 
     const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         if (e.target.files?.[0]) {
@@ -105,6 +108,7 @@ export function ImportStaging() {
             const payload = {
                 newUsers: stagingResult.newUsers,
                 newSupervisors: stagingResult.newSupervisors,
+                newOffices: stagingResult.newOffices, // Added
                 supervisorUpdates: stagingResult.supervisorUpdates,
                 resolutions: stagingResult.resolutions,
                 conflicts: stagingResult.conflicts,
@@ -217,7 +221,7 @@ export function ImportStaging() {
                         {/* ── Perfiles Staff Card ────────────────────────────────── */}
                         <Card className="bg-emerald-50 border-emerald-200 border-2 cursor-pointer hover:bg-emerald-100/50 transition-colors" onClick={() => setShowUsers(!showUsers)}>
                             <CardContent className="p-4 text-center">
-                                <div className="text-3xl font-bold text-emerald-700">{stagingResult.newUsers.length + stagingResult.newSupervisors.length}</div>
+                                <div className="text-3xl font-bold text-emerald-700">{stagingResult.newUsers.length + stagingResult.newSupervisors.length + (stagingResult.newOffices?.length || 0)}</div>
                                 <div className="text-sm font-semibold text-emerald-600 uppercase tracking-wider">Perfiles Staff (Nuevos)</div>
                                 <div className="mt-2 flex items-center justify-center gap-1 text-[10px] text-emerald-500">
                                     {showUsers ? <ChevronUp className="h-3 w-3" /> : <ChevronDown className="h-3 w-3" />} Detail
@@ -394,7 +398,41 @@ export function ImportStaging() {
                         </Card>
                     )}
 
-                    {/* ── New Supervisors Detail ──────────────────────────── */}
+                    {/* ── New Offices Detail ─────────────────────────────── */}
+                    {(showOffices || showUsers) && stagingResult.newOffices && stagingResult.newOffices.length > 0 && (
+                        <Card className="border-indigo-200 shadow-lg border-2 overflow-hidden mb-6">
+                            <CardHeader className="bg-indigo-600 py-3 px-4">
+                                <CardTitle className="text-white text-sm flex items-center gap-2">
+                                    <Users className="h-4 w-4" />
+                                    Nuevos Perfiles de Oficina Detectados ({stagingResult.newOffices.length})
+                                </CardTitle>
+                            </CardHeader>
+                            <CardContent className="p-0">
+                                <div className="max-h-[300px] overflow-auto">
+                                    <table className="w-full text-[11px] text-left">
+                                        <thead className="bg-indigo-50 text-indigo-700 sticky top-0">
+                                            <tr>
+                                                <th className="p-2">Pestaña</th>
+                                                <th className="p-2">Fila</th>
+                                                <th className="p-2">Full Name</th>
+                                                <th className="p-2">Email</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            {stagingResult.newOffices.map((u, i) => (
+                                                <tr key={i} className="border-t border-indigo-100 bg-white hover:bg-indigo-50/30">
+                                                    <td className="p-2 font-bold text-indigo-800 bg-indigo-100/20">{u.sourceSheet || "OFFICES"}</td>
+                                                    <td className="p-2 font-mono text-indigo-600">#{u.rowNumber}</td>
+                                                    <td className="p-2 font-bold">{u.fullName}</td>
+                                                    <td className="p-2">{u.email}</td>
+                                                </tr>
+                                            ))}
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </CardContent>
+                        </Card>
+                    )}
                     {(showSupervisors || showUsers) && stagingResult.newSupervisors.length > 0 && (
                         <Card className="border-purple-200 shadow-lg border-2 overflow-hidden">
                             <CardHeader className="bg-purple-600 py-3 px-4">
@@ -579,7 +617,12 @@ export function ImportStaging() {
                         <Button 
                             className="bg-indigo-600 hover:bg-indigo-700 text-white shadow-lg" 
                             onClick={handleCommit} 
-                            disabled={isCommitting || (stagingResult.supervisorsStats.new + stagingResult.supervisorsStats.updated) === 0}
+                            disabled={
+                                isCommitting || 
+                                (stagingResult.studentsStats.new + stagingResult.studentsStats.updated + 
+                                 stagingResult.supervisorsStats.new + stagingResult.supervisorsStats.updated + 
+                                 (stagingResult.newOffices?.length || 0) + stagingResult.newFinancialPeriods.length) === 0
+                            }
                         >
                             {isCommitting ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <Check className="h-4 w-4 mr-2" />}
                             Confirm Atomic Injection (Commit)

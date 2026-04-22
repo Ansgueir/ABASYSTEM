@@ -89,7 +89,13 @@ export function LogHoursDialog({ disabled = false, disabledMessage, students }: 
     const [selectedStudentId, setSelectedStudentId] = useState<string>(students?.[0]?.id || "")
     const [errorDialogOpen, setErrorDialogOpen] = useState(false)
     const [errorMessage, setErrorMessage] = useState("")
-    const [availableHours, setAvailableHours] = useState<{ remaining: number; target: number } | null>(null)
+    const [availableHours, setAvailableHours] = useState<{ 
+        remaining: number; 
+        target: number;
+        monthlyRemaining?: number;
+        monthlyTarget?: number;
+        monthName?: string;
+    } | null>(null)
     const [loadingAvailable, setLoadingAvailable] = useState(false)
 
     const form = useForm<z.infer<typeof formSchema>>({
@@ -120,26 +126,35 @@ export function LogHoursDialog({ disabled = false, disabledMessage, students }: 
     const watchMinutes = form.watch("minutes")
     const watchType = form.watch("type")
 
-    // Fetch available hours when student or type changes
+    // Fetch available hours when student, type or date changes
     useEffect(() => {
-        if (isSupervisorMode && selectedStudentId && watchType) {
+        const targetDate = watchMode === "bulk" ? watchStartDate : form.getValues("date")
+        
+        // In supervisor mode, we need selectedStudentId. In student mode, we pass undefined (handled by action/session)
+        const canFetch = (isSupervisorMode && selectedStudentId) || !isSupervisorMode
+
+        if (canFetch && watchType) {
             setLoadingAvailable(true)
-            getStudentHoursRemaining(selectedStudentId, watchType as any)
+            getStudentHoursRemaining(selectedStudentId, watchType as any, targetDate || new Date())
                 .then(res => {
-                    if (res && typeof res.remaining === 'number') {
+                    if (res && !('error' in res)) {
                         setAvailableHours({ 
                             remaining: res.remaining, 
-                            target: (res as any).target || 0 
+                            target: res.target || 0,
+                            monthlyRemaining: res.monthlyRemaining,
+                            monthlyTarget: res.monthlyTarget,
+                            monthName: targetDate ? format(targetDate, "MMMM") : format(new Date(), "MMMM")
                         })
                     } else {
                         setAvailableHours(null)
                     }
                 })
+                .catch(() => setAvailableHours(null))
                 .finally(() => setLoadingAvailable(false))
         } else {
             setAvailableHours(null)
         }
-    }, [isSupervisorMode, selectedStudentId, watchType])
+    }, [isSupervisorMode, selectedStudentId, watchType, watchMode, watchStartDate, form])
 
     // Auto-calculate minutes from Start/End Time
     useMemo(() => {
@@ -167,7 +182,17 @@ export function LogHoursDialog({ disabled = false, disabledMessage, students }: 
         return days.filter(d => watchWeekdays.includes(d.getDay())).length
     }, [watchMode, watchStartDate, watchEndDate, watchWeekdays])
 
-    const previewTotalHours = ((watchMinutes || 0) / 60 * previewCount).toFixed(1)
+    const formatHours = (h: number) => {
+        return parseFloat(h.toFixed(4)).toString()
+    }
+
+    const previewTotalHours = useMemo(() => {
+        const calculated = ((watchMinutes || 0) / 60 * previewCount)
+        return { 
+            value: calculated, 
+            isOverPlan: availableHours ? calculated > availableHours.remaining + 0.0001 : false 
+        }
+    }, [watchMinutes, previewCount, availableHours])
 
     const toggleWeekday = (dayValue: number) => {
         const current = form.getValues("weekdays") || []
@@ -374,24 +399,39 @@ export function LogHoursDialog({ disabled = false, disabledMessage, students }: 
                                             </Select>
                                             
                                             {/* Available Hours Display */}
-                                            {isSupervisorMode && selectedStudentId && (
-                                                <div className="flex items-center gap-2 p-2 px-3 rounded-lg bg-indigo-50 border border-indigo-100 mt-1">
-                                                    <div className="h-2 w-2 rounded-full bg-indigo-500 animate-pulse" />
-                                                    {loadingAvailable ? (
-                                                        <span className="text-xs text-indigo-600 font-medium flex items-center gap-1">
-                                                            <Loader2 className="h-3 w-3 animate-spin" />
-                                                            Calculating availability...
-                                                        </span>
-                                                    ) : availableHours ? (
-                                                        <span className="text-xs text-indigo-700 font-semibold">
-                                                            Available {watchType === 'independent' ? 'Independent' : 'Supervised'}: 
-                                                            <span className="ml-1 text-indigo-900">{availableHours.remaining.toFixed(1)}h</span> 
-                                                            <span className="text-indigo-500/70 ml-1 font-normal">of {availableHours.target.toFixed(0)}h total</span>
-                                                        </span>
-                                                    ) : (
-                                                        <span className="text-xs text-muted-foreground italic">No target data found for this student.</span>
+                                            {availableHours && (
+                                                <div className="space-y-1.5 mt-1">
+                                                    <div className="flex items-center gap-2 p-2 px-3 rounded-lg bg-indigo-50 border border-indigo-100">
+                                                        <div className="h-2 w-2 rounded-full bg-indigo-500 animate-pulse" />
+                                                        {loadingAvailable ? (
+                                                            <span className="text-xs text-indigo-600 font-medium flex items-center gap-1">
+                                                                <Loader2 className="h-3 w-3 animate-spin" />
+                                                                Calculating...
+                                                            </span>
+                                                        ) : (
+                                                            <span className="text-xs text-indigo-700 font-semibold">
+                                                                Available {watchType === 'independent' ? 'Independent' : 'Supervised'}: 
+                                                                <span className="ml-1 text-indigo-900">{formatHours(availableHours.remaining)}h</span> 
+                                                                <span className="text-indigo-500/70 ml-1 font-normal">of {formatHours(availableHours.target)}h total</span>
+                                                            </span>
+                                                        )}
+                                                    </div>
+
+                                                    {availableHours.monthlyTarget && (
+                                                        <div className="flex items-center gap-2 p-2 px-3 rounded-lg bg-violet-50 border border-violet-100">
+                                                            <div className="h-2 w-2 rounded-full bg-violet-500" />
+                                                            <span className="text-xs text-violet-700 font-semibold">
+                                                                Month Capacity: 
+                                                                <span className="ml-1 text-violet-900">{formatHours(availableHours.monthlyRemaining || 0)}h</span> 
+                                                                <span className="text-violet-500/70 ml-1 font-normal">of {formatHours(availableHours.monthlyTarget)}h total ({availableHours.monthName})</span>
+                                                            </span>
+                                                        </div>
                                                     )}
                                                 </div>
+                                            )}
+
+                                            {!availableHours && !loadingAvailable && isSupervisorMode && selectedStudentId && (
+                                                <span className="text-xs text-muted-foreground italic mt-1 block">No target data found for this student.</span>
                                             )}
                                         </FormItem>
                                     )}
@@ -587,8 +627,14 @@ export function LogHoursDialog({ disabled = false, disabledMessage, students }: 
                                             <div className="flex items-center gap-3 p-3 rounded-xl bg-violet-500/10 border border-violet-500/20">
                                                 <Zap className="h-4 w-4 text-violet-500 shrink-0" />
                                                 <p className="text-sm text-violet-700 dark:text-violet-300 font-medium">
-                                                    Will generate <span className="font-bold">{previewCount} logs</span> totaling <span className="font-bold">{previewTotalHours}h</span>
+                                                    Will generate <span className="font-bold">{previewCount} logs</span> totaling <span className="font-bold">{formatHours(previewTotalHours.value)}h</span>
                                                 </p>
+                                                {previewTotalHours.isOverPlan && (
+                                                    <div className="flex items-center gap-1.5 mt-1 text-[10px] text-amber-600 font-normal">
+                                                        <Zap className="h-3 w-3" />
+                                                        <span>Note: The last log will be automatically trimmed to match the exact {formatHours(availableHours?.remaining || 0)}h remaining in the plan.</span>
+                                                    </div>
+                                                )}
                                             </div>
                                         )}
                                     </div>
@@ -601,7 +647,7 @@ export function LogHoursDialog({ disabled = false, disabledMessage, students }: 
                                         <span className="text-sm font-medium">Session Duration</span>
                                     </div>
                                     <span className="text-sm font-bold text-indigo-600">
-                                        {watchMinutes} min / {(watchMinutes / 60).toFixed(2)} hrs
+                                        {watchMinutes} min / {formatHours(watchMinutes / 60)} hrs
                                     </span>
                                 </div>
 

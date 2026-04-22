@@ -5,7 +5,7 @@ import { auth } from "@/auth"
 import { prisma } from "@/lib/prisma"
 import { revalidatePath } from "next/cache"
 import { ActivityType, SettingType, SupervisionFormat } from "@prisma/client"
-import { startOfMonth, endOfMonth } from "date-fns"
+import { format, addDays, startOfMonth, endOfMonth } from "date-fns"
 
 const logHoursSchema = z.object({
     type: z.enum(["independent", "supervision"]),
@@ -682,15 +682,45 @@ export async function logBulkHours(payload: {
             type: payload.type as 'independent' | 'supervision'
         }))
         
-        await validatePlanLimitsBulk(studentId, bulkLogs)
+        await validatePlanLimitsBulk(studentId, bulkLogs, { allowAutoTrim: true })
+
+        // 4. Auto-trim logic: if the bulk log exceeds the remaining target, trim the last one
+        const remainingData = await getStudentHoursRemaining(studentId, payload.type)
+        let remaining = (remainingData as any).remaining || 0
 
         let created = 0
         let skipped = 0
+        let accumulatedToLog = 0
 
         for (const date of matchingDates) {
             const [h, m] = payload.startTime.split(':').map(Number)
             const startDateTime = new Date(date)
-            startDateTime.setHours(h, m, 0, 0)
+            startDateTime.setUTCHours(h, m, 0, 0)
+
+            let finalHoursForThisLog = hoursDecimal
+
+            // 1. LIFETIME TRIM (Plan Limit)
+            if (accumulatedToLog + hoursDecimal > remaining + 0.0001) {
+                // If we already reached the limit, stop
+                if (accumulatedToLog >= remaining - 0.0001) break;
+                
+                // Otherwise, trim the last log to fit perfectly
+                finalHoursForThisLog = remaining - accumulatedToLog
+            }
+
+            // 2. MONTHLY TRIM (160h cap)
+            const statsAtDate = await getStudentHoursRemaining(studentId!, payload.type as any, date)
+            const monthlyAvailable = (statsAtDate as any).monthlyRemaining || 0
+            
+            if (finalHoursForThisLog > monthlyAvailable + 0.0001) {
+                if (monthlyAvailable <= 0.0001) {
+                    // Month is already FULL. Skip this day and continue to next matching date (next month)
+                    skipped++
+                    continue 
+                }
+                // Trim this specific day to fit the remaining monthly capacity
+                finalHoursForThisLog = monthlyAvailable
+            }
 
             try {
                 if (payload.type === 'independent') {
@@ -699,7 +729,7 @@ export async function logBulkHours(payload: {
                             studentId: studentId!,
                             date,
                             startTime: startDateTime,
-                            hours: hoursDecimal,
+                            hours: finalHoursForThisLog,
                             setting: payload.setting as any,
                             customSetting: payload.customSetting,
                             activityType: payload.activityType as any,
@@ -714,7 +744,7 @@ export async function logBulkHours(payload: {
                             supervisorId,
                             date,
                             startTime: startDateTime,
-                            hours: hoursDecimal,
+                            hours: finalHoursForThisLog,
                             setting: payload.setting as any,
                             customSetting: payload.customSetting,
                             activityType: payload.activityType as any,
@@ -724,7 +754,13 @@ export async function logBulkHours(payload: {
                     })
                 }
                 created++
-            } catch {
+                accumulatedToLog += finalHoursForThisLog
+
+                // If we just reached the limit, stop
+                if (accumulatedToLog >= remaining - 0.0001) break;
+
+            } catch (err) {
+                console.error("Error creating individual log in bulk:", err)
                 skipped++
             }
         }
@@ -1007,7 +1043,7 @@ export async function updateLogStatus(
     }
 }
 
-export async function getStudentHoursRemaining(studentId: string, type: 'independent' | 'supervision') {
+export async function getStudentHoursRemaining(studentId: string, type: 'independent' | 'supervision', date?: Date) {
     try {
         const student = await prisma.student.findUnique({
             where: { id: studentId }
@@ -1020,6 +1056,7 @@ export async function getStudentHoursRemaining(studentId: string, type: 'indepen
         }
 
         const totalPlanHours = student.hoursToDo || plan?.totalHours || 2000
+        const maxMonthly = student.hoursPerMonth || plan?.hoursPerMonth || 130
         
         let supervisedPercentage = 0.05
         if (student.supervisionPercentage) {
@@ -1034,13 +1071,40 @@ export async function getStudentHoursRemaining(studentId: string, type: 'indepen
             ? student.independentHoursTarget 
             : totalPlanHours - maxSupervisedHoursTotal
 
+        // --- MONTHLY LOGIC ---
+        let monthlyConsumed = 0
+        if (date) {
+            const start = startOfMonth(date)
+            const end = endOfMonth(date)
+            const mIndep = await prisma.independentHour.aggregate({ where: { studentId, date: { gte: start, lte: end }, status: { not: 'REJECTED' } }, _sum: { hours: true } })
+            const mSup = await prisma.supervisionHour.aggregate({ where: { studentId, date: { gte: start, lte: end }, status: { not: 'REJECTED' } }, _sum: { hours: true } })
+            const mGroupAtt = await prisma.groupSupervisionAttendance.count({ 
+                where: { 
+                    studentId, 
+                    attended: true, 
+                    session: { date: { gte: start, lte: end } },
+                    NOT: { session: { supervisionHours: { some: { studentId } } } } // Corrected relationship name
+                } 
+            })
+            monthlyConsumed = (Number(mIndep._sum.hours) || 0) + (Number(mSup._sum.hours) || 0) + mGroupAtt
+        }
+
+        const stats = { 
+            remaining: 0, 
+            target: 0, 
+            monthlyRemaining: Math.max(0, maxMonthly - monthlyConsumed), 
+            monthlyTarget: maxMonthly,
+            monthlyConsumed
+        }
+
         if (type === 'independent') {
             const lifetimeIndep = await prisma.independentHour.aggregate({ 
                 where: { studentId, status: { not: 'REJECTED' } }, 
                 _sum: { hours: true } 
             })
             const accumulated = Number(lifetimeIndep._sum.hours) || 0
-            return { remaining: Math.max(0, maxIndependentHours - accumulated), target: maxIndependentHours }
+            stats.remaining = Math.max(0, maxIndependentHours - accumulated)
+            stats.target = maxIndependentHours
         } else {
             const lifetimeSup = await prisma.supervisionHour.aggregate({ 
                 where: { studentId, status: { not: 'REJECTED' } }, 
@@ -1059,8 +1123,10 @@ export async function getStudentHoursRemaining(studentId: string, type: 'indepen
             const extraGroupHours = groupAttLifetime.filter(a => !syncedGroupSessionIds.has(a.sessionId)).length
 
             const accumulated = (Number(lifetimeSup._sum.hours) || 0) + extraGroupHours
-            return { remaining: Math.max(0, maxSupervisedHoursTotal - accumulated), target: maxSupervisedHoursTotal }
+            stats.remaining = Math.max(0, maxSupervisedHoursTotal - accumulated)
+            stats.target = maxSupervisedHoursTotal
         }
+        return stats
     } catch (error) {
         console.error("Error fetching remaining hours:", error)
         return { error: "Failed to calculate remaining hours" }

@@ -41,13 +41,16 @@ export async function POST(request: Request) {
                 })
             }
 
-            // 2. Borrar Students, Supervisors y Users creados
+            // 2. Borrar Students, Supervisors, Offices y Users creados
             // Importante: Borrar entidades relacionadas antes que User
             if (userIdsToDelete.length > 0) {
                 await tx.student.deleteMany({
                     where: { userId: { in: userIdsToDelete } }
                 })
                 await tx.supervisor.deleteMany({
+                    where: { userId: { in: userIdsToDelete } }
+                })
+                await tx.office.deleteMany({
                     where: { userId: { in: userIdsToDelete } }
                 })
                 await tx.user.deleteMany({
@@ -73,21 +76,26 @@ export async function POST(request: Request) {
                         }
                     }).catch(() => console.log(`Rollback: Record ${log.recordId} in ${log.tableName} missing, skipping.`))
                 } else if (log.tableName === "Student") {
+                    const studentData = {
+                        phone:                  oldData.phone,
+                        vcsSequence:            oldData.vcsSequence,
+                        assignedOptionPlan:     oldData.assignedOptionPlan,
+                        totalMonths:            oldData.totalMonths,
+                        hoursTargetReg:         oldData.hoursTargetReg,
+                        hoursTargetConc:        oldData.hoursTargetConc,
+                        independentHoursTarget: oldData.independentHoursTarget,
+                        totalAmountContract:    oldData.totalAmountContract,
+                        analystPaymentRate:     oldData.analystPaymentRate,
+                        officePaymentRate:      oldData.officePaymentRate,
+                        hoursPerMonth:          oldData.hoursPerMonth,
+                        hoursToDo:              oldData.hoursToDo,
+                        status:                 oldData.status,
+                        endDate:                oldData.endDate ? new Date(oldData.endDate) : undefined,
+                        importBatchId:          null
+                    }
                     await tx.student.update({
                         where: { id: log.recordId },
-                        data: {
-                            phone:                  oldData.phone,
-                            vcsSequence:            oldData.vcsSequence,
-                            totalMonths:            oldData.totalMonths,
-                            hoursTargetReg:         oldData.hoursTargetReg,
-                            hoursTargetConc:        oldData.hoursTargetConc,
-                            independentHoursTarget: oldData.independentHoursTarget,
-                            totalAmountContract:    oldData.totalAmountContract,
-                            analystPaymentRate:     oldData.analystPaymentRate,
-                            officePaymentRate:      oldData.officePaymentRate,
-                            endDate:                oldData.endDate ? new Date(oldData.endDate) : undefined,
-                            importBatchId:          null
-                        }
+                        data: studentData
                     }).catch(() => {})
                 } else if (log.tableName === "Supervisor") {
                     await tx.supervisor.update({

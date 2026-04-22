@@ -58,11 +58,11 @@ export function ImportHistory() {
         <Card>
             <CardHeader>
                 <CardTitle className="flex items-center gap-2">
-                    <History className="h-5 w-5" />
-                    Import History & Rollbacks
+                    <History className="h-5 w-5 text-indigo-600" />
+                    Data Snapshots & Rollback History
                 </CardTitle>
                 <CardDescription>
-                    All massive imports are logged here. You can selectively undo any batch to reverse its effects atomicaly.
+                    Cada importación masiva genera un snapshot. Puedes realizar un Rollback atómico para revertir cambios o eliminar el snapshot de la memoria si ya no lo necesitas.
                 </CardDescription>
             </CardHeader>
             <CardContent>
@@ -71,48 +71,48 @@ export function ImportHistory() {
                         <Loader2 className="h-6 w-6 animate-spin" />
                     </div>
                 ) : history.length === 0 ? (
-                    <div className="text-center p-8 text-muted-foreground border-2 border-dashed rounded-xl">
-                        No import batches found.
+                    <div className="text-center p-8 text-muted-foreground border-2 border-dashed rounded-xl border-slate-100">
+                        No se han encontrado snapshots de importación.
                     </div>
                 ) : (
                     <div className="space-y-4">
                         {history.map(batch => (
-                            <div key={batch.id} className="flex flex-col sm:flex-row sm:items-center justify-between p-4 border rounded-lg bg-slate-50 relative overflow-hidden">
+                            <div key={batch.id} className="flex flex-col sm:flex-row sm:items-center justify-between p-4 border rounded-lg bg-slate-50 relative overflow-hidden transition-all hover:border-slate-300">
                                 {batch.revertedAt && (
-                                    <div className="absolute top-0 right-0 px-2 py-1 bg-destructive/10 text-destructive text-xs font-bold rounded-bl-lg">
-                                        REVERTED
+                                    <div className="absolute top-0 right-0 px-3 py-1 bg-rose-500 text-white text-[10px] font-black tracking-tighter uppercase rounded-bl-lg">
+                                        REVERTED / ROLLBACK DONE
                                     </div>
                                 )}
                                 <div>
-                                    <h4 className="font-bold text-sm tracking-tight">{batch.batchString}</h4>
-                                    <p className="text-xs text-muted-foreground">
+                                    <h4 className="font-bold text-sm tracking-tight text-slate-800">{batch.batchString}</h4>
+                                    <p className="text-[11px] text-muted-foreground">
                                         {(() => {
                                             try {
                                                 return format(new Date(batch.createdAt), "PPP p")
                                             } catch (e) {
                                                 return "Invalid Date"
                                             }
-                                        })()} • {batch.logs?.length || 0} affected records
+                                        })()} • {batch.logs?.length || 0} registros afectados
                                     </p>
                                 </div>
                                 <div className="mt-4 sm:mt-0 flex gap-2">
                                     <Button 
                                         variant="outline" 
-                                        className="border-destructive/30 text-destructive hover:bg-destructive/10 transition-colors"
+                                        className="border-rose-200 text-rose-600 hover:bg-rose-50 transition-colors h-8"
                                         size="sm"
                                         onClick={() => handleUndo(batch.id)}
                                         disabled={!!batch.revertedAt || undoingMap[batch.id]}
                                     >
                                         {undoingMap[batch.id] ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <Undo className="h-4 w-4 mr-2" />}
-                                        Undo Import
+                                        Execute Rollback
                                     </Button>
 
                                     <Button 
                                         variant="ghost"
-                                        className="text-muted-foreground hover:text-destructive hover:bg-destructive/5 transition-colors"
+                                        className="text-slate-400 hover:text-rose-600 hover:bg-rose-50 transition-colors h-8"
                                         size="sm"
                                         onClick={async () => {
-                                            if (!confirm("§7 HARD DELETE POLICY: ¿Estás seguro de eliminar permanentemente este lote de la memoria? Esto destruirá la capacidad de revertirlo. No se eliminarán los datos ya inyectados, solo el log de auditoría.")) return
+                                            if (!confirm("§7 HARD DELETE: ¿Estás seguro de eliminar este snapshot de la memoria? Perderás la capacidad de revertirlo en el futuro.")) return
                                             try {
                                                 const res = await fetch("/api/office/vault/import/delete-batch", {
                                                     method: "POST",
@@ -120,7 +120,7 @@ export function ImportHistory() {
                                                     body: JSON.stringify({ batchId: batch.id })
                                                 })
                                                 if (res.ok) {
-                                                    alert("Batch log deleted forever.")
+                                                    alert("Snapshot eliminado de la memoria.")
                                                     await fetchHistory()
                                                 }
                                             } catch (e) {
@@ -128,7 +128,7 @@ export function ImportHistory() {
                                             }
                                         }}
                                     >
-                                        Delete Batch Log
+                                        Delete Snapshot Memory
                                     </Button>
                                 </div>
                             </div>

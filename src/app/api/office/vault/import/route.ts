@@ -8,17 +8,6 @@ import bcrypt from "bcryptjs"
 export const dynamic = "force-dynamic"
 export const maxDuration = 60
 
-// ─── Data Dictionary: Column mappings ────────────────────────────────────────
-// Students sheet columns:
-// B: Trainee Name | C: Supervisor Name | D: BACB ID | E: Credential
-// G: Level | H: Phone | I: Email | K: Option Plan | L: Start Date | M: End Date
-// N: Total Months | O: Reg Hours Target | P: Conc Hours Target | Q: Ind Hours Target
-// R: Total Amount Contract | S: Amount to Analyst | T: Total Paid Office | U: Status
-//
-// Supervisors sheet columns:
-// A: Supervisor Name | B: Email | C: BACB # | E: Qualification Level | H: Status 
-// ─────────────────────────────────────────────────────────────────────────────
-
 function cellStr(row: ExcelJS.Row, col: string | number): string {
     const cell = row.getCell(col)
     const v = cell.value
@@ -50,57 +39,21 @@ function cellDate(row: ExcelJS.Row, col: string | number): Date | null {
     return isNaN(d.getTime()) ? null : d
 }
 
-function isRowEmpty(row: ExcelJS.Row, startCol: number, endCol: number): boolean {
-    for (let i = startCol; i <= endCol; i++) {
-        if (cellStr(row, i)) return false
-    }
-    return true
-}
-
 function normalizeCredentialType(val: string): string {
     const v = val.toUpperCase().trim()
     if (v.includes("BCABA")) return "BCaBA"
     if (v.includes("BCBA")) return "BCBA"
-    if (v.includes("RBT")) {
-        if (v.includes("NOT") || v.includes("WORKING")) return "RBT_NOT_WORKING"
-        return "RBT"
-    }
+    if (v.includes("RBT")) return "RBT"
     if (v.includes("LMHC")) return "LMHC"
     return "NO_CREDENTIAL"
-}
-
-function normalizeLevelType(val: string): string {
-    const v = val.toUpperCase().trim()
-    if (v.includes("BCABA")) return "BCaBA"
-    return "BCBA"
-}
-
-function normalizeOptionPlan(val: string): string {
-    return val.trim() || "PLAN MANUAL"
-}
-
-function normalizeRate(val: number): number {
-    // If value is > 1 (e.g. 54), assume it is a percentage and convert to fraction (0.54)
-    // to fit into Decimal(5, 4) which allows max 9.9999
-    if (val > 1) return val / 100
-    return val
 }
 
 export async function POST(request: Request) {
     try {
         const session = await auth()
         if (!session?.user) return new NextResponse("Unauthorized", { status: 401 })
-
-        // §1 SECURITY GATEWAY — Hard-coded identity lock
         if (session.user.email?.toLowerCase().trim() !== "qa-super@abasystem.com") {
             return new NextResponse("Forbidden", { status: 403 })
-        }
-
-        if (request.method === "GET") {
-            const users = await prisma.user.findMany({
-                include: { student: true, supervisor: true }
-            })
-            return NextResponse.json(users)
         }
 
         const contentType = request.headers.get("content-type") || ""
@@ -116,25 +69,25 @@ export async function POST(request: Request) {
             const workbook = new ExcelJS.Workbook()
             await workbook.xlsx.load(await file.arrayBuffer() as any)
 
-            const sheetStudents    = workbook.getWorksheet("Supervisados")
-            const sheetSupervisors = workbook.getWorksheet("Parametros")
-            const sheetFinancial   = workbook.getWorksheet("Cobros")
+            const sheetStudents    = workbook.getWorksheet("STUDENTS") || workbook.getWorksheet("Supervisados")
+            const sheetSupervisors = workbook.getWorksheet("SUPERVISORS") || workbook.getWorksheet("Parametros")
+            const sheetOffices     = workbook.getWorksheet("OFFICES")
+            const sheetFinancial   = workbook.getWorksheet("FINANCIALS") || workbook.getWorksheet("Cobros")
 
-            if (!sheetStudents || !sheetSupervisors || !sheetFinancial) {
-                const missing = []
-                if (!sheetStudents) missing.push("'Supervisados'")
-                if (!sheetSupervisors) missing.push("'Parametros'")
-                if (!sheetFinancial) missing.push("'Cobros'")
-                return NextResponse.json({
-                    error: `RECHAZADO (422): Faltan pestañas obligatorias: [${missing.join(", ")}].`
+            if (!sheetStudents || !sheetSupervisors) {
+                return NextResponse.json({ 
+                    error: "RECHAZADO: Faltan pestañas críticas (STUDENTS y SUPERVISORS son obligatorias)." 
                 }, { status: 422 })
             }
 
-            const existingStudents = await (prisma as any).student.findMany({
-                include: { user: true, financialPeriods: true, supervisor: true }
+            const existingStudents = await (prisma as any).student.findMany({ 
+                include: { user: true, financialPeriods: true, supervisor: true } 
             })
-            const existingSupervisors = await prisma.supervisor.findMany({
-                include: { user: true }
+            const existingSupervisors = await prisma.supervisor.findMany({ 
+                include: { user: true } 
+            })
+            const existingOffices = await prisma.office.findMany({ 
+                include: { user: true } 
             })
             const existingEmails = new Set(
                 (await prisma.user.findMany({ select: { email: true } })).map(u => u.email.toLowerCase().trim())
@@ -143,306 +96,149 @@ export async function POST(request: Request) {
 
             const newUsers: any[] = []
             const newSupervisors: any[] = []
+            const newOffices: any[] = []
             const supervisorUpdates: any[] = []
             const conflicts: any[] = []
             const newFinancialPeriods: any[] = []
-            const ignoredRows: { sheet: string; sourceSheet: string; rowNumber: number | string; data: string; reason: string }[] = []
-            const headlessUsers: { name: string; sourceSheet: string; rowNumber: number | string; email: string; collisionType: string; collisionDetail: string }[] = []
-            const validData: any = { studentsToUpdate: [], financialPeriodsToUpdate: [] }
-            
-            // ── §3 Parse Parametros (Supervisors) ───────────────────────────
-            // Detección Dinámica de Inicio: Buscar "Supervisores" en Columna C
-            let supervisorStartRow = -1
-            for (let i = 1; i <= Math.min(sheetSupervisors.rowCount, 50); i++) {
-                const cellVal = cellStr(sheetSupervisors.getRow(i), "C")
-                if (cellVal.toLowerCase().includes("supervisores")) {
-                    supervisorStartRow = i + 1
-                    break
-                }
-            }
+            const headlessUsers: any[] = []
+            const validData: any = { studentsToUpdate: [] }
 
-            // Si se encuentra el ancla, iterar hasta la primera celda vacía (Hard Boundary)
-            if (supervisorStartRow !== -1) {
-                for (let i = supervisorStartRow; i <= sheetSupervisors.rowCount; i++) {
-                    const row = sheetSupervisors.getRow(i)
-                    const supName = cellStr(row, "C")
+            // ── §1 Parse SUPERVISORS ───────────────────────────
+            for (let i = 2; i <= sheetSupervisors.rowCount; i++) {
+                const row = sheetSupervisors.getRow(i)
+                const name = cellStr(row, "B")
+                if (!name) continue
 
-                    // END BOUNDARY: Si el nombre está vacío, fin de la tabla
-                    if (!supName || supName.trim() === "") break
+                const email = cellStr(row, "C").toLowerCase()
+                const password = cellStr(row, "D") || "Aba12345*"
+                const bacbId = cellStr(row, "E")
+                const qual = cellStr(row, "F")
 
-                    const colA = cellStr(row, "A").toLowerCase()
-                    const colB = cellStr(row, "B").toLowerCase()
-                    
-                    // Ignorar filas de métodos de pago
-                    if (
-                        colA.includes("venmo") || colA.includes("zelle") || colA.includes("cashapp") ||
-                        colB.includes("venmo") || colB.includes("zelle") || colB.includes("cashapp")
-                    ) continue
-
-                    const bacbId   = cellStr(row, "D")
-                    const certNum  = cellStr(row, "E")
-                    const qual     = cellStr(row, "F")
-
-                    const existingSup = existingSupervisors.find(
-                        s => s.fullName.toLowerCase().trim() === supName.toLowerCase().trim() || (bacbId && s.bacbId === bacbId)
-                    )
-
-                    if (existingSup) {
-                        const updates: any = { sourceSheet: "Parametros", rowNumber: i }
-                        if (bacbId && existingSup.bacbId !== bacbId) updates.bacbId = bacbId
-                        if (certNum && existingSup.certificantNumber !== certNum) updates.certificantNumber = certNum
-                        const normQual = normalizeCredentialType(qual || "BCBA")
-                        if (qual && (existingSup as any).credentialType !== normQual) updates.credentialType = normQual
-                        
-                        if (Object.keys(updates).length > 2) { 
-                            supervisorUpdates.push({ id: existingSup.id, ...updates })
-                        }
-                    } else {
-                        let finalSupEmail = ""
-                        const potentialEmail = cellStr(row, "B")
-                        if (potentialEmail.includes("@")) {
-                            finalSupEmail = potentialEmail.toLowerCase()
-                        }
-
-                        if (!finalSupEmail || existingEmails.has(finalSupEmail) || claimedEmailsInBatch.has(finalSupEmail)) {
-                            finalSupEmail = `${supName.toLowerCase().replace(/\s+/g, ".")}@pending.import`
-                        }
-                        claimedEmailsInBatch.set(finalSupEmail, { rowNumber: i, sheetName: "Parametros" })
-
-                        newSupervisors.push({
-                            fullName: supName,
-                            bacbId,
-                            certificantNumber: certNum,
-                            credentialType: normalizeCredentialType(qual || "BCBA"),
-                            email: finalSupEmail,
-                            status: "ACTIVE",
-                            sourceSheet: "Parametros",
-                            rowNumber: i
-                        })
-                    }
-                }
-            }
-
-            // ── §4 Parse Supervisados (Students) ────────────────────────────
-            const studentLatestRows = new Map<string, any>()
-            for (let i = 2; i <= sheetStudents.rowCount; i++) {
-                const row = sheetStudents.getRow(i)
-                const traineeNameRaw = cellStr(row, "B")
-                
-                // END BOUNDARY: Stop if name is empty
-                if (!traineeNameRaw || traineeNameRaw.trim() === "") break
-                
-                const traineeName = traineeNameRaw.toLowerCase().trim()
-                const bacbId      = cellStr(row, "D")
-                const startDateStr = cellDate(row, "L") ?? new Date(0)
-                
-                const identityKey  = `${bacbId}_${traineeName}`
-                const existing = studentLatestRows.get(identityKey)
-                if (!existing) {
-                    studentLatestRows.set(identityKey, { rowNumber: i, row, startDateStr, traineeName, bacbId, allRowNumbers: [i] })
-                } else {
-                    existing.allRowNumbers.push(i)
-                    if (startDateStr > existing.startDateStr) {
-                        Object.assign(existing, { rowNumber: i, row, startDateStr, traineeName, bacbId })
-                    }
-                }
-            }
-
-            const mergedRecords: any[] = []
-            for (const [, data] of studentLatestRows.entries()) {
-                const { row, startDateStr, traineeName, bacbId, rowNumber, allRowNumbers } = data
-                if (allRowNumbers.length > 1) mergedRecords.push({ bacbId, traineeName, allRowNumbers })
-
-                const existingStudent = existingStudents.find(
-                    (s: any) => s.bacbId === bacbId && s.fullName.toLowerCase().trim() === traineeName
+                const existingSup = existingSupervisors.find(
+                    s => s.fullName.toLowerCase().trim() === name.toLowerCase().trim() || (email && s.user.email === email)
                 )
 
-                const supervisorName        = cellStr(row, "C")
-                const fields = {
-                    vcsSequence:           cellStr(row, "F") || null,
-                    level:                 normalizeLevelType(cellStr(row, "G")),
-                    phone:                 cellStr(row, "H") || null,
-                    optionPlan:            normalizeOptionPlan(cellStr(row, "K")),
-                    endDate:               cellDate(row, "M"),
-                    totalMonths:           cellNum(row, "N") || null,
-                    hoursTargetReg:        cellNum(row, "O") || null, // Horas Regulares
-                    hoursTargetConc:       cellNum(row, "P") || null, // Horas Concentradas
-                    independentHoursTarget: cellNum(row, "Q") || null, // Horas Independientes
-                    totalAmountContract:   cellNum(row, "R") || null, // Monto Total Supervisión
-                    analystPaymentRate:    normalizeRate(cellNum(row, "S")) || null, // Monto a Pagar Analista
-                    officePaymentRate:     normalizeRate(cellNum(row, "T")) || null, // Total Pagado Oficina
-                    credential:            normalizeCredentialType(cellStr(row, "E")),
-                    status:                cellStr(row, "U") || null
-                }
-
-                const displayRow = allRowNumbers.length > 1 
-                    ? `Filas ${allRowNumbers.join(", ")}` 
-                    : rowNumber
-
-                if (!existingStudent) {
-                    const rawEmail = cellStr(row, "I").toLowerCase()
-                    let assignedEmail: string | null = null
-                    if (rawEmail && !existingEmails.has(rawEmail) && !claimedEmailsInBatch.has(rawEmail)) {
-                        assignedEmail = rawEmail
-                        claimedEmailsInBatch.set(rawEmail, { rowNumber, sheetName: "Supervisados" })
-                    } else {
-                        let collisionType = "EMAIL_EMPTY", collisionDetail = "Email Vacío"
-                        if (rawEmail) {
-                            if (existingEmails.has(rawEmail)) {
-                                collisionType = "EMAIL_IN_DB"; collisionDetail = "Email ya existe en BD"
-                            } else {
-                                const origin = claimedEmailsInBatch.get(rawEmail)
-                                collisionType = "EMAIL_DUPLICATE_IN_FILE"
-                                collisionDetail = `Duplicado con Fila ${origin?.rowNumber} (${origin?.sheetName})`
-                            }
-                        }
-                        headlessUsers.push({ 
-                            name: cellStr(row, "B"), 
-                            rowNumber: displayRow, 
-                            sourceSheet: "Supervisados",
-                            email: rawEmail || "(none)", 
-                            collisionType, 
-                            collisionDetail 
-                        })
-                    }
-
-                    newUsers.push({
-                        role: "STUDENT",
-                        fullName: cellStr(row, "B"),
-                        bacbId,
-                        email: assignedEmail,
-                        supervisorName,
-                        _rowNumber: displayRow,
-                        rowNumber: displayRow,
-                        sourceSheet: "Supervisados",
-                        startDate: startDateStr.getTime() === 0 ? null : startDateStr,
-                        fields // Wrapped for frontend access
+                if (existingSup) {
+                    supervisorUpdates.push({ 
+                        id: existingSup.id, 
+                        bacbId, 
+                        credentialType: normalizeCredentialType(qual || "BCBA"), 
+                        rowNumber: i, 
+                        sourceSheet: "SUPERVISORS" 
+                    })
+                } else if (email && !existingEmails.has(email) && !claimedEmailsInBatch.has(email)) {
+                    claimedEmailsInBatch.set(email, { rowNumber: i, sheetName: "SUPERVISORS" })
+                    newSupervisors.push({ 
+                        fullName: name, 
+                        email, 
+                        password, 
+                        bacbId, 
+                        credentialType: normalizeCredentialType(qual || "BCBA"), 
+                        rowNumber: i, 
+                        sourceSheet: "SUPERVISORS" 
                     })
                 } else {
-                    const updates: any = { supervisorName, sourceSheet: "Supervisados", rowNumber: displayRow } 
-                    Object.entries(fields).forEach(([k, v]) => {
-                        // Priority: If Excel has data, use it (Overwrites if current is null or different)
-                        if (v !== null && v !== 0) updates[k] = v
-                    })
-                    validData.studentsToUpdate.push({ id: existingStudent.id, ...updates })
+                    headlessUsers.push({ name, email: email || "(vacio)", rowNumber: i, sourceSheet: "SUPERVISORS", collisionType: "EMAIL_DUPLICATE" })
                 }
             }
 
-            // ── §5 Parse Cobros (Payments History) ──────────────────────────
-            let financialStartRow = -1
-            for (let i = 1; i <= 50; i++) {
-                const cellVal = cellStr(sheetFinancial.getRow(i), "L").toLowerCase()
-                if (cellVal.includes("supervisado")) {
-                    financialStartRow = i + 1
-                    break
-                }
-            }
+            // ── §2 Parse OFFICES ───────────────────────────
+            if (sheetOffices) {
+                for (let i = 2; i <= sheetOffices.rowCount; i++) {
+                    const row = sheetOffices.getRow(i)
+                    const name = cellStr(row, "B")
+                    const email = cellStr(row, "C").toLowerCase()
+                    const password = cellStr(row, "D") || "Aba12345*"
+                    if (!name || !email) continue
 
-            if (financialStartRow !== -1) {
-                for (let i = financialStartRow; i <= sheetFinancial.rowCount; i++) {
-                    const row = sheetFinancial.getRow(i)
-                    const traineeNameRaw = cellStr(row, "L").toLowerCase()
-
-                    // END BOUNDARY: If primary student name col is empty, stop
-                    if (!traineeNameRaw || traineeNameRaw.trim() === "") break
-
-                const traineeName = traineeNameRaw.trim()
-                const existingStudent = existingStudents.find((s: any) => s.fullName.toLowerCase().trim() === traineeName)
-
-                // Iteración horizontal M (13) hasta BJ (62) - Periodos 1 al 50
-                for (let col = 13; col <= 62; col++) {
-                    const cell = row.getCell(col)
-                    if (cell.value === null || cell.value === undefined) continue
-                    
-                    const amount = Number(cell.value)
-                    if (isNaN(amount) || amount < 0) continue
-
-                    const periodNum = col - 12
-                    
-                    const rowData = {
-                        periodNumber: periodNum,
-                        monthYearLabel: `Periodo ${periodNum}`,
-                        amountDueOffice: amount,
-                        amountDueAnalyst: 0,
-                        accumulatedDueOffice: 0,
-                        accumulatedPaidOffice: 0,
-                        accumulatedPaidAnalyst: 0,
-                        sourceSheet: "Cobros",
-                        rowNumber: i
+                    if (!existingEmails.has(email) && !claimedEmailsInBatch.has(email)) {
+                        claimedEmailsInBatch.set(email, { rowNumber: i, sheetName: "OFFICES" })
+                        newOffices.push({ fullName: name, email, password, rowNumber: i, sourceSheet: "OFFICES" })
+                    } else {
+                        headlessUsers.push({ name, email: email || "(vacio)", rowNumber: i, sourceSheet: "OFFICES", collisionType: "EMAIL_DUPLICATE" })
                     }
+                }
+            }
 
-                    if (existingStudent) {
-                        const existingPeriod = existingStudent.financialPeriods.find((p: any) => p.periodNumber === periodNum)
-                        if (existingPeriod && Number(existingPeriod.amountDueOffice || 0) !== amount) {
-                            conflicts.push({
+            // ── §3 Parse STUDENTS ────────────────────────────
+            for (let i = 2; i <= sheetStudents.rowCount; i++) {
+                const row = sheetStudents.getRow(i)
+                const name = cellStr(row, "B")
+                if (!name) continue
+
+                const email = cellStr(row, "C").toLowerCase()
+                const password = cellStr(row, "D") || "Aba12345*"
+                const bacbId = cellStr(row, "E")
+                const supervisorName = cellStr(row, "G")
+
+                const existingStud = existingStudents.find((s: any) => s.bacbId === bacbId || (email && s.user.email === email))
+                
+                const fields = {
+                    credential:             normalizeCredentialType(cellStr(row, "F")),
+                    phone:                 cellStr(row, "H"),
+                    startDate:             cellDate(row, "I"),
+                    endDate:               cellDate(row, "J"),
+                    hoursPerMonth:         cellNum(row, "K") || 130,
+                    hoursToDo:             cellNum(row, "L") || 2000,
+                    status:                cellStr(row, "M") || "ACTIVE",
+                    vcsSequence:           cellStr(row, "N") || null,
+                    assignedOptionPlan:    cellStr(row, "O") || "PLAN MANUAL",
+                    hoursTargetReg:        cellNum(row, "P") || null,
+                    hoursTargetConc:       cellNum(row, "Q") || null,
+                    independentHoursTarget: cellNum(row, "R") || null,
+                    totalAmountContract:   cellNum(row, "S") || null,
+                    analystPaymentRate:    cellNum(row, "T") || null,
+                    officePaymentRate:     cellNum(row, "U") || null
+                }
+
+                if (!existingStud) {
+                    if (email && !existingEmails.has(email) && !claimedEmailsInBatch.has(email)) {
+                        claimedEmailsInBatch.set(email, { rowNumber: i, sheetName: "STUDENTS" })
+                        newUsers.push({ fullName: name, email, password, supervisorName, fields, rowNumber: i, sourceSheet: "STUDENTS" })
+                    } else {
+                        headlessUsers.push({ name, email: email || "(vacio)", rowNumber: i, sourceSheet: "STUDENTS", collisionType: "EMAIL_DUPLICATE" })
+                    }
+                } else {
+                    validData.studentsToUpdate.push({ id: existingStud.id, supervisorName, ...fields, rowNumber: i, sourceSheet: "STUDENTS" })
+                }
+            }
+
+            // ── §4 Parse FINANCIALS ──────────────────────────
+            if (sheetFinancial) {
+                for (let i = 2; i <= sheetFinancial.rowCount; i++) {
+                    const row = sheetFinancial.getRow(i)
+                    const name = cellStr(row, "B").toLowerCase().trim()
+                    if (!name) continue
+                    const period = cellNum(row, "C")
+                    const amount = cellNum(row, "D")
+                    if (!period || amount === 0) continue
+
+                    const stud = existingStudents.find((s: any) => s.fullName.toLowerCase().trim() === name)
+                    if (stud) {
+                        const existingPeriod = stud.financialPeriods.find((p: any) => p.periodNumber === period)
+                        if (existingPeriod && Number(existingPeriod.amountDueOffice) !== amount) {
+                            conflicts.push({ 
                                 id: `CFL-${existingPeriod.id}`, 
                                 periodId: existingPeriod.id, 
-                                studentName: existingStudent.fullName,
-                                type: "Injected", 
-                                periodNumber: periodNum, 
-                                month: `Periodo ${periodNum}`,
+                                studentName: stud.fullName, 
+                                periodNumber: period, 
                                 dbAmount: Number(existingPeriod.amountDueOffice), 
                                 excelAmount: amount, 
-                                field: "amountDueOffice",
-                                sourceSheet: "Cobros",
-                                rowNumber: i
+                                rowNumber: i, 
+                                sourceSheet: "FINANCIALS" 
                             })
                         } else if (!existingPeriod) {
-                            newFinancialPeriods.push({ studentName: traineeName, studentId: existingStudent.id, ...rowData })
+                            newFinancialPeriods.push({ studentId: stud.id, studentName: stud.fullName, periodNumber: period, amountDueOffice: amount, rowNumber: i, sourceSheet: "FINANCIALS" })
                         }
-                    } else {
-                        newFinancialPeriods.push({ studentName: traineeName, ...rowData })
                     }
-                }
-            }
-        }
-
-            // ── §6 Parse Base Datos / Tesoreria (Transactions) ──────────────
-            const sheetTesoreria = workbook.getWorksheet("Base Datos") || workbook.getWorksheet("Tesoreria")
-            const newPayments: any[] = []
-            if (sheetTesoreria) {
-                // Hard boundary: Start row 2, stop when Col B is empty
-                for (let i = 2; i <= sheetTesoreria.rowCount; i++) {
-                    const row = sheetTesoreria.getRow(i)
-                    const traineeNameRaw = cellStr(row, "B").toLowerCase()
-
-                    if (!traineeNameRaw || traineeNameRaw.trim() === "") break
-
-                    const traineeName = traineeNameRaw.trim()
-                    const amount = cellNum(row, "C")
-                    const method = cellStr(row, "D")
-                    const notes = cellStr(row, "E")
-
-                    if (amount === 0) continue
-
-                    newPayments.push({
-                        studentName: traineeName,
-                        amount,
-                        paymentDate: cellDate(row, "A") || new Date(),
-                        paymentType: method.toUpperCase().replace(/\s+/g, "_"),
-                        notes: notes || `Importado desde ${sheetTesoreria.name}`,
-                        sourceSheet: sheetTesoreria.name,
-                        rowNumber: i
-                    })
                 }
             }
 
             return NextResponse.json({
-                ignoredRows,
-                skippedRowsCount: ignoredRows.length,
                 studentsStats: { new: newUsers.length, updated: validData.studentsToUpdate.length },
                 supervisorsStats: { new: newSupervisors.length, updated: supervisorUpdates.length },
                 financialStats: { clean: newFinancialPeriods.length, conflicts: conflicts.length },
-                transactionStats: { new: newPayments.length },
-                newUsers,
-                newSupervisors,
-                supervisorUpdates,
-                conflicts,
-                newFinancialPeriods,
-                newPayments,
-                validData,
-                mergedRecords,
-                headlessUsers
+                newUsers, newSupervisors, newOffices, supervisorUpdates, conflicts, newFinancialPeriods, validData, headlessUsers, ignoredRows: []
             })
 
         // ══════════════════════════════════════════
@@ -450,158 +246,123 @@ export async function POST(request: Request) {
         // ══════════════════════════════════════════
         } else if (contentType.includes("application/json")) {
             const body = await request.json()
-            const { newUsers, newSupervisors, supervisorUpdates, resolutions, conflicts, newFinancialPeriods, validData } = body
+            const { newUsers, newSupervisors, newOffices, supervisorUpdates, resolutions, conflicts, newFinancialPeriods, validData } = body
             const batchString = `IMP_${new Date().toISOString().replace(/[:.]/g, "").slice(0, 15)}`
 
             await prisma.$transaction(async (tx) => {
                 const batch = await (tx as any).importBatch.create({ data: { batchString, status: "COMPLETED" } })
-                const supervisorMap = new Map<string, string>() 
-                const studentMap = new Map<string, string>() 
+                const supervisorMap = new Map<string, string>()
+                const studentMap = new Map<string, string>()
 
+                // 1. COMMIT OFFICES
+                for (const off of (newOffices ?? [])) {
+                    const hash = await bcrypt.hash(off.password || "Aba12345*", 10)
+                    const user = await tx.user.create({
+                        data: {
+                            email: off.email, passwordHash: hash, role: "OFFICE", isActive: true,
+                            office: { create: { fullName: off.fullName, email: off.email, importBatchId: batch.id } }
+                        }
+                    })
+                    await (tx as any).importLog.create({ 
+                        data: { batchId: batch.id, tableName: "User", recordId: user.id, action: "CREATE", oldData: {}, newData: { email: off.email, role: "OFFICE" } } 
+                    })
+                }
+
+                // 2. COMMIT SUPERVISORS (New & Updates)
                 for (const sup of (newSupervisors ?? [])) {
-                    const hash = await bcrypt.hash("Aba12345*", 10)
+                    const hash = await bcrypt.hash(sup.password || "Aba12345*", 10)
                     const user = await tx.user.create({
                         data: {
                             email: sup.email, passwordHash: hash, role: "SUPERVISOR", isActive: true,
-                            requiresWizard: true, isFirstLogin: true, inviteSent: false,
-                            supervisor: {
-                                create: {
-                                    fullName: sup.fullName, phone: "PENDING", address: "Imported", email: sup.email,
-                                    bacbId: sup.bacbId || "N/A", certificantNumber: sup.certificantNumber || "N/A",
-                                    status: (sup.status || "ACTIVE") as any, credentialType: (sup.credentialType || "BCBA") as any,
-                                    importBatchId: batch.id
-                                }
-                            }
+                            supervisor: { create: { fullName: sup.fullName, email: sup.email, bacbId: sup.bacbId || "N/A", credentialType: sup.credentialType, importBatchId: batch.id } }
                         },
                         include: { supervisor: true }
                     })
                     const s = (user as any).supervisor
                     if (s) supervisorMap.set(s.fullName.toLowerCase().trim(), s.id)
-                    await (tx as any).importLog.create({
-                        data: { batchId: batch.id, tableName: "User", recordId: user.id, action: "CREATE", oldData: {}, newData: { id: user.id, fullName: sup.fullName } }
+                    await (tx as any).importLog.create({ 
+                        data: { batchId: batch.id, tableName: "User", recordId: user.id, action: "CREATE", oldData: {}, newData: { email: sup.email } } 
                     })
                 }
 
                 for (const supUpd of (supervisorUpdates ?? [])) {
-                    const { id, ...fields } = supUpd
+                    const { id, rowNumber, sourceSheet, ...fields } = supUpd
                     const old = await tx.supervisor.findUnique({ where: { id } })
-
-                    // Fail-safe: Normalize paymentPercentage if present
-                    if (fields.paymentPercentage !== undefined) {
-                        fields.paymentPercentage = normalizeRate(Number(fields.paymentPercentage))
-                    }
-
                     await tx.supervisor.update({ where: { id }, data: { ...fields, importBatchId: batch.id } })
-                    await (tx as any).importLog.create({
-                        data: { batchId: batch.id, tableName: "Supervisor", recordId: id, action: "UPDATE", oldData: old, newData: fields }
+                    await (tx as any).importLog.create({ 
+                        data: { batchId: batch.id, tableName: "Supervisor", recordId: id, action: "UPDATE", oldData: old, newData: fields } 
                     })
                 }
 
+                // Populate supervisor map for students
                 const allSups = await tx.supervisor.findMany()
                 allSups.forEach(s => supervisorMap.set(s.fullName.toLowerCase().trim(), s.id))
 
-                for (const update of (validData?.studentsToUpdate ?? [])) {
-                    const { id, supervisorName, ...fields } = update
-                    const old = await tx.student.findUnique({ where: { id } })
-                    const supervisorId = supervisorName ? supervisorMap.get(supervisorName.toLowerCase().trim()) : undefined
-
-                    // Fail-safe: Normalize rates in fields if present
-                    if (fields.analystPaymentRate !== undefined) fields.analystPaymentRate = normalizeRate(Number(fields.analystPaymentRate))
-                    if (fields.officePaymentRate !== undefined) fields.officePaymentRate = normalizeRate(Number(fields.officePaymentRate))
-
-                    await tx.student.update({ where: { id }, data: { ...fields, supervisorId, importBatchId: batch.id } })
-                    await (tx as any).importLog.create({
-                        data: { batchId: batch.id, tableName: "Student", recordId: id, action: "UPDATE", oldData: old, newData: { ...fields, supervisorId } }
-                    })
-                }
-
-                const usedEmails = new Set<string>()
-                for (const newUser of (newUsers ?? [])) {
-                    const hash = await bcrypt.hash("Aba12345*", 10)
-                    let email = newUser.email?.trim().toLowerCase()
-                    if (!email || usedEmails.has(email)) {
-                        email = `${String(newUser.fullName || "user").toLowerCase().replace(/[^a-z0-9]/g, "").slice(0, 20)}_${Date.now()}@pending.import`
-                    }
-                    usedEmails.add(email)
-
+                // 3. COMMIT STUDENTS (New & Updates)
+                for (const nu of (newUsers ?? [])) {
+                    const hash = await bcrypt.hash(nu.password || "Aba12345*", 10)
                     const user = await tx.user.create({
                         data: {
-                            email, passwordHash: hash, role: "STUDENT", isActive: true,
-                            requiresWizard: true, isFirstLogin: true, inviteSent: false,
-                            student: {
-                                create: {
-                                    fullName: newUser.fullName, 
-                                    bacbId: newUser.bacbId ?? "", 
-                                    phone: newUser.phone ?? "", 
-                                    email,
-                                    startDate: newUser.startDate ? new Date(newUser.startDate) : new Date(),
-                                    endDate: newUser.endDate ? new Date(newUser.endDate) : new Date(new Date().setFullYear(new Date().getFullYear() + 1)),
-                                    credential: (newUser.credential || "NO_CREDENTIAL") as any,
-                                    level: (newUser.level || "BCBA") as any,
-                                    school: "Imported", 
-                                    city: "N/A", 
-                                    state: "FL", 
-                                    totalMonths: newUser.totalMonths ?? 0,
-                                    supervisionType: "REGULAR",
-                                    supervisionPercentage: 0.05,
-                                    hoursToDo: 130,
-                                    hoursToPay: 0,
-                                    amountToPay: 0,
-                                    hoursPerMonth: 130,
-                                    vcsSequence: newUser.fields?.vcsSequence ?? null, 
-                                    assignedOptionPlan: newUser.fields?.optionPlan ?? "PLAN MANUAL",
-                                    hoursTargetReg: newUser.fields?.hoursTargetReg ?? null, 
-                                    hoursTargetConc: newUser.fields?.hoursTargetConc ?? null,
-                                    independentHoursTarget: newUser.fields?.independentHoursTarget ?? null, 
-                                    totalAmountContract: newUser.fields?.totalAmountContract ?? null,
-                                    analystPaymentRate: newUser.fields?.analystPaymentRate !== null ? normalizeRate(Number(newUser.fields?.analystPaymentRate)) : null, 
-                                    officePaymentRate: newUser.fields?.officePaymentRate !== null ? normalizeRate(Number(newUser.fields?.officePaymentRate)) : null,
-                                    supervisorId: newUser.supervisorName ? supervisorMap.get(newUser.supervisorName.toLowerCase().trim()) : null,
-                                    importBatchId: batch.id
-                                }
-                            }
+                            email: nu.email, passwordHash: hash, role: "STUDENT", isActive: true,
+                            student: { create: { 
+                                fullName: nu.fullName, email: nu.email, bacbId: nu.bacbId || "", 
+                                startDate: nu.fields.startDate ? new Date(nu.fields.startDate) : new Date(),
+                                endDate: nu.fields.endDate ? new Date(nu.fields.endDate) : new Date(),
+                                hoursPerMonth: nu.fields.hoursPerMonth, hoursToDo: nu.fields.hoursToDo,
+                                credential: nu.fields.credential, phone: nu.fields.phone, status: nu.fields.status,
+                                vcsSequence: nu.fields.vcsSequence, assignedOptionPlan: nu.fields.assignedOptionPlan,
+                                hoursTargetReg: nu.fields.hoursTargetReg, hoursTargetConc: nu.fields.hoursTargetConc,
+                                independentHoursTarget: nu.fields.independentHoursTarget, totalAmountContract: nu.fields.totalAmountContract,
+                                analystPaymentRate: nu.fields.analystPaymentRate, officePaymentRate: nu.fields.officePaymentRate,
+                                supervisorId: nu.supervisorName ? supervisorMap.get(nu.supervisorName.toLowerCase().trim()) : null,
+                                importBatchId: batch.id
+                            } }
                         },
                         include: { student: true }
                     })
                     const s = (user as any).student
                     if (s) studentMap.set(s.fullName.toLowerCase().trim(), s.id)
-                    await (tx as any).importLog.create({
-                        data: { batchId: batch.id, tableName: "User", recordId: user.id, action: "CREATE", oldData: {}, newData: { id: user.id, email } }
+                    await (tx as any).importLog.create({ 
+                        data: { batchId: batch.id, tableName: "User", recordId: user.id, action: "CREATE", oldData: {}, newData: { email: nu.email } } 
                     })
                 }
 
-                const allStuds = await tx.student.findMany()
-                allStuds.forEach(s => studentMap.set(s.fullName.toLowerCase().trim(), s.id))
+                for (const upd of (validData?.studentsToUpdate ?? [])) {
+                    const { id, supervisorName, rowNumber, sourceSheet, ...fields } = upd
+                    const old = await tx.student.findUnique({ where: { id } })
+                    const supervisorId = supervisorName ? supervisorMap.get(supervisorName.toLowerCase().trim()) : undefined
+                    await tx.student.update({ where: { id }, data: { ...fields, supervisorId, importBatchId: batch.id } })
+                    await (tx as any).importLog.create({ 
+                        data: { batchId: batch.id, tableName: "Student", recordId: id, action: "UPDATE", oldData: old, newData: { ...fields, supervisorId } } 
+                    })
+                }
 
+                // 4. COMMIT FINANCIALS
                 for (const conflict of (conflicts ?? [])) {
                     const res = resolutions?.[conflict.id]
                     if (res === "ignore" || !res) continue
                     const old = await tx.financialPeriod.findUnique({ where: { id: conflict.periodId } })
                     if (!old) continue
                     const amount = res === "sum" ? Number(old.amountDueOffice) + Number(conflict.excelAmount) : Number(conflict.excelAmount)
-                    await (tx as any).importLog.create({
-                        data: { batchId: batch.id, tableName: "FinancialPeriod", recordId: conflict.periodId, action: "UPDATE", oldData: old, newData: { ...old, amountDueOffice: amount } }
-                    })
                     await tx.financialPeriod.update({ where: { id: conflict.periodId }, data: { amountDueOffice: amount, importBatchId: batch.id } })
+                    await (tx as any).importLog.create({ 
+                        data: { batchId: batch.id, tableName: "FinancialPeriod", recordId: conflict.periodId, action: "UPDATE", oldData: old, newData: { amountDueOffice: amount } } 
+                    })
                 }
 
                 for (const fp of (newFinancialPeriods ?? [])) {
                     const studentId = fp.studentId || studentMap.get(fp.studentName?.toLowerCase().trim())
                     if (!studentId) continue
-
-                    // Clean data: exclude non-Prisma fields like studentName, sourceSheet, etc.
-                    const { studentName, sourceSheet, rowNumber, ...cleanFp } = fp
-
                     const created = await (tx as any).financialPeriod.upsert({
-                        where: { studentId_periodNumber: { studentId, periodNumber: cleanFp.periodNumber } },
-                        update: { amountDueOffice: cleanFp.amountDueOffice, importBatchId: batch.id },
-                        create: { ...cleanFp, studentId, importBatchId: batch.id }
+                        where: { studentId_periodNumber: { studentId, periodNumber: fp.periodNumber } },
+                        update: { amountDueOffice: fp.amountDueOffice, importBatchId: batch.id },
+                        create: { studentId, periodNumber: fp.periodNumber, amountDueOffice: fp.amountDueOffice, importBatchId: batch.id, monthYearLabel: `Periodo ${fp.periodNumber}` }
                     })
-                    await (tx as any).importLog.create({
-                        data: { batchId: batch.id, tableName: "FinancialPeriod", recordId: created.id, action: "CREATE", oldData: {}, newData: created }
+                    await (tx as any).importLog.create({ 
+                        data: { batchId: batch.id, tableName: "FinancialPeriod", recordId: created.id, action: "CREATE", oldData: {}, newData: created } 
                     })
                 }
-            }, { maxWait: 20000, timeout: 180000 })
+            }, { timeout: 180000 })
             return NextResponse.json({ success: true })
         }
         return NextResponse.json({ error: "Invalid content type" }, { status: 400 })
