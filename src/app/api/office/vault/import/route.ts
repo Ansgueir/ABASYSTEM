@@ -86,7 +86,7 @@ export async function POST(request: Request) {
             const existingSupervisors = await prisma.supervisor.findMany({ 
                 include: { user: true } 
             })
-            const existingOffices = await prisma.office.findMany({ 
+            const existingOffices = await (prisma as any).office.findMany({ 
                 include: { user: true } 
             })
             const existingEmails = new Set(
