@@ -83,13 +83,13 @@ export async function POST(request: Request) {
 
             workbook.eachSheet((sheet) => {
                 const name = sheet.name.toUpperCase().trim()
-                if (name === "STUDENTS" || name === "STUDENT" || name === "SUPERVISADOS") sheetStudents = sheet
-                if (name === "SUPERVISORS" || name === "SUPERVISOR" || name === "PARAMETROS") sheetSupervisors = sheet
-                if (name === "OFFICES" || name === "OFFICE") sheetOffices = sheet
-                if (name === "FINANCIALS" || name === "FINANCIAL" || name === "COBROS") sheetFinancial = sheet
-                if (name === "STUDENTPAYMENT") sheetStudentPayments = sheet
-                if (name === "SUPERVISORPAYMENT") sheetSupervisorPayments = sheet
-                if (name === "INVOICE") sheetInvoices = sheet
+                if (name.includes("STUDENT") && !name.includes("PAYMENT")) sheetStudents = sheet
+                if (name.includes("SUPERVISOR") && !name.includes("PAYMENT") && !name.includes("LEDGER") && !name.includes("PAYOUT")) sheetSupervisors = sheet
+                if (name.includes("OFFICE")) sheetOffices = sheet
+                if (name.includes("FINANCIAL") || name.includes("COBROS")) sheetFinancial = sheet
+                if (name.includes("STUDENTPAYMENT")) sheetStudentPayments = sheet
+                if (name.includes("SUPERVISORPAYMENT")) sheetSupervisorPayments = sheet
+                if (name.includes("INVOICE")) sheetInvoices = sheet
             })
 
             if (!sheetStudents || !sheetSupervisors) {
@@ -276,11 +276,11 @@ export async function POST(request: Request) {
             if (sheetStudentPayments) {
                 for (let i = 2; i <= sheetStudentPayments.rowCount; i++) {
                     const row = sheetStudentPayments.getRow(i)
-                    const studentName = cellStr(row, "B")
-                    if (!studentName) continue
+                    const target = cellStr(row, "B") // Can be Name or ID
+                    if (!target) continue
                     newRawPayments.push({ 
                         type: "STUDENT_PAYMENT", 
-                        targetName: studentName, 
+                        target, 
                         date: cellDate(row, "C"),
                         amount: cellNum(row, "D"),
                         paymentType: cellStr(row, "E") || "ZELLE",
@@ -293,13 +293,13 @@ export async function POST(request: Request) {
             if (sheetSupervisorPayments) {
                 for (let i = 2; i <= sheetSupervisorPayments.rowCount; i++) {
                     const row = sheetSupervisorPayments.getRow(i)
-                    const supName = cellStr(row, "B")
-                    const studName = cellStr(row, "C")
-                    if (!supName) continue
+                    const supTarget = cellStr(row, "B")
+                    const studTarget = cellStr(row, "C")
+                    if (!supTarget) continue
                     newRawPayments.push({ 
                         type: "SUPERVISOR_PAYMENT", 
-                        supervisorName: supName,
-                        studentName: studName,
+                        supTarget,
+                        studTarget,
                         monthYear: cellDate(row, "D"),
                         amountDue: cellNum(row, "E"),
                         amountPaid: cellNum(row, "F"),
@@ -452,9 +452,27 @@ export async function POST(request: Request) {
                     })
                 }
 
+                // Helper to resolve IDs from mixed Name/ID targets
+                const findStudentId = (target: string) => {
+                    if (!target) return null
+                    const clean = target.toLowerCase().trim()
+                    // Try by ID directly first
+                    const byId = existingStudents.find(s => s.id === target || s.userId === target)
+                    if (byId) return byId.id
+                    // Try by Name
+                    return studentMap.get(clean) || null
+                }
+                const findSupervisorId = (target: string) => {
+                    if (!target) return null
+                    const clean = target.toLowerCase().trim()
+                    const byId = allSups.find(s => s.id === target || s.userId === target)
+                    if (byId) return byId.id
+                    return supervisorMap.get(clean) || null
+                }
+
                 for (const rp of (newRawPayments ?? [])) {
                     if (rp.type === "STUDENT_PAYMENT") {
-                        const studentId = studentMap.get(rp.targetName?.toLowerCase().trim())
+                        const studentId = findStudentId(rp.target)
                         if (!studentId) continue
                         await (tx as any).studentPayment.create({
                             data: {
@@ -467,8 +485,8 @@ export async function POST(request: Request) {
                             }
                         })
                     } else if (rp.type === "SUPERVISOR_PAYMENT") {
-                        const supervisorId = supervisorMap.get(rp.supervisorName?.toLowerCase().trim())
-                        const studentId = studentMap.get(rp.studentName?.toLowerCase().trim())
+                        const supervisorId = findSupervisorId(rp.supTarget)
+                        const studentId = findStudentId(rp.studTarget)
                         if (!supervisorId || !studentId) continue
                         await (tx as any).supervisorPayment.create({
                             data: {
