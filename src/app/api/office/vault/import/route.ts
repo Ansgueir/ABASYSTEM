@@ -44,7 +44,7 @@ function mapHeaders(sheet: ExcelJS.Worksheet): Record<string, number> {
     const headerRow = sheet.getRow(1)
     const mapping: Record<string, number> = {}
     headerRow.eachCell((cell, colNumber) => {
-        const val = String(cell.value || "").toLowerCase().trim().replace(/_/g, "")
+        const val = String(cell.value || "").toLowerCase().trim().replace(/[^a-z0-9]/g, "")
         mapping[val] = colNumber
     })
     return mapping
@@ -102,7 +102,7 @@ export async function POST(request: Request) {
 
             workbook.eachSheet((sheet) => {
                 const name = sheet.name.toUpperCase().trim()
-                if (name.includes("STUDENT") && !name.includes("PAYMENT") && !name.includes("SUPERVISOR") && !name.includes("GROUP")) sheetStudents = sheet
+                if ((name.includes("STUDENT") || name.includes("SUPERVISADO")) && !name.includes("PAYMENT") && !name.includes("SUPERVISOR") && !name.includes("GROUP")) sheetStudents = sheet
                 if (name.includes("SUPERVISOR") && !name.includes("PAYMENT") && !name.includes("LEDGER") && !name.includes("PAYOUT") && !name.includes("STUDENT") && !name.includes("GROUP")) sheetSupervisors = sheet
                 if (name.includes("OFFICE") && !name.includes("GROUP")) sheetOffices = sheet
                 if (name.includes("FINANCIAL") || name.includes("COBROS")) sheetFinancial = sheet
