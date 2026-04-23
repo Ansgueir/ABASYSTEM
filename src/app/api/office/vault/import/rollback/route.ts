@@ -24,20 +24,24 @@ export async function POST(request: Request) {
 
         await prisma.$transaction(async (tx) => {
             // 1. Find users to delete (linked via Student or Supervisor to this batch)
-            const studentsToDel = await tx.student.findMany({ where: { importBatchId: batchId }, select: { userId: true } })
-            const supervisorsToDel = await tx.supervisor.findMany({ where: { importBatchId: batchId }, select: { userId: true } })
+            const studentsToDel = await tx.student.findMany({ where: { importBatchId: batchId }, select: { id: true, userId: true } })
+            const supervisorsToDel = await tx.supervisor.findMany({ where: { importBatchId: batchId }, select: { id: true, userId: true } })
             
             const userIds = [
                 ...studentsToDel.map(s => s.userId),
                 ...supervisorsToDel.map(s => s.userId)
             ]
 
-            // 2. Delete dependent records (some have CASCADE, but let's be safe)
-            await (tx as any).independentHour.deleteMany({ where: { importBatchId: batchId } })
+            // 2. Delete dependent records (using studentId for those without importBatchId)
+            const sIds = studentsToDel.map(s => s.id)
+            if (sIds.length > 0) {
+                await (tx as any).independentHour.deleteMany({ where: { studentId: { in: sIds } } })
+                await (tx as any).contract.deleteMany({ where: { studentId: { in: sIds } } })
+            }
+            
             await (tx as any).financialPeriod.deleteMany({ where: { importBatchId: batchId } })
             await (tx as any).studentPayment.deleteMany({ where: { importBatchId: batchId } })
             await (tx as any).supervisorPayment.deleteMany({ where: { importBatchId: batchId } })
-            await (tx as any).contract.deleteMany({ where: { importBatchId: batchId } })
             await (tx as any).supervisorLedgerEntry.deleteMany({ where: { importBatchId: batchId } })
             await (tx as any).invoice.deleteMany({ where: { importBatchId: batchId } })
             // 3. Delete Student/Supervisor profiles
