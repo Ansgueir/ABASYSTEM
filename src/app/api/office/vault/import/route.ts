@@ -347,16 +347,26 @@ export async function POST(request: Request) {
             console.log(`[IMPORT] Starting bulk commit for batch ${batchString}`)
             console.time("bulk_import_total")
 
-            // PRE-CALCULATE DATA (IDs and Hashes) IN PARALLEL for maximum speed
+            // PRE-CALCULATE DATA (IDs and Hashes) WITH CONCURRENCY LIMIT (Avoid CPU saturation)
             console.time("hashing_phase")
-            const [prepSupervisors, prepStudents] = await Promise.all([
-                Promise.all(newSupervisors.map(async (s: any) => ({ 
-                    ...s, userId: crypto.randomUUID(), passwordHash: await bcrypt.hash(s.password, 10) 
-                }))),
-                Promise.all(newUsers.map(async (u: any) => ({ 
-                    ...u, userId: crypto.randomUUID(), passwordHash: await bcrypt.hash(u.password, 10) 
-                })))
-            ])
+            const BATCH_SIZE = 50
+            const allToHash = [
+                ...newSupervisors.map((s: any) => ({ type: 'supervisor', original: s })),
+                ...newUsers.map((u: any) => ({ type: 'student', original: u }))
+            ]
+            
+            const hashedResults: any[] = []
+            for (let i = 0; i < allToHash.length; i += BATCH_SIZE) {
+                const chunk = allToHash.slice(i, i + BATCH_SIZE)
+                const processedChunk = await Promise.all(chunk.map(async (item) => {
+                    const hash = await bcrypt.hash(item.original.password, 10)
+                    return { ...item.original, userId: crypto.randomUUID(), passwordHash: hash, _type: item.type }
+                }))
+                hashedResults.push(...processedChunk)
+            }
+            
+            const prepSupervisors = hashedResults.filter(r => r._type === 'supervisor')
+            const prepStudents = hashedResults.filter(r => r._type === 'student')
             console.timeEnd("hashing_phase")
 
             const result = await prisma.$transaction(async (tx) => {
