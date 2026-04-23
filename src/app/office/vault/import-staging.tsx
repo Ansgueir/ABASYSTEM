@@ -149,8 +149,8 @@ export function ImportStaging() {
         for (const c of stagingResult.conflicts) {
             rows.push(["FINANCIAL_CONFLICT", c.sourceSheet || "Cobros", String(c.rowNumber), c.studentName, `DB: $${c.dbAmount} | Excel: $${c.excelAmount}`])
         }
-        if (stagingResult.newPayments) {
-            for (const p of stagingResult.newPayments) {
+        if (stagingResult.newRawPayments) {
+            for (const p of stagingResult.newRawPayments) {
                 rows.push(["RAW_PAYMENT", p.sourceSheet, String(p.rowNumber), p.studentName, `Amount: $${p.amount} | Method: ${p.paymentType}`])
             }
         }
