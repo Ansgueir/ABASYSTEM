@@ -207,6 +207,12 @@ export async function POST(request: Request) {
                 }
                 
                 const password = cellStr(row, spm.password || 4) || "Aba12345*"
+                
+                const isCollision = existingEmails.has(email) || claimedEmailsInBatch.has(email)
+                if (isCollision) {
+                    headlessUsers.push({ name, email, rowNumber: i, sourceSheet: "SUPERVISORS", collisionType: "EMAIL_IN_DB" })
+                }
+
                 // Always include in analysis for visibility
                 claimedEmailsInBatch.set(email, { rowNumber: i, sheetName: "SUPERVISORS" })
                 newSupervisors.push({ 
@@ -230,6 +236,11 @@ export async function POST(request: Request) {
                 
                 const password = cellStr(row, stm.password || 4) || "Aba12345*"
                 
+                const isCollision = existingEmails.has(email) || claimedEmailsInBatch.has(email)
+                if (isCollision) {
+                    headlessUsers.push({ name, email, rowNumber: i, sourceSheet: "STUDENTS", collisionType: "EMAIL_IN_DB" })
+                }
+
                 // Always include in analysis to give the user visibility
                 claimedEmailsInBatch.set(email, { rowNumber: i, sheetName: "STUDENTS" })
                 newUsers.push({ 
