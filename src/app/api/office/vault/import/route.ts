@@ -186,7 +186,14 @@ export async function POST(request: Request) {
                 
                 if (!existingEmails.has(email) && !claimedEmailsInBatch.has(email)) {
                     claimedEmailsInBatch.set(email, { rowNumber: i, sheetName: "SUPERVISORS" })
-                    newSupervisors.push({ fullName: name, email, password, rowNumber: i, credentialType: normalizeCredentialType(cellStr(row, spm.credentialtype || 6) || "BCBA") })
+                    newSupervisors.push({ 
+                        fullName: name, email, password, rowNumber: i, 
+                        credentialType: normalizeCredentialType(cellStr(row, spm.credentialtype || 6) || "BCBA"),
+                        phone: cellStr(row, spm.phone || 9) || "000-000-0000",
+                        address: cellStr(row, spm.address || 10) || "N/A",
+                        bacbId: cellStr(row, spm.bacbid || 5) || "N/A",
+                        certificantNumber: cellStr(row, spm.certificantnumber || 6) || "N/A"
+                    })
                 } else {
                     headlessUsers.push({ name, email, rowNumber: i, sourceSheet: "SUPERVISORS", collisionType: "EMAIL_IN_DB" })
                 }
@@ -322,7 +329,18 @@ export async function POST(request: Request) {
                     const user = await tx.user.create({
                         data: {
                             email: sup.email, passwordHash: hash, role: "SUPERVISOR", isActive: true,
-                            supervisor: { create: { fullName: sup.fullName, email: sup.email, credentialType: sup.credentialType, importBatchId: batch.id } }
+                            supervisor: { 
+                                create: { 
+                                    fullName: sup.fullName, 
+                                    email: sup.email, 
+                                    credentialType: sup.credentialType, 
+                                    importBatchId: batch.id,
+                                    phone: sup.phone || "000-000-0000",
+                                    address: sup.address || "N/A",
+                                    bacbId: sup.bacbId || "N/A",
+                                    certificantNumber: sup.certificantNumber || "N/A"
+                                } 
+                            }
                         } as any,
                         include: { supervisor: true } as any
                     })
@@ -339,12 +357,29 @@ export async function POST(request: Request) {
                         data: {
                             email: nu.email, passwordHash: hash, role: "STUDENT", isActive: true,
                             student: { create: { 
-                                fullName: nu.fullName, email: nu.email, 
+                                fullName: nu.fullName, 
+                                email: nu.email, 
                                 startDate: nu.fields.startDate ? new Date(nu.fields.startDate) : new Date(),
                                 endDate: nu.fields.endDate ? new Date(nu.fields.endDate) : new Date(),
-                                status: nu.fields.status,
-                                supervisorId: nu.supervisorName ? supMap.get(nu.supervisorName.toLowerCase()) : null,
-                                importBatchId: batch.id
+                                status: nu.fields.status || "ACTIVE",
+                                supervisorId: nu.fields.supervisorName ? supMap.get(nu.fields.supervisorName.toLowerCase()) : null,
+                                importBatchId: batch.id,
+                                phone: nu.fields.phone || "000-000-0000",
+                                bacbId: "N/A",
+                                credential: "BCBA",
+                                school: "N/A",
+                                level: "BCBA",
+                                city: "N/A",
+                                state: "N/A",
+                                supervisionType: "REGULAR",
+                                fieldworkType: "REGULAR",
+                                supervisionPercentage: 0.05,
+                                hoursToDo: nu.fields.hoursTargetReg || 1500,
+                                hoursToPay: 0,
+                                amountToPay: nu.fields.totalAmountContract || 0,
+                                hourlyRate: 0,
+                                hoursPerMonth: 130,
+                                totalMonths: 12
                             } }
                         } as any,
                         include: { student: true } as any
