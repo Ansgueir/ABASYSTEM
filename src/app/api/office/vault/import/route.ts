@@ -364,35 +364,37 @@ export async function POST(request: Request) {
                     const hash = await bcrypt.hash(nu.password, 10)
                     const user = await tx.user.create({
                         data: {
-                            email: nu.email, passwordHash: hash, role: "STUDENT", isActive: true,
-                            student: { create: { 
-                                fullName: nu.fullName, 
-                                email: nu.email, 
-                            student: { create: { 
-                                fullName: nu.fullName, 
-                                email: nu.email, 
-                                startDate: safeDate(nu.fields.startDate),
-                                endDate: safeDate(nu.fields.endDate),
-                                status: nu.fields.status || "ACTIVE",
-                                supervisorId: nu.fields.supervisorName ? supMap.get(nu.fields.supervisorName.toLowerCase()) : null,
-                                importBatchId: batch.id,
-                                phone: nu.fields.phone || "000-000-0000",
-                                bacbId: "N/A",
-                                credential: "BCBA",
-                                school: "N/A",
-                                level: "BCBA",
-                                city: "N/A",
-                                state: "N/A",
-                                supervisionType: "REGULAR",
-                                fieldworkType: "REGULAR",
-                                supervisionPercentage: 0.05,
-                                hoursToDo: nu.fields.hoursTargetReg || 1500,
-                                hoursToPay: 0,
-                                amountToPay: nu.fields.totalAmountContract || 0,
-                                hourlyRate: 0,
-                                hoursPerMonth: 130,
-                                totalMonths: 12
-                            } }
+                            email: nu.email,
+                            passwordHash: hash,
+                            role: "STUDENT",
+                            isActive: true,
+                            student: {
+                                create: { 
+                                    fullName: nu.fullName, 
+                                    email: nu.email, 
+                                    startDate: safeDate(nu.fields.startDate),
+                                    endDate: safeDate(nu.fields.endDate),
+                                    status: nu.fields.status || "ACTIVE",
+                                    supervisorId: nu.fields.supervisorName ? supMap.get(nu.fields.supervisorName.toLowerCase()) : null,
+                                    importBatchId: batch.id,
+                                    phone: nu.fields.phone || "000-000-0000",
+                                    bacbId: "N/A",
+                                    credential: "BCBA",
+                                    school: "N/A",
+                                    level: "BCBA",
+                                    city: "N/A",
+                                    state: "N/A",
+                                    supervisionType: "REGULAR",
+                                    fieldworkType: "REGULAR",
+                                    supervisionPercentage: 0.05,
+                                    hoursToDo: nu.fields.hoursTargetReg || 1500,
+                                    hoursToPay: 0,
+                                    amountToPay: nu.fields.totalAmountContract || 0,
+                                    hourlyRate: 0,
+                                    hoursPerMonth: 130,
+                                    totalMonths: 12
+                                }
+                            }
                         } as any,
                         include: { student: true } as any
                     })
