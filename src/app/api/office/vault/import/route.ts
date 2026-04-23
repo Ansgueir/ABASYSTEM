@@ -364,7 +364,7 @@ export async function POST(request: Request) {
                 const supervisorsToCreate = prepSupervisors.map(s => ({
                     userId: s.userId, fullName: s.fullName, email: s.email, credentialType: s.credentialType, importBatchId: batch.id,
                     phone: s.phone || "000-000-0000", address: s.address || "N/A", bacbId: s.bacbId || "N/A", certificantNumber: s.certificantNumber || "N/A"
-                }))
+                } as any))
                 if (supervisorsToCreate.length > 0) await tx.supervisor.createMany({ data: supervisorsToCreate })
 
                 // Re-populate supMap for student linking
@@ -382,7 +382,7 @@ export async function POST(request: Request) {
                     supervisionType: "REGULAR", fieldworkType: "REGULAR", supervisionPercentage: 0.05,
                     hoursToDo: nu.fields.hoursTargetReg || 1500, hoursToPay: 0,
                     amountToPay: nu.fields.totalAmountContract || 0, hourlyRate: 0, hoursPerMonth: 130, totalMonths: 12
-                }))
+                } as any))
                 if (studentsToCreate.length > 0) await tx.student.createMany({ data: studentsToCreate })
 
                 // Re-populate studMap for financial records
