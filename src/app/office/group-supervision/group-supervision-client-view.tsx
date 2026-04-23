@@ -294,6 +294,7 @@ export function GroupSupervisionClientView({ officeGroups, actualSessions, super
                             <TimesheetCalendar
                                 hours={filteredEvents}
                                 role="office"
+                                forceFilter="GROUP"
                                 onEventClick={(session) => setSelectedSession(session)}
                             />
                         </div>

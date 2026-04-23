@@ -33,10 +33,11 @@ interface TimesheetCalendarProps {
     hours: any[]
     onEventClick?: (hour: any) => void
     role: 'student' | 'supervisor' | 'office'
+    forceFilter?: 'ALL' | 'INDEPENDENT' | 'SUPERVISION' | 'GROUP'
 }
 
-export function TimesheetCalendar({ hours, onEventClick, role }: TimesheetCalendarProps) {
-    const [filter, setFilter] = useState<'ALL' | 'INDEPENDENT' | 'SUPERVISION' | 'GROUP'>('ALL');
+export function TimesheetCalendar({ hours, onEventClick, role, forceFilter }: TimesheetCalendarProps) {
+    const [filter, setFilter] = useState<'ALL' | 'INDEPENDENT' | 'SUPERVISION' | 'GROUP'>(forceFilter || 'ALL');
 
     const filteredHours = useMemo(() => {
         if (filter === 'ALL') return hours;
@@ -142,19 +143,21 @@ export function TimesheetCalendar({ hours, onEventClick, role }: TimesheetCalend
 
     return (
         <div className="min-h-[800px] w-full flex flex-col relative z-0 gap-4">
-            <div className="flex justify-start mb-2">
-                <Select value={filter} onValueChange={(val: any) => setFilter(val)}>
-                    <SelectTrigger className="w-[220px] bg-background border-border h-10 font-medium rounded-xl">
-                        <SelectValue placeholder="All Activities" />
-                    </SelectTrigger>
-                    <SelectContent>
-                        <SelectItem value="ALL">All Activities</SelectItem>
-                        <SelectItem value="INDEPENDENT">Independent Hours</SelectItem>
-                        <SelectItem value="SUPERVISION">Supervised Hours</SelectItem>
-                        <SelectItem value="GROUP">Group Sessions</SelectItem>
-                    </SelectContent>
-                </Select>
-            </div>
+            {!forceFilter && (
+                <div className="flex justify-start mb-2">
+                    <Select value={filter} onValueChange={(val: any) => setFilter(val)}>
+                        <SelectTrigger className="w-[220px] bg-background border-border h-10 font-medium rounded-xl">
+                            <SelectValue placeholder="All Activities" />
+                        </SelectTrigger>
+                        <SelectContent>
+                            <SelectItem value="ALL">All Activities</SelectItem>
+                            <SelectItem value="INDEPENDENT">Independent Hours</SelectItem>
+                            <SelectItem value="SUPERVISION">Supervised Hours</SelectItem>
+                            <SelectItem value="GROUP">Group Sessions</SelectItem>
+                        </SelectContent>
+                    </Select>
+                </div>
+            )}
 
             <div className="flex-1">
             <Calendar
