@@ -481,8 +481,13 @@ export async function POST(request: Request) {
                 const combinedPayments = [...(newPayments || []), ...(newRawPayments || [])]
                 console.log(`[IMPORT] Processing ${combinedPayments.length} financial records. Combined keys: newPayments=${(newPayments || []).length}, newRawPayments=${(newRawPayments || []).length}`)
 
+                // DIAGNOSTIC: Print sample of map keys
+                const sampleKeys = Array.from(studMap.keys()).slice(0, 10)
+                console.log(`[IMPORT] Sample Student Map Keys (Normalized): ${JSON.stringify(sampleKeys)}`)
+
                 let linkedCount = 0
                 let orphanedCount = 0
+                const orphanedSamples: string[] = []
 
                 for (const rp of combinedPayments) {
                     const rawName = cellStrFromObj(rp.studentName || rp.studentname || rp.studentid || rp.alumno)
@@ -491,6 +496,7 @@ export async function POST(request: Request) {
                     
                     if (!sid && rawName) {
                         orphanedCount++
+                        if (orphanedSamples.length < 10) orphanedSamples.push(rawName)
                         continue
                     }
                     
@@ -541,6 +547,7 @@ export async function POST(request: Request) {
                 }
 
                 console.log(`[IMPORT] Finance mapping results: Linked=${linkedCount}, Orphaned=${orphanedCount}`)
+                if (orphanedSamples.length > 0) console.log(`[IMPORT] Sample orphaned names: ${JSON.stringify(orphanedSamples)}`)
                 if (invoicesToCreate.length > 0) await tx.invoice.createMany({ data: invoicesToCreate })
                 if (paymentsToCreate.length > 0) await tx.studentPayment.createMany({ data: paymentsToCreate })
                 if (ledgerToCreate.length > 0) await tx.supervisorLedgerEntry.createMany({ data: ledgerToCreate })
