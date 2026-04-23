@@ -141,8 +141,10 @@ export async function POST(request: Request) {
             let sheetGroupStudents: ExcelJS.Worksheet | undefined
             let sheetGroupSessions: ExcelJS.Worksheet | undefined
 
+            console.log(`[STAGING] Analyzing workbook with ${workbook.worksheets.length} sheets`)
             workbook.eachSheet((sheet) => {
                 const name = sheet.name.toUpperCase().trim()
+                console.log(`[STAGING] Found sheet: ${name}`)
                 if ((name.includes("STUDENT") || name.includes("SUPERVISADO") || name.includes("ALUMNO") || name.includes("PRACTICANTE") || name.includes("TRAINEE")) && !name.includes("PAYMENT") && !name.includes("GROUP")) {
                     if (!sheetStudents) sheetStudents = sheet
                 }
@@ -162,6 +164,7 @@ export async function POST(request: Request) {
                 if (name.includes("GROUPSTUDENT")) sheetGroupStudents = sheet
                 if (name.includes("GROUPSUPERVISIONSESSION")) sheetGroupSessions = sheet
             })
+            console.log(`[STAGING] Main sheets: Students=${sheetStudents?.name}, Supervisors=${sheetSupervisors?.name}`)
 
             if (!sheetStudents || !sheetSupervisors) {
                 return NextResponse.json({ 
@@ -184,6 +187,7 @@ export async function POST(request: Request) {
             const newRawPayments: any[] = []
 
             const { mapping: spm, headerRowIndex: spHeaderIdx, emailCol: spEmailCol } = mapHeaders(sheetSupervisors)
+            console.log(`[STAGING] Supervisor Mapping:`, JSON.stringify(spm))
             for (let i = spHeaderIdx + 1; i <= sheetSupervisors.rowCount; i++) {
                 const row = sheetSupervisors.getRow(i)
                 const name = cellStr(row, spm.fullname || spm.nombrecompleto || spm.name || spm.nombre || spm.supervisor || spm.staff || spm.supervisorname || spm.staffname || 2)
@@ -216,6 +220,7 @@ export async function POST(request: Request) {
             }
 
             const { mapping: stm, headerRowIndex: stHeaderIdx, emailCol: stEmailCol } = mapHeaders(sheetStudents)
+            console.log(`[STAGING] Student Mapping:`, JSON.stringify(stm))
             for (let i = stHeaderIdx + 1; i <= sheetStudents.rowCount; i++) {
                 const row = sheetStudents.getRow(i)
                 const name = cellStr(row, stm.fullname || stm.name || stm.nombre || stm.nombrecompleto || stm.estudiante || stm.practicante || stm.trainee || stm.studentname || stm.student || 2)
