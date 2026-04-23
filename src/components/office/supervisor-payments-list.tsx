@@ -145,7 +145,7 @@ export function SupervisorPaymentsList({ supervisorSummary }: SupervisorPayments
                                 <div className="rounded-xl border border-border bg-slate-50/80 p-4 space-y-3">
                                     <p className="text-[10px] uppercase font-bold text-slate-500 tracking-wider">FINANCIAL RECONCILIATION</p>
                                     
-                                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                                    <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
                                         <div className="flex flex-col items-center justify-center bg-green-50 rounded-xl p-3 border border-green-100 text-center">
                                             <p className="text-[9px] uppercase text-green-700 font-bold tracking-wider">Cleared</p>
                                             <p className="text-lg font-black text-green-700 leading-tight">{fmtUSD(sup.totalPaid)}</p>
@@ -156,21 +156,6 @@ export function SupervisorPaymentsList({ supervisorSummary }: SupervisorPayments
                                             <p className="text-[9px] uppercase text-amber-700 font-bold tracking-wider">Pending</p>
                                             <p className="text-lg font-black text-amber-700 leading-tight">{fmtUSD(sup.totalPending)}</p>
                                             <p className="text-[9px] text-amber-600/70 mt-0.5 uppercase font-bold tracking-tight">accrued balance</p>
-                                        </div>
-                                        
-                                        <div className="flex flex-col items-center justify-center bg-indigo-50 rounded-xl p-3 border border-indigo-100 text-center">
-                                            <p className="text-[9px] uppercase text-indigo-700 font-bold tracking-wider">Last Payout</p>
-                                            {paidEntries.length > 0 ? (
-                                                <>
-                                                    <p className="text-lg font-black text-indigo-700 leading-tight">{fmtUSD(paidEntries[0].supervisorPayout)}</p>
-                                                    <p className="text-[9px] text-indigo-600/70 mt-0.5 uppercase font-bold tracking-tight">{fmtDate(paidEntries[0].paidAt)}</p>
-                                                </>
-                                            ) : (
-                                                <>
-                                                    <p className="text-lg font-black text-indigo-300 leading-tight">—</p>
-                                                    <p className="text-[9px] text-indigo-400 mt-0.5 uppercase font-bold tracking-tight">none yet</p>
-                                                </>
-                                            )}
                                         </div>
                                         
                                         <div className="flex flex-col items-center justify-center bg-slate-100 rounded-xl p-3 border border-slate-200 text-center">
