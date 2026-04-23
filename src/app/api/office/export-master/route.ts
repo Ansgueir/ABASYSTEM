@@ -93,7 +93,7 @@ export async function GET(request: Request) {
         sheetStudents.getRow(1).font = { bold: true, color: { argb: 'FFFFFFFF' } }
         sheetStudents.getRow(1).fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF4F46E5' } }
 
-        students.forEach(s => {
+        students.forEach((s: any) => {
             sheetStudents.addRow({
                 id: s.id,
                 name: s.fullName,
@@ -128,7 +128,7 @@ export async function GET(request: Request) {
         sheetSupervisors.getRow(1).font = { bold: true, color: { argb: 'FFFFFFFF' } }
         sheetSupervisors.getRow(1).fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF8B5CF6' } }
 
-        supervisors.forEach(sup => {
+        supervisors.forEach((sup: any) => {
             sheetSupervisors.addRow({
                 id: sup.id,
                 name: sup.fullName,
@@ -174,7 +174,7 @@ export async function GET(request: Request) {
         sheetPlans.getRow(1).font = { bold: true, color: { argb: 'FFFFFFFF' } }
         sheetPlans.getRow(1).fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF3B82F6' } }
 
-        plans.forEach(p => {
+        plans.forEach((p: any) => {
             const row = sheetPlans.addRow({
                 name: p.name,
                 cost: Number(p.totalCost || 0),
@@ -196,9 +196,7 @@ export async function GET(request: Request) {
             { header: 'SUPERVISORS', key: 'sups', width: 40 },
         ]
         sheetGroups.getRow(1).font = { bold: true, color: { argb: 'FFFFFFFF' } }
-        sheetGroups.getRow(1).fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFD97706' } }
-
-        groups.forEach(g => {
+        groups.forEach((g: any) => {
             sheetGroups.addRow({
                 name: g.name,
                 type: g.groupType,
@@ -249,7 +247,7 @@ export async function GET(request: Request) {
         sheetInv.getRow(1).font = { bold: true, color: { argb: 'FFFFFFFF' } }
         sheetInv.getRow(1).fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF7C3AED' } }
 
-        allInvoices.forEach(inv => {
+        allInvoices.forEach((inv: any) => {
             const row = sheetInv.addRow({
                 date: inv.invoiceDate ? format(new Date(inv.invoiceDate), 'yyyy-MM-dd') : "-",
                 student: inv.student.fullName,
