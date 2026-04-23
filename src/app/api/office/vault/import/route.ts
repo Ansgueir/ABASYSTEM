@@ -51,7 +51,7 @@ function cellDate(row: ExcelJS.Row, col: string | number): Date | null {
 
 function mapHeaders(sheet: ExcelJS.Worksheet): { mapping: Record<string, number>; headerRowIndex: number; emailCol?: number } {
     let emailCol: number | undefined
-    for (let r = 1; r <= 20; r++) {
+    for (let r = 1; r <= 50; r++) {
         const row = sheet.getRow(r)
         const mapping: Record<string, number> = {}
         let foundKeys = 0
@@ -143,17 +143,14 @@ export async function POST(request: Request) {
 
             workbook.eachSheet((sheet) => {
                 const name = sheet.name.toUpperCase().trim()
-                // Prioritize Students/Supervisados
                 if ((name.includes("STUDENT") || name.includes("SUPERVISADO") || name.includes("ALUMNO") || name.includes("PRACTICANTE") || name.includes("TRAINEE")) && !name.includes("PAYMENT") && !name.includes("GROUP")) {
                     if (!sheetStudents) sheetStudents = sheet
                 }
-                // Prioritize Supervisors/Parametros
-                if ((name.includes("SUPERVISOR") || name.includes("PARAMETRO") || name.includes("STAFF")) && !name.includes("PAYMENT") && !name.includes("LEDGER") && !name.includes("STUDENT") && !name.includes("SUPERVISADO")) {
+                if ((name.includes("SUPERVISOR") || name.includes("PARAMETRO") || name.includes("STAFF") || name.includes("DOCENTE")) && !name.includes("PAYMENT") && !name.includes("LEDGER") && !name.includes("STUDENT") && !name.includes("SUPERVISADO")) {
                     if (!sheetSupervisors) sheetSupervisors = sheet
                 }
-                
                 if (name.includes("OFFICE") && !name.includes("GROUP")) sheetOffices = sheet
-                if (name.includes("FINANCIAL") || name.includes("COBROS") || name.includes("CUENTAS")) sheetFinancial = sheet
+                if (name.includes("FINANCIAL") || name.includes("COBROS") || name.includes("CUENTAS") || name.includes("TESORERIA")) sheetFinancial = sheet
                 if (name.includes("STUDENTPAYMENT") || name.includes("PAGOSALUMNOS")) sheetStudentPayments = sheet
                 if (name.includes("SUPERVISORPAYMENT") || name.includes("PAGOSUPERVISOR")) sheetSupervisorPayments = sheet
                 if (name.includes("INVOICE") || name.includes("FACTURA")) sheetInvoices = sheet
