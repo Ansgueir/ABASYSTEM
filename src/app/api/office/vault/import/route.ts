@@ -189,7 +189,7 @@ export async function POST(request: Request) {
             const { mapping: spm, headerRowIndex: spHeaderIdx, emailCol: spEmailCol } = mapHeaders(sheetSupervisors)
             for (let i = spHeaderIdx + 1; i <= sheetSupervisors.rowCount; i++) {
                 const row = sheetSupervisors.getRow(i)
-                const name = cellStr(row, spm.fullname || spm.nombrecompleto || spm.name || spm.nombre || spm.supervisor || spm.staff || 2)
+                const name = cellStr(row, spm.fullname || spm.nombrecompleto || spm.name || spm.nombre || spm.supervisor || spm.staff || spm.supervisorname || spm.staffname || 2)
                 if (!name || name.length < 3) continue
                 
                 let email = (spEmailCol ? cellStr(row, spEmailCol) : cellStr(row, spm.email || spm.correo || spm.correoelectronico || 3)).toLowerCase().trim()
@@ -221,7 +221,7 @@ export async function POST(request: Request) {
             const { mapping: stm, headerRowIndex: stHeaderIdx, emailCol: stEmailCol } = mapHeaders(sheetStudents)
             for (let i = stHeaderIdx + 1; i <= sheetStudents.rowCount; i++) {
                 const row = sheetStudents.getRow(i)
-                const name = cellStr(row, stm.fullname || stm.name || stm.nombre || stm.nombrecompleto || stm.estudiante || stm.practicante || stm.trainee || 2)
+                const name = cellStr(row, stm.fullname || stm.name || stm.nombre || stm.nombrecompleto || stm.estudiante || stm.practicante || stm.trainee || stm.studentname || stm.student || 2)
                 if (!name) continue
                 const email = (stEmailCol ? cellStr(row, stEmailCol) : cellStr(row, stm.email || stm.correo || stm.correoelectronico || 3)).toLowerCase().trim()
                 
@@ -235,15 +235,15 @@ export async function POST(request: Request) {
                         fullName: name, email, password, rowNumber: i, 
                         sourceSheet: "STUDENTS",
                         fields: {
-                            supervisorName: cellStr(row, stm.supervisorname || stm.supervisor || stm.supervisorid || 11),
-                            phone: cellStr(row, stm.phone || 9),
-                            startDate: cellDate(row, stm.startdate || 15),
-                            endDate: cellDate(row, stm.enddate || 25),
-                            status: normalizeStudentStatus(cellStr(row, stm.status || 26) || "ACTIVE"),
-                            hoursTargetReg: cellNum(row, stm.hourstargetreg || stm.reghours || 0),
-                            hoursTargetConc: cellNum(row, stm.hourstargetconc || stm.conchours || 0),
+                            supervisorName: cellStr(row, stm.supervisorname || stm.supervisor || stm.supervisorid || stm.nombresupervisor || 11),
+                            phone: cellStr(row, stm.phone || stm.telefono || stm.celular || 9),
+                            startDate: cellDate(row, stm.startdate || stm.fechainicio || 15),
+                            endDate: cellDate(row, stm.enddate || stm.fechafin || 25),
+                            status: normalizeStudentStatus(cellStr(row, stm.status || stm.estado || 26) || "ACTIVE"),
+                            hoursTargetReg: cellNum(row, stm.hourstargetreg || stm.reghours || stm.horasdirectas || 0),
+                            hoursTargetConc: cellNum(row, stm.hourstargetconc || stm.conchours || stm.horasindirectas || 0),
                             independentHoursTarget: cellNum(row, stm.independenthourstarget || 0),
-                            totalAmountContract: cellNum(row, stm.totalamountcontract || stm.totalcharge || 0),
+                            totalAmountContract: cellNum(row, stm.totalamountcontract || stm.totalcharge || stm.montototal || 0),
                             analystPaymentRate: cellNum(row, stm.analystpaymentrate || 0),
                             officePaymentRate: cellNum(row, stm.officepaymentrate || 0)
                         }
