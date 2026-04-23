@@ -213,8 +213,8 @@ export async function POST(request: Request) {
 
             const parseGenericSheet = (sheet: ExcelJS.Worksheet | undefined, list: any[]) => {
                 if (!sheet) return
-                const m = mapHeaders(sheet)
-                for (let i = 2; i <= sheet.rowCount; i++) {
+                const { mapping: m, headerRowIndex: hIdx } = mapHeaders(sheet)
+                for (let i = hIdx + 1; i <= sheet.rowCount; i++) {
                     const row = sheet.getRow(i)
                     const data: any = { rowNumber: i, sourceSheet: sheet.name }
                     Object.keys(m).forEach(key => data[key] = row.getCell(m[key]).value)
