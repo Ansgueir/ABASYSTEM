@@ -354,7 +354,7 @@ export async function POST(request: Request) {
                 const invoiceMap = new Map<string, string>()
 
                 // 1. BULK USER CREATION
-                const usersToCreate = [
+                const usersToCreate: any[] = [
                     ...prepSupervisors.map(s => ({ id: s.userId, email: s.email, passwordHash: s.passwordHash, role: "SUPERVISOR", isActive: true })),
                     ...prepStudents.map(u => ({ id: u.userId, email: u.email, passwordHash: u.passwordHash, role: "STUDENT", isActive: true }))
                 ]
