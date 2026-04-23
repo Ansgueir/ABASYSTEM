@@ -113,7 +113,7 @@ export function ImportStaging() {
                 resolutions: stagingResult.resolutions,
                 conflicts: stagingResult.conflicts,
                 newFinancialPeriods: stagingResult.newFinancialPeriods,
-                newPayments: stagingResult.newPayments,
+                newPayments: stagingResult.newRawPayments,
                 validData: stagingResult.validData
             }
 
