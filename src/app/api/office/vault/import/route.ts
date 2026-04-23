@@ -40,14 +40,31 @@ function cellDate(row: ExcelJS.Row, col: string | number): Date | null {
     return isNaN(d.getTime()) ? null : d
 }
 
-function mapHeaders(sheet: ExcelJS.Worksheet): Record<string, number> {
-    const headerRow = sheet.getRow(1)
+function mapHeaders(sheet: ExcelJS.Worksheet): { mapping: Record<string, number>; headerRowIndex: number } {
+    for (let r = 1; r <= 20; r++) {
+        const row = sheet.getRow(r)
+        const mapping: Record<string, number> = {}
+        let foundKeys = 0
+        row.eachCell((cell, colNumber) => {
+            const val = String(cell.value || "").toLowerCase().trim().replace(/[^a-z0-9]/g, "")
+            if (val) {
+                mapping[val] = colNumber
+                // Keywords that indicate this is likely a header row
+                if (["name", "nombre", "email", "correo", "trainee", "student", "alumno", "monto", "amount"].some(k => val.includes(k))) {
+                    foundKeys++
+                }
+            }
+        })
+        // If we found at least 2 relevant keys, we assume this is the header row
+        if (foundKeys >= 2) return { mapping, headerRowIndex: r }
+    }
+    // Fallback to row 1 if nothing found
     const mapping: Record<string, number> = {}
-    headerRow.eachCell((cell, colNumber) => {
+    sheet.getRow(1).eachCell((cell, colNumber) => {
         const val = String(cell.value || "").toLowerCase().trim().replace(/[^a-z0-9]/g, "")
         mapping[val] = colNumber
     })
-    return mapping
+    return { mapping, headerRowIndex: 1 }
 }
 
 function normalizeCredentialType(val: string): string {
@@ -145,10 +162,10 @@ export async function POST(request: Request) {
             const headlessUsers: any[] = []
             const newRawPayments: any[] = []
 
-            const spm = mapHeaders(sheetSupervisors)
-            for (let i = 2; i <= sheetSupervisors.rowCount; i++) {
+            const { mapping: spm, headerRowIndex: spHeaderIdx } = mapHeaders(sheetSupervisors)
+            for (let i = spHeaderIdx + 1; i <= sheetSupervisors.rowCount; i++) {
                 const row = sheetSupervisors.getRow(i)
-                // Prioritize Name over ID
+                // Prioritize Name over ID/UUID
                 const name = cellStr(row, spm.fullname || spm.nombrecompleto || spm.name || spm.nombre || 2)
                 if (!name) continue
                 const email = cellStr(row, spm.email || spm.correo || spm.correoelectronico || 3).toLowerCase()
@@ -163,8 +180,8 @@ export async function POST(request: Request) {
                 }
             }
 
-            const stm = mapHeaders(sheetStudents)
-            for (let i = 2; i <= sheetStudents.rowCount; i++) {
+            const { mapping: stm, headerRowIndex: stHeaderIdx } = mapHeaders(sheetStudents)
+            for (let i = stHeaderIdx + 1; i <= sheetStudents.rowCount; i++) {
                 const row = sheetStudents.getRow(i)
                 const name = cellStr(row, stm.fullname || stm.name || stm.nombre || stm.nombrecompleto || stm.estudiante || stm.practicante || stm.trainee || 2)
                 if (!name) continue
@@ -212,8 +229,8 @@ export async function POST(request: Request) {
 
             const parseFinancialSheet = (sheet: ExcelJS.Worksheet | undefined, type: string) => {
                 if (!sheet) return
-                const m = mapHeaders(sheet)
-                for (let i = 2; i <= sheet.rowCount; i++) {
+                const { mapping: m, headerRowIndex: hIdx } = mapHeaders(sheet)
+                for (let i = hIdx + 1; i <= sheet.rowCount; i++) {
                     const row = sheet.getRow(i)
                     const data: any = { type, rowNumber: i, sourceSheet: sheet.name }
                     Object.keys(m).forEach(key => {
