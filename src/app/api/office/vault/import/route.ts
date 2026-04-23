@@ -470,30 +470,45 @@ export async function POST(request: Request) {
                 const paymentsToCreate: any[] = []
                 const ledgerToCreate: any[] = []
 
-                for (const rp of (newRawPayments || [])) {
-                    const sid = studMap.get(cellStrFromObj(rp.studentname || rp.studentid)?.toLowerCase())
-                    if (!sid) continue
-
-                    if (rp.type === "INVOICE") {
+                for (const rp of (newPayments || [])) {
+                    const sid = studMap.get(cellStrFromObj(rp.studentName || rp.studentname || rp.studentid)?.toLowerCase())
+                    
+                    if (rp.type === "INVOICE" && sid) {
                         invoicesToCreate.push({
-                            id: rp.id || undefined, studentId: sid, invoiceDate: safeDate(rp.invoicedate), 
-                            amountDue: Number(rp.amountdue), amountPaid: Number(rp.amountpaid), 
+                            id: rp.id || undefined, studentId: sid, invoiceDate: safeDate(rp.invoiceDate || rp.invoicedate), 
+                            amountDue: Number(rp.amountDueOffice || rp.amountdue), amountPaid: Number(rp.amountpaid || 0), 
                             status: rp.status || "PAID", importBatchId: batch.id
                         })
-                    } else if (rp.type === "STUDENT_PAYMENT") {
+                    } else if (rp.type === "STUDENT_PAYMENT" && sid) {
                         paymentsToCreate.push({
                             studentId: sid, amount: Number(rp.amount), 
-                            paymentDate: safeDate(rp.paymentdate || rp.date), 
-                            paymentType: rp.paymenttype || "ZELLE", importBatchId: batch.id
+                            paymentDate: safeDate(rp.paymentDate || rp.paymentdate || rp.date), 
+                            paymentType: rp.paymentType || rp.paymenttype || "ZELLE", importBatchId: batch.id
                         })
-                    } else if (rp.type === "LEDGER_ENTRY") {
-                        const supId = supMap.get(cellStrFromObj(rp.supervisorname || rp.supervisorid)?.toLowerCase())
-                        ledgerToCreate.push({
-                            invoiceId: "00000000-0000-0000-0000-000000000000", supervisorId: supId, studentId: sid,
-                            paymentFromStudent: Number(rp.paymentfromstudent), supervisorPayout: Number(rp.supervisorpayout),
-                            officePayout: Number(rp.officepayout), payoutStatus: rp.payoutstatus || "PAID",
-                            importBatchId: batch.id, supervisorCapTotal: 0, supervisorCapRemainingBefore: 0, supervisorCapRemainingAfter: 0
-                        })
+                    } else if (rp.type === "SUPERVISOR_PAYMENT") {
+                        const supId = supMap.get(cellStrFromObj(rp.supervisorName || rp.supervisorname || rp.supervisorid)?.toLowerCase())
+                        if (supId) {
+                            // Link to supervisor payouts
+                            await (tx as any).supervisorPayout.create({
+                                data: {
+                                    supervisorId: supId,
+                                    amount: Number(rp.amount),
+                                    payoutDate: safeDate(rp.paymentDate || rp.paymentdate || rp.date),
+                                    status: "COMPLETED",
+                                    importBatchId: batch.id
+                                }
+                            })
+                        }
+                    } else if (rp.type === "LEDGER_ENTRY" && sid) {
+                        const supId = supMap.get(cellStrFromObj(rp.supervisorName || rp.supervisorname || rp.supervisorid)?.toLowerCase())
+                        if (supId) {
+                            ledgerToCreate.push({
+                                invoiceId: "00000000-0000-0000-0000-000000000000", supervisorId: supId, studentId: sid,
+                                paymentFromStudent: Number(rp.paymentfromstudent || rp.amount || 0), supervisorPayout: Number(rp.supervisorpayout || 0),
+                                officePayout: Number(rp.officepayout || 0), payoutStatus: rp.payoutstatus || "PAID",
+                                importBatchId: batch.id, supervisorCapTotal: 0, supervisorCapRemainingBefore: 0, supervisorCapRemainingAfter: 0
+                            })
+                        }
                     }
                 }
 
