@@ -59,6 +59,11 @@ function normalizeCredentialType(val: string): string {
     return "NO_CREDENTIAL"
 }
 
+function cellStrFromObj(v: any): string {
+    if (v === null || v === undefined) return ""
+    return String(v).trim()
+}
+
 export async function POST(request: Request) {
     try {
         const session = await auth()
