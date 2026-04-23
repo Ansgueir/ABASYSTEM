@@ -58,7 +58,7 @@ export async function POST(request: Request) {
             // 6. Log the rollback action
             await (tx as any).auditLog.create({
                 data: {
-                    userId: session.user.id,
+                    userId: (session.user as any).id,
                     action: "IMPORT_ROLLBACK",
                     entity: "ImportBatch",
                     entityId: batchId,
