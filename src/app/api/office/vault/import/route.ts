@@ -50,15 +50,14 @@ function mapHeaders(sheet: ExcelJS.Worksheet): { mapping: Record<string, number>
             const val = String(cell.value || "").toLowerCase().trim().replace(/[^a-z0-9]/g, "")
             if (val) {
                 mapping[val] = colNumber
-                if (["name", "nombre", "email", "correo", "trainee", "student", "alumno", "monto", "amount"].some(k => val.includes(k))) {
+                if (["name", "nombre", "email", "correo", "trainee", "student", "alumno", "monto", "amount", "supervisor", "staff", "parametros"].some(k => val.includes(k))) {
                     foundKeys++
                 }
             }
         })
         
-        // Scan a few rows below the header to confirm the email column
         if (foundKeys >= 2) {
-            for (let testR = r + 1; testR <= r + 5; testR++) {
+            for (let testR = r + 1; testR <= r + 10; testR++) {
                 const testRow = sheet.getRow(testR)
                 testRow.eachCell((c, col) => {
                     const str = String(c.value || "")
@@ -69,7 +68,8 @@ function mapHeaders(sheet: ExcelJS.Worksheet): { mapping: Record<string, number>
             return { mapping, headerRowIndex: r, emailCol }
         }
     }
-    return { mapping: {}, headerRowIndex: 1, emailCol: undefined }
+    // Better Fallback
+    return { mapping: { name: 2, email: 3, student: 2, trainee: 2, amount: 4 }, headerRowIndex: 1, emailCol: undefined }
 }
 
 function normalizeCredentialType(val: string): string {
@@ -170,19 +170,25 @@ export async function POST(request: Request) {
             const { mapping: spm, headerRowIndex: spHeaderIdx, emailCol: spEmailCol } = mapHeaders(sheetSupervisors)
             for (let i = spHeaderIdx + 1; i <= sheetSupervisors.rowCount; i++) {
                 const row = sheetSupervisors.getRow(i)
-                const name = cellStr(row, spm.fullname || spm.nombrecompleto || spm.name || spm.nombre || 2)
-                if (!name) continue
-                const email = (spEmailCol ? cellStr(row, spEmailCol) : cellStr(row, spm.email || spm.correo || spm.correoelectronico || 3)).toLowerCase().trim()
+                const name = cellStr(row, spm.fullname || spm.nombrecompleto || spm.name || spm.nombre || spm.supervisor || spm.staff || 2)
+                if (!name || name.length < 3) continue
+                
+                let email = (spEmailCol ? cellStr(row, spEmailCol) : cellStr(row, spm.email || spm.correo || spm.correoelectronico || 3)).toLowerCase().trim()
+                
+                // Aggressive: If no real email, generate one so they show up
+                if (!email || !email.includes("@")) {
+                    email = `${name.toLowerCase().replace(/[^a-z0-9]/g, "")}_${i}@abasystem.tmp`
+                }
                 
                 const password = cellStr(row, spm.password || 4) || "Aba12345*"
                 const existingSup = existingSupervisors.find((s: any) => (email && s.user.email === email) || s.fullName.toLowerCase() === name.toLowerCase())
                 if (existingSup) continue
                 
-                if (email && email.includes("@") && !existingEmails.has(email) && !claimedEmailsInBatch.has(email)) {
+                if (!existingEmails.has(email) && !claimedEmailsInBatch.has(email)) {
                     claimedEmailsInBatch.set(email, { rowNumber: i, sheetName: "SUPERVISORS" })
                     newSupervisors.push({ fullName: name, email, password, rowNumber: i, credentialType: normalizeCredentialType(cellStr(row, spm.credentialtype || 6) || "BCBA") })
-                } else if (name) {
-                    headlessUsers.push({ name, email: email || "NO_EMAIL_FOUND", rowNumber: i, sourceSheet: "SUPERVISORS", collisionType: email.includes("@") ? "EMAIL_IN_DB" : "EMAIL_EMPTY" })
+                } else {
+                    headlessUsers.push({ name, email, rowNumber: i, sourceSheet: "SUPERVISORS", collisionType: "EMAIL_IN_DB" })
                 }
             }
 
