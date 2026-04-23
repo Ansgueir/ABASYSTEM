@@ -139,7 +139,7 @@ export async function POST(request: Request) {
                 if (!name) continue
                 const email = cellStr(row, spm.email || 3).toLowerCase()
                 const password = cellStr(row, spm.password || 4) || "Aba12345*"
-                const existingSup = existingSupervisors.find(s => (email && s.user.email === email) || s.fullName.toLowerCase() === name.toLowerCase())
+                const existingSup = existingSupervisors.find((s: any) => (email && s.user.email === email) || s.fullName.toLowerCase() === name.toLowerCase())
                 if (existingSup) continue
                 if (email && !existingEmails.has(email) && !claimedEmailsInBatch.has(email)) {
                     claimedEmailsInBatch.set(email, { rowNumber: i, sheetName: "SUPERVISORS" })
@@ -156,7 +156,7 @@ export async function POST(request: Request) {
                 if (!name) continue
                 const email = cellStr(row, stm.email || 3).toLowerCase()
                 const password = cellStr(row, stm.password || 4) || "Aba12345*"
-                const existingStud = existingStudents.find(s => (email && s.user.email === email) || s.fullName.toLowerCase() === name.toLowerCase())
+                const existingStud = existingStudents.find((s: any) => (email && s.user.email === email) || s.fullName.toLowerCase() === name.toLowerCase())
                 if (existingStud) continue
                 if (email && !existingEmails.has(email) && !claimedEmailsInBatch.has(email)) {
                     claimedEmailsInBatch.set(email, { rowNumber: i, sheetName: "STUDENTS" })
