@@ -7,7 +7,7 @@ import bcrypt from "bcryptjs"
 import { format } from "date-fns"
 
 export const dynamic = "force-dynamic"
-export const maxDuration = 60
+export const maxDuration = 300
 
 function cellStr(row: ExcelJS.Row, col: string | number): string {
     const cell = row.getCell(col)
