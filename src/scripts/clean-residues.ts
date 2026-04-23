@@ -15,15 +15,27 @@ async function main() {
 
   console.log('Cleaning residues...')
 
-  // Find users by email
+  // Find users by email (case-insensitive)
   const usersByEmail = await prisma.user.findMany({
-    where: { email: { in: emails } },
+    where: { 
+      OR: [
+        { email: { contains: 'matoslaura997', mode: 'insensitive' } },
+        { email: { contains: 'delsol.amanda', mode: 'insensitive' } }
+      ]
+    },
     select: { id: true, email: true }
   })
 
-  // Find students by name
+  // Find students by name (partial match)
   const studentsByName = await prisma.student.findMany({
-    where: { fullName: { in: names } },
+    where: { 
+      OR: [
+        { fullName: { contains: 'Mayte', mode: 'insensitive' } },
+        { fullName: { contains: 'Mesa Villavicencio', mode: 'insensitive' } },
+        { fullName: { contains: 'Blanco Quesada', mode: 'insensitive' } },
+        { fullName: { contains: 'Lucia Del Sol', mode: 'insensitive' } }
+      ]
+    },
     select: { userId: true, fullName: true }
   })
 
