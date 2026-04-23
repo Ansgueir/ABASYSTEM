@@ -15,36 +15,38 @@ async function main() {
 
   console.log('Cleaning residues...')
 
-  // Find users by email (case-insensitive)
-  const usersByEmail = await prisma.user.findMany({
-    where: { 
-      OR: [
-        { email: { contains: 'matoslaura997', mode: 'insensitive' } },
-        { email: { contains: 'delsol.amanda', mode: 'insensitive' } }
-      ]
-    },
-    select: { id: true, email: true }
+  // Find ALL students and filter in JS for maximum flexibility
+  const allStudents = await prisma.student.findMany({
+    select: { userId: true, fullName: true, email: true }
   })
 
-  // Find students by name (partial match)
-  const studentsByName = await prisma.student.findMany({
-    where: { 
-      OR: [
-        { fullName: { contains: 'Mayte', mode: 'insensitive' } },
-        { fullName: { contains: 'Mesa Villavicencio', mode: 'insensitive' } },
-        { fullName: { contains: 'Blanco Quesada', mode: 'insensitive' } },
-        { fullName: { contains: 'Lucia Del Sol', mode: 'insensitive' } }
-      ]
-    },
-    select: { userId: true, fullName: true }
-  })
+  const residues = allStudents.filter(s => 
+    s.fullName.toLowerCase().includes('mayte') ||
+    s.fullName.toLowerCase().includes('mesa villavicencio') ||
+    s.fullName.toLowerCase().includes('blanco quesada') ||
+    s.fullName.toLowerCase().includes('lucia del sol') ||
+    s.email.toLowerCase().includes('matoslaura') ||
+    s.email.toLowerCase().includes('delsol.amanda')
+  )
 
   const userIds = new Set([
-    ...usersByEmail.map(u => u.id),
-    ...studentsByName.map(s => s.userId)
+    ...residues.map(s => s.userId)
   ])
 
+  // Also check User table directly for those emails
+  const usersDirect = await prisma.user.findMany({
+    where: {
+      OR: [
+        { email: { contains: 'matoslaura', mode: 'insensitive' } },
+        { email: { contains: 'delsol.amanda', mode: 'insensitive' } }
+      ]
+    }
+  })
+  
+  for(const u of usersDirect) userIds.add(u.id)
+
   console.log(`Found ${userIds.size} residue users to delete.`)
+  for (const u of residues) console.log(`Targeting: ${u.fullName} (${u.email})`)
 
   for (const userId of userIds) {
     try {
