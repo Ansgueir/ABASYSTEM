@@ -28,6 +28,15 @@ function cellStr(row: ExcelJS.Row, col: string | number): string {
     return String(v).trim()
 }
 
+function safeDate(val: any): Date {
+    if (!val) return new Date()
+    const d = new Date(val)
+    if (isNaN(d.getTime())) return new Date()
+    const year = d.getUTCFullYear()
+    if (year < 1980 || year > 2100) return new Date()
+    return d
+}
+
 function cellNum(row: ExcelJS.Row, col: string | number): number {
     const v = row.getCell(col).value
     return v !== null && v !== undefined ? Number(v) : 0
@@ -359,8 +368,11 @@ export async function POST(request: Request) {
                             student: { create: { 
                                 fullName: nu.fullName, 
                                 email: nu.email, 
-                                startDate: nu.fields.startDate ? new Date(nu.fields.startDate) : new Date(),
-                                endDate: nu.fields.endDate ? new Date(nu.fields.endDate) : new Date(),
+                            student: { create: { 
+                                fullName: nu.fullName, 
+                                email: nu.email, 
+                                startDate: safeDate(nu.fields.startDate),
+                                endDate: safeDate(nu.fields.endDate),
                                 status: nu.fields.status || "ACTIVE",
                                 supervisorId: nu.fields.supervisorName ? supMap.get(nu.fields.supervisorName.toLowerCase()) : null,
                                 importBatchId: batch.id,
@@ -429,7 +441,7 @@ export async function POST(request: Request) {
                         invoicesToCreate.push({
                             id: rp.id || undefined,
                             studentId: sid, 
-                            invoiceDate: new Date(rp.invoicedate), 
+                            invoiceDate: safeDate(rp.invoicedate), 
                             amountDue: Number(rp.amountdue), 
                             amountPaid: Number(rp.amountpaid), 
                             status: rp.status || "PAID",
@@ -439,7 +451,7 @@ export async function POST(request: Request) {
                         paymentsToCreate.push({
                             studentId: sid, 
                             amount: Number(rp.amount), 
-                            paymentDate: new Date(rp.paymentdate || rp.date), 
+                            paymentDate: safeDate(rp.paymentdate || rp.date), 
                             paymentType: rp.paymenttype || "ZELLE", 
                             importBatchId: batch.id
                         })
