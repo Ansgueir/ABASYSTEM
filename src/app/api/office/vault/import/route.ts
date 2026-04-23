@@ -207,14 +207,12 @@ export async function POST(request: Request) {
                 }
                 
                 const password = cellStr(row, spm.password || 4) || "Aba12345*"
-                const existingSup = existingSupervisors.find((s: any) => (email && s.user.email === email) || s.fullName.toLowerCase() === name.toLowerCase())
-                if (existingSup) continue
-                
-                if (!existingEmails.has(email) && !claimedEmailsInBatch.has(email)) {
-                    claimedEmailsInBatch.set(email, { rowNumber: i, sheetName: "SUPERVISORS" })
-                    newSupervisors.push({ 
-                        fullName: name, email, password, rowNumber: i, 
-                        credentialType: normalizeCredentialType(cellStr(row, spm.credentialtype || 6) || "BCBA"),
+                // Always include in analysis for visibility
+                claimedEmailsInBatch.set(email, { rowNumber: i, sheetName: "SUPERVISORS" })
+                newSupervisors.push({ 
+                    fullName: name, email, password, rowNumber: i, 
+                    isExisting: !!existingSupervisors.find((s: any) => (email && s.user.email === email) || s.fullName.toLowerCase() === name.toLowerCase()),
+                    credentialType: normalizeCredentialType(cellStr(row, spm.credentialtype || 6) || "BCBA"),
                         phone: cellStr(row, spm.phone || 9) || "000-000-0000",
                         address: cellStr(row, spm.address || 10) || "N/A",
                         bacbId: cellStr(row, spm.bacbid || 5) || "N/A",
@@ -234,15 +232,14 @@ export async function POST(request: Request) {
                 const email = (stEmailCol ? cellStr(row, stEmailCol) : cellStr(row, stm.email || stm.correo || stm.correoelectronico || 3)).toLowerCase().trim()
                 
                 const password = cellStr(row, stm.password || 4) || "Aba12345*"
-                const existingStud = existingStudents.find((s: any) => (email && s.user.email === email) || s.fullName.toLowerCase() === name.toLowerCase())
-                if (existingStud) continue
                 
-                if (email && email.includes("@") && !existingEmails.has(email) && !claimedEmailsInBatch.has(email)) {
-                    claimedEmailsInBatch.set(email, { rowNumber: i, sheetName: "STUDENTS" })
-                    newUsers.push({ 
-                        fullName: name, email, password, rowNumber: i, 
-                        sourceSheet: "STUDENTS",
-                        fields: {
+                // Always include in analysis to give the user visibility
+                claimedEmailsInBatch.set(email, { rowNumber: i, sheetName: "STUDENTS" })
+                newUsers.push({ 
+                    fullName: name, email, password, rowNumber: i, 
+                    sourceSheet: "STUDENTS",
+                    isExisting: !!existingStudents.find((s: any) => (email && s.user.email === email) || s.fullName.toLowerCase() === name.toLowerCase()),
+                    fields: {
                             supervisorName: cellStr(row, stm.supervisorname || stm.supervisor || stm.supervisorid || stm.nombresupervisor || 11),
                             phone: cellStr(row, stm.phone || stm.telefono || stm.celular || 9),
                             startDate: cellDate(row, stm.startdate || stm.fechainicio || 15),
@@ -383,8 +380,8 @@ export async function POST(request: Request) {
                 hashedResults.push(...processedChunk)
             }
             
-            const prepSupervisors = hashedResults.filter(r => r._type === 'supervisor')
-            const prepStudents = hashedResults.filter(r => r._type === 'student')
+            const prepSupervisors = hashedResults.filter(r => r._type === 'supervisor' && !r.isExisting)
+            const prepStudents = hashedResults.filter(r => r._type === 'student' && !r.isExisting)
             console.timeEnd("hashing_phase")
 
             const result = await prisma.$transaction(async (tx) => {
