@@ -221,7 +221,25 @@ export async function POST(request: Request) {
                     financialRecords: newRawPayments.length,
                     conflicts: headlessUsers.length
                 },
-                newUsers, newSupervisors, newOffices: [], newContracts, newHours, newGroups, newSessions, newRawPayments, headlessUsers
+                // Statistics for the UI
+                studentsStats: { new: newUsers.length, updated: 0 },
+                supervisorsStats: { new: newSupervisors.length, updated: 0 },
+                financialStats: { clean: newRawPayments.length, conflicts: 0 },
+                transactionStats: { new: newRawPayments.length },
+                ignoredRows: [],
+                skippedRowsCount: 0,
+                newUsers, 
+                newSupervisors, 
+                newOffices: [], 
+                newContracts, 
+                newHours, 
+                newGroups, 
+                newSessions, 
+                newRawPayments, 
+                newFinancialPeriods: newRawPayments, // Mirror for the UI
+                headlessUsers,
+                conflicts: [],
+                resolutions: {}
             })
 
         // ══════════════════════════════════════════

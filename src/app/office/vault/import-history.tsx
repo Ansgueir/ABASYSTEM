@@ -34,7 +34,7 @@ export function ImportHistory() {
 
         setUndoingMap(prev => ({ ...prev, [batchId]: true }))
         try {
-            const res = await fetch(`/api/office/vault/import/undo`, {
+            const res = await fetch(`/api/office/vault/import/rollback`, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ batchId })
