@@ -443,7 +443,10 @@ export async function POST(request: Request) {
                 if (supervisorsToCreate.length > 0) await tx.supervisor.createMany({ data: supervisorsToCreate })
 
                 const allSups = await tx.supervisor.findMany()
-                allSups.forEach(s => supMap.set(s.fullName.toLowerCase(), s.id))
+                allSups.forEach(s => {
+                    const clean = s.fullName.toLowerCase().trim().replace(/\s+/g, ' ')
+                    supMap.set(clean, s.id)
+                })
                 console.timeEnd("db_supervisors_phase")
 
                 // 3. BULK STUDENT CREATION
@@ -462,7 +465,10 @@ export async function POST(request: Request) {
                 if (studentsToCreate.length > 0) await tx.student.createMany({ data: studentsToCreate })
 
                 const allStuds = await tx.student.findMany()
-                allStuds.forEach(s => studMap.set(s.fullName.toLowerCase(), s.id))
+                allStuds.forEach(s => {
+                    const clean = s.fullName.toLowerCase().trim().replace(/\s+/g, ' ')
+                    studMap.set(clean, s.id)
+                })
                 console.timeEnd("db_students_phase")
 
                 // 4. BULK FINANCIAL RECORDS
@@ -473,30 +479,45 @@ export async function POST(request: Request) {
 
                 // Merge both potential keys to be safe
                 const combinedPayments = [...(newPayments || []), ...(newRawPayments || [])]
+                console.log(`[IMPORT] Processing ${combinedPayments.length} financial records. Combined keys: newPayments=${(newPayments || []).length}, newRawPayments=${(newRawPayments || []).length}`)
+
+                let linkedCount = 0
+                let orphanedCount = 0
 
                 for (const rp of combinedPayments) {
-                    const sid = studMap.get(cellStrFromObj(rp.studentName || rp.studentname || rp.studentid)?.toLowerCase())
+                    const rawName = cellStrFromObj(rp.studentName || rp.studentname || rp.studentid || rp.alumno)
+                    const cleanName = rawName?.toLowerCase().trim().replace(/\s+/g, ' ')
+                    const sid = cleanName ? studMap.get(cleanName) : null
                     
+                    if (!sid && rawName) {
+                        orphanedCount++
+                        continue
+                    }
+                    
+                    if (sid) linkedCount++
+
                     if (rp.type === "INVOICE" && sid) {
                         invoicesToCreate.push({
                             id: rp.id || undefined, studentId: sid, invoiceDate: safeDate(rp.invoiceDate || rp.invoicedate), 
-                            amountDue: Number(rp.amountDueOffice || rp.amountdue), amountPaid: Number(rp.amountpaid || 0), 
+                            amountDue: Number(rp.amountDueOffice || rp.amountdue || 0), amountPaid: Number(rp.amountpaid || 0), 
                             status: rp.status || "PAID", importBatchId: batch.id
                         })
                     } else if (rp.type === "STUDENT_PAYMENT" && sid) {
                         paymentsToCreate.push({
-                            studentId: sid, amount: Number(rp.amount), 
+                            studentId: sid, amount: Number(rp.amount || 0), 
                             paymentDate: safeDate(rp.paymentDate || rp.paymentdate || rp.date), 
                             paymentType: rp.paymentType || rp.paymenttype || "ZELLE", importBatchId: batch.id
                         })
                     } else if (rp.type === "SUPERVISOR_PAYMENT") {
-                        const supId = supMap.get(cellStrFromObj(rp.supervisorName || rp.supervisorname || rp.supervisorid)?.toLowerCase())
+                        const supName = cellStrFromObj(rp.supervisorName || rp.supervisorname || rp.supervisorid)
+                        const cleanSupName = supName?.toLowerCase().trim().replace(/\s+/g, ' ')
+                        const supId = cleanSupName ? supMap.get(cleanSupName) : null
+                        
                         if (supId) {
-                            // Link to supervisor payouts
                             await (tx as any).supervisorPayout.create({
                                 data: {
                                     supervisorId: supId,
-                                    amount: Number(rp.amount),
+                                    amount: Number(rp.amount || 0),
                                     payoutDate: safeDate(rp.paymentDate || rp.paymentdate || rp.date),
                                     status: "COMPLETED",
                                     importBatchId: batch.id
@@ -504,7 +525,10 @@ export async function POST(request: Request) {
                             })
                         }
                     } else if (rp.type === "LEDGER_ENTRY" && sid) {
-                        const supId = supMap.get(cellStrFromObj(rp.supervisorName || rp.supervisorname || rp.supervisorid)?.toLowerCase())
+                        const supName = cellStrFromObj(rp.supervisorName || rp.supervisorname || rp.supervisorid)
+                        const cleanSupName = supName?.toLowerCase().trim().replace(/\s+/g, ' ')
+                        const supId = cleanSupName ? supMap.get(cleanSupName) : null
+                        
                         if (supId) {
                             ledgerToCreate.push({
                                 invoiceId: "00000000-0000-0000-0000-000000000000", supervisorId: supId, studentId: sid,
@@ -516,6 +540,7 @@ export async function POST(request: Request) {
                     }
                 }
 
+                console.log(`[IMPORT] Finance mapping results: Linked=${linkedCount}, Orphaned=${orphanedCount}`)
                 if (invoicesToCreate.length > 0) await tx.invoice.createMany({ data: invoicesToCreate })
                 if (paymentsToCreate.length > 0) await tx.studentPayment.createMany({ data: paymentsToCreate })
                 if (ledgerToCreate.length > 0) await tx.supervisorLedgerEntry.createMany({ data: ledgerToCreate })
