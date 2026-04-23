@@ -162,14 +162,21 @@ export async function GET(request: Request) {
             })
         })
 
-        // ── 4. SHEET: PLANS & OPTIONS ─────────────────────────────────────────
+        // ── 4. SHEET: PLANS & OPTIONS (CONFIGURACIÓN TOTAL) ──────────────────
         const sheetPlans = workbook.addWorksheet('Plans & Options')
         sheetPlans.columns = [
-            { header: 'PLAN NAME', key: 'name', width: 30 },
-            { header: 'TOTAL COST', key: 'cost', width: 15 },
-            { header: 'MONTHLY PMT', key: 'monthly', width: 15 },
-            { header: 'TOTAL HOURS', key: 'hours', width: 15 },
-            { header: 'SUP COMMISSION', key: 'commission', width: 15 },
+            { header: 'PLAN NAME', key: 'name', width: 25 },
+            { header: 'FIELDWORK TYPE', key: 'type', width: 15 },
+            { header: 'TOTAL HOURS', key: 'totalHours', width: 15 },
+            { header: 'HOURS/MONTH', key: 'hoursPerMonth', width: 15 },
+            { header: 'SUPERVISED %', key: 'supPct', width: 15 },
+            { header: 'HOURLY RATE', key: 'rate', width: 15 },
+            { header: 'ENROLLMENT FEE', key: 'fee', width: 15 },
+            { header: 'SUP COMMISSION %', key: 'comm', width: 15 },
+            { header: 'DURATION (MONTHS)', key: 'months', width: 15 },
+            { header: 'TOTAL SUP HOURS', key: 'amtHours', width: 15 },
+            { header: 'TOTAL PLAN COST', key: 'totalCost', width: 15 },
+            { header: 'MONTHLY PAYMENT', key: 'monthly', width: 15 },
         ]
         sheetPlans.getRow(1).font = { bold: true, color: { argb: 'FFFFFFFF' } }
         sheetPlans.getRow(1).fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF3B82F6' } }
@@ -177,13 +184,20 @@ export async function GET(request: Request) {
         plans.forEach((p: any) => {
             const row = sheetPlans.addRow({
                 name: p.name,
-                cost: Number(p.totalCost || 0),
-                monthly: Number(p.monthlyPayment || 0),
-                hours: Number(p.totalHours || 0),
-                commission: `${((Number(p.supervisorCommission) || 0.54) * 100).toFixed(0)}%`
+                type: p.fieldworkType,
+                totalHours: p.totalHours,
+                hoursPerMonth: p.hoursPerMonth,
+                supPct: `${((Number(p.supervisedPercentage) || 0) * 100).toFixed(1)}%`,
+                rate: Number(p.hourlyRate || 0),
+                fee: Number(p.enrollmentFee || 0),
+                comm: `${((Number(p.supervisorCommission) || 0.54) * 100).toFixed(0)}%`,
+                months: p.numberOfMonths,
+                amtHours: Number(p.amountSupHours || 0),
+                totalCost: Number(p.totalCost || 0),
+                monthly: Number(p.monthlyPayment || 0)
             })
-            row.getCell('cost').numFmt = '"$"#,##0.00'
-            row.getCell('monthly').numFmt = '"$"#,##0.00'
+            const moneyCols = ['rate', 'fee', 'totalCost', 'monthly']
+            moneyCols.forEach(col => row.getCell(col).numFmt = '"$"#,##0.00')
         })
 
         // ── 5. SHEET: SUPERVISION GROUPS ──────────────────────────────────────
@@ -206,16 +220,20 @@ export async function GET(request: Request) {
             })
         })
 
-        // ── 6. SHEET: MASTER FINANCIAL LEDGER (WATERFALL) ─────────────────────
-        const sheetLedger = workbook.addWorksheet('Financial Ledger (Waterfall)')
+        // ── 6. SHEET: MASTER FINANCIAL AUDIT (WATERFALL ENGINE) ───────────────
+        const sheetLedger = workbook.addWorksheet('Waterfall Audit')
         sheetLedger.columns = [
-            { header: 'DATE', key: 'date', width: 15 },
-            { header: 'STUDENT', key: 'student', width: 30 },
-            { header: 'SUPERVISOR', key: 'supervisor', width: 30 },
-            { header: 'STUDENT PAID', key: 'collected', width: 15 },
-            { header: 'SUP SHARE', key: 'supShare', width: 15 },
-            { header: 'OFFICE NET', key: 'officeShare', width: 15 },
-            { header: 'STATUS', key: 'status', width: 15 },
+            { header: 'TX DATE', key: 'date', width: 15 },
+            { header: 'STUDENT', key: 'student', width: 25 },
+            { header: 'SUPERVISOR', key: 'supervisor', width: 25 },
+            { header: 'INVOICE REF', key: 'invRef', width: 15 },
+            { header: 'REVENUE COLLECTED', key: 'collected', width: 18 },
+            { header: 'SUPERVISOR SHARE', key: 'supShare', width: 18 },
+            { header: 'OFFICE NET REVENUE', key: 'officeShare', width: 18 },
+            { header: 'SUP CAP FOR PERIOD', key: 'cap', width: 18 },
+            { header: 'SUP REMAINING BAL', key: 'rem', width: 18 },
+            { header: 'PAYOUT STATUS', key: 'status', width: 15 },
+            { header: 'LIQUIDATION REF', key: 'ref', width: 20 },
         ]
         sheetLedger.getRow(1).font = { bold: true, color: { argb: 'FFFFFFFF' } }
         sheetLedger.getRow(1).fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF059669' } }
@@ -225,38 +243,47 @@ export async function GET(request: Request) {
                 date: format(new Date(e.createdAt), 'yyyy-MM-dd'),
                 student: e.student.fullName,
                 supervisor: e.supervisor.fullName,
+                invRef: e.invoiceId.slice(-8).toUpperCase(),
                 collected: Number(e.paymentFromStudent || 0),
                 supShare: Number(e.supervisorPayout || 0),
                 officeShare: Number(e.officePayout || 0),
-                status: e.payoutStatus
+                cap: Number(e.supervisorCapTotal || 0),
+                rem: Number(e.supervisorCapRemainingAfter || 0),
+                status: e.payoutStatus,
+                ref: e.paymentReference || "-"
             })
-            row.getCell('collected').numFmt = '"$"#,##0.00'
-            row.getCell('supShare').numFmt = '"$"#,##0.00'
-            row.getCell('officeShare').numFmt = '"$"#,##0.00'
+            const moneyCols = ['collected', 'supShare', 'officeShare', 'cap', 'rem']
+            moneyCols.forEach(col => row.getCell(col).numFmt = '"$"#,##0.00')
         })
 
-        // ── 7. SHEET: ALL INVOICES (COBROS) ──────────────────────────────────
-        const sheetInv = workbook.addWorksheet('All Invoices')
+        // ── 7. SHEET: BILLING & COLLECTIONS (AUDIT) ──────────────────────────
+        const sheetInv = workbook.addWorksheet('Billing Details')
         sheetInv.columns = [
-            { header: 'DATE', key: 'date', width: 15 },
-            { header: 'STUDENT', key: 'student', width: 30 },
+            { header: 'BILL DATE', key: 'date', width: 15 },
+            { header: 'STUDENT', key: 'student', width: 25 },
+            { header: 'INVOICE ID', key: 'id', width: 15 },
             { header: 'AMOUNT DUE', key: 'due', width: 15 },
             { header: 'AMOUNT PAID', key: 'paid', width: 15 },
+            { header: 'BALANCE OWE', key: 'owe', width: 15 },
             { header: 'STATUS', key: 'status', width: 15 },
         ]
         sheetInv.getRow(1).font = { bold: true, color: { argb: 'FFFFFFFF' } }
         sheetInv.getRow(1).fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF7C3AED' } }
 
         allInvoices.forEach((inv: any) => {
+            const due = Number(inv.amountDue || 0)
+            const paid = Number(inv.amountPaid || 0)
             const row = sheetInv.addRow({
                 date: inv.invoiceDate ? format(new Date(inv.invoiceDate), 'yyyy-MM-dd') : "-",
                 student: inv.student.fullName,
-                due: Number(inv.amountDue || 0),
-                paid: Number(inv.amountPaid || 0),
+                id: inv.id.slice(-8).toUpperCase(),
+                due: due,
+                paid: paid,
+                owe: due - paid,
                 status: inv.status
             })
-            row.getCell('due').numFmt = '"$"#,##0.00'
-            row.getCell('paid').numFmt = '"$"#,##0.00'
+            const moneyCols = ['due', 'paid', 'owe']
+            moneyCols.forEach(col => row.getCell(col).numFmt = '"$"#,##0.00')
         })
 
         const buffer = await workbook.xlsx.writeBuffer()
