@@ -208,9 +208,17 @@ export async function POST(request: Request) {
                 
                 const password = cellStr(row, spm.password || 4) || "Aba12345*"
                 
-                const isCollision = existingEmails.has(email) || claimedEmailsInBatch.has(email)
-                if (isCollision) {
-                    headlessUsers.push({ name, email, rowNumber: i, sourceSheet: "SUPERVISORS", collisionType: "EMAIL_IN_DB" })
+                const isDuplicateInBatch = claimedEmailsInBatch.has(email)
+                const isAlreadyInDb = existingEmails.has(email)
+
+                if (isDuplicateInBatch || isAlreadyInDb) {
+                    headlessUsers.push({ 
+                        name, 
+                        email, 
+                        rowNumber: i, 
+                        sourceSheet: "SUPERVISORS", 
+                        collisionType: isAlreadyInDb ? "EMAIL_IN_DB" : "DUPLICATE_IN_EXCEL" 
+                    })
                 }
 
                 // Always include in analysis for visibility
@@ -236,9 +244,17 @@ export async function POST(request: Request) {
                 
                 const password = cellStr(row, stm.password || 4) || "Aba12345*"
                 
-                const isCollision = existingEmails.has(email) || claimedEmailsInBatch.has(email)
-                if (isCollision) {
-                    headlessUsers.push({ name, email, rowNumber: i, sourceSheet: "STUDENTS", collisionType: "EMAIL_IN_DB" })
+                const isDuplicateInBatch = claimedEmailsInBatch.has(email)
+                const isAlreadyInDb = existingEmails.has(email)
+
+                if (isDuplicateInBatch || isAlreadyInDb) {
+                    headlessUsers.push({ 
+                        name, 
+                        email, 
+                        rowNumber: i, 
+                        sourceSheet: "STUDENTS", 
+                        collisionType: isAlreadyInDb ? "EMAIL_IN_DB" : "DUPLICATE_IN_EXCEL" 
+                    })
                 }
 
                 // Always include in analysis to give the user visibility
