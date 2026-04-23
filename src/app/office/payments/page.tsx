@@ -298,6 +298,16 @@ export default async function OfficePaymentsPage({
                         <h1 className="text-3xl font-black text-slate-800 tracking-tight">Payments</h1>
                         <p className="text-xs text-slate-400 font-bold uppercase tracking-widest mt-1">Waterfall Settlement Engine</p>
                     </div>
+                    <div className="flex items-center gap-3">
+                        <a 
+                            href="/api/office/payments/export"
+                            className="flex items-center gap-2 px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold transition-all shadow-lg shadow-emerald-500/20 active:scale-95"
+                            download
+                        >
+                            <TrendingUp className="h-4 w-4" />
+                            DOWNLOAD FINANCIAL EXCEL
+                        </a>
+                    </div>
                 </div>
 
                 {/* Stats */}
