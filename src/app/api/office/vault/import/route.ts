@@ -87,7 +87,17 @@ function normalizeCredentialType(val: string): string {
     if (v.includes("BCBA")) return "BCBA"
     if (v.includes("RBT")) return "RBT"
     if (v.includes("LMHC")) return "LMHC"
-    return "NO_CREDENTIAL"
+    return "BCBA"
+}
+
+function normalizeStudentStatus(val: string): any {
+    const v = val.toUpperCase().trim()
+    if (v === "ACTIVE" || v === "ACTIVO" || v === "ON") return "ACTIVE"
+    if (v === "INACTIVE" || v === "INACTIVO" || v === "OFF" || v === "DISABLED") return "DISABLED"
+    if (v === "PENDING" || v === "PENDIENTE") return "PENDING"
+    if (v === "COMPLETED" || v === "COMPLETO" || v === "TERMINADO") return "COMPLETED"
+    if (v === "WITHDRAWN" || v === "RETIRED" || v === "RETIRADO") return "WITHDRAWN"
+    return "ACTIVE"
 }
 
 function cellStrFromObj(v: any): string {
@@ -229,7 +239,7 @@ export async function POST(request: Request) {
                             phone: cellStr(row, stm.phone || 9),
                             startDate: cellDate(row, stm.startdate || 15),
                             endDate: cellDate(row, stm.enddate || 25),
-                            status: cellStr(row, stm.status || 26) || "ACTIVE",
+                            status: normalizeStudentStatus(cellStr(row, stm.status || 26) || "ACTIVE"),
                             hoursTargetReg: cellNum(row, stm.hourstargetreg || stm.reghours || 0),
                             hoursTargetConc: cellNum(row, stm.hourstargetconc || stm.conchours || 0),
                             independentHoursTarget: cellNum(row, stm.independenthourstarget || 0),
@@ -374,7 +384,7 @@ export async function POST(request: Request) {
                                     email: nu.email, 
                                     startDate: safeDate(nu.fields.startDate),
                                     endDate: safeDate(nu.fields.endDate),
-                                    status: nu.fields.status || "ACTIVE",
+                                    status: normalizeStudentStatus(nu.fields.status || "ACTIVE"),
                                     supervisorId: nu.fields.supervisorName ? supMap.get(nu.fields.supervisorName.toLowerCase()) : null,
                                     importBatchId: batch.id,
                                     phone: nu.fields.phone || "000-000-0000",
