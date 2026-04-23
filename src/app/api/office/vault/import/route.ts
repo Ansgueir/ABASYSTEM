@@ -40,7 +40,8 @@ function cellDate(row: ExcelJS.Row, col: string | number): Date | null {
     return isNaN(d.getTime()) ? null : d
 }
 
-function mapHeaders(sheet: ExcelJS.Worksheet): { mapping: Record<string, number>; headerRowIndex: number } {
+function mapHeaders(sheet: ExcelJS.Worksheet): { mapping: Record<string, number>; headerRowIndex: number; emailCol?: number } {
+    let emailCol: number | undefined
     for (let r = 1; r <= 20; r++) {
         const row = sheet.getRow(r)
         const mapping: Record<string, number> = {}
@@ -49,22 +50,26 @@ function mapHeaders(sheet: ExcelJS.Worksheet): { mapping: Record<string, number>
             const val = String(cell.value || "").toLowerCase().trim().replace(/[^a-z0-9]/g, "")
             if (val) {
                 mapping[val] = colNumber
-                // Keywords that indicate this is likely a header row
                 if (["name", "nombre", "email", "correo", "trainee", "student", "alumno", "monto", "amount"].some(k => val.includes(k))) {
                     foundKeys++
                 }
             }
         })
-        // If we found at least 2 relevant keys, we assume this is the header row
-        if (foundKeys >= 2) return { mapping, headerRowIndex: r }
+        
+        // Scan a few rows below the header to confirm the email column
+        if (foundKeys >= 2) {
+            for (let testR = r + 1; testR <= r + 5; testR++) {
+                const testRow = sheet.getRow(testR)
+                testRow.eachCell((c, col) => {
+                    const str = String(c.value || "")
+                    if (str.includes("@")) emailCol = col
+                })
+                if (emailCol) break
+            }
+            return { mapping, headerRowIndex: r, emailCol }
+        }
     }
-    // Fallback to row 1 if nothing found
-    const mapping: Record<string, number> = {}
-    sheet.getRow(1).eachCell((cell, colNumber) => {
-        const val = String(cell.value || "").toLowerCase().trim().replace(/[^a-z0-9]/g, "")
-        mapping[val] = colNumber
-    })
-    return { mapping, headerRowIndex: 1 }
+    return { mapping: {}, headerRowIndex: 1, emailCol: undefined }
 }
 
 function normalizeCredentialType(val: string): string {
@@ -162,34 +167,37 @@ export async function POST(request: Request) {
             const headlessUsers: any[] = []
             const newRawPayments: any[] = []
 
-            const { mapping: spm, headerRowIndex: spHeaderIdx } = mapHeaders(sheetSupervisors)
+            const { mapping: spm, headerRowIndex: spHeaderIdx, emailCol: spEmailCol } = mapHeaders(sheetSupervisors)
             for (let i = spHeaderIdx + 1; i <= sheetSupervisors.rowCount; i++) {
                 const row = sheetSupervisors.getRow(i)
-                // Prioritize Name over ID/UUID
                 const name = cellStr(row, spm.fullname || spm.nombrecompleto || spm.name || spm.nombre || 2)
                 if (!name) continue
-                const email = cellStr(row, spm.email || spm.correo || spm.correoelectronico || 3).toLowerCase()
+                const email = (spEmailCol ? cellStr(row, spEmailCol) : cellStr(row, spm.email || spm.correo || spm.correoelectronico || 3)).toLowerCase().trim()
+                
                 const password = cellStr(row, spm.password || 4) || "Aba12345*"
                 const existingSup = existingSupervisors.find((s: any) => (email && s.user.email === email) || s.fullName.toLowerCase() === name.toLowerCase())
                 if (existingSup) continue
-                if (email && !existingEmails.has(email) && !claimedEmailsInBatch.has(email)) {
+                
+                if (email && email.includes("@") && !existingEmails.has(email) && !claimedEmailsInBatch.has(email)) {
                     claimedEmailsInBatch.set(email, { rowNumber: i, sheetName: "SUPERVISORS" })
                     newSupervisors.push({ fullName: name, email, password, rowNumber: i, credentialType: normalizeCredentialType(cellStr(row, spm.credentialtype || 6) || "BCBA") })
-                } else {
-                    headlessUsers.push({ name, email, rowNumber: i, sourceSheet: "SUPERVISORS", collisionType: "DUPLICATE" })
+                } else if (name) {
+                    headlessUsers.push({ name, email: email || "NO_EMAIL_FOUND", rowNumber: i, sourceSheet: "SUPERVISORS", collisionType: email.includes("@") ? "EMAIL_IN_DB" : "EMAIL_EMPTY" })
                 }
             }
 
-            const { mapping: stm, headerRowIndex: stHeaderIdx } = mapHeaders(sheetStudents)
+            const { mapping: stm, headerRowIndex: stHeaderIdx, emailCol: stEmailCol } = mapHeaders(sheetStudents)
             for (let i = stHeaderIdx + 1; i <= sheetStudents.rowCount; i++) {
                 const row = sheetStudents.getRow(i)
                 const name = cellStr(row, stm.fullname || stm.name || stm.nombre || stm.nombrecompleto || stm.estudiante || stm.practicante || stm.trainee || 2)
                 if (!name) continue
-                const email = cellStr(row, stm.email || stm.correo || stm.correoelectronico || 3).toLowerCase()
+                const email = (stEmailCol ? cellStr(row, stEmailCol) : cellStr(row, stm.email || stm.correo || stm.correoelectronico || 3)).toLowerCase().trim()
+                
                 const password = cellStr(row, stm.password || 4) || "Aba12345*"
                 const existingStud = existingStudents.find((s: any) => (email && s.user.email === email) || s.fullName.toLowerCase() === name.toLowerCase())
                 if (existingStud) continue
-                if (email && !existingEmails.has(email) && !claimedEmailsInBatch.has(email)) {
+                
+                if (email && email.includes("@") && !existingEmails.has(email) && !claimedEmailsInBatch.has(email)) {
                     claimedEmailsInBatch.set(email, { rowNumber: i, sheetName: "STUDENTS" })
                     newUsers.push({ 
                         fullName: name, email, password, rowNumber: i, 
@@ -208,6 +216,8 @@ export async function POST(request: Request) {
                             officePaymentRate: cellNum(row, stm.officepaymentrate || 0)
                         }
                     })
+                } else if (name) {
+                    headlessUsers.push({ name, email: email || "NO_EMAIL_FOUND", rowNumber: i, sourceSheet: "STUDENTS", collisionType: email.includes("@") ? "EMAIL_IN_DB" : "EMAIL_EMPTY" })
                 }
             }
 
