@@ -217,10 +217,7 @@ export async function POST(request: Request) {
                         address: cellStr(row, spm.address || 10) || "N/A",
                         bacbId: cellStr(row, spm.bacbid || 5) || "N/A",
                         certificantNumber: cellStr(row, spm.certificantnumber || 6) || "N/A"
-                    })
-                } else {
-                    headlessUsers.push({ name, email, rowNumber: i, sourceSheet: "SUPERVISORS", collisionType: "EMAIL_IN_DB" })
-                }
+                })
             }
 
             const { mapping: stm, headerRowIndex: stHeaderIdx, emailCol: stEmailCol } = mapHeaders(sheetStudents)
@@ -253,9 +250,6 @@ export async function POST(request: Request) {
                             officePaymentRate: cellNum(row, stm.officepaymentrate || 0)
                         }
                     })
-                } else if (name) {
-                    headlessUsers.push({ name, email: email || "NO_EMAIL_FOUND", rowNumber: i, sourceSheet: "STUDENTS", collisionType: email.includes("@") ? "EMAIL_IN_DB" : "EMAIL_EMPTY" })
-                }
             }
 
             const parseGenericSheet = (sheet: ExcelJS.Worksheet | undefined, list: any[]) => {
