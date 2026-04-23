@@ -336,6 +336,12 @@ export async function POST(request: Request) {
             const { newUsers, newSupervisors, newContracts, newHours, newGroups, newSessions, newRawPayments } = body
             const batchString = `MASS_LOAD_${format(new Date(), 'yyyyMMdd_HHmm')}`
 
+            // PRE-CALCULATE HASHES IN PARALLEL (CRITICAL for speed to avoid 524 timeouts)
+            const [hashedSupervisors, hashedStudents] = await Promise.all([
+                Promise.all(newSupervisors.map(async (s: any) => ({ ...s, passwordHash: await bcrypt.hash(s.password, 10) }))),
+                Promise.all(newUsers.map(async (u: any) => ({ ...u, passwordHash: await bcrypt.hash(u.password, 10) })))
+            ])
+
             const result = await prisma.$transaction(async (tx) => {
                 const batch = await (tx as any).importBatch.create({ data: { batchString, status: "COMPLETED" } })
                 const supMap = new Map<string, string>()
@@ -343,11 +349,10 @@ export async function POST(request: Request) {
                 const groupMap = new Map<string, string>()
                 const invoiceMap = new Map<string, string>()
 
-                for (const sup of newSupervisors) {
-                    const hash = await bcrypt.hash(sup.password, 10)
+                for (const sup of hashedSupervisors) {
                     const user = await tx.user.create({
                         data: {
-                            email: sup.email, passwordHash: hash, role: "SUPERVISOR", isActive: true,
+                            email: sup.email, passwordHash: sup.passwordHash, role: "SUPERVISOR", isActive: true,
                             supervisor: { 
                                 create: { 
                                     fullName: sup.fullName, 
@@ -370,12 +375,11 @@ export async function POST(request: Request) {
                 const allSups = await tx.supervisor.findMany()
                 allSups.forEach(s => supMap.set(s.fullName.toLowerCase(), s.id))
 
-                for (const nu of newUsers) {
-                    const hash = await bcrypt.hash(nu.password, 10)
+                for (const nu of hashedStudents) {
                     const user = await tx.user.create({
                         data: {
                             email: nu.email,
-                            passwordHash: hash,
+                            passwordHash: nu.passwordHash,
                             role: "STUDENT",
                             isActive: true,
                             student: {
