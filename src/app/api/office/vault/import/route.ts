@@ -336,10 +336,14 @@ export async function POST(request: Request) {
             const { newUsers, newSupervisors, newContracts, newHours, newGroups, newSessions, newRawPayments } = body
             const batchString = `MASS_LOAD_${format(new Date(), 'yyyyMMdd_HHmm')}`
 
-            // PRE-CALCULATE HASHES IN PARALLEL (CRITICAL for speed to avoid 524 timeouts)
-            const [hashedSupervisors, hashedStudents] = await Promise.all([
-                Promise.all(newSupervisors.map(async (s: any) => ({ ...s, passwordHash: await bcrypt.hash(s.password, 10) }))),
-                Promise.all(newUsers.map(async (u: any) => ({ ...u, passwordHash: await bcrypt.hash(u.password, 10) })))
+            // PRE-CALCULATE DATA (IDs and Hashes) IN PARALLEL for maximum speed
+            const [prepSupervisors, prepStudents] = await Promise.all([
+                Promise.all(newSupervisors.map(async (s: any) => ({ 
+                    ...s, userId: crypto.randomUUID(), passwordHash: await bcrypt.hash(s.password, 10) 
+                }))),
+                Promise.all(newUsers.map(async (u: any) => ({ 
+                    ...u, userId: crypto.randomUUID(), passwordHash: await bcrypt.hash(u.password, 10) 
+                })))
             ])
 
             const result = await prisma.$transaction(async (tx) => {
@@ -349,73 +353,39 @@ export async function POST(request: Request) {
                 const groupMap = new Map<string, string>()
                 const invoiceMap = new Map<string, string>()
 
-                for (const sup of hashedSupervisors) {
-                    const user = await tx.user.create({
-                        data: {
-                            email: sup.email, passwordHash: sup.passwordHash, role: "SUPERVISOR", isActive: true,
-                            supervisor: { 
-                                create: { 
-                                    fullName: sup.fullName, 
-                                    email: sup.email, 
-                                    credentialType: sup.credentialType, 
-                                    importBatchId: batch.id,
-                                    phone: sup.phone || "000-000-0000",
-                                    address: sup.address || "N/A",
-                                    bacbId: sup.bacbId || "N/A",
-                                    certificantNumber: sup.certificantNumber || "N/A"
-                                } 
-                            }
-                        } as any,
-                        include: { supervisor: true } as any
-                    })
-                    const s = (user as any).supervisor
-                    supMap.set(s.fullName.toLowerCase(), s.id)
-                }
+                // 1. BULK USER CREATION
+                const usersToCreate = [
+                    ...prepSupervisors.map(s => ({ id: s.userId, email: s.email, passwordHash: s.passwordHash, role: "SUPERVISOR", isActive: true })),
+                    ...prepStudents.map(u => ({ id: u.userId, email: u.email, passwordHash: u.passwordHash, role: "STUDENT", isActive: true }))
+                ]
+                if (usersToCreate.length > 0) await tx.user.createMany({ data: usersToCreate })
 
+                // 2. BULK SUPERVISOR CREATION
+                const supervisorsToCreate = prepSupervisors.map(s => ({
+                    userId: s.userId, fullName: s.fullName, email: s.email, credentialType: s.credentialType, importBatchId: batch.id,
+                    phone: s.phone || "000-000-0000", address: s.address || "N/A", bacbId: s.bacbId || "N/A", certificantNumber: s.certificantNumber || "N/A"
+                }))
+                if (supervisorsToCreate.length > 0) await tx.supervisor.createMany({ data: supervisorsToCreate })
+
+                // Re-populate supMap for student linking
                 const allSups = await tx.supervisor.findMany()
                 allSups.forEach(s => supMap.set(s.fullName.toLowerCase(), s.id))
 
-                for (const nu of hashedStudents) {
-                    const user = await tx.user.create({
-                        data: {
-                            email: nu.email,
-                            passwordHash: nu.passwordHash,
-                            role: "STUDENT",
-                            isActive: true,
-                            student: {
-                                create: { 
-                                    fullName: nu.fullName, 
-                                    email: nu.email, 
-                                    startDate: safeDate(nu.fields.startDate),
-                                    endDate: safeDate(nu.fields.endDate),
-                                    status: normalizeStudentStatus(nu.fields.status || "ACTIVE"),
-                                    supervisorId: nu.fields.supervisorName ? supMap.get(nu.fields.supervisorName.toLowerCase()) : null,
-                                    importBatchId: batch.id,
-                                    phone: nu.fields.phone || "000-000-0000",
-                                    bacbId: "N/A",
-                                    credential: "BCBA",
-                                    school: "N/A",
-                                    level: "BCBA",
-                                    city: "N/A",
-                                    state: "N/A",
-                                    supervisionType: "REGULAR",
-                                    fieldworkType: "REGULAR",
-                                    supervisionPercentage: 0.05,
-                                    hoursToDo: nu.fields.hoursTargetReg || 1500,
-                                    hoursToPay: 0,
-                                    amountToPay: nu.fields.totalAmountContract || 0,
-                                    hourlyRate: 0,
-                                    hoursPerMonth: 130,
-                                    totalMonths: 12
-                                }
-                            }
-                        } as any,
-                        include: { student: true } as any
-                    })
-                    const s = (user as any).student
-                    studMap.set(s.fullName.toLowerCase(), s.id)
-                }
+                // 3. BULK STUDENT CREATION
+                const studentsToCreate = prepStudents.map(nu => ({
+                    userId: nu.userId, fullName: nu.fullName, email: nu.email, 
+                    startDate: safeDate(nu.fields.startDate), endDate: safeDate(nu.fields.endDate),
+                    status: normalizeStudentStatus(nu.fields.status || "ACTIVE"),
+                    supervisorId: nu.fields.supervisorName ? supMap.get(nu.fields.supervisorName.toLowerCase()) : null,
+                    importBatchId: batch.id, phone: nu.fields.phone || "000-000-0000",
+                    bacbId: "N/A", credential: "BCBA", school: "N/A", level: "BCBA", city: "N/A", state: "N/A",
+                    supervisionType: "REGULAR", fieldworkType: "REGULAR", supervisionPercentage: 0.05,
+                    hoursToDo: nu.fields.hoursTargetReg || 1500, hoursToPay: 0,
+                    amountToPay: nu.fields.totalAmountContract || 0, hourlyRate: 0, hoursPerMonth: 130, totalMonths: 12
+                }))
+                if (studentsToCreate.length > 0) await tx.student.createMany({ data: studentsToCreate })
 
+                // Re-populate studMap for financial records
                 const allStuds = await tx.student.findMany()
                 allStuds.forEach(s => studMap.set(s.fullName.toLowerCase(), s.id))
 
