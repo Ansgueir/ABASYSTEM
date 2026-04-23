@@ -29,19 +29,32 @@ export async function GET(request: Request) {
         workbook.creator = 'ABA Supervision System'
         workbook.created = new Date()
 
+        // ── 0. DATA FETCHING ──────────────────────────────────────────────────
         const students: any[] = await (prisma as any).student.findMany({
             include: {
                 supervisor: true,
                 financialPeriods: { orderBy: { periodNumber: 'asc' } },
                 payments: true,
                 invoices: true,
+                user: true
             }
         })
 
         const supervisors: any[] = await (prisma as any).supervisor.findMany({
             include: {
-                students: true
+                students: true,
+                user: true
             }
+        })
+
+        const officeMembers = await (prisma as any).officeMember.findMany({
+            include: { user: true }
+        })
+
+        const plans = await prisma.plan.findMany()
+
+        const groups = await prisma.supervisionGroup.findMany({
+            include: { supervisors: { include: { supervisor: true } } }
         })
 
         const allStudentPayments: any[] = await (prisma as any).studentPayment.findMany({
@@ -49,286 +62,211 @@ export async function GET(request: Request) {
             orderBy: { paymentDate: 'asc' }
         })
 
-        // ==========================================
-        // 1. Sheet "Students"
-        // ==========================================
+        const allInvoices = await prisma.invoice.findMany({
+            include: { student: true },
+            orderBy: { createdAt: "desc" }
+        })
+
+        const ledgerEntries = await (prisma as any).supervisorLedgerEntry.findMany({
+            include: { student: true, supervisor: true },
+            orderBy: { createdAt: "desc" }
+        })
+
+        // ── 1. SHEET: STUDENTS (FULL PROFILE) ──────────────────────────────────
         const sheetStudents = workbook.addWorksheet('Students')
         sheetStudents.columns = [
-            { header: 'Cons', key: 'cons', width: 8 },
-            { header: 'Trainee Name', key: 'traineeName', width: 30 },
-            { header: 'Supervisor Name', key: 'supervisorName', width: 30 },
+            { header: 'ID', key: 'id', width: 36 },
+            { header: 'FULL NAME', key: 'name', width: 30 },
+            { header: 'EMAIL', key: 'email', width: 30 },
+            { header: 'PHONE', key: 'phone', width: 15 },
             { header: 'BACB ID', key: 'bacbId', width: 15 },
-            { header: 'Credential', key: 'credential', width: 15 },
-            { header: 'VCS Sequence', key: 'vcs', width: 15 },
-            { header: 'Level', key: 'level', width: 15 },
-            { header: 'Phone Number', key: 'phoneNumber', width: 15 },
-            { header: 'Email', key: 'email', width: 25 },
-            { header: 'City/State', key: 'cityState', width: 20 },
-            { header: 'Option Plan', key: 'option', width: 15 },
-            { header: 'Start Date', key: 'startDate', width: 15 },
-            { header: 'End Date', key: 'endDate', width: 15 },
-            { header: 'Total Months', key: 'totalMonths', width: 15 },
-            { header: 'Regular Hours Target', key: 'regHours', width: 20 },
-            { header: 'Concentrated Hours Target', key: 'concHours', width: 25 },
-            { header: 'Total Independent Hours Target', key: 'indHours', width: 30 },
-            { header: 'Total Amount Contract', key: 'totAmtSup', width: 20 },
-            { header: 'Amount to be paid Analyst', key: 'amtPaidAnalyst', width: 25 },
-            { header: 'Total Paid to Office', key: 'totPaidOffice', width: 20 },
-            { header: 'Status', key: 'status', width: 15 },
-            { header: 'Comment', key: 'comment', width: 30 },
+            { header: 'CREDENTIAL', key: 'credential', width: 15 },
+            { header: 'STATUS', key: 'status', width: 15 },
+            { header: 'SUPERVISOR', key: 'supervisor', width: 30 },
+            { header: 'PLAN', key: 'plan', width: 20 },
+            { header: 'START DATE', key: 'startDate', width: 15 },
+            { header: 'END DATE', key: 'endDate', width: 15 },
+            { header: 'CITY', key: 'city', width: 15 },
+            { header: 'STATE', key: 'state', width: 10 },
+            { header: 'SCHOOL', key: 'school', width: 20 },
         ]
-
         sheetStudents.getRow(1).font = { bold: true, color: { argb: 'FFFFFFFF' } }
         sheetStudents.getRow(1).fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF4F46E5' } }
 
-        let cons = 1;
-        for (const student of students) {
-            const regHours = Number(student.hoursTargetReg) || 0
-            const concHours = Number(student.hoursTargetConc) || 0
-            const indHours = Number(student.independentHoursTarget) || 0
-
-            const totAmtSup = Number(student.totalAmountContract) || 0
-            const amtPaidAnalyst = totAmtSup * (Number(student.analystPaymentRate) || 0)
-            const totPaidOffice = student.payments.reduce((sum: number, p: any) => sum + Number(p.amount), 0)
-
-            const row = sheetStudents.addRow({
-                cons: cons++,
-                traineeName: student.fullName,
-                supervisorName: student.supervisor?.fullName || null,
-                bacbId: student.bacbId || null,
-                credential: student.credential,
-                vcs: student.vcsSequence || null,
-                level: student.level,
-                phoneNumber: student.phone,
-                email: student.email,
-                cityState: `${student.city || ''}, ${student.state || ''}`.trim().replace(/^,|,$/g, ''),
-                option: student.assignedOptionPlan || null,
-                startDate: student.startDate ? format(new Date(student.startDate), 'yyyy-MM-dd') : null,
-                endDate: student.endDate ? format(new Date(student.endDate), 'yyyy-MM-dd') : null,
-                totalMonths: student.totalMonths,
-                regHours,
-                concHours,
-                indHours,
-                totAmtSup,
-                amtPaidAnalyst,
-                totPaidOffice,
-                status: student.status,
-                comment: student.internalComments || null
+        students.forEach(s => {
+            sheetStudents.addRow({
+                id: s.id,
+                name: s.fullName,
+                email: s.user?.email || s.email,
+                phone: s.phone,
+                bacbId: s.bacbId,
+                credential: s.credential,
+                status: s.status,
+                supervisor: s.supervisor?.fullName || "Unassigned",
+                plan: s.assignedOptionPlan,
+                startDate: s.startDate ? format(new Date(s.startDate), 'yyyy-MM-dd') : "-",
+                endDate: s.endDate ? format(new Date(s.endDate), 'yyyy-MM-dd') : "-",
+                city: s.city,
+                state: s.state,
+                school: s.school
             })
+        })
 
-            row.getCell('totAmtSup').numFmt = '"$"#,##0.00'
-            row.getCell('amtPaidAnalyst').numFmt = '"$"#,##0.00'
-            row.getCell('totPaidOffice').numFmt = '"$"#,##0.00'
-        }
-
-        // ==========================================
-        // 2. Sheet "Supervisors"
-        // ==========================================
+        // ── 2. SHEET: SUPERVISORS (FULL PROFILE) ────────────────────────────────
         const sheetSupervisors = workbook.addWorksheet('Supervisors')
         sheetSupervisors.columns = [
-            { header: 'Supervisor Name', key: 'name', width: 30 },
-            { header: 'Internal ID #', key: 'internalId', width: 15 },
+            { header: 'ID', key: 'id', width: 36 },
+            { header: 'FULL NAME', key: 'name', width: 30 },
+            { header: 'EMAIL', key: 'email', width: 30 },
+            { header: 'PHONE', key: 'phone', width: 15 },
             { header: 'BACB ID', key: 'bacbId', width: 15 },
-            { header: 'Cert #', key: 'cert', width: 15 },
-            { header: 'Qualification Level', key: 'qual', width: 20 },
-            { header: 'Date Qualified', key: 'dateQual', width: 15 },
-            { header: 'Exam Date', key: 'examDate', width: 15 },
-            { header: 'Status', key: 'status', width: 15 },
-            { header: 'Active Students Count', key: 'studentsCount', width: 20 },
+            { header: 'CREDENTIAL', key: 'credential', width: 15 },
+            { header: 'STATUS', key: 'status', width: 15 },
+            { header: 'PAY PERCENTAGE', key: 'payRate', width: 15 },
+            { header: 'ADDRESS', key: 'address', width: 30 },
         ]
         sheetSupervisors.getRow(1).font = { bold: true, color: { argb: 'FFFFFFFF' } }
         sheetSupervisors.getRow(1).fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF8B5CF6' } }
 
-        for (const sup of supervisors) {
-            let activeCount = 0
-            for (const st of sup.students) {
-                if (st.status === 'ACTIVE') activeCount++
-            }
-
+        supervisors.forEach(sup => {
             sheetSupervisors.addRow({
+                id: sup.id,
                 name: sup.fullName,
-                internalId: sup.internalIdNumber || null,
-                bacbId: sup.bacbId || null,
-                cert: sup.certificantNumber || null,
-                qual: (sup as any).qualificationLevel || sup.credentialType,
-                dateQual: sup.dateQualified ? format(new Date(sup.dateQualified), 'yyyy-MM-dd') : null,
-                examDate: sup.examDate ? format(new Date(sup.examDate), 'yyyy-MM-dd') : null,
+                email: sup.user?.email || sup.email,
+                phone: sup.phone,
+                bacbId: sup.bacbId,
+                credential: sup.credentialType,
                 status: sup.status,
-                studentsCount: activeCount
+                payRate: `${((sup.paymentPercentage || 0.54) * 100).toFixed(0)}%`,
+                address: sup.address
             })
-        }
+        })
 
-        // ==========================================
-        // 3. Sheet "Financial History (48 Periods)"
-        // ==========================================
-        const sheetFinancial = workbook.addWorksheet('Financial History (48 Periods)')
-        sheetFinancial.columns = [
-            { header: 'Student Name', key: 'studentName', width: 30 },
-            { header: 'Supervisor Name', key: 'supervisorName', width: 30 },
-            { header: 'Period #', key: 'periodNum', width: 10 },
-            { header: 'Month', key: 'month', width: 15 },
-            { header: 'Due to Office', key: 'dueToOffice', width: 15 },
-            { header: 'Due to Office (Accumulated)', key: 'dueToOfficeAcum', width: 25 },
-            { header: 'Paid to Office', key: 'paidToOffice', width: 15 },
-            { header: 'Paid to Office (Accumulated)', key: 'paidToOfficeAcum', width: 25 },
-            { header: 'Due to Analyst', key: 'dueToAnalyst', width: 18 },
-            { header: 'Due to Analyst (Total)', key: 'dueToAnalystAcum', width: 22 },
-            { header: 'Paid to Analyst', key: 'paidToAnalyst', width: 18 },
-            { header: 'Paid to Analyst (Accumulated)', key: 'paidToAnalystAcum', width: 25 },
+        // ── 3. SHEET: OFFICE TEAM ─────────────────────────────────────────────
+        const sheetOffice = workbook.addWorksheet('Office Team')
+        sheetOffice.columns = [
+            { header: 'NAME', key: 'name', width: 30 },
+            { header: 'EMAIL', key: 'email', width: 30 },
+            { header: 'ROLE', key: 'role', width: 20 },
+            { header: 'STATUS', key: 'status', width: 15 },
         ]
+        sheetOffice.getRow(1).font = { bold: true, color: { argb: 'FFFFFFFF' } }
+        sheetOffice.getRow(1).fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF0F172A' } }
 
-        sheetFinancial.getRow(1).font = { bold: true, color: { argb: 'FFFFFFFF' } }
-        sheetFinancial.getRow(1).fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF10B981' } }
+        officeMembers.forEach((m: any) => {
+            sheetOffice.addRow({
+                name: m.fullName,
+                email: m.user?.email,
+                role: m.officeRole,
+                status: m.user?.isActive ? "ACTIVE" : "INACTIVE"
+            })
+        })
 
-        for (const student of students) {
-            let dueToOfficeAcum = 0;
-            let paidToOfficeAcum = 0;
-            let dueToAnalystAcum = 0;
-            let paidToAnalystAcum = 0;
-
-            const periods = student.financialPeriods || [];
-
-            for (let i = 1; i <= 48; i++) {
-                const p = periods.find((per: any) => per.periodNumber === i);
-
-                const dueToOffice = p ? Number(p.amountDueOffice) : 0;
-                const dueToAnalyst = p ? Number(p.amountDueAnalyst) : 0;
-
-                const prevPO = periods.find((per: any) => per.periodNumber === i - 1);
-                const paidToOfficeAcumReal = p ? Number(p.accumulatedPaidOffice) : 0;
-                const paidToOffice = paidToOfficeAcumReal - (prevPO ? Number(prevPO.accumulatedPaidOffice) : 0);
-
-                const paidToAnalystAcumReal = p ? Number(p.accumulatedPaidAnalyst) : 0;
-                const paidToAnalyst = paidToAnalystAcumReal - (prevPO ? Number(prevPO.accumulatedPaidAnalyst) : 0);
-
-                dueToOfficeAcum += dueToOffice;
-                paidToOfficeAcum = paidToOfficeAcumReal;
-                dueToAnalystAcum += dueToAnalyst;
-                paidToAnalystAcum = paidToAnalystAcumReal;
-
-                if (i >= startPeriod && i <= endPeriod) {
-                    const row = sheetFinancial.addRow({
-                        studentName: student.fullName,
-                        supervisorName: student.supervisor?.fullName || null,
-                        periodNum: i,
-                        month: p ? p.monthYearLabel : `Period ${i}`,
-                        dueToOffice,
-                        dueToOfficeAcum,
-                        paidToOffice,
-                        paidToOfficeAcum,
-                        dueToAnalyst,
-                        dueToAnalystAcum,
-                        paidToAnalyst,
-                        paidToAnalystAcum
-                    })
-
-                    row.getCell('dueToOffice').numFmt = '"$"#,##0.00'
-                    row.getCell('dueToOfficeAcum').numFmt = '"$"#,##0.00'
-                    row.getCell('paidToOffice').numFmt = '"$"#,##0.00'
-                    row.getCell('paidToOfficeAcum').numFmt = '"$"#,##0.00'
-                    row.getCell('dueToAnalyst').numFmt = '"$"#,##0.00'
-                    row.getCell('dueToAnalystAcum').numFmt = '"$"#,##0.00'
-                    row.getCell('paidToAnalyst').numFmt = '"$"#,##0.00'
-                    row.getCell('paidToAnalystAcum').numFmt = '"$"#,##0.00'
-                }
-            }
-        }
-
-        // ==========================================
-        // 4. Sheet "Transaction Logs"
-        // ==========================================
-        const sheetLogs = workbook.addWorksheet('Transaction Logs')
-        sheetLogs.columns = [
-            { header: 'Trainee Name', key: 'supervisado', width: 30 },
-            { header: 'Analyst Name', key: 'analista', width: 30 },
-            { header: 'Payment Date', key: 'fechaPago', width: 15 },
-            { header: 'Month', key: 'mes', width: 10 },
-            { header: 'Month Text', key: 'fechaText', width: 25 },
-            { header: 'Amount', key: 'importe', width: 15 },
-            { header: 'Payment Method', key: 'tipoPago', width: 20 },
-            { header: 'Note', key: 'nota', width: 40 },
-            { header: 'Invoiced to Date', key: 'totalAPagar', width: 15 },
-            { header: 'Paid to Date', key: 'cobrado', width: 15 },
-            { header: 'Balance', key: 'balance', width: 15 },
+        // ── 4. SHEET: PLANS & OPTIONS ─────────────────────────────────────────
+        const sheetPlans = workbook.addWorksheet('Plans & Options')
+        sheetPlans.columns = [
+            { header: 'PLAN NAME', key: 'name', width: 30 },
+            { header: 'TOTAL COST', key: 'cost', width: 15 },
+            { header: 'MONTHLY PMT', key: 'monthly', width: 15 },
+            { header: 'TOTAL HOURS', key: 'hours', width: 15 },
+            { header: 'SUP COMMISSION', key: 'commission', width: 15 },
         ]
+        sheetPlans.getRow(1).font = { bold: true, color: { argb: 'FFFFFFFF' } }
+        sheetPlans.getRow(1).fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF3B82F6' } }
 
-        sheetLogs.getRow(1).font = { bold: true, color: { argb: 'FFFFFFFF' } }
-        sheetLogs.getRow(1).fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFF59E0B' } }
-
-        for (const payment of allStudentPayments) {
-            const pDate = new Date(payment.paymentDate)
-            const sid = payment.studentId
-
-            // Calculate historically accurate balance for this payment moment
-            const pastInvoices = await (prisma as any).invoice.aggregate({
-                where: { studentId: sid, createdAt: { lte: pDate } },
-                _sum: { amountDue: true }
+        plans.forEach(p => {
+            const row = sheetPlans.addRow({
+                name: p.name,
+                cost: Number(p.totalCost || 0),
+                monthly: Number(p.monthlyPayment || 0),
+                hours: Number(p.totalHours || 0),
+                commission: `${((Number(p.supervisorCommission) || 0.54) * 100).toFixed(0)}%`
             })
-            const pastPayments = await (prisma as any).studentPayment.aggregate({
-                where: { studentId: sid, paymentDate: { lte: pDate } },
-                _sum: { amount: true }
-            })
+            row.getCell('cost').numFmt = '"$"#,##0.00'
+            row.getCell('monthly').numFmt = '"$"#,##0.00'
+        })
 
-            const totalInvoiced = Number(pastInvoices._sum.amountDue || 0)
-            const totalPaid = Number(pastPayments._sum.amount || 0)
-            const balanceNow = totalInvoiced - totalPaid
-
-            const row = sheetLogs.addRow({
-                supervisado: payment.student.fullName,
-                analista: payment.student.supervisor?.fullName || null,
-                fechaPago: format(pDate, 'yyyy-MM-dd'),
-                mes: format(pDate, 'MM'),
-                fechaText: format(pDate, 'MMMM yyyy'),
-                importe: Number(payment.amount),
-                tipoPago: payment.paymentType,
-                nota: payment.notes || null,
-                totalAPagar: totalInvoiced,
-                cobrado: totalPaid,
-                balance: balanceNow
-            })
-
-            row.getCell('importe').numFmt = '"$"#,##0.00'
-            row.getCell('totalAPagar').numFmt = '"$"#,##0.00'
-            row.getCell('cobrado').numFmt = '"$"#,##0.00'
-            row.getCell('balance').numFmt = '"$"#,##0.00'
-        }
-
-        // ==========================================
-        // 5. Sheet "System Config"
-        // ==========================================
-        const sheetConfig = workbook.addWorksheet('System Config')
-        sheetConfig.columns = [
-            { header: 'Plan Option', key: 'plan', width: 15 },
-            { header: 'Description', key: 'desc', width: 40 },
-            { header: 'Standard Monthly Cost', key: 'cost', width: 25 },
-            { header: 'Analyst Default Rate', key: 'analystRate', width: 20 },
+        // ── 5. SHEET: SUPERVISION GROUPS ──────────────────────────────────────
+        const sheetGroups = workbook.addWorksheet('Supervision Groups')
+        sheetGroups.columns = [
+            { header: 'GROUP NAME', key: 'name', width: 30 },
+            { header: 'TYPE', key: 'type', width: 15 },
+            { header: 'DAY', key: 'day', width: 15 },
+            { header: 'TIME', key: 'time', width: 20 },
+            { header: 'SUPERVISORS', key: 'sups', width: 40 },
         ]
-        sheetConfig.getRow(1).font = { bold: true, color: { argb: 'FFFFFFFF' } }
-        sheetConfig.getRow(1).fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF3B82F6' } }
+        sheetGroups.getRow(1).font = { bold: true, color: { argb: 'FFFFFFFF' } }
+        sheetGroups.getRow(1).fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFD97706' } }
 
-        sheetConfig.addRows([
-            { plan: 'Option A', desc: 'Standard independent hours with structured curriculum', cost: 150.00, analystRate: 0.54 },
-            { plan: 'Option B', desc: 'Concentrated independent hours with intensive review', cost: 200.00, analystRate: 0.54 },
-            { plan: 'Option C', desc: 'Custom tailored plan for fast tracking', cost: 250.00, analystRate: 0.60 },
-            { plan: 'Option D', desc: 'Part-time continuous education path', cost: 100.00, analystRate: 0.50 },
-            { plan: 'Option E', desc: 'External affiliation partial-hours', cost: 75.00, analystRate: 0.50 },
-        ])
+        groups.forEach(g => {
+            sheetGroups.addRow({
+                name: g.name,
+                type: g.groupType,
+                day: g.dayOfWeek,
+                time: `${g.startTime} - ${g.endTime}`,
+                sups: g.supervisors.map((s: any) => s.supervisor?.fullName).join(", ")
+            })
+        })
 
-        sheetConfig.getColumn('cost').numFmt = '"$"#,##0.00'
+        // ── 6. SHEET: MASTER FINANCIAL LEDGER (WATERFALL) ─────────────────────
+        const sheetLedger = workbook.addWorksheet('Financial Ledger (Waterfall)')
+        sheetLedger.columns = [
+            { header: 'DATE', key: 'date', width: 15 },
+            { header: 'STUDENT', key: 'student', width: 30 },
+            { header: 'SUPERVISOR', key: 'supervisor', width: 30 },
+            { header: 'STUDENT PAID', key: 'collected', width: 15 },
+            { header: 'SUP SHARE', key: 'supShare', width: 15 },
+            { header: 'OFFICE NET', key: 'officeShare', width: 15 },
+            { header: 'STATUS', key: 'status', width: 15 },
+        ]
+        sheetLedger.getRow(1).font = { bold: true, color: { argb: 'FFFFFFFF' } }
+        sheetLedger.getRow(1).fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF059669' } }
 
-        // ==========================================
-        // Generate buffer
-        // ==========================================
+        ledgerEntries.forEach((e: any) => {
+            const row = sheetLedger.addRow({
+                date: format(new Date(e.createdAt), 'yyyy-MM-dd'),
+                student: e.student.fullName,
+                supervisor: e.supervisor.fullName,
+                collected: Number(e.paymentFromStudent || 0),
+                supShare: Number(e.supervisorPayout || 0),
+                officeShare: Number(e.officePayout || 0),
+                status: e.payoutStatus
+            })
+            row.getCell('collected').numFmt = '"$"#,##0.00'
+            row.getCell('supShare').numFmt = '"$"#,##0.00'
+            row.getCell('officeShare').numFmt = '"$"#,##0.00'
+        })
+
+        // ── 7. SHEET: ALL INVOICES (COBROS) ──────────────────────────────────
+        const sheetInv = workbook.addWorksheet('All Invoices')
+        sheetInv.columns = [
+            { header: 'DATE', key: 'date', width: 15 },
+            { header: 'STUDENT', key: 'student', width: 30 },
+            { header: 'AMOUNT DUE', key: 'due', width: 15 },
+            { header: 'AMOUNT PAID', key: 'paid', width: 15 },
+            { header: 'STATUS', key: 'status', width: 15 },
+        ]
+        sheetInv.getRow(1).font = { bold: true, color: { argb: 'FFFFFFFF' } }
+        sheetInv.getRow(1).fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF7C3AED' } }
+
+        allInvoices.forEach(inv => {
+            const row = sheetInv.addRow({
+                date: inv.invoiceDate ? format(new Date(inv.invoiceDate), 'yyyy-MM-dd') : "-",
+                student: inv.student.fullName,
+                due: Number(inv.amountDue || 0),
+                paid: Number(inv.amountPaid || 0),
+                status: inv.status
+            })
+            row.getCell('due').numFmt = '"$"#,##0.00'
+            row.getCell('paid').numFmt = '"$"#,##0.00'
+        })
+
         const buffer = await workbook.xlsx.writeBuffer()
 
         return new NextResponse(buffer, {
-            status: 200,
             headers: {
-                'Content-Disposition': `attachment; filename="Export_Master_Report_${format(new Date(), 'yyyyMMdd_HHmmss')}.xlsx"`,
+                'Content-Disposition': `attachment; filename="MASTER_DATABASE_AUDIT_${format(new Date(), 'yyyyMMdd')}.xlsx"`,
                 'Content-Type': 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-                'Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate',
-                'Pragma': 'no-cache',
-                'Expires': '0',
             }
         })
 
