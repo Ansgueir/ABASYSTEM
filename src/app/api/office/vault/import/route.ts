@@ -444,7 +444,7 @@ export async function POST(request: Request) {
 
                 const allSups = await tx.supervisor.findMany()
                 allSups.forEach(s => {
-                    const clean = s.fullName.toLowerCase().trim().replace(/\s+/g, ' ')
+                    const clean = s.fullName.toLowerCase().trim().replace(/,/g, '').replace(/\s+/g, ' ')
                     supMap.set(clean, s.id)
                 })
                 console.timeEnd("db_supervisors_phase")
@@ -466,7 +466,7 @@ export async function POST(request: Request) {
 
                 const allStuds = await tx.student.findMany()
                 allStuds.forEach(s => {
-                    const clean = s.fullName.toLowerCase().trim().replace(/\s+/g, ' ')
+                    const clean = s.fullName.toLowerCase().trim().replace(/,/g, '').replace(/\s+/g, ' ')
                     studMap.set(clean, s.id)
                 })
                 console.timeEnd("db_students_phase")
@@ -491,16 +491,30 @@ export async function POST(request: Request) {
 
                 for (const rp of combinedPayments) {
                     const rawName = cellStrFromObj(rp.studentName || rp.studentname || rp.studentid || rp.alumno)
-                    const cleanName = rawName?.toLowerCase().trim().replace(/\s+/g, ' ')
-                    const sid = cleanName ? studMap.get(cleanName) : null
+                    if (!rawName) continue
+
+                    const cleanName = rawName.toLowerCase().trim().replace(/,/g, '').replace(/\s+/g, ' ')
                     
-                    if (!sid && rawName) {
+                    // Try direct match
+                    let sid = studMap.get(cleanName)
+                    
+                    // Try reversed match (if it contains a space)
+                    if (!sid && cleanName.includes(' ')) {
+                        const parts = cleanName.split(' ')
+                        if (parts.length >= 2) {
+                            // Try: "Part2, Part1" or "Part2 Part1"
+                            const reversed = `${parts[parts.length - 1]} ${parts.slice(0, -1).join(' ')}`
+                            sid = studMap.get(reversed)
+                        }
+                    }
+
+                    if (!sid) {
                         orphanedCount++
                         if (orphanedSamples.length < 10) orphanedSamples.push(rawName)
                         continue
                     }
                     
-                    if (sid) linkedCount++
+                    linkedCount++
 
                     if (rp.type === "INVOICE" && sid) {
                         invoicesToCreate.push({
