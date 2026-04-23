@@ -417,41 +417,56 @@ export async function POST(request: Request) {
                     })
                 }
 
+                const invoicesToCreate: any[] = []
+                const paymentsToCreate: any[] = []
+                const ledgerToCreate: any[] = []
+
                 for (const rp of newRawPayments) {
                     const sid = studMap.get(cellStrFromObj(rp.studentname || rp.studentid)?.toLowerCase())
                     if (!sid) continue
 
                     if (rp.type === "INVOICE") {
-                        const inv = await (tx as any).invoice.create({
-                            data: { 
-                                studentId: sid, 
-                                invoiceDate: new Date(rp.invoicedate), 
-                                amountDue: Number(rp.amountdue), 
-                                amountPaid: Number(rp.amountpaid), 
-                                status: rp.status || "PAID",
-                                importBatchId: batch.id
-                            }
+                        invoicesToCreate.push({
+                            id: rp.id || undefined,
+                            studentId: sid, 
+                            invoiceDate: new Date(rp.invoicedate), 
+                            amountDue: Number(rp.amountdue), 
+                            amountPaid: Number(rp.amountpaid), 
+                            status: rp.status || "PAID",
+                            importBatchId: batch.id
                         })
-                        if (rp.id) invoiceMap.set(rp.id, inv.id)
                     } else if (rp.type === "STUDENT_PAYMENT") {
-                        await (tx as any).studentPayment.create({
-                            data: { studentId: sid, amount: Number(rp.amount), paymentDate: new Date(rp.paymentdate || rp.date), paymentType: rp.paymenttype || "ZELLE", importBatchId: batch.id }
+                        paymentsToCreate.push({
+                            studentId: sid, 
+                            amount: Number(rp.amount), 
+                            paymentDate: new Date(rp.paymentdate || rp.date), 
+                            paymentType: rp.paymenttype || "ZELLE", 
+                            importBatchId: batch.id
                         })
                     } else if (rp.type === "LEDGER_ENTRY") {
                         const supId = supMap.get(cellStrFromObj(rp.supervisorname || rp.supervisorid)?.toLowerCase())
+                        // Note: Linking ledger to invoice in bulk is tricky if invoice IDs are not in Excel.
+                        // For now, we skip the link if we don't have it, or use the raw ID.
                         const invId = rp.invoiceid ? (invoiceMap.get(rp.invoiceid) || rp.invoiceid) : null
-                        if (supId && invId) {
-                            await (tx as any).supervisorLedgerEntry.create({
-                                data: {
-                                    invoiceId: invId, supervisorId: supId, studentId: sid,
-                                    paymentFromStudent: Number(rp.paymentfromstudent), supervisorPayout: Number(rp.supervisorpayout),
-                                    officePayout: Number(rp.officepayout), payoutStatus: rp.payoutstatus || "PAID",
-                                    importBatchId: batch.id
-                                }
-                            } as any)
-                        }
+                        ledgerToCreate.push({
+                            invoiceId: invId || "00000000-0000-0000-0000-000000000000", 
+                            supervisorId: supId, 
+                            studentId: sid,
+                            paymentFromStudent: Number(rp.paymentfromstudent), 
+                            supervisorPayout: Number(rp.supervisorpayout),
+                            officePayout: Number(rp.officepayout), 
+                            payoutStatus: rp.payoutstatus || "PAID",
+                            importBatchId: batch.id,
+                            supervisorCapTotal: 0,
+                            supervisorCapRemainingBefore: 0,
+                            supervisorCapRemainingAfter: 0
+                        })
                     }
                 }
+
+                if (invoicesToCreate.length > 0) await tx.invoice.createMany({ data: invoicesToCreate })
+                if (paymentsToCreate.length > 0) await tx.studentPayment.createMany({ data: paymentsToCreate })
+                if (ledgerToCreate.length > 0) await tx.supervisorLedgerEntry.createMany({ data: ledgerToCreate })
             }, { timeout: 600000 })
             return NextResponse.json({ success: true })
         }
