@@ -29,7 +29,7 @@ interface StagingResult {
     headlessUsers: HeadlessUser[]
     mergedRecords: any[]
     newFinancialPeriods: any[]
-    newPayments?: any[]
+    newRawPayments?: any[]
     supervisorUpdates: any[]
     validData: { studentsToUpdate: any[] }
     resolutions: Record<string, "sum" | "replace" | "ignore">
