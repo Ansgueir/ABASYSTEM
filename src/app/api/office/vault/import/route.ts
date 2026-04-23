@@ -168,12 +168,19 @@ export async function POST(request: Request) {
                     claimedEmailsInBatch.set(email, { rowNumber: i, sheetName: "STUDENTS" })
                     newUsers.push({ 
                         fullName: name, email, password, rowNumber: i, 
+                        sourceSheet: "STUDENTS",
                         supervisorName: cellStr(row, stm.supervisorid || stm.supervisorname || 11),
                         fields: {
                             phone: cellStr(row, stm.phone || 9),
                             startDate: cellDate(row, stm.startdate || 15),
                             endDate: cellDate(row, stm.enddate || 25),
-                            status: cellStr(row, stm.status || 26) || "ACTIVE"
+                            status: cellStr(row, stm.status || 26) || "ACTIVE",
+                            hoursTargetReg: cellNum(row, stm.hourstargetreg || stm.reghours || 0),
+                            hoursTargetConc: cellNum(row, stm.hourstargetconc || stm.conchours || 0),
+                            independentHoursTarget: cellNum(row, stm.independenthourstarget || 0),
+                            totalAmountContract: cellNum(row, stm.totalamountcontract || stm.totalcharge || 0),
+                            analystPaymentRate: cellNum(row, stm.analystpaymentrate || 0),
+                            officePaymentRate: cellNum(row, stm.officepaymentrate || 0)
                         }
                     })
                 }
@@ -201,7 +208,19 @@ export async function POST(request: Request) {
                 for (let i = 2; i <= sheet.rowCount; i++) {
                     const row = sheet.getRow(i)
                     const data: any = { type, rowNumber: i, sourceSheet: sheet.name }
-                    Object.keys(m).forEach(key => data[key] = row.getCell(m[key]).value)
+                    Object.keys(m).forEach(key => {
+                        const val = row.getCell(m[key]).value
+                        data[key] = val
+                        // Normalize common UI fields
+                        if (key.includes("studentname") || key.includes("traineename")) data.studentName = cellStr(row, m[key])
+                        if (key.includes("monthyear") || key.includes("periodo")) data.monthYearLabel = cellStr(row, m[key])
+                        if (key.includes("amountdueoffice") || key.includes("monto") || (type === "STUDENT_PAYMENT" && key === "amount")) {
+                            data.amountDueOffice = cellNum(row, m[key])
+                            data.amount = cellNum(row, m[key])
+                        }
+                        if (key.includes("paymentdate") || key.includes("fecha")) data.paymentDate = cellDate(row, m[key])
+                        if (key.includes("paymenttype") || key.includes("metodo")) data.paymentType = cellStr(row, m[key])
+                    })
                     newRawPayments.push(data)
                 }
             }
