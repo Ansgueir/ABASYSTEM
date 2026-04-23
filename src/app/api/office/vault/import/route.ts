@@ -405,6 +405,20 @@ export async function POST(request: Request) {
             const prepStudents = hashedResults.filter(r => r._type === 'student' && !r.isExisting)
             console.timeEnd("hashing_phase")
 
+            // Deduplicate emails in the batch itself to avoid Unique constraint failure within createMany
+            const seenEmails = new Set<string>()
+            const uniqueSupervisors = prepSupervisors.filter(u => {
+                if (seenEmails.has(u.email)) return false
+                seenEmails.add(u.email)
+                return true
+            })
+            
+            const uniqueStudents = prepStudents.filter(u => {
+                if (seenEmails.has(u.email)) return false
+                seenEmails.add(u.email)
+                return true
+            })
+
             const result = await prisma.$transaction(async (tx) => {
                 const batch = await (tx as any).importBatch.create({ data: { batchString, status: "COMPLETED" } })
                 const supMap = new Map<string, string>()
@@ -413,15 +427,15 @@ export async function POST(request: Request) {
                 // 1. BULK USER CREATION
                 console.time("db_users_phase")
                 const usersToCreate: any[] = [
-                    ...prepSupervisors.map(s => ({ id: s.userId, email: s.email, passwordHash: s.passwordHash, role: "SUPERVISOR", isActive: true })),
-                    ...prepStudents.map(u => ({ id: u.userId, email: u.email, passwordHash: u.passwordHash, role: "STUDENT", isActive: true }))
+                    ...uniqueSupervisors.map(s => ({ id: s.userId, email: s.email, passwordHash: s.passwordHash, role: "SUPERVISOR", isActive: true })),
+                    ...uniqueStudents.map(u => ({ id: u.userId, email: u.email, passwordHash: u.passwordHash, role: "STUDENT", isActive: true }))
                 ]
                 if (usersToCreate.length > 0) await tx.user.createMany({ data: usersToCreate })
                 console.timeEnd("db_users_phase")
 
                 // 2. BULK SUPERVISOR CREATION
                 console.time("db_supervisors_phase")
-                const supervisorsToCreate = prepSupervisors.map(s => ({
+                const supervisorsToCreate = uniqueSupervisors.map(s => ({
                     userId: s.userId, fullName: s.fullName, email: s.email, credentialType: s.credentialType, importBatchId: batch.id,
                     phone: s.phone || "000-000-0000", address: s.address || "N/A", bacbId: s.bacbId || "N/A", certificantNumber: s.certificantNumber || "N/A"
                 } as any))
@@ -433,7 +447,7 @@ export async function POST(request: Request) {
 
                 // 3. BULK STUDENT CREATION
                 console.time("db_students_phase")
-                const studentsToCreate = prepStudents.map(nu => ({
+                const studentsToCreate = uniqueStudents.map(nu => ({
                     userId: nu.userId, fullName: nu.fullName, email: nu.email, 
                     startDate: safeDate(nu.fields.startDate), endDate: safeDate(nu.fields.endDate),
                     status: normalizeStudentStatus(nu.fields.status || "ACTIVE"),
