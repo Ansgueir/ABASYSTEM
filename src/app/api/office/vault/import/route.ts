@@ -333,10 +333,22 @@ export async function POST(request: Request) {
         // ══════════════════════════════════════════
         } else if (contentType.includes("application/json")) {
             const body = await request.json()
-            const { newUsers, newSupervisors, newContracts, newHours, newGroups, newSessions, newRawPayments } = body
+            const { 
+                newUsers = [], 
+                newSupervisors = [], 
+                newContracts = [], 
+                newHours = [], 
+                newGroups = [], 
+                newSessions = [], 
+                newRawPayments = [] 
+            } = body
             const batchString = `MASS_LOAD_${format(new Date(), 'yyyyMMdd_HHmm')}`
 
+            console.log(`[IMPORT] Starting bulk commit for batch ${batchString}`)
+            console.time("bulk_import_total")
+
             // PRE-CALCULATE DATA (IDs and Hashes) IN PARALLEL for maximum speed
+            console.time("hashing_phase")
             const [prepSupervisors, prepStudents] = await Promise.all([
                 Promise.all(newSupervisors.map(async (s: any) => ({ 
                     ...s, userId: crypto.randomUUID(), passwordHash: await bcrypt.hash(s.password, 10) 
@@ -345,33 +357,36 @@ export async function POST(request: Request) {
                     ...u, userId: crypto.randomUUID(), passwordHash: await bcrypt.hash(u.password, 10) 
                 })))
             ])
+            console.timeEnd("hashing_phase")
 
             const result = await prisma.$transaction(async (tx) => {
                 const batch = await (tx as any).importBatch.create({ data: { batchString, status: "COMPLETED" } })
                 const supMap = new Map<string, string>()
                 const studMap = new Map<string, string>()
-                const groupMap = new Map<string, string>()
-                const invoiceMap = new Map<string, string>()
 
                 // 1. BULK USER CREATION
+                console.time("db_users_phase")
                 const usersToCreate: any[] = [
                     ...prepSupervisors.map(s => ({ id: s.userId, email: s.email, passwordHash: s.passwordHash, role: "SUPERVISOR", isActive: true })),
                     ...prepStudents.map(u => ({ id: u.userId, email: u.email, passwordHash: u.passwordHash, role: "STUDENT", isActive: true }))
                 ]
                 if (usersToCreate.length > 0) await tx.user.createMany({ data: usersToCreate })
+                console.timeEnd("db_users_phase")
 
                 // 2. BULK SUPERVISOR CREATION
+                console.time("db_supervisors_phase")
                 const supervisorsToCreate = prepSupervisors.map(s => ({
                     userId: s.userId, fullName: s.fullName, email: s.email, credentialType: s.credentialType, importBatchId: batch.id,
                     phone: s.phone || "000-000-0000", address: s.address || "N/A", bacbId: s.bacbId || "N/A", certificantNumber: s.certificantNumber || "N/A"
                 } as any))
                 if (supervisorsToCreate.length > 0) await tx.supervisor.createMany({ data: supervisorsToCreate })
 
-                // Re-populate supMap for student linking
                 const allSups = await tx.supervisor.findMany()
                 allSups.forEach(s => supMap.set(s.fullName.toLowerCase(), s.id))
+                console.timeEnd("db_supervisors_phase")
 
                 // 3. BULK STUDENT CREATION
+                console.time("db_students_phase")
                 const studentsToCreate = prepStudents.map(nu => ({
                     userId: nu.userId, fullName: nu.fullName, email: nu.email, 
                     startDate: safeDate(nu.fields.startDate), endDate: safeDate(nu.fields.endDate),
@@ -385,79 +400,39 @@ export async function POST(request: Request) {
                 } as any))
                 if (studentsToCreate.length > 0) await tx.student.createMany({ data: studentsToCreate })
 
-                // Re-populate studMap for financial records
                 const allStuds = await tx.student.findMany()
                 allStuds.forEach(s => studMap.set(s.fullName.toLowerCase(), s.id))
+                console.timeEnd("db_students_phase")
 
-                for (const g of (newGroups || [])) {
-                    const created = await (tx as any).officeGroup.create({
-                        data: { name: g.name, groupType: g.grouptype || "GROUP", dayOfWeek: g.dayofweek, startTime: g.starttime, endTime: g.endtime }
-                    })
-                    groupMap.set(g.name.toLowerCase(), created.id)
-                }
-
-                for (const c of (newContracts || [])) {
-                    const studentId = studMap.get(cellStrFromObj(c.studentname || c.studentid)?.toLowerCase())
-                    if (!studentId) continue
-                    await (tx as any).contract.create({
-                        data: { studentId, effectiveDate: c.effectivedate ? new Date(c.effectivedate) : new Date(), status: c.status || "SIGNED", importBatchId: batch.id }
-                    })
-                }
-
-                for (const h of (newHours || [])) {
-                    const studentId = studMap.get(cellStrFromObj(h.studentname || h.studentid)?.toLowerCase())
-                    if (!studentId) continue
-                    await (tx as any).independentHour.create({
-                        data: {
-                            studentId, date: new Date(h.date), hours: Number(h.hours),
-                            activityType: h.activitytype || "DIRECT", status: "APPROVED", importBatchId: batch.id
-                        }
-                    })
-                }
-
+                // 4. BULK FINANCIAL RECORDS
+                console.time("db_finance_phase")
                 const invoicesToCreate: any[] = []
                 const paymentsToCreate: any[] = []
                 const ledgerToCreate: any[] = []
 
-                for (const rp of newRawPayments) {
+                for (const rp of (newRawPayments || [])) {
                     const sid = studMap.get(cellStrFromObj(rp.studentname || rp.studentid)?.toLowerCase())
                     if (!sid) continue
 
                     if (rp.type === "INVOICE") {
                         invoicesToCreate.push({
-                            id: rp.id || undefined,
-                            studentId: sid, 
-                            invoiceDate: safeDate(rp.invoicedate), 
-                            amountDue: Number(rp.amountdue), 
-                            amountPaid: Number(rp.amountpaid), 
-                            status: rp.status || "PAID",
-                            importBatchId: batch.id
+                            id: rp.id || undefined, studentId: sid, invoiceDate: safeDate(rp.invoicedate), 
+                            amountDue: Number(rp.amountdue), amountPaid: Number(rp.amountpaid), 
+                            status: rp.status || "PAID", importBatchId: batch.id
                         })
                     } else if (rp.type === "STUDENT_PAYMENT") {
                         paymentsToCreate.push({
-                            studentId: sid, 
-                            amount: Number(rp.amount), 
+                            studentId: sid, amount: Number(rp.amount), 
                             paymentDate: safeDate(rp.paymentdate || rp.date), 
-                            paymentType: rp.paymenttype || "ZELLE", 
-                            importBatchId: batch.id
+                            paymentType: rp.paymenttype || "ZELLE", importBatchId: batch.id
                         })
                     } else if (rp.type === "LEDGER_ENTRY") {
                         const supId = supMap.get(cellStrFromObj(rp.supervisorname || rp.supervisorid)?.toLowerCase())
-                        // Note: Linking ledger to invoice in bulk is tricky if invoice IDs are not in Excel.
-                        // For now, we skip the link if we don't have it, or use the raw ID.
-                        const invId = rp.invoiceid ? (invoiceMap.get(rp.invoiceid) || rp.invoiceid) : null
                         ledgerToCreate.push({
-                            invoiceId: invId || "00000000-0000-0000-0000-000000000000", 
-                            supervisorId: supId, 
-                            studentId: sid,
-                            paymentFromStudent: Number(rp.paymentfromstudent), 
-                            supervisorPayout: Number(rp.supervisorpayout),
-                            officePayout: Number(rp.officepayout), 
-                            payoutStatus: rp.payoutstatus || "PAID",
-                            importBatchId: batch.id,
-                            supervisorCapTotal: 0,
-                            supervisorCapRemainingBefore: 0,
-                            supervisorCapRemainingAfter: 0
+                            invoiceId: "00000000-0000-0000-0000-000000000000", supervisorId: supId, studentId: sid,
+                            paymentFromStudent: Number(rp.paymentfromstudent), supervisorPayout: Number(rp.supervisorpayout),
+                            officePayout: Number(rp.officepayout), payoutStatus: rp.payoutstatus || "PAID",
+                            importBatchId: batch.id, supervisorCapTotal: 0, supervisorCapRemainingBefore: 0, supervisorCapRemainingAfter: 0
                         })
                     }
                 }
@@ -465,7 +440,9 @@ export async function POST(request: Request) {
                 if (invoicesToCreate.length > 0) await tx.invoice.createMany({ data: invoicesToCreate })
                 if (paymentsToCreate.length > 0) await tx.studentPayment.createMany({ data: paymentsToCreate })
                 if (ledgerToCreate.length > 0) await tx.supervisorLedgerEntry.createMany({ data: ledgerToCreate })
+                console.timeEnd("db_finance_phase")
             }, { timeout: 600000 })
+            console.timeEnd("bulk_import_total")
             return NextResponse.json({ success: true })
         }
         return NextResponse.json({ error: "Invalid content type" }, { status: 400 })
