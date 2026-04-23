@@ -230,7 +230,8 @@ export async function POST(request: Request) {
                         phone: cellStr(row, spm.phone || 9) || "000-000-0000",
                         address: cellStr(row, spm.address || 10) || "N/A",
                         bacbId: cellStr(row, spm.bacbid || 5) || "N/A",
-                        certificantNumber: cellStr(row, spm.certificantnumber || 6) || "N/A"
+                        certificantNumber: cellStr(row, spm.certificantnumber || 6) || "N/A",
+                        originalId: cellStr(row, spm.id || 1)
                 })
             }
 
@@ -262,6 +263,7 @@ export async function POST(request: Request) {
                 newUsers.push({ 
                     fullName: name, email, password, rowNumber: i, 
                     sourceSheet: "STUDENTS",
+                    originalId: cellStr(row, stm.id || 1),
                     isExisting: !!existingStudents.find((s: any) => (email && s.user.email === email) || s.fullName.toLowerCase() === name.toLowerCase()),
                     fields: {
                             supervisorName: cellStr(row, stm.supervisorname || stm.supervisor || stm.supervisorid || stm.nombresupervisor || 11),
@@ -438,7 +440,8 @@ export async function POST(request: Request) {
                 console.time("db_supervisors_phase")
                 const supervisorsToCreate = uniqueSupervisors.map(s => ({
                     userId: s.userId, fullName: s.fullName, email: s.email, credentialType: s.credentialType, importBatchId: batch.id,
-                    phone: s.phone || "000-000-0000", address: s.address || "N/A", bacbId: s.bacbId || "N/A", certificantNumber: s.certificantNumber || "N/A"
+                    phone: s.phone || "000-000-0000", address: s.address || "N/A", bacbId: s.bacbId || "N/A", certificantNumber: s.certificantNumber || "N/A",
+                    internalIdNumber: s.originalId // Store original Excel ID for mapping
                 } as any))
                 if (supervisorsToCreate.length > 0) await tx.supervisor.createMany({ data: supervisorsToCreate })
 
@@ -446,6 +449,7 @@ export async function POST(request: Request) {
                 allSups.forEach(s => {
                     const clean = s.fullName.toLowerCase().trim().replace(/,/g, '').replace(/\s+/g, ' ')
                     supMap.set(clean, s.id)
+                    if (s.internalIdNumber) supMap.set(s.internalIdNumber, s.id)
                 })
                 console.timeEnd("db_supervisors_phase")
 
@@ -460,7 +464,8 @@ export async function POST(request: Request) {
                     bacbId: "N/A", credential: "BCBA", school: "N/A", level: "BCBA", city: "N/A", state: "N/A",
                     supervisionType: "REGULAR", fieldworkType: "REGULAR", supervisionPercentage: 0.05,
                     hoursToDo: nu.fields.hoursTargetReg || 1500, hoursToPay: 0,
-                    amountToPay: nu.fields.totalAmountContract || 0, hourlyRate: 0, hoursPerMonth: 130, totalMonths: 12
+                    amountToPay: nu.fields.totalAmountContract || 0, hourlyRate: 0, hoursPerMonth: 130, totalMonths: 12,
+                    paymentAlias: nu.originalId ? [nu.originalId] : [] // Store original Excel ID for mapping
                 } as any))
                 if (studentsToCreate.length > 0) await tx.student.createMany({ data: studentsToCreate })
 
@@ -468,6 +473,9 @@ export async function POST(request: Request) {
                 allStuds.forEach(s => {
                     const clean = s.fullName.toLowerCase().trim().replace(/,/g, '').replace(/\s+/g, ' ')
                     studMap.set(clean, s.id)
+                    if (s.paymentAlias && s.paymentAlias.length > 0) {
+                        studMap.set(s.paymentAlias[0], s.id)
+                    }
                 })
                 console.timeEnd("db_students_phase")
 
