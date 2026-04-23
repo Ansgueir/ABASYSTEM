@@ -302,6 +302,7 @@ model Invoice {
   amountPaid       Decimal                 @db.Decimal(10, 2)
   status           InvoiceStatus
   sentAt           DateTime?
+  importBatchId    String?
   createdAt        DateTime                @default(now())
   student          Student                 @relation(fields: [studentId], references: [id])
   supervisionHours SupervisionHour[]
@@ -344,6 +345,7 @@ model SupervisorLedgerEntry {
   paymentNotes                 String?                      // Notas internas
   paidAt                       DateTime?                    // Cuándo se ejecutó el pago
 
+  importBatchId                String?
   createdAt                    DateTime @default(now())
 
   invoice    Invoice    @relation(fields: [invoiceId], references: [id])
