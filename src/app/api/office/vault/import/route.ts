@@ -376,7 +376,8 @@ export async function POST(request: Request) {
                 newHours = [], 
                 newGroups = [], 
                 newSessions = [], 
-                newRawPayments = [] 
+                newPayments = [], // Matches frontend payload 'newPayments'
+                newRawPayments = [] // Legacy support
             } = body
             const batchString = `MASS_LOAD_${format(new Date(), 'yyyyMMdd_HHmm')}`
 
@@ -470,7 +471,10 @@ export async function POST(request: Request) {
                 const paymentsToCreate: any[] = []
                 const ledgerToCreate: any[] = []
 
-                for (const rp of (newPayments || [])) {
+                // Merge both potential keys to be safe
+                const combinedPayments = [...(newPayments || []), ...(newRawPayments || [])]
+
+                for (const rp of combinedPayments) {
                     const sid = studMap.get(cellStrFromObj(rp.studentName || rp.studentname || rp.studentid)?.toLowerCase())
                     
                     if (rp.type === "INVOICE" && sid) {
