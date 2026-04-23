@@ -53,7 +53,7 @@ export async function GET(request: Request) {
 
         const plans = await prisma.plan.findMany()
 
-        const groups = await prisma.supervisionGroup.findMany({
+        const groups = await (prisma as any).officeGroup.findMany({
             include: { supervisors: { include: { supervisor: true } } }
         })
 
