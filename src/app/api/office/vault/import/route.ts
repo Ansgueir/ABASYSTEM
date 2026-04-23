@@ -148,7 +148,8 @@ export async function POST(request: Request) {
             const spm = mapHeaders(sheetSupervisors)
             for (let i = 2; i <= sheetSupervisors.rowCount; i++) {
                 const row = sheetSupervisors.getRow(i)
-                const name = cellStr(row, spm.fullname || spm.name || spm.nombre || spm.nombrecompleto || spm.id || 2)
+                // Prioritize Name over ID
+                const name = cellStr(row, spm.fullname || spm.nombrecompleto || spm.name || spm.nombre || 2)
                 if (!name) continue
                 const email = cellStr(row, spm.email || spm.correo || spm.correoelectronico || 3).toLowerCase()
                 const password = cellStr(row, spm.password || 4) || "Aba12345*"
@@ -176,8 +177,8 @@ export async function POST(request: Request) {
                     newUsers.push({ 
                         fullName: name, email, password, rowNumber: i, 
                         sourceSheet: "STUDENTS",
-                        supervisorName: cellStr(row, stm.supervisorid || stm.supervisorname || 11),
                         fields: {
+                            supervisorName: cellStr(row, stm.supervisorname || stm.supervisor || stm.supervisorid || 11),
                             phone: cellStr(row, stm.phone || 9),
                             startDate: cellDate(row, stm.startdate || 15),
                             endDate: cellDate(row, stm.enddate || 25),
@@ -219,14 +220,14 @@ export async function POST(request: Request) {
                         const val = row.getCell(m[key]).value
                         data[key] = val
                         // Normalize common UI fields
-                        if (key.includes("studentname") || key.includes("traineename")) data.studentName = cellStr(row, m[key])
-                        if (key.includes("monthyear") || key.includes("periodo")) data.monthYearLabel = cellStr(row, m[key])
-                        if (key.includes("amountdueoffice") || key.includes("monto") || (type === "STUDENT_PAYMENT" && key === "amount")) {
+                        if (key.includes("student") || key.includes("trainee") || key.includes("nombre") || key.includes("alumno")) data.studentName = cellStr(row, m[key])
+                        if (key.includes("month") || key.includes("year") || key.includes("period") || key.includes("periodo") || key.includes("mes")) data.monthYearLabel = cellStr(row, m[key])
+                        if (key.includes("amount") || key.includes("due") || key.includes("monto") || key.includes("cobro") || (type === "STUDENT_PAYMENT" && key === "amount")) {
                             data.amountDueOffice = cellNum(row, m[key])
                             data.amount = cellNum(row, m[key])
                         }
-                        if (key.includes("paymentdate") || key.includes("fecha")) data.paymentDate = cellDate(row, m[key])
-                        if (key.includes("paymenttype") || key.includes("metodo")) data.paymentType = cellStr(row, m[key])
+                        if (key.includes("date") || key.includes("fecha")) data.paymentDate = cellDate(row, m[key])
+                        if (key.includes("type") || key.includes("method") || key.includes("metodo") || key.includes("forma")) data.paymentType = cellStr(row, m[key])
                     })
                     newRawPayments.push(data)
                 }
