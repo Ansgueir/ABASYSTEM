@@ -306,20 +306,24 @@ export async function POST(request: Request) {
 
             let existingSupCount = 0
             let existingStudCount = 0
+            
+            // Optimization: We already have existingSupervisors and existingStudents from earlier
+            existingSupCount = existingSupervisors.length
+            existingStudCount = existingStudents.length
 
-            // Re-run loops to count existing if needed for the UI, or just trust the new ones
-            // Actually, let's just make the response detailed
             return NextResponse.json({
                 summary: {
                     newStudents: newUsers.length,
+                    existingStudents: existingStudCount,
                     newSupervisors: newSupervisors.length,
+                    existingSupervisors: existingSupCount,
                     newContracts: newContracts.length,
                     newHours: newHours.length,
                     newGroups: newGroups.length,
                     newSessions: newSessions.length,
                     financialRecords: newRawPayments.length,
                     conflicts: headlessUsers.length,
-                    alreadyInDb: existingStudents.length + existingSupervisors.length
+                    totalProcessed: newUsers.length + newSupervisors.length + newRawPayments.length + existingStudCount + existingSupCount
                 },
                 // Statistics for the UI
                 studentsStats: { new: newUsers.length, updated: 0 },
