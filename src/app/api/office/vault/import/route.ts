@@ -102,20 +102,27 @@ export async function POST(request: Request) {
 
             workbook.eachSheet((sheet) => {
                 const name = sheet.name.toUpperCase().trim()
-                if ((name.includes("STUDENT") || name.includes("SUPERVISADO")) && !name.includes("PAYMENT") && !name.includes("SUPERVISOR") && !name.includes("GROUP")) sheetStudents = sheet
-                if (name.includes("SUPERVISOR") && !name.includes("PAYMENT") && !name.includes("LEDGER") && !name.includes("PAYOUT") && !name.includes("STUDENT") && !name.includes("GROUP")) sheetSupervisors = sheet
+                // Prioritize Students/Supervisados
+                if ((name.includes("STUDENT") || name.includes("SUPERVISADO") || name.includes("ALUMNO") || name.includes("PRACTICANTE") || name.includes("TRAINEE")) && !name.includes("PAYMENT") && !name.includes("GROUP")) {
+                    if (!sheetStudents) sheetStudents = sheet
+                }
+                // Prioritize Supervisors/Parametros
+                if ((name.includes("SUPERVISOR") || name.includes("PARAMETRO") || name.includes("STAFF")) && !name.includes("PAYMENT") && !name.includes("LEDGER") && !name.includes("STUDENT") && !name.includes("SUPERVISADO")) {
+                    if (!sheetSupervisors) sheetSupervisors = sheet
+                }
+                
                 if (name.includes("OFFICE") && !name.includes("GROUP")) sheetOffices = sheet
-                if (name.includes("FINANCIAL") || name.includes("COBROS")) sheetFinancial = sheet
-                if (name.includes("STUDENTPAYMENT")) sheetStudentPayments = sheet
-                if (name.includes("SUPERVISORPAYMENT")) sheetSupervisorPayments = sheet
-                if (name.includes("INVOICE")) sheetInvoices = sheet
-                if (name.includes("LEDGER")) sheetLedgerEntries = sheet
-                if (name.includes("STUDENTSUPERVISOR")) sheetStudentSupervisors = sheet
-                if (name === "CONTRACT") sheetContracts = sheet
-                if (name.includes("INDEPENDENTHOUR")) sheetIndependentHours = sheet
-                if (name === "OFFICEGROUP") sheetGroups = sheet
-                if (name === "GROUPSTUDENT") sheetGroupStudents = sheet
-                if (name === "GROUPSUPERVISIONSESSION") sheetGroupSessions = sheet
+                if (name.includes("FINANCIAL") || name.includes("COBROS") || name.includes("CUENTAS")) sheetFinancial = sheet
+                if (name.includes("STUDENTPAYMENT") || name.includes("PAGOSALUMNOS")) sheetStudentPayments = sheet
+                if (name.includes("SUPERVISORPAYMENT") || name.includes("PAGOSUPERVISOR")) sheetSupervisorPayments = sheet
+                if (name.includes("INVOICE") || name.includes("FACTURA")) sheetInvoices = sheet
+                if (name.includes("LEDGER") || name.includes("CONTABILIDAD")) sheetLedgerEntries = sheet
+                if (name.includes("STUDENTSUPERVISOR") || name.includes("ASIGNACION")) sheetStudentSupervisors = sheet
+                if (name === "CONTRACT" || name.includes("CONTRATO")) sheetContracts = sheet
+                if (name.includes("INDEPENDENTHOUR") || name.includes("HORAS")) sheetIndependentHours = sheet
+                if (name.includes("OFFICEGROUP") || name.includes("GRUPOS")) sheetGroups = sheet
+                if (name.includes("GROUPSTUDENT")) sheetGroupStudents = sheet
+                if (name.includes("GROUPSUPERVISIONSESSION")) sheetGroupSessions = sheet
             })
 
             if (!sheetStudents || !sheetSupervisors) {
@@ -141,9 +148,9 @@ export async function POST(request: Request) {
             const spm = mapHeaders(sheetSupervisors)
             for (let i = 2; i <= sheetSupervisors.rowCount; i++) {
                 const row = sheetSupervisors.getRow(i)
-                const name = cellStr(row, spm.fullname || spm.name || spm.id || 2)
+                const name = cellStr(row, spm.fullname || spm.name || spm.nombre || spm.nombrecompleto || spm.id || 2)
                 if (!name) continue
-                const email = cellStr(row, spm.email || 3).toLowerCase()
+                const email = cellStr(row, spm.email || spm.correo || spm.correoelectronico || 3).toLowerCase()
                 const password = cellStr(row, spm.password || 4) || "Aba12345*"
                 const existingSup = existingSupervisors.find((s: any) => (email && s.user.email === email) || s.fullName.toLowerCase() === name.toLowerCase())
                 if (existingSup) continue
@@ -158,9 +165,9 @@ export async function POST(request: Request) {
             const stm = mapHeaders(sheetStudents)
             for (let i = 2; i <= sheetStudents.rowCount; i++) {
                 const row = sheetStudents.getRow(i)
-                const name = cellStr(row, stm.fullname || stm.name || 2)
+                const name = cellStr(row, stm.fullname || stm.name || stm.nombre || stm.nombrecompleto || stm.estudiante || stm.practicante || stm.trainee || 2)
                 if (!name) continue
-                const email = cellStr(row, stm.email || 3).toLowerCase()
+                const email = cellStr(row, stm.email || stm.correo || stm.correoelectronico || 3).toLowerCase()
                 const password = cellStr(row, stm.password || 4) || "Aba12345*"
                 const existingStud = existingStudents.find((s: any) => (email && s.user.email === email) || s.fullName.toLowerCase() === name.toLowerCase())
                 if (existingStud) continue
