@@ -509,7 +509,7 @@ export function ImportStaging() {
                     )}
 
                      {/* ── Raw Transactions Detail ──────────────────────────── */}
-                     {showRawPayments && stagingResult.newPayments && stagingResult.newPayments.length > 0 && (
+                     {showRawPayments && stagingResult.newRawPayments && stagingResult.newRawPayments.length > 0 && (
                         <Card className="border-indigo-200 shadow-lg border-2 overflow-hidden">
                             <CardHeader className="bg-indigo-600 py-3 px-4">
                                 <CardTitle className="text-white text-sm flex items-center gap-2">
@@ -531,11 +531,11 @@ export function ImportStaging() {
                                             </tr>
                                         </thead>
                                         <tbody>
-                                            {stagingResult.newPayments.map((p, i) => (
+                                            {stagingResult.newRawPayments.map((p, i) => (
                                                 <tr key={i} className="border-t border-indigo-100 bg-white hover:bg-indigo-50/30">
                                                     <td className="p-2 font-bold text-indigo-800 bg-indigo-100/20">{p.sourceSheet}</td>
                                                     <td className="p-2 font-mono text-indigo-600">#{p.rowNumber}</td>
-                                                    <td className="p-2">{new Date(p.paymentDate).toLocaleDateString()}</td>
+                                                    <td className="p-2">{p.paymentDate ? new Date(p.paymentDate).toLocaleDateString() : "-"}</td>
                                                     <td className="p-2 font-bold">{p.studentName}</td>
                                                     <td className="p-2 font-black text-indigo-700">${p.amount}</td>
                                                     <td className="p-2 uppercase text-[9px]"><span className="bg-indigo-100 px-1.5 py-0.5 rounded">{p.paymentType}</span></td>
