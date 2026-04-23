@@ -144,15 +144,21 @@ export async function POST(request: Request) {
             console.log(`[STAGING] Analyzing workbook with ${workbook.worksheets.length} sheets`)
             workbook.eachSheet((sheet) => {
                 const name = sheet.name.toUpperCase().trim()
-                console.log(`[STAGING] Found sheet: ${name}`)
-                if ((name.includes("STUDENT") || name.includes("SUPERVISADO") || name.includes("ALUMNO") || name.includes("PRACTICANTE") || name.includes("TRAINEE")) && !name.includes("PAYMENT") && !name.includes("GROUP")) {
-                    if (!sheetStudents) sheetStudents = sheet
+                // Priority 1: Exact matches or very specific keywords
+                if (name === "STUDENT" || name === "STUDENTS" || name === "SUPERVISADOS") {
+                    sheetStudents = sheet
+                } else if (!sheetStudents && (name.includes("STUDENT") || name.includes("SUPERVISADO")) && !name.includes("PAYMENT") && !name.includes("GROUP") && !name.includes("CONTRACT")) {
+                    sheetStudents = sheet
                 }
-                if ((name.includes("SUPERVISOR") || name.includes("PARAMETRO") || name.includes("STAFF") || name.includes("DOCENTE")) && !name.includes("PAYMENT") && !name.includes("LEDGER") && !name.includes("STUDENT") && !name.includes("SUPERVISADO")) {
-                    if (!sheetSupervisors) sheetSupervisors = sheet
+
+                if (name === "SUPERVISOR" || name === "SUPERVISORS" || name === "PARAMETROS") {
+                    sheetSupervisors = sheet
+                } else if (!sheetSupervisors && (name.includes("SUPERVISOR") || name.includes("PARAMETRO")) && !name.includes("PAYMENT") && !name.includes("LEDGER") && !name.includes("CONTRACT")) {
+                    sheetSupervisors = sheet
                 }
+                
                 if (name.includes("OFFICE") && !name.includes("GROUP")) sheetOffices = sheet
-                if (name.includes("FINANCIAL") || name.includes("COBROS") || name.includes("CUENTAS") || name.includes("TESORERIA")) sheetFinancial = sheet
+                if (name.includes("FINANCIAL") || name.includes("COBROS") || name.includes("TESORERIA")) sheetFinancial = sheet
                 if (name.includes("STUDENTPAYMENT") || name.includes("PAGOSALUMNOS")) sheetStudentPayments = sheet
                 if (name.includes("SUPERVISORPAYMENT") || name.includes("PAGOSUPERVISOR")) sheetSupervisorPayments = sheet
                 if (name.includes("INVOICE") || name.includes("FACTURA")) sheetInvoices = sheet
@@ -298,6 +304,11 @@ export async function POST(request: Request) {
             parseFinancialSheet(sheetInvoices, "INVOICE")
             parseFinancialSheet(sheetLedgerEntries, "LEDGER_ENTRY")
 
+            let existingSupCount = 0
+            let existingStudCount = 0
+
+            // Re-run loops to count existing if needed for the UI, or just trust the new ones
+            // Actually, let's just make the response detailed
             return NextResponse.json({
                 summary: {
                     newStudents: newUsers.length,
@@ -307,7 +318,8 @@ export async function POST(request: Request) {
                     newGroups: newGroups.length,
                     newSessions: newSessions.length,
                     financialRecords: newRawPayments.length,
-                    conflicts: headlessUsers.length
+                    conflicts: headlessUsers.length,
+                    alreadyInDb: existingStudents.length + existingSupervisors.length
                 },
                 // Statistics for the UI
                 studentsStats: { new: newUsers.length, updated: 0 },
