@@ -141,7 +141,8 @@ export async function createStudent(formData: FormData) {
         const settings = await prisma.generalValues.findFirst()
         const companyName = settings?.companyName || "Our Clinic"
 
-        await sendEmail({
+        // Send welcome email (non-blocking to prevent UI hang on SMTP issues)
+        sendEmail({
             to: email,
             subject: `Welcome to ${companyName}`,
             html: `
@@ -163,7 +164,7 @@ export async function createStudent(formData: FormData) {
                     </a>
                 </div>
             `
-        })
+        }).catch(err => console.error("❌ Failed to send welcome email:", err))
 
         await logAudit({
             action: "CREATE",
@@ -244,7 +245,8 @@ export async function createSupervisor(formData: FormData) {
         const settings = await prisma.generalValues.findFirst()
         const companyName = settings?.companyName || "Our Clinic"
 
-        await sendEmail({
+        // Send welcome email (non-blocking)
+        sendEmail({
             to: email,
             subject: `Welcome to ${companyName}`,
             html: `
@@ -266,7 +268,7 @@ export async function createSupervisor(formData: FormData) {
                     </a>
                 </div>
             `
-        })
+        }).catch(err => console.error("❌ Failed to send supervisor welcome email:", err))
 
         await logAudit({
             action: "CREATE",
