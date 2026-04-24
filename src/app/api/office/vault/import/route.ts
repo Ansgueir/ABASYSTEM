@@ -494,16 +494,41 @@ export async function POST(request: Request) {
                 }
                 console.timeEnd("db_users_phase")
 
-                // 2. BULK SUPERVISOR CREATION
+                // 2. BULK SUPERVISOR CREATION (UPSERT PATTERN)
                 console.time("db_supervisors_phase")
-                const supervisorsToCreate = uniqueSupervisors.map(s => ({
-                    userId: s.userId, fullName: s.fullName, email: s.email, credentialType: s.credentialType, importBatchId: batch.id,
-                    phone: s.phone || "000-000-0000", address: s.address || "N/A", 
-                    bacbId: s.bacbId || "N/A", 
-                    certificantNumber: s.certificantNumber || "N/A",
-                    internalIdNumber: s.originalId // Store original Excel ID for mapping
-                } as any))
-                if (supervisorsToCreate.length > 0) await tx.supervisor.createMany({ data: supervisorsToCreate })
+                
+                const existingSupRecords = await tx.supervisor.findMany({ select: { userId: true, id: true } })
+                const existingSupUserIds = new Set(existingSupRecords.map((s: any) => s.userId))
+                
+                const supervisorsToCreate: any[] = []
+                const supervisorsToUpdate: any[] = []
+
+                uniqueSupervisors.forEach(s => {
+                    const data = {
+                        userId: s.userId, fullName: s.fullName, email: s.email, credentialType: s.credentialType, importBatchId: batch.id,
+                        phone: s.phone || "000-000-0000", address: s.address || "N/A", 
+                        bacbId: s.bacbId || "N/A", 
+                        certificantNumber: s.certificantNumber || "N/A",
+                        internalIdNumber: s.originalId // Store original Excel ID for mapping
+                    }
+                    if (existingSupUserIds.has(s.userId)) {
+                        supervisorsToUpdate.push(data)
+                    } else {
+                        supervisorsToCreate.push(data)
+                    }
+                })
+                
+                if (supervisorsToCreate.length > 0) {
+                    await tx.supervisor.createMany({ data: supervisorsToCreate, skipDuplicates: true })
+                }
+                
+                // Update existing supervisors so they get fresh Excel data
+                for (const sup of supervisorsToUpdate) {
+                    await tx.supervisor.update({
+                        where: { userId: sup.userId },
+                        data: sup
+                    })
+                }
 
                 const allSups = await tx.supervisor.findMany()
                 allSups.forEach(s => {
@@ -513,9 +538,16 @@ export async function POST(request: Request) {
                 })
                 console.timeEnd("db_supervisors_phase")
 
-                // 3. BULK STUDENT CREATION
+                // 3. BULK STUDENT CREATION (UPSERT PATTERN)
                 console.time("db_students_phase")
-                const studentsToCreate = uniqueStudents.map(nu => {
+                
+                const existingStudRecords = await tx.student.findMany({ select: { userId: true, id: true } })
+                const existingStudUserIds = new Set(existingStudRecords.map((s: any) => s.userId))
+                
+                const studentsToCreate: any[] = []
+                const studentsToUpdate: any[] = []
+
+                uniqueStudents.forEach(nu => {
                     const cleanSupName = nu.fields.supervisorName?.toLowerCase().trim().replace(/,/g, '').replace(/\s+/g, ' ')
                     let supervisorId = cleanSupName ? (supMap.get(cleanSupName) || null) : null
                     
@@ -528,7 +560,7 @@ export async function POST(request: Request) {
                         }
                     }
 
-                    return {
+                    const data = {
                         userId: nu.userId, fullName: nu.fullName, email: nu.email, 
                         startDate: safeDate(nu.fields.startDate), endDate: safeDate(nu.fields.endDate),
                         status: normalizeStudentStatus(nu.fields.status || "ACTIVE"),
@@ -549,9 +581,26 @@ export async function POST(request: Request) {
                         academicDegree: nu.fields.academicDegree,
                         planTemplateId: nu.fields.planTemplateId,
                         assignedOptionPlan: nu.fields.assignedOptionPlan
-                    } as any
+                    }
+                    
+                    if (existingStudUserIds.has(nu.userId)) {
+                        studentsToUpdate.push(data)
+                    } else {
+                        studentsToCreate.push(data)
+                    }
                 })
-                if (studentsToCreate.length > 0) await tx.student.createMany({ data: studentsToCreate })
+                
+                if (studentsToCreate.length > 0) {
+                    await tx.student.createMany({ data: studentsToCreate, skipDuplicates: true })
+                }
+                
+                // Update existing students to refresh their profile data (BACB ID, Plans, Supervisor)
+                for (const stu of studentsToUpdate) {
+                    await tx.student.update({
+                        where: { userId: stu.userId },
+                        data: stu
+                    })
+                }
 
                 const allStuds = await tx.student.findMany()
                 allStuds.forEach(s => {
