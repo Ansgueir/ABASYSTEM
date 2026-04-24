@@ -460,13 +460,38 @@ export async function POST(request: Request) {
                 const supMap = new Map<string, string>()
                 const studMap = new Map<string, string>()
 
-                // 1. BULK USER CREATION
+                // 1. BULK USER CREATION (BULLETPROOF DEDUPLICATION)
                 console.time("db_users_phase")
-                const usersToCreate: any[] = [
-                    ...uniqueSupervisors.map(s => ({ id: s.userId, email: s.email, passwordHash: s.passwordHash, role: "SUPERVISOR", isActive: true })),
-                    ...uniqueStudents.map(u => ({ id: u.userId, email: u.email, passwordHash: u.passwordHash, role: "STUDENT", isActive: true }))
-                ]
-                if (usersToCreate.length > 0) await tx.user.createMany({ data: usersToCreate })
+                
+                const existingUserRecords = await tx.user.findMany({ select: { email: true, id: true } })
+                const existingEmailMap = new Map<string, string>()
+                existingUserRecords.forEach((u: any) => existingEmailMap.set(u.email.toLowerCase().trim(), u.id))
+
+                const usersToCreate: any[] = []
+
+                uniqueSupervisors.forEach(s => {
+                    const cleanEmail = s.email.toLowerCase().trim()
+                    if (existingEmailMap.has(cleanEmail)) {
+                        s.userId = existingEmailMap.get(cleanEmail)! // Recycle existing ID
+                    } else {
+                        usersToCreate.push({ id: s.userId, email: cleanEmail, passwordHash: s.passwordHash, role: "SUPERVISOR", isActive: true })
+                        existingEmailMap.set(cleanEmail, s.userId) // Prevent duplicates within this loop
+                    }
+                })
+
+                uniqueStudents.forEach(u => {
+                    const cleanEmail = u.email.toLowerCase().trim()
+                    if (existingEmailMap.has(cleanEmail)) {
+                        u.userId = existingEmailMap.get(cleanEmail)! // Recycle existing ID
+                    } else {
+                        usersToCreate.push({ id: u.userId, email: cleanEmail, passwordHash: u.passwordHash, role: "STUDENT", isActive: true })
+                        existingEmailMap.set(cleanEmail, u.userId) // Prevent duplicates within this loop
+                    }
+                })
+
+                if (usersToCreate.length > 0) {
+                    await tx.user.createMany({ data: usersToCreate, skipDuplicates: true })
+                }
                 console.timeEnd("db_users_phase")
 
                 // 2. BULK SUPERVISOR CREATION
