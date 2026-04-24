@@ -536,6 +536,19 @@ export async function POST(request: Request) {
                         studMap.set(s.paymentAlias[0], s.id)
                     }
                 })
+                
+                // CREATE OFFICIAL ASSIGNMENTS IN StudentSupervisor TABLE
+                const studentSupervisorsToCreate = allStuds
+                    .filter(s => s.supervisorId)
+                    .map(s => ({
+                        studentId: s.id,
+                        supervisorId: s.supervisorId as string,
+                        isPrimary: true
+                    }))
+                if (studentSupervisorsToCreate.length > 0) {
+                    await tx.studentSupervisor.createMany({ data: studentSupervisorsToCreate, skipDuplicates: true })
+                }
+                
                 console.timeEnd("db_students_phase")
 
                 // 4. BULK FINANCIAL RECORDS
@@ -609,13 +622,34 @@ export async function POST(request: Request) {
                             }
                         }
 
-                        if (supId) {
-                            await (tx as any).supervisorPayment.create({
+                        if (supId && sid) {
+                            // The frontend reads 'SupervisorLedgerEntry' which requires an Invoice.
+                            // We create a technical invoice to satisfy the database schema and UI logic.
+                            const technicalInvoice = await tx.invoice.create({
                                 data: {
+                                    studentId: sid,
+                                    invoiceDate: safeDate(rp.paymentDate || rp.paymentdate || rp.date),
+                                    amountDue: Number(rp.amount || 0),
+                                    amountPaid: Number(rp.amount || 0),
+                                    status: "PAID",
+                                    importBatchId: batch.id
+                                }
+                            })
+
+                            await tx.supervisorLedgerEntry.create({
+                                data: {
+                                    invoiceId: technicalInvoice.id,
                                     supervisorId: supId,
-                                    amount: Number(rp.amount || 0),
-                                    payoutDate: safeDate(rp.paymentDate || rp.paymentdate || rp.date),
-                                    status: "COMPLETED",
+                                    studentId: sid,
+                                    paymentFromStudent: Number(rp.amount || 0),
+                                    supervisorPayout: Number(rp.amount || 0),
+                                    officePayout: 0,
+                                    payoutStatus: "PAID",
+                                    supervisorCapTotal: 0,
+                                    supervisorCapRemainingBefore: 0,
+                                    supervisorCapRemainingAfter: 0,
+                                    paymentMethod: rp.paymentType || rp.paymenttype || "SYSTEM_IMPORT",
+                                    paidAt: safeDate(rp.paymentDate || rp.paymentdate || rp.date),
                                     importBatchId: batch.id
                                 }
                             })
