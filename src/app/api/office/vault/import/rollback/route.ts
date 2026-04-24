@@ -38,7 +38,6 @@ export async function POST(request: Request) {
             await (tx as any).supervisorPayment.deleteMany({ where: { importBatchId: batchId } })
             await (tx as any).supervisorLedgerEntry.deleteMany({ where: { importBatchId: batchId } })
             await (tx as any).invoice.deleteMany({ where: { importBatchId: batchId } })
-            await (tx as any).independentHour.deleteMany({ where: { importBatchId: batchId } })
             
             // Note: We intentionally DO NOT delete Student, Supervisor, or User records.
             // Since the import engine uses an 'Upsert' pattern, deleting profiles would destroy
