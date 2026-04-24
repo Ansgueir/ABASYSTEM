@@ -534,6 +534,7 @@ export async function POST(request: Request) {
                 allSups.forEach(s => {
                     const clean = s.fullName.toLowerCase().trim().replace(/,/g, '').replace(/\s+/g, ' ')
                     supMap.set(clean, s.id)
+                    supMap.set(s.id, s.id) // Direct UUID match
                     if (s.internalIdNumber) supMap.set(s.internalIdNumber, s.id)
                 })
                 console.timeEnd("db_supervisors_phase")
@@ -606,6 +607,7 @@ export async function POST(request: Request) {
                 allStuds.forEach(s => {
                     const clean = s.fullName.toLowerCase().trim().replace(/,/g, '').replace(/\s+/g, ' ')
                     studMap.set(clean, s.id)
+                    studMap.set(s.id, s.id) // Direct UUID match
                     if (s.paymentAlias && s.paymentAlias.length > 0) {
                         studMap.set(s.paymentAlias[0], s.id)
                     }
