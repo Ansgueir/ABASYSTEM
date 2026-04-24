@@ -32,26 +32,17 @@ export async function POST(request: Request) {
                 ...supervisorsToDel.map(s => s.userId)
             ]
 
-            // 2. Delete dependent records (using studentId for those without importBatchId)
-            const sIds = studentsToDel.map(s => s.id)
-            if (sIds.length > 0) {
-                await (tx as any).independentHour.deleteMany({ where: { studentId: { in: sIds } } })
-                await (tx as any).contract.deleteMany({ where: { studentId: { in: sIds } } })
-            }
-            
+            // 2. Delete dependent transactional records
             await (tx as any).financialPeriod.deleteMany({ where: { importBatchId: batchId } })
             await (tx as any).studentPayment.deleteMany({ where: { importBatchId: batchId } })
             await (tx as any).supervisorPayment.deleteMany({ where: { importBatchId: batchId } })
             await (tx as any).supervisorLedgerEntry.deleteMany({ where: { importBatchId: batchId } })
             await (tx as any).invoice.deleteMany({ where: { importBatchId: batchId } })
-            // 3. Delete Student/Supervisor profiles
-            await tx.student.deleteMany({ where: { importBatchId: batchId } })
-            await tx.supervisor.deleteMany({ where: { importBatchId: batchId } })
-
-            // 4. Delete the Users themselves
-            if (userIds.length > 0) {
-                await tx.user.deleteMany({ where: { id: { in: userIds } } })
-            }
+            await (tx as any).independentHour.deleteMany({ where: { importBatchId: batchId } })
+            
+            // Note: We intentionally DO NOT delete Student, Supervisor, or User records.
+            // Since the import engine uses an 'Upsert' pattern, deleting profiles would destroy
+            // historical data and trigger Foreign Key Constraint errors for previous payments.
 
             // 5. Update batch status
             await (tx as any).importBatch.update({
