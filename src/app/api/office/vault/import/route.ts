@@ -276,7 +276,19 @@ export async function POST(request: Request) {
                             independentHoursTarget: cellNum(row, stm.independenthourstarget || 0),
                             totalAmountContract: cellNum(row, stm.totalamountcontract || stm.totalcharge || stm.montototal || 0),
                             analystPaymentRate: cellNum(row, stm.analystpaymentrate || 0),
-                            officePaymentRate: cellNum(row, stm.officepaymentrate || 0)
+                            officePaymentRate: cellNum(row, stm.officepaymentrate || 0),
+                            bacbId: cellStr(row, stm.bacbid || 5),
+                            credential: cellStr(row, stm.credential || 6),
+                            school: cellStr(row, stm.school || 7),
+                            level: cellStr(row, stm.level || 8),
+                            city: cellStr(row, stm.city || 13),
+                            state: cellStr(row, stm.state || 14),
+                            supervisionType: cellStr(row, stm.supervisiontype || 16),
+                            fieldworkType: cellStr(row, stm.fieldworktype || 17),
+                            supervisionPercentage: cellNum(row, stm.supervisionpercentage || 18),
+                            academicDegree: cellStr(row, stm.academicdegree || 31),
+                            planTemplateId: cellStr(row, stm.plantemplateid || 35),
+                            assignedOptionPlan: cellStr(row, stm.assignedoptionplan || 34)
                         }
                     })
             }
@@ -440,7 +452,9 @@ export async function POST(request: Request) {
                 console.time("db_supervisors_phase")
                 const supervisorsToCreate = uniqueSupervisors.map(s => ({
                     userId: s.userId, fullName: s.fullName, email: s.email, credentialType: s.credentialType, importBatchId: batch.id,
-                    phone: s.phone || "000-000-0000", address: s.address || "N/A", bacbId: s.bacbId || "N/A", certificantNumber: s.certificantNumber || "N/A",
+                    phone: s.phone || "000-000-0000", address: s.address || "N/A", 
+                    bacbId: s.bacbId || "N/A", 
+                    certificantNumber: s.certificantNumber || "N/A",
                     internalIdNumber: s.originalId // Store original Excel ID for mapping
                 } as any))
                 if (supervisorsToCreate.length > 0) await tx.supervisor.createMany({ data: supervisorsToCreate })
@@ -455,18 +469,42 @@ export async function POST(request: Request) {
 
                 // 3. BULK STUDENT CREATION
                 console.time("db_students_phase")
-                const studentsToCreate = uniqueStudents.map(nu => ({
-                    userId: nu.userId, fullName: nu.fullName, email: nu.email, 
-                    startDate: safeDate(nu.fields.startDate), endDate: safeDate(nu.fields.endDate),
-                    status: normalizeStudentStatus(nu.fields.status || "ACTIVE"),
-                    supervisorId: nu.fields.supervisorName ? supMap.get(nu.fields.supervisorName.toLowerCase()) : null,
-                    importBatchId: batch.id, phone: nu.fields.phone || "000-000-0000",
-                    bacbId: "N/A", credential: "BCBA", school: "N/A", level: "BCBA", city: "N/A", state: "N/A",
-                    supervisionType: "REGULAR", fieldworkType: "REGULAR", supervisionPercentage: 0.05,
-                    hoursToDo: nu.fields.hoursTargetReg || 1500, hoursToPay: 0,
-                    amountToPay: nu.fields.totalAmountContract || 0, hourlyRate: 0, hoursPerMonth: 130, totalMonths: 12,
-                    paymentAlias: nu.originalId ? [nu.originalId] : [] // Store original Excel ID for mapping
-                } as any))
+                const studentsToCreate = uniqueStudents.map(nu => {
+                    const cleanSupName = nu.fields.supervisorName?.toLowerCase().trim().replace(/,/g, '').replace(/\s+/g, ' ')
+                    let supervisorId = cleanSupName ? (supMap.get(cleanSupName) || null) : null
+                    
+                    // Try reverse match for supervisor assignment
+                    if (!supervisorId && cleanSupName && cleanSupName.includes(' ')) {
+                        const parts = cleanSupName.split(' ')
+                        if (parts.length >= 2) {
+                            const reversed = `${parts[parts.length - 1]} ${parts.slice(0, -1).join(' ')}`
+                            supervisorId = supMap.get(reversed) || null
+                        }
+                    }
+
+                    return {
+                        userId: nu.userId, fullName: nu.fullName, email: nu.email, 
+                        startDate: safeDate(nu.fields.startDate), endDate: safeDate(nu.fields.endDate),
+                        status: normalizeStudentStatus(nu.fields.status || "ACTIVE"),
+                        supervisorId,
+                        importBatchId: batch.id, phone: nu.fields.phone || "000-000-0000",
+                        bacbId: nu.fields.bacbId || "N/A", 
+                        credential: (nu.fields.credential || "BCBA") as any, 
+                        school: nu.fields.school || "N/A", 
+                        level: (nu.fields.level || "BCBA") as any, 
+                        city: nu.fields.city || "N/A", 
+                        state: nu.fields.state || "N/A",
+                        supervisionType: (nu.fields.supervisionType || "REGULAR") as any, 
+                        fieldworkType: (nu.fields.fieldworkType || "REGULAR") as any, 
+                        supervisionPercentage: nu.fields.supervisionPercentage || 0.05,
+                        hoursToDo: nu.fields.hoursTargetReg || 1500, hoursToPay: 0,
+                        amountToPay: nu.fields.totalAmountContract || 0, hourlyRate: 0, hoursPerMonth: 130, totalMonths: 12,
+                        paymentAlias: nu.originalId ? [nu.originalId] : [],
+                        academicDegree: nu.fields.academicDegree,
+                        planTemplateId: nu.fields.planTemplateId,
+                        assignedOptionPlan: nu.fields.assignedOptionPlan
+                    } as any
+                })
                 if (studentsToCreate.length > 0) await tx.student.createMany({ data: studentsToCreate })
 
                 const allStuds = await tx.student.findMany()
@@ -538,11 +576,20 @@ export async function POST(request: Request) {
                         })
                     } else if (rp.type === "SUPERVISOR_PAYMENT") {
                         const supName = cellStrFromObj(rp.supervisorName || rp.supervisorname || rp.supervisorid)
-                        const cleanSupName = supName?.toLowerCase().trim().replace(/\s+/g, ' ')
-                        const supId = cleanSupName ? supMap.get(cleanSupName) : null
+                        const cleanSupName = supName?.toLowerCase().trim().replace(/,/g, '').replace(/\s+/g, ' ')
+                        let supId = cleanSupName ? supMap.get(cleanSupName) : null
                         
+                        // Try reverse match for supervisor payment
+                        if (!supId && cleanSupName && cleanSupName.includes(' ')) {
+                            const parts = cleanSupName.split(' ')
+                            if (parts.length >= 2) {
+                                const reversed = `${parts[parts.length - 1]} ${parts.slice(0, -1).join(' ')}`
+                                supId = supMap.get(reversed) || null
+                            }
+                        }
+
                         if (supId) {
-                            await (tx as any).supervisorPayout.create({
+                            await (tx as any).supervisorPayment.create({
                                 data: {
                                     supervisorId: supId,
                                     amount: Number(rp.amount || 0),
