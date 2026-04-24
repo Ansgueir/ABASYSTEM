@@ -504,8 +504,8 @@ export async function POST(request: Request) {
                 const supervisorsToUpdate: any[] = []
 
                 uniqueSupervisors.forEach(s => {
-                    const data = {
-                        userId: s.userId, fullName: s.fullName, email: s.email, credentialType: s.credentialType, importBatchId: batch.id,
+                    const data: any = {
+                        userId: s.userId, fullName: s.fullName, email: s.email, credentialType: s.credentialType,
                         phone: s.phone || "000-000-0000", address: s.address || "N/A", 
                         bacbId: s.bacbId || "N/A", 
                         certificantNumber: s.certificantNumber || "N/A",
@@ -514,6 +514,7 @@ export async function POST(request: Request) {
                     if (existingSupUserIds.has(s.userId)) {
                         supervisorsToUpdate.push(data)
                     } else {
+                        data.importBatchId = batch.id // ONLY for new ones
                         supervisorsToCreate.push(data)
                     }
                 })
@@ -561,12 +562,12 @@ export async function POST(request: Request) {
                         }
                     }
 
-                    const data = {
+                    const data: any = {
                         userId: nu.userId, fullName: nu.fullName, email: nu.email, 
                         startDate: safeDate(nu.fields.startDate), endDate: safeDate(nu.fields.endDate),
                         status: normalizeStudentStatus(nu.fields.status || "ACTIVE"),
                         supervisorId,
-                        importBatchId: batch.id, phone: nu.fields.phone || "000-000-0000",
+                        phone: nu.fields.phone || "000-000-0000",
                         bacbId: nu.fields.bacbId || "N/A", 
                         credential: normalizeCredentialType(nu.fields.credential || ""), 
                         school: nu.fields.school || "N/A", 
@@ -587,6 +588,7 @@ export async function POST(request: Request) {
                     if (existingStudUserIds.has(nu.userId)) {
                         studentsToUpdate.push(data)
                     } else {
+                        data.importBatchId = batch.id // ONLY for new ones
                         studentsToCreate.push(data)
                     }
                 })

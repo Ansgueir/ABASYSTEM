@@ -39,11 +39,22 @@ export async function POST(request: Request) {
             await (tx as any).supervisorLedgerEntry.deleteMany({ where: { importBatchId: batchId } })
             await (tx as any).invoice.deleteMany({ where: { importBatchId: batchId } })
             
-            // Note: We intentionally DO NOT delete Student, Supervisor, or User records.
-            // Since the import engine uses an 'Upsert' pattern, deleting profiles would destroy
-            // historical data and trigger Foreign Key Constraint errors for previous payments.
+            // 3. Clear assignments for students in this batch
+            const sIds = studentsToDel.map(s => s.id)
+            if (sIds.length > 0) {
+                await (tx as any).studentSupervisor.deleteMany({ where: { studentId: { in: sIds } } })
+            }
 
-            // 5. Update batch status
+            // 4. Delete Student/Supervisor profiles (Only those created in this batch)
+            await tx.student.deleteMany({ where: { importBatchId: batchId } })
+            await tx.supervisor.deleteMany({ where: { importBatchId: batchId } })
+
+            // 5. Delete the Users themselves
+            if (userIds.length > 0) {
+                await tx.user.deleteMany({ where: { id: { in: userIds } } })
+            }
+
+            // 6. Update batch status
             await (tx as any).importBatch.update({
                 where: { id: batchId },
                 data: { status: "REVERTED", revertedAt: new Date() }
