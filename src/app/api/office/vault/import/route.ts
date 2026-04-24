@@ -82,12 +82,33 @@ function mapHeaders(sheet: ExcelJS.Worksheet): { mapping: Record<string, number>
 }
 
 function normalizeCredentialType(val: string): string {
-    const v = val.toUpperCase().trim()
+    const v = val?.toUpperCase().trim() || ""
     if (v.includes("BCABA")) return "BCaBA"
+    if (v.includes("BCBA_D") || v.includes("BCBA-D")) return "BCBA_D"
     if (v.includes("BCBA")) return "BCBA"
+    if (v.includes("NOT_WORKING") || v.includes("NOT WORKING")) return "RBT_NOT_WORKING"
     if (v.includes("RBT")) return "RBT"
     if (v.includes("LMHC")) return "LMHC"
+    if (v.includes("NO CREDENTIAL") || v === "") return "NO_CREDENTIAL"
+    return "NO_CREDENTIAL" // Safe fallback instead of crashing
+}
+
+function normalizeLevelType(val: string): string {
+    const v = val?.toUpperCase().trim() || ""
+    if (v.includes("BCABA")) return "BCaBA"
     return "BCBA"
+}
+
+function normalizeSupervisionType(val: string): string {
+    const v = val?.toUpperCase().trim() || ""
+    if (v.includes("CONCENTRATED") || v.includes("CONCENTRADA")) return "CONCENTRATED"
+    return "REGULAR"
+}
+
+function normalizeFieldworkType(val: string): string {
+    const v = val?.toUpperCase().trim() || ""
+    if (v.includes("CONCENTRATED") || v.includes("CONCENTRADA")) return "CONCENTRATED"
+    return "REGULAR"
 }
 
 function normalizeStudentStatus(val: string): any {
@@ -489,13 +510,13 @@ export async function POST(request: Request) {
                         supervisorId,
                         importBatchId: batch.id, phone: nu.fields.phone || "000-000-0000",
                         bacbId: nu.fields.bacbId || "N/A", 
-                        credential: (nu.fields.credential || "BCBA") as any, 
+                        credential: normalizeCredentialType(nu.fields.credential || ""), 
                         school: nu.fields.school || "N/A", 
-                        level: (nu.fields.level || "BCBA") as any, 
+                        level: normalizeLevelType(nu.fields.level || ""), 
                         city: nu.fields.city || "N/A", 
                         state: nu.fields.state || "N/A",
-                        supervisionType: (nu.fields.supervisionType || "REGULAR") as any, 
-                        fieldworkType: (nu.fields.fieldworkType || "REGULAR") as any, 
+                        supervisionType: normalizeSupervisionType(nu.fields.supervisionType || ""), 
+                        fieldworkType: normalizeFieldworkType(nu.fields.fieldworkType || ""), 
                         supervisionPercentage: nu.fields.supervisionPercentage || 0.05,
                         hoursToDo: nu.fields.hoursTargetReg || 1500, hoursToPay: 0,
                         amountToPay: nu.fields.totalAmountContract || 0, hourlyRate: 0, hoursPerMonth: 130, totalMonths: 12,
