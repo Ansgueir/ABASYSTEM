@@ -746,9 +746,9 @@ export async function POST(request: Request) {
 
                 console.log(`[IMPORT] Finance mapping results: Linked=${linkedCount}, Orphaned=${orphanedCount}`)
                 if (orphanedSamples.length > 0) console.log(`[IMPORT] Sample orphaned names: ${JSON.stringify(orphanedSamples)}`)
-                if (invoicesToCreate.length > 0) await tx.invoice.createMany({ data: invoicesToCreate })
-                if (paymentsToCreate.length > 0) await tx.studentPayment.createMany({ data: paymentsToCreate })
-                if (ledgerToCreate.length > 0) await tx.supervisorLedgerEntry.createMany({ data: ledgerToCreate })
+                if (invoicesToCreate.length > 0) await tx.invoice.createMany({ data: invoicesToCreate, skipDuplicates: true })
+                if (paymentsToCreate.length > 0) await tx.studentPayment.createMany({ data: paymentsToCreate, skipDuplicates: true })
+                if (ledgerToCreate.length > 0) await tx.supervisorLedgerEntry.createMany({ data: ledgerToCreate, skipDuplicates: true })
                 console.timeEnd("db_finance_phase")
             }, { timeout: 600000 })
             console.timeEnd("bulk_import_total")
