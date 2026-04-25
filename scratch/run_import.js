@@ -61,6 +61,7 @@ async function main() {
           fullName: s.fullName,
           email: user.email,
           phone: String(s.phone || ''),
+          address: String(s.address || 'N/A'),
           status: s.status || 'ACTIVE',
           bacbId: String(s.bacbId || ''),
           certificantNumber: String(s.certificantNumber || ''),
@@ -117,7 +118,9 @@ async function main() {
           supervisionPercentage: s.supervisionPercentage ? Number(s.supervisionPercentage) : 0,
           hoursToDo: s.hoursToDo ? Number(s.hoursToDo) : 0,
           level: s.level || 'MASTER',
-          school: s.school || 'N/A'
+          school: s.school || 'N/A',
+          city: String(s.city || 'N/A'),
+          state: String(s.state || 'N/A')
         }
       });
       console.log(`Created Student Profile: ${s.fullName} ${supId ? '(Linked to Supervisor)' : '(No Supervisor)'}`);
