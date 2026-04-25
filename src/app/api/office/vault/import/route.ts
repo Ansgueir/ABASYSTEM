@@ -264,7 +264,7 @@ export async function POST(request: Request) {
                 if (!name) continue
                 const email = (stEmailCol ? cellStr(row, stEmailCol) : cellStr(row, stm.email || stm.correo || stm.correoelectronico || 3)).toLowerCase().trim()
                 
-                const password = cellStr(row, stm.password || 4) || "Aba12345*"
+                const password = cellStr(row, stm.password || 4) || "aba1234#"
                 
                 const isDuplicateInBatch = claimedEmailsInBatch.has(email)
                 const isAlreadyInDb = existingEmails.has(email)
@@ -296,6 +296,9 @@ export async function POST(request: Request) {
                             hoursTargetConc: cellNum(row, stm.hourstargetconc || stm.conchours || stm.horasindirectas || 0),
                             independentHoursTarget: cellNum(row, stm.independenthourstarget || 0),
                             totalAmountContract: cellNum(row, stm.totalamountcontract || stm.amounttopay || stm.totalcharge || stm.montototal || 0),
+                            hoursToPay: cellNum(row, stm.hourstopay || 0),
+                            hoursPerMonth: cellNum(row, stm.hourspermonth || 0),
+                            totalMonths: cellNum(row, stm.totalmonths || 0),
                             analystPaymentRate: cellNum(row, stm.analystpaymentrate || 0),
                             officePaymentRate: cellNum(row, stm.officepaymentrate || 0),
                             bacbId: cellStr(row, stm.bacbid || 5),
@@ -581,8 +584,8 @@ export async function POST(request: Request) {
                         supervisionType: normalizeSupervisionType(nu.fields.supervisionType || ""), 
                         fieldworkType: normalizeFieldworkType(nu.fields.fieldworkType || ""), 
                         supervisionPercentage: nu.fields.supervisionPercentage || 0.05,
-                        hoursToDo: nu.fields.hoursTargetReg || 1500, hoursToPay: 0,
-                        amountToPay: nu.fields.totalAmountContract || 0, hourlyRate: 0, hoursPerMonth: 130, totalMonths: 12,
+                        hoursToDo: nu.fields.hoursTargetReg || 1500, hoursToPay: nu.fields.hoursToPay || 0,
+                        amountToPay: nu.fields.totalAmountContract || 0, hourlyRate: 0, hoursPerMonth: nu.fields.hoursPerMonth || 130, totalMonths: nu.fields.totalMonths || 12,
                         paymentAlias: nu.originalId ? [nu.originalId] : [],
                         academicDegree: nu.fields.academicDegree,
                         planTemplateId: nu.fields.planTemplateId,
