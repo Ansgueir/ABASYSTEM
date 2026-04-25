@@ -4,13 +4,18 @@ const prisma = new PrismaClient();
 async function main() {
   console.log("Iniciando purga de datos...");
   
-  // 1. Borrar dependencias primero
+  // 1. Borrar dependencias profundas primero
+  await prisma.supervisorPayout.deleteMany({});
+  await prisma.paymentRecord.deleteMany({});
+  await prisma.invoice.deleteMany({});
   await prisma.independentHour.deleteMany({});
   await prisma.groupSupervisionAttendance.deleteMany({});
-  await prisma.contractGroupAssignment.deleteMany({});
+  await prisma.groupSupervisionSession.deleteMany({});
   await prisma.groupStudent.deleteMany({});
+  await prisma.supervisorGroup.deleteMany({});
+  await prisma.contractGroupAssignment.deleteMany({});
   await prisma.contract.deleteMany({});
-  await prisma.invoice.deleteMany({});
+  await prisma.financialPeriod.deleteMany({});
   await prisma.document.deleteMany({
     where: {
       user: {
