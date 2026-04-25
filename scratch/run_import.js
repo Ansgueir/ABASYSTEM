@@ -65,7 +65,7 @@ async function main() {
           status: s.status || 'ACTIVE',
           bacbId: String(s.bacbId || ''),
           certificantNumber: String(s.certificantNumber || ''),
-          credentialType: s.credentialType || 'BCBA'
+          credentialType: (String(s.credentialType || '').toUpperCase().includes('BCABA') ? 'BCaBA' : (String(s.credentialType || '').toUpperCase().includes('RBT') ? 'RBT' : 'BCBA'))
         }
       });
       console.log(`Created Supervisor Profile: ${s.fullName}`);
@@ -112,8 +112,8 @@ async function main() {
           status: s.status || 'ACTIVE',
           phone: String(s.phone || ''),
           bacbId: String(s.bacbId || '').substring(0,10),
-          supervisionType: s.supervisionType || 'CONCENTRATED',
-          fieldworkType: s.fieldworkType || 'MULTIPLE_SUPERVISORS',
+          supervisionType: String(s.supervisionType || '').toUpperCase().includes('CONCENTRATED') ? 'CONCENTRATED' : 'REGULAR',
+          fieldworkType: String(s.fieldworkType || '').toUpperCase().includes('MULTIPLE') ? 'MULTIPLE_SUPERVISORS' : 'INDIVIDUAL',
           amountToPay: s.amountToPay ? Number(s.amountToPay) : 0,
           supervisionPercentage: s.supervisionPercentage ? Number(s.supervisionPercentage) : 0,
           hoursToDo: s.hoursToDo ? Number(s.hoursToDo) : 0,
