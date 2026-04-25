@@ -117,6 +117,7 @@ async function main() {
           amountToPay: s.amountToPay ? Number(s.amountToPay) : 0,
           supervisionPercentage: s.supervisionPercentage ? Number(s.supervisionPercentage) : 0,
           hoursToDo: s.hoursToDo ? Number(s.hoursToDo) : 0,
+          credential: (String(s.credential || '').toUpperCase().includes('BCABA') ? 'BCaBA' : (String(s.credential || '').toUpperCase().includes('RBT') ? 'RBT' : 'BCBA')),
           level: s.level || 'MASTER',
           school: s.school || 'N/A',
           city: String(s.city || 'N/A'),
