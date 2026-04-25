@@ -100,6 +100,12 @@ async function main() {
         }
     }
     
+    const parseDate = (val) => {
+      if (!val) return new Date();
+      const d = new Date(val);
+      return isNaN(d.getTime()) ? new Date() : d;
+    };
+
     let stu = await prisma.student.findFirst({ where: { userId: user.id } });
     if (!stu) {
       await prisma.student.create({
@@ -117,11 +123,17 @@ async function main() {
           amountToPay: s.amountToPay ? Number(s.amountToPay) : 0,
           supervisionPercentage: s.supervisionPercentage ? Number(s.supervisionPercentage) : 0,
           hoursToDo: s.hoursToDo ? Number(s.hoursToDo) : 0,
+          hoursToPay: s.hoursToPay ? Number(s.hoursToPay) : 0,
+          hoursPerMonth: s.hoursPerMonth ? Number(s.hoursPerMonth) : 0,
+          totalMonths: s.totalMonths ? Number(s.totalMonths) : 0,
+          startDate: parseDate(s.startDate),
+          endDate: parseDate(s.endDate || s.contractEndDate),
           credential: (String(s.credential || '').toUpperCase().includes('BCABA') ? 'BCaBA' : (String(s.credential || '').toUpperCase().includes('RBT') ? 'RBT' : 'BCBA')),
           level: s.level || 'MASTER',
           school: s.school || 'N/A',
           city: String(s.city || 'N/A'),
-          state: String(s.state || 'N/A')
+          state: String(s.state || 'N/A'),
+          academicDegree: s.academicDegree || ''
         }
       });
       console.log(`Created Student Profile: ${s.fullName} ${supId ? '(Linked to Supervisor)' : '(No Supervisor)'}`);
