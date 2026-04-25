@@ -9,7 +9,7 @@ import { CredentialType } from "@prisma/client"
 const contactSchema = z.discriminatedUnion("role", [
     z.object({
         role: z.literal("STUDENT"),
-        phone: z.string().min(10, "Phone number must be at least 10 digits"),
+        phone: z.string().min(8, "Phone number must be at least 8 digits"),
         address: z.string().min(5, "Address must be at least 5 characters"),
         city: z.string().min(2, "City is required"),
         state: z.string().min(2, "State is required"),
@@ -19,7 +19,7 @@ const contactSchema = z.discriminatedUnion("role", [
     }),
     z.object({
         role: z.literal("SUPERVISOR"),
-        phone: z.string().min(10, "Phone number must be at least 10 digits"),
+        phone: z.string().min(8, "Phone number must be at least 8 digits"),
         address: z.string().min(5, "Address must be at least 5 characters"),
         city: z.string().min(2, "City is required"),
         state: z.string().min(2, "State is required"),
@@ -30,7 +30,7 @@ const contactSchema = z.discriminatedUnion("role", [
     }),
     z.object({
         role: z.literal("OFFICE"), // Minimal for office role if they ever enter here
-        phone: z.string().min(10),
+        phone: z.string().min(8),
         address: z.string().min(5),
         city: z.string(),
         state: z.string(),

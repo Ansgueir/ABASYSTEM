@@ -431,7 +431,8 @@ export async function POST(request: Request) {
             for (let i = 0; i < allToHash.length; i += BATCH_SIZE) {
                 const chunk = allToHash.slice(i, i + BATCH_SIZE)
                 const processedChunk = await Promise.all(chunk.map(async (item) => {
-                    const hash = await bcrypt.hash(item.original.password, 10)
+                    const rawPassword = item.original.password && item.original.password.trim() !== "" ? item.original.password : "aba1234#"
+                    const hash = await bcrypt.hash(rawPassword, 10)
                     return { ...item.original, userId: crypto.randomUUID(), passwordHash: hash, _type: item.type }
                 }))
                 hashedResults.push(...processedChunk)
@@ -533,7 +534,7 @@ export async function POST(request: Request) {
 
                 const allSups = await tx.supervisor.findMany()
                 allSups.forEach(s => {
-                    const clean = s.fullName.toLowerCase().trim().replace(/,/g, '').replace(/\s+/g, ' ')
+                    const clean = s.fullName.toLowerCase().replace(/[,.\s]/g, '')
                     supMap.set(clean, s.id)
                     supMap.set(s.id, s.id) // Direct UUID match
                     if (s.internalIdNumber) supMap.set(s.internalIdNumber, s.id)
@@ -552,14 +553,15 @@ export async function POST(request: Request) {
                 console.log(`[DEBUG-MAP] Starting mapping for ${uniqueStudents.length} students. Batch ID: ${batch.id}`);
                 uniqueStudents.forEach((nu, idx) => {
                     if (idx % 10 === 0) console.log(`[DEBUG-MAP] Mapping student ${idx}/${uniqueStudents.length}: ${nu.fullName}`);
-                    const cleanSupName = nu.fields.supervisorName?.toLowerCase().trim().replace(/,/g, '').replace(/\s+/g, ' ')
+                    const rawSupName = nu.fields.supervisorName || ""
+                    const cleanSupName = rawSupName.toLowerCase().replace(/[,.\s]/g, '')
                     let supervisorId = cleanSupName ? (supMap.get(cleanSupName) || null) : null
                     
                     // Try reverse match for supervisor assignment
-                    if (!supervisorId && cleanSupName && cleanSupName.includes(' ')) {
-                        const parts = cleanSupName.split(' ')
+                    if (!supervisorId && rawSupName.includes(' ')) {
+                        const parts = rawSupName.toLowerCase().replace(/[,.]/g, '').split(/\s+/)
                         if (parts.length >= 2) {
-                            const reversed = `${parts[parts.length - 1]} ${parts.slice(0, -1).join(' ')}`
+                            const reversed = `${parts[parts.length - 1]}${parts.slice(0, -1).join('')}`
                             supervisorId = supMap.get(reversed) || null
                         }
                     }
@@ -570,7 +572,7 @@ export async function POST(request: Request) {
                         status: normalizeStudentStatus(nu.fields.status || "ACTIVE"),
                         supervisorId,
                         phone: nu.fields.phone || "000-000-0000",
-                        bacbId: "FIXED", 
+                        bacbId: (nu.fields.bacbId || "N/A").toString().substring(0, 10), 
                         credential: normalizeCredentialType(nu.fields.credential || ""), 
                         school: nu.fields.school || "N/A", 
                         level: normalizeLevelType(nu.fields.level || ""), 
@@ -594,26 +596,20 @@ export async function POST(request: Request) {
                         studentsToCreate.push(data)
                     }
                 })
-                console.log(`[DEBUG-MAP] Mapping complete. ToCreate: ${studentsToCreate.length}, ToUpdate: ${studentsToUpdate.length}`);
                 
                 try {
-                    console.log(`[DEBUG-IMPORT] Phase 3 Start: Students. Unique: ${uniqueStudents.length}, ToCreate: ${studentsToCreate.length}, ToUpdate: ${studentsToUpdate.length}`);
                     if (studentsToCreate.length > 0) {
-                        console.log(`[IMPORT] Attempting to create ${studentsToCreate.length} new students...`);
                         await tx.student.createMany({ data: studentsToCreate, skipDuplicates: true })
-                        console.log(`[DEBUG-IMPORT] Student createMany SUCCESS`);
                     }
                     
                     // Update existing students to refresh their profile data (BACB ID, Plans, Supervisor)
                     if (studentsToUpdate.length > 0) {
-                        console.log(`[IMPORT] Refreshing ${studentsToUpdate.length} existing students...`);
                         for (const stu of studentsToUpdate) {
                             await tx.student.update({
                                 where: { userId: stu.userId },
                                 data: stu
                             })
                         }
-                        console.log(`[DEBUG-IMPORT] Student updates SUCCESS`);
                     }
                 } catch (importErr) {
                     console.error("[FATAL IMPORT] Student phase failed:", importErr);
@@ -626,7 +622,7 @@ export async function POST(request: Request) {
 
                 const allStuds = await tx.student.findMany()
                 allStuds.forEach(s => {
-                    const clean = s.fullName.toLowerCase().trim().replace(/,/g, '').replace(/\s+/g, ' ')
+                    const clean = s.fullName.toLowerCase().replace(/[,.\s]/g, '')
                     studMap.set(clean, s.id)
                     studMap.set(s.id, s.id) // Direct UUID match
                     if (s.paymentAlias && s.paymentAlias.length > 0) {

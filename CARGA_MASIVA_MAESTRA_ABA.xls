@@ -1,0 +1,2502 @@
+<?xml version="1.0"?>
+<?mso-application progid="Excel.Sheet"?>
+<Workbook xmlns="urn:schemas-microsoft-com:office:spreadsheet"
+ xmlns:o="urn:schemas-microsoft-com:office:office"
+ xmlns:x="urn:schemas-microsoft-com:office:excel"
+ xmlns:ss="urn:schemas-microsoft-com:office:spreadsheet"
+ xmlns:html="http://www.w3.org/TR/REC-html40">
+ <DocumentProperties xmlns="urn:schemas-microsoft-com:office:office">
+  <Version>16.00</Version>
+ </DocumentProperties>
+ <OfficeDocumentSettings xmlns="urn:schemas-microsoft-com:office:office">
+  <AllowPNG/>
+ </OfficeDocumentSettings>
+ <ExcelWorkbook xmlns="urn:schemas-microsoft-com:office:excel">
+  <WindowHeight>13665</WindowHeight>
+  <WindowWidth>28800</WindowWidth>
+  <WindowTopX>32767</WindowTopX>
+  <WindowTopY>32767</WindowTopY>
+  <ActiveSheet>16</ActiveSheet>
+  <FirstVisibleSheet>9</FirstVisibleSheet>
+  <ProtectStructure>False</ProtectStructure>
+  <ProtectWindows>False</ProtectWindows>
+ </ExcelWorkbook>
+ <Styles>
+  <Style ss:ID="Default" ss:Name="Normal">
+   <Alignment ss:Vertical="Bottom"/>
+   <Borders/>
+   <Font ss:FontName="Aptos Narrow" x:Family="Swiss" ss:Size="11"
+    ss:Color="#000000"/>
+   <Interior/>
+   <NumberFormat/>
+   <Protection/>
+  </Style>
+  <Style ss:ID="s62">
+   <Alignment ss:Vertical="Bottom"/>
+   <Borders/>
+   <Font ss:FontName="Arial" ss:Color="#FFFFFF" ss:Bold="1"/>
+   <Interior ss:Color="#4F81BD" ss:Pattern="Solid"/>
+   <NumberFormat/>
+   <Protection/>
+  </Style>
+  <Style ss:ID="s63">
+   <Alignment ss:Vertical="Bottom"/>
+   <Borders/>
+   <Font ss:FontName="Arial" ss:Color="#333333" ss:Italic="1"/>
+   <Interior ss:Color="#DCE6F1" ss:Pattern="Solid"/>
+   <NumberFormat/>
+   <Protection/>
+  </Style>
+ </Styles>
+ <Worksheet ss:Name="AuditLog">
+  <Table ss:ExpandedColumnCount="11" ss:ExpandedRowCount="5" x:FullColumns="1"
+   x:FullRows="1" ss:DefaultColumnWidth="60" ss:DefaultRowHeight="15">
+   <Row ss:Height="12.75" ss:StyleID="s62">
+    <Cell><Data ss:Type="String">id</Data></Cell>
+    <Cell><Data ss:Type="String">userId</Data></Cell>
+    <Cell><Data ss:Type="String">userEmail</Data></Cell>
+    <Cell><Data ss:Type="String">action</Data></Cell>
+    <Cell><Data ss:Type="String">entity</Data></Cell>
+    <Cell><Data ss:Type="String">entityId</Data></Cell>
+    <Cell><Data ss:Type="String">details</Data></Cell>
+    <Cell><Data ss:Type="String">oldValues</Data></Cell>
+    <Cell><Data ss:Type="String">newValues</Data></Cell>
+    <Cell><Data ss:Type="String">ipAddress</Data></Cell>
+    <Cell><Data ss:Type="String">createdAt</Data></Cell>
+   </Row>
+   <Row ss:Height="12.75" ss:StyleID="s63">
+    <Cell><Data ss:Type="String">TEXT (ID) (REQ)</Data></Cell>
+    <Cell><Data ss:Type="String">TEXT (REQ)</Data></Cell>
+    <Cell><Data ss:Type="String">TEXT</Data></Cell>
+    <Cell><Data ss:Type="String">TEXT (REQ)</Data></Cell>
+    <Cell><Data ss:Type="String">TEXT (REQ)</Data></Cell>
+    <Cell><Data ss:Type="String">TEXT</Data></Cell>
+    <Cell><Data ss:Type="String">TEXT</Data></Cell>
+    <Cell><Data ss:Type="String">JSONB</Data></Cell>
+    <Cell><Data ss:Type="String">JSONB</Data></Cell>
+    <Cell><Data ss:Type="String">TEXT</Data></Cell>
+    <Cell><Data ss:Type="String">TIMESTAMP WITHOUT TIME ZONE (REQ)</Data></Cell>
+   </Row>
+   <Row>
+    <Cell><Data ss:Type="String">49a86bf0-1c88-4384-b7fb-1c74c97acc5c</Data></Cell>
+    <Cell><Data ss:Type="String">3387d731-9437-4a57-a1f1-a16383d633d1</Data></Cell>
+    <Cell><Data ss:Type="String">qa-super@abasystem.com</Data></Cell>
+    <Cell><Data ss:Type="String">UPDATE</Data></Cell>
+    <Cell><Data ss:Type="String">Invoice</Data></Cell>
+    <Cell><Data ss:Type="String">aafdaaad-9682-4d94-bb21-a897e33c533e</Data></Cell>
+    <Cell><Data ss:Type="String">Invoice sent to student Camilo André Zúñiga Zepeda (READY_TO_GO → SENT)</Data></Cell>
+    <Cell><Data ss:Type="String">null</Data></Cell>
+    <Cell><Data ss:Type="String">null</Data></Cell>
+    <Cell><Data ss:Type="String"></Data></Cell>
+    <Cell><Data ss:Type="String">2026-04-22 15:13:34.132</Data></Cell>
+   </Row>
+   <Row>
+    <Cell><Data ss:Type="String">1e685cc4-3071-409f-b822-18540d2b7413</Data></Cell>
+    <Cell><Data ss:Type="String">3387d731-9437-4a57-a1f1-a16383d633d1</Data></Cell>
+    <Cell><Data ss:Type="String">qa-super@abasystem.com</Data></Cell>
+    <Cell><Data ss:Type="String">UPDATE</Data></Cell>
+    <Cell><Data ss:Type="String">Invoice</Data></Cell>
+    <Cell><Data ss:Type="String">aafdaaad-9682-4d94-bb21-a897e33c533e</Data></Cell>
+    <Cell><Data ss:Type="String">Waterfall payment of $1980. Supervisor: $226.80, Office: $1753.20. Status → PAID</Data></Cell>
+    <Cell><Data ss:Type="String">{&quot;status&quot;: &quot;SENT&quot;, &quot;amountPaid&quot;: &quot;0&quot;}</Data></Cell>
+    <Cell><Data ss:Type="String">{&quot;status&quot;: &quot;PAID&quot;, &quot;amountPaid&quot;: 1980, &quot;officePayout&quot;: 1753.2, &quot;supervisorPayout&quot;: 226.8}</Data></Cell>
+    <Cell><Data ss:Type="String"></Data></Cell>
+    <Cell><Data ss:Type="String">2026-04-22 15:13:39.096</Data></Cell>
+   </Row>
+   <Row>
+    <Cell><Data ss:Type="String">accf3de2-1460-4d62-a567-ab07deed99e0</Data></Cell>
+    <Cell><Data ss:Type="String">3387d731-9437-4a57-a1f1-a16383d633d1</Data></Cell>
+    <Cell><Data ss:Type="String">qa-super@abasystem.com</Data></Cell>
+    <Cell><Data ss:Type="String">CREATE</Data></Cell>
+    <Cell><Data ss:Type="String">Payment</Data></Cell>
+    <Cell><Data ss:Type="String">7d73e6bb-f37c-4992-81aa-01e9df386046</Data></Cell>
+    <Cell><Data ss:Type="String">Supervisor paid $226.8 via ZELLE. Hours supervised: N/A</Data></Cell>
+    <Cell><Data ss:Type="String">null</Data></Cell>
+    <Cell><Data ss:Type="String">null</Data></Cell>
+    <Cell><Data ss:Type="String"></Data></Cell>
+    <Cell><Data ss:Type="String">2026-04-22 15:13:45.931</Data></Cell>
+   </Row>
+  </Table>
+  <WorksheetOptions xmlns="urn:schemas-microsoft-com:office:excel">
+   <ProtectObjects>False</ProtectObjects>
+   <ProtectScenarios>False</ProtectScenarios>
+  </WorksheetOptions>
+ </Worksheet>
+ <Worksheet ss:Name="Contract">
+  <Table ss:ExpandedColumnCount="7" ss:ExpandedRowCount="3" x:FullColumns="1"
+   x:FullRows="1" ss:DefaultColumnWidth="60" ss:DefaultRowHeight="15">
+   <Row ss:Height="12.75" ss:StyleID="s62">
+    <Cell><Data ss:Type="String">id</Data></Cell>
+    <Cell><Data ss:Type="String">studentId</Data></Cell>
+    <Cell><Data ss:Type="String">effectiveDate</Data></Cell>
+    <Cell><Data ss:Type="String">status</Data></Cell>
+    <Cell><Data ss:Type="String">rejectionReason</Data></Cell>
+    <Cell><Data ss:Type="String">createdAt</Data></Cell>
+    <Cell><Data ss:Type="String">updatedAt</Data></Cell>
+   </Row>
+   <Row ss:Height="12.75" ss:StyleID="s63">
+    <Cell><Data ss:Type="String">TEXT (ID) (REQ)</Data></Cell>
+    <Cell><Data ss:Type="String">TEXT (REQ)</Data></Cell>
+    <Cell><Data ss:Type="String">TIMESTAMP WITHOUT TIME ZONE (REQ)</Data></Cell>
+    <Cell><Data ss:Type="String">USER-DEFINED (REQ)</Data></Cell>
+    <Cell><Data ss:Type="String">TEXT</Data></Cell>
+    <Cell><Data ss:Type="String">TIMESTAMP WITHOUT TIME ZONE (REQ)</Data></Cell>
+    <Cell><Data ss:Type="String">TIMESTAMP WITHOUT TIME ZONE (REQ)</Data></Cell>
+   </Row>
+   <Row>
+    <Cell><Data ss:Type="String">6f0a3f88-7326-427d-8cd1-23f11b264dea</Data></Cell>
+    <Cell><Data ss:Type="String">9bfcddd9-bd04-4231-ae3e-b1d9f7939c34</Data></Cell>
+    <Cell><Data ss:Type="String">2026-04-07 04:00:00</Data></Cell>
+    <Cell><Data ss:Type="String">SENT</Data></Cell>
+    <Cell><Data ss:Type="String"></Data></Cell>
+    <Cell><Data ss:Type="String">2026-04-20 22:15:53.849</Data></Cell>
+    <Cell><Data ss:Type="String">2026-04-22 14:50:48.414</Data></Cell>
+   </Row>
+  </Table>
+  <WorksheetOptions xmlns="urn:schemas-microsoft-com:office:excel">
+   <ProtectObjects>False</ProtectObjects>
+   <ProtectScenarios>False</ProtectScenarios>
+  </WorksheetOptions>
+ </Worksheet>
+ <Worksheet ss:Name="ContractGroupAssignment">
+  <Table ss:ExpandedColumnCount="5" ss:ExpandedRowCount="3" x:FullColumns="1"
+   x:FullRows="1" ss:DefaultColumnWidth="60" ss:DefaultRowHeight="15">
+   <Row ss:Height="12.75" ss:StyleID="s62">
+    <Cell><Data ss:Type="String">id</Data></Cell>
+    <Cell><Data ss:Type="String">contractId</Data></Cell>
+    <Cell><Data ss:Type="String">supervisorId</Data></Cell>
+    <Cell><Data ss:Type="String">officeGroupId</Data></Cell>
+    <Cell><Data ss:Type="String">createdAt</Data></Cell>
+   </Row>
+   <Row ss:Height="12.75" ss:StyleID="s63">
+    <Cell><Data ss:Type="String">TEXT (ID) (REQ)</Data></Cell>
+    <Cell><Data ss:Type="String">TEXT (REQ)</Data></Cell>
+    <Cell><Data ss:Type="String">TEXT (REQ)</Data></Cell>
+    <Cell><Data ss:Type="String">TEXT (REQ)</Data></Cell>
+    <Cell><Data ss:Type="String">TIMESTAMP WITHOUT TIME ZONE (REQ)</Data></Cell>
+   </Row>
+   <Row>
+    <Cell><Data ss:Type="String">4918e642-f30d-42d4-a2bc-a243a9c6e132</Data></Cell>
+    <Cell><Data ss:Type="String">6f0a3f88-7326-427d-8cd1-23f11b264dea</Data></Cell>
+    <Cell><Data ss:Type="String">9064f97a-5ee1-4241-9e22-4c0d065d8009</Data></Cell>
+    <Cell><Data ss:Type="String">37d0330a-dfcf-4695-994e-3c717960bc2d</Data></Cell>
+    <Cell><Data ss:Type="String">2026-04-22 14:50:48.427</Data></Cell>
+   </Row>
+  </Table>
+  <WorksheetOptions xmlns="urn:schemas-microsoft-com:office:excel">
+   <ProtectObjects>False</ProtectObjects>
+   <ProtectScenarios>False</ProtectScenarios>
+  </WorksheetOptions>
+ </Worksheet>
+ <Worksheet ss:Name="ContractSupervisor">
+  <Table ss:ExpandedColumnCount="4" ss:ExpandedRowCount="6" x:FullColumns="1"
+   x:FullRows="1" ss:DefaultColumnWidth="60" ss:DefaultRowHeight="15">
+   <Row ss:Height="12.75" ss:StyleID="s62">
+    <Cell><Data ss:Type="String">id</Data></Cell>
+    <Cell><Data ss:Type="String">contractId</Data></Cell>
+    <Cell><Data ss:Type="String">supervisorId</Data></Cell>
+    <Cell><Data ss:Type="String">isMainSupervisor</Data></Cell>
+   </Row>
+   <Row ss:Height="12.75" ss:StyleID="s63">
+    <Cell><Data ss:Type="String">TEXT (ID) (REQ)</Data></Cell>
+    <Cell><Data ss:Type="String">TEXT (REQ)</Data></Cell>
+    <Cell><Data ss:Type="String">TEXT (REQ)</Data></Cell>
+    <Cell><Data ss:Type="String">BOOLEAN (REQ)</Data></Cell>
+   </Row>
+   <Row>
+    <Cell><Data ss:Type="String">b5af1475-bacf-499b-a2df-968ea0c1f086</Data></Cell>
+    <Cell><Data ss:Type="String">6f0a3f88-7326-427d-8cd1-23f11b264dea</Data></Cell>
+    <Cell><Data ss:Type="String">99ad8767-24a4-449b-84ed-07ed4cd1aa8c</Data></Cell>
+    <Cell><Data ss:Type="String">t</Data></Cell>
+   </Row>
+   <Row>
+    <Cell><Data ss:Type="String">59e80969-683f-4920-91ff-f32346193488</Data></Cell>
+    <Cell><Data ss:Type="String">6f0a3f88-7326-427d-8cd1-23f11b264dea</Data></Cell>
+    <Cell><Data ss:Type="String">43a8be7e-8997-4127-be50-a7a32ee1bd1c</Data></Cell>
+    <Cell><Data ss:Type="String">f</Data></Cell>
+   </Row>
+   <Row>
+    <Cell><Data ss:Type="String">8c663f69-88d8-45eb-9b98-f5e38ee9b02d</Data></Cell>
+    <Cell><Data ss:Type="String">6f0a3f88-7326-427d-8cd1-23f11b264dea</Data></Cell>
+    <Cell><Data ss:Type="String">e4a635f1-9395-4f32-b712-04dc4dc45c05</Data></Cell>
+    <Cell><Data ss:Type="String">f</Data></Cell>
+   </Row>
+   <Row>
+    <Cell><Data ss:Type="String">40e8f9ec-0530-45e1-b641-662c27a1c422</Data></Cell>
+    <Cell><Data ss:Type="String">6f0a3f88-7326-427d-8cd1-23f11b264dea</Data></Cell>
+    <Cell><Data ss:Type="String">9064f97a-5ee1-4241-9e22-4c0d065d8009</Data></Cell>
+    <Cell><Data ss:Type="String">f</Data></Cell>
+   </Row>
+  </Table>
+  <WorksheetOptions xmlns="urn:schemas-microsoft-com:office:excel">
+   <ProtectObjects>False</ProtectObjects>
+   <ProtectScenarios>False</ProtectScenarios>
+  </WorksheetOptions>
+ </Worksheet>
+ <Worksheet ss:Name="Document">
+  <Table ss:ExpandedColumnCount="11" ss:ExpandedRowCount="7" x:FullColumns="1"
+   x:FullRows="1" ss:DefaultColumnWidth="60" ss:DefaultRowHeight="15">
+   <Row ss:Height="12.75" ss:StyleID="s62">
+    <Cell><Data ss:Type="String">id</Data></Cell>
+    <Cell><Data ss:Type="String">studentId</Data></Cell>
+    <Cell><Data ss:Type="String">supervisorId</Data></Cell>
+    <Cell><Data ss:Type="String">documentType</Data></Cell>
+    <Cell><Data ss:Type="String">fileUrl</Data></Cell>
+    <Cell><Data ss:Type="String">fileName</Data></Cell>
+    <Cell><Data ss:Type="String">fileSize</Data></Cell>
+    <Cell><Data ss:Type="String">uploadedById</Data></Cell>
+    <Cell><Data ss:Type="String">uploadedAt</Data></Cell>
+    <Cell><Data ss:Type="String">status</Data></Cell>
+    <Cell><Data ss:Type="String">rejectionReason</Data></Cell>
+   </Row>
+   <Row ss:Height="12.75" ss:StyleID="s63">
+    <Cell><Data ss:Type="String">TEXT (ID) (REQ)</Data></Cell>
+    <Cell><Data ss:Type="String">TEXT</Data></Cell>
+    <Cell><Data ss:Type="String">TEXT</Data></Cell>
+    <Cell><Data ss:Type="String">USER-DEFINED (REQ)</Data></Cell>
+    <Cell><Data ss:Type="String">TEXT (REQ)</Data></Cell>
+    <Cell><Data ss:Type="String">TEXT (REQ)</Data></Cell>
+    <Cell><Data ss:Type="String">INTEGER (REQ)</Data></Cell>
+    <Cell><Data ss:Type="String">TEXT</Data></Cell>
+    <Cell><Data ss:Type="String">TIMESTAMP WITHOUT TIME ZONE (REQ)</Data></Cell>
+    <Cell><Data ss:Type="String">USER-DEFINED (REQ)</Data></Cell>
+    <Cell><Data ss:Type="String">TEXT</Data></Cell>
+   </Row>
+   <Row>
+    <Cell><Data ss:Type="String">1c3792d9-5b54-4315-aa5a-4891c7aa9868</Data></Cell>
+    <Cell><Data ss:Type="String"></Data></Cell>
+    <Cell><Data ss:Type="String">9064f97a-5ee1-4241-9e22-4c0d065d8009</Data></Cell>
+    <Cell><Data ss:Type="String">BACB_CERTIFICATION</Data></Cell>
+    <Cell><Data ss:Type="String">/uploads/supervisors/9064f97a-5ee1-4241-9e22-4c0d065d8009/f80e8574-b5a8-41e4-a3a8-7e3d3eb1eba0-scanner004.pdf</Data></Cell>
+    <Cell><Data ss:Type="String">scanner004.pdf</Data></Cell>
+    <Cell><Data ss:Type="String">35362</Data></Cell>
+    <Cell><Data ss:Type="String">ff2dc69b-79d9-4f56-abb5-398520a40878</Data></Cell>
+    <Cell><Data ss:Type="String">2026-04-15 21:40:29.084</Data></Cell>
+    <Cell><Data ss:Type="String">PENDING</Data></Cell>
+    <Cell><Data ss:Type="String"></Data></Cell>
+   </Row>
+   <Row>
+    <Cell><Data ss:Type="String">ea837ea6-9f37-4770-8f02-764a672aeb26</Data></Cell>
+    <Cell><Data ss:Type="String"></Data></Cell>
+    <Cell><Data ss:Type="String">9064f97a-5ee1-4241-9e22-4c0d065d8009</Data></Cell>
+    <Cell><Data ss:Type="String">LIABILITY_INSURANCE</Data></Cell>
+    <Cell><Data ss:Type="String">/uploads/supervisors/9064f97a-5ee1-4241-9e22-4c0d065d8009/8305dadb-6fae-46a9-8645-7ecd297e65be-scanner004.pdf</Data></Cell>
+    <Cell><Data ss:Type="String">scanner004.pdf</Data></Cell>
+    <Cell><Data ss:Type="String">35362</Data></Cell>
+    <Cell><Data ss:Type="String">ff2dc69b-79d9-4f56-abb5-398520a40878</Data></Cell>
+    <Cell><Data ss:Type="String">2026-04-15 21:40:39.378</Data></Cell>
+    <Cell><Data ss:Type="String">PENDING</Data></Cell>
+    <Cell><Data ss:Type="String"></Data></Cell>
+   </Row>
+   <Row>
+    <Cell><Data ss:Type="String">4198a391-cb54-473d-86bb-376936523e38</Data></Cell>
+    <Cell><Data ss:Type="String"></Data></Cell>
+    <Cell><Data ss:Type="String">9064f97a-5ee1-4241-9e22-4c0d065d8009</Data></Cell>
+    <Cell><Data ss:Type="String">IDENTIFICATION</Data></Cell>
+    <Cell><Data ss:Type="String">/uploads/supervisors/9064f97a-5ee1-4241-9e22-4c0d065d8009/2e64db23-1334-454b-8928-f7be3c3664c0-scanner004.pdf</Data></Cell>
+    <Cell><Data ss:Type="String">scanner004.pdf</Data></Cell>
+    <Cell><Data ss:Type="String">35362</Data></Cell>
+    <Cell><Data ss:Type="String">ff2dc69b-79d9-4f56-abb5-398520a40878</Data></Cell>
+    <Cell><Data ss:Type="String">2026-04-15 21:40:57.787</Data></Cell>
+    <Cell><Data ss:Type="String">PENDING</Data></Cell>
+    <Cell><Data ss:Type="String"></Data></Cell>
+   </Row>
+   <Row>
+    <Cell><Data ss:Type="String">0f3245ef-4462-41f8-8d3a-a8440268e7ce</Data></Cell>
+    <Cell><Data ss:Type="String"></Data></Cell>
+    <Cell><Data ss:Type="String">9064f97a-5ee1-4241-9e22-4c0d065d8009</Data></Cell>
+    <Cell><Data ss:Type="String">OTHER</Data></Cell>
+    <Cell><Data ss:Type="String">/uploads/supervisors/9064f97a-5ee1-4241-9e22-4c0d065d8009/09e6efd5-68f5-4524-a209-f828604d932f-scanner004.pdf</Data></Cell>
+    <Cell><Data ss:Type="String">scanner004.pdf</Data></Cell>
+    <Cell><Data ss:Type="String">35362</Data></Cell>
+    <Cell><Data ss:Type="String">ff2dc69b-79d9-4f56-abb5-398520a40878</Data></Cell>
+    <Cell><Data ss:Type="String">2026-04-15 21:41:54.94</Data></Cell>
+    <Cell><Data ss:Type="String">PENDING</Data></Cell>
+    <Cell><Data ss:Type="String"></Data></Cell>
+   </Row>
+   <Row>
+    <Cell><Data ss:Type="String">4463a836-a4e6-4d25-b053-1afb24c93a27</Data></Cell>
+    <Cell><Data ss:Type="String">9bfcddd9-bd04-4231-ae3e-b1d9f7939c34</Data></Cell>
+    <Cell><Data ss:Type="String"></Data></Cell>
+    <Cell><Data ss:Type="String">IDENTIFICATION</Data></Cell>
+    <Cell><Data ss:Type="String">/uploads/students/9bfcddd9-bd04-4231-ae3e-b1d9f7939c34/321ace9f-ac06-4298-aaf5-fd8a0074b277-test_id_card.jpg</Data></Cell>
+    <Cell><Data ss:Type="String">test_id_card.jpg</Data></Cell>
+    <Cell><Data ss:Type="String">59699</Data></Cell>
+    <Cell><Data ss:Type="String">3387d731-9437-4a57-a1f1-a16383d633d1</Data></Cell>
+    <Cell><Data ss:Type="String">2026-04-15 16:53:21.659</Data></Cell>
+    <Cell><Data ss:Type="String">APPROVED</Data></Cell>
+    <Cell><Data ss:Type="String"></Data></Cell>
+   </Row>
+  </Table>
+  <WorksheetOptions xmlns="urn:schemas-microsoft-com:office:excel">
+   <ProtectObjects>False</ProtectObjects>
+   <ProtectScenarios>False</ProtectScenarios>
+  </WorksheetOptions>
+ </Worksheet>
+ <Worksheet ss:Name="FinancialPeriod">
+  <Table ss:ExpandedColumnCount="12" ss:ExpandedRowCount="2" x:FullColumns="1"
+   x:FullRows="1" ss:DefaultColumnWidth="60" ss:DefaultRowHeight="15">
+   <Row ss:Height="12.75" ss:StyleID="s62">
+    <Cell><Data ss:Type="String">id</Data></Cell>
+    <Cell><Data ss:Type="String">studentId</Data></Cell>
+    <Cell><Data ss:Type="String">periodNumber</Data></Cell>
+    <Cell><Data ss:Type="String">monthYearLabel</Data></Cell>
+    <Cell><Data ss:Type="String">amountDueOffice</Data></Cell>
+    <Cell><Data ss:Type="String">amountDueAnalyst</Data></Cell>
+    <Cell><Data ss:Type="String">accumulatedDueOffice</Data></Cell>
+    <Cell><Data ss:Type="String">accumulatedPaidOffice</Data></Cell>
+    <Cell><Data ss:Type="String">accumulatedPaidAnalyst</Data></Cell>
+    <Cell><Data ss:Type="String">importBatchId</Data></Cell>
+    <Cell><Data ss:Type="String">createdAt</Data></Cell>
+    <Cell><Data ss:Type="String">updatedAt</Data></Cell>
+   </Row>
+   <Row ss:Height="12.75" ss:StyleID="s63">
+    <Cell><Data ss:Type="String">TEXT (ID) (REQ)</Data></Cell>
+    <Cell><Data ss:Type="String">TEXT (REQ)</Data></Cell>
+    <Cell><Data ss:Type="String">INTEGER (REQ)</Data></Cell>
+    <Cell><Data ss:Type="String">TEXT (REQ)</Data></Cell>
+    <Cell><Data ss:Type="String">NUMERIC (REQ)</Data></Cell>
+    <Cell><Data ss:Type="String">NUMERIC (REQ)</Data></Cell>
+    <Cell><Data ss:Type="String">NUMERIC (REQ)</Data></Cell>
+    <Cell><Data ss:Type="String">NUMERIC (REQ)</Data></Cell>
+    <Cell><Data ss:Type="String">NUMERIC (REQ)</Data></Cell>
+    <Cell><Data ss:Type="String">TEXT</Data></Cell>
+    <Cell><Data ss:Type="String">TIMESTAMP WITHOUT TIME ZONE (REQ)</Data></Cell>
+    <Cell><Data ss:Type="String">TIMESTAMP WITHOUT TIME ZONE (REQ)</Data></Cell>
+   </Row>
+  </Table>
+  <WorksheetOptions xmlns="urn:schemas-microsoft-com:office:excel">
+   <ProtectObjects>False</ProtectObjects>
+   <ProtectScenarios>False</ProtectScenarios>
+  </WorksheetOptions>
+ </Worksheet>
+ <Worksheet ss:Name="GeneralValues">
+  <Table ss:ExpandedColumnCount="15" ss:ExpandedRowCount="4" x:FullColumns="1"
+   x:FullRows="1" ss:DefaultColumnWidth="60" ss:DefaultRowHeight="15">
+   <Row ss:Height="12.75" ss:StyleID="s62">
+    <Cell><Data ss:Type="String">id</Data></Cell>
+    <Cell><Data ss:Type="String">rateRegular</Data></Cell>
+    <Cell><Data ss:Type="String">rateConcentrated</Data></Cell>
+    <Cell><Data ss:Type="String">supervisorPaymentPercentage</Data></Cell>
+    <Cell><Data ss:Type="String">companyName</Data></Cell>
+    <Cell><Data ss:Type="String">companyAddress</Data></Cell>
+    <Cell><Data ss:Type="String">companyPhone</Data></Cell>
+    <Cell><Data ss:Type="String">companyEmail</Data></Cell>
+    <Cell><Data ss:Type="String">companyWebsite</Data></Cell>
+    <Cell><Data ss:Type="String">companyTaxId</Data></Cell>
+    <Cell><Data ss:Type="String">companyLogoUrl</Data></Cell>
+    <Cell><Data ss:Type="String">maxHoursPerMonth</Data></Cell>
+    <Cell><Data ss:Type="String">restrictedAlertPercent</Data></Cell>
+    <Cell><Data ss:Type="String">updatedAt</Data></Cell>
+    <Cell><Data ss:Type="String">emailNotificationsEnabled</Data></Cell>
+   </Row>
+   <Row ss:Height="12.75" ss:StyleID="s63">
+    <Cell><Data ss:Type="String">TEXT (ID) (REQ)</Data></Cell>
+    <Cell><Data ss:Type="String">NUMERIC (REQ)</Data></Cell>
+    <Cell><Data ss:Type="String">NUMERIC (REQ)</Data></Cell>
+    <Cell><Data ss:Type="String">NUMERIC (REQ)</Data></Cell>
+    <Cell><Data ss:Type="String">TEXT (REQ)</Data></Cell>
+    <Cell><Data ss:Type="String">TEXT (REQ)</Data></Cell>
+    <Cell><Data ss:Type="String">TEXT (REQ)</Data></Cell>
+    <Cell><Data ss:Type="String">TEXT (REQ)</Data></Cell>
+    <Cell><Data ss:Type="String">TEXT (REQ)</Data></Cell>
+    <Cell><Data ss:Type="String">TEXT (REQ)</Data></Cell>
+    <Cell><Data ss:Type="String">TEXT (REQ)</Data></Cell>
+    <Cell><Data ss:Type="String">INTEGER (REQ)</Data></Cell>
+    <Cell><Data ss:Type="String">INTEGER (REQ)</Data></Cell>
+    <Cell><Data ss:Type="String">TIMESTAMP WITHOUT TIME ZONE (REQ)</Data></Cell>
+    <Cell><Data ss:Type="String">BOOLEAN (REQ)</Data></Cell>
+   </Row>
+   <Row>
+    <Cell><Data ss:Type="String">8e337476-a131-4c19-a72d-880d9d1072e0</Data></Cell>
+    <Cell><Data ss:Type="String">45.00</Data></Cell>
+    <Cell><Data ss:Type="String">60.00</Data></Cell>
+    <Cell><Data ss:Type="String">0.5400</Data></Cell>
+    <Cell><Data ss:Type="String">ABA Supervisors System</Data></Cell>
+    <Cell><Data ss:Type="String">123 Main St, Miami, FL</Data></Cell>
+    <Cell><Data ss:Type="String">(555) 123-4567</Data></Cell>
+    <Cell><Data ss:Type="String">office@abasystem.com</Data></Cell>
+    <Cell><Data ss:Type="String">www.abasystem.com</Data></Cell>
+    <Cell><Data ss:Type="String">XX-XXXXXXX</Data></Cell>
+    <Cell><Data ss:Type="String"></Data></Cell>
+    <Cell><Data ss:Type="String">130</Data></Cell>
+    <Cell><Data ss:Type="String">40</Data></Cell>
+    <Cell><Data ss:Type="String">2026-04-07 00:49:31.666</Data></Cell>
+    <Cell><Data ss:Type="String">t</Data></Cell>
+   </Row>
+   <Row>
+    <Cell><Data ss:Type="String">c4f0155a-cd9a-4fc5-a480-5340b72d1a80</Data></Cell>
+    <Cell><Data ss:Type="String">45.00</Data></Cell>
+    <Cell><Data ss:Type="String">60.00</Data></Cell>
+    <Cell><Data ss:Type="String">0.5400</Data></Cell>
+    <Cell><Data ss:Type="String">ABA Supervisors System</Data></Cell>
+    <Cell><Data ss:Type="String">123 Main St, Miami, FL</Data></Cell>
+    <Cell><Data ss:Type="String">(555) 123-4567</Data></Cell>
+    <Cell><Data ss:Type="String">office@abasystem.com</Data></Cell>
+    <Cell><Data ss:Type="String">www.abasystem.com</Data></Cell>
+    <Cell><Data ss:Type="String">XX-XXXXXXX</Data></Cell>
+    <Cell><Data ss:Type="String"></Data></Cell>
+    <Cell><Data ss:Type="String">130</Data></Cell>
+    <Cell><Data ss:Type="String">40</Data></Cell>
+    <Cell><Data ss:Type="String">2026-04-03 01:22:54.965</Data></Cell>
+    <Cell><Data ss:Type="String">t</Data></Cell>
+   </Row>
+  </Table>
+  <WorksheetOptions xmlns="urn:schemas-microsoft-com:office:excel">
+   <ProtectObjects>False</ProtectObjects>
+   <ProtectScenarios>False</ProtectScenarios>
+  </WorksheetOptions>
+ </Worksheet>
+ <Worksheet ss:Name="GroupStudent">
+  <Table ss:ExpandedColumnCount="8" ss:ExpandedRowCount="7" x:FullColumns="1"
+   x:FullRows="1" ss:DefaultColumnWidth="60" ss:DefaultRowHeight="15">
+   <Row ss:Height="12.75" ss:StyleID="s62">
+    <Cell><Data ss:Type="String">id</Data></Cell>
+    <Cell><Data ss:Type="String">groupId</Data></Cell>
+    <Cell><Data ss:Type="String">studentId</Data></Cell>
+    <Cell><Data ss:Type="String">startDate</Data></Cell>
+    <Cell><Data ss:Type="String">endDate</Data></Cell>
+    <Cell><Data ss:Type="String">status</Data></Cell>
+    <Cell><Data ss:Type="String">createdAt</Data></Cell>
+    <Cell><Data ss:Type="String">updatedAt</Data></Cell>
+   </Row>
+   <Row ss:Height="12.75" ss:StyleID="s63">
+    <Cell><Data ss:Type="String">TEXT (ID) (REQ)</Data></Cell>
+    <Cell><Data ss:Type="String">TEXT (REQ)</Data></Cell>
+    <Cell><Data ss:Type="String">TEXT (REQ)</Data></Cell>
+    <Cell><Data ss:Type="String">TIMESTAMP WITHOUT TIME ZONE (REQ)</Data></Cell>
+    <Cell><Data ss:Type="String">TIMESTAMP WITHOUT TIME ZONE</Data></Cell>
+    <Cell><Data ss:Type="String">USER-DEFINED (REQ)</Data></Cell>
+    <Cell><Data ss:Type="String">TIMESTAMP WITHOUT TIME ZONE (REQ)</Data></Cell>
+    <Cell><Data ss:Type="String">TIMESTAMP WITHOUT TIME ZONE (REQ)</Data></Cell>
+   </Row>
+   <Row>
+    <Cell><Data ss:Type="String">1e452af4-f273-43a3-b4b0-228de8316e0f</Data></Cell>
+    <Cell><Data ss:Type="String">6be4337f-fe6a-4443-9a70-2634bc42fcf9</Data></Cell>
+    <Cell><Data ss:Type="String">ce887a56-355e-48d2-a05c-218512615314</Data></Cell>
+    <Cell><Data ss:Type="String">2026-04-10 00:00:00</Data></Cell>
+    <Cell><Data ss:Type="String"></Data></Cell>
+    <Cell><Data ss:Type="String">ACTIVE</Data></Cell>
+    <Cell><Data ss:Type="String">2026-04-10 18:34:15.445</Data></Cell>
+    <Cell><Data ss:Type="String">2026-04-10 18:34:15.445</Data></Cell>
+   </Row>
+   <Row>
+    <Cell><Data ss:Type="String">08cb10a8-b670-4101-a0e4-c71b0f4fd596</Data></Cell>
+    <Cell><Data ss:Type="String">20d27f0e-35ab-4d5a-a2e7-bb3b5912f883</Data></Cell>
+    <Cell><Data ss:Type="String">8e5b9a3b-1fb9-4d15-8f32-9ab782d57c5c</Data></Cell>
+    <Cell><Data ss:Type="String">2026-04-15 00:00:00</Data></Cell>
+    <Cell><Data ss:Type="String"></Data></Cell>
+    <Cell><Data ss:Type="String">ACTIVE</Data></Cell>
+    <Cell><Data ss:Type="String">2026-04-15 15:15:09.618</Data></Cell>
+    <Cell><Data ss:Type="String">2026-04-15 15:15:09.618</Data></Cell>
+   </Row>
+   <Row>
+    <Cell><Data ss:Type="String">8f19ed39-74e1-4583-8298-117503233da4</Data></Cell>
+    <Cell><Data ss:Type="String">20d27f0e-35ab-4d5a-a2e7-bb3b5912f883</Data></Cell>
+    <Cell><Data ss:Type="String">dd91a94c-dc1b-4031-9c85-e6d15c0fe12b</Data></Cell>
+    <Cell><Data ss:Type="String">2026-04-15 00:00:00</Data></Cell>
+    <Cell><Data ss:Type="String"></Data></Cell>
+    <Cell><Data ss:Type="String">ACTIVE</Data></Cell>
+    <Cell><Data ss:Type="String">2026-04-15 15:15:09.877</Data></Cell>
+    <Cell><Data ss:Type="String">2026-04-15 15:15:09.877</Data></Cell>
+   </Row>
+   <Row>
+    <Cell><Data ss:Type="String">a77906a0-d1f7-4012-844a-2f7fa2ca0408</Data></Cell>
+    <Cell><Data ss:Type="String">20d27f0e-35ab-4d5a-a2e7-bb3b5912f883</Data></Cell>
+    <Cell><Data ss:Type="String">9bfcddd9-bd04-4231-ae3e-b1d9f7939c34</Data></Cell>
+    <Cell><Data ss:Type="String">2026-04-15 00:00:00</Data></Cell>
+    <Cell><Data ss:Type="String"></Data></Cell>
+    <Cell><Data ss:Type="String">ACTIVE</Data></Cell>
+    <Cell><Data ss:Type="String">2026-04-15 15:15:10.026</Data></Cell>
+    <Cell><Data ss:Type="String">2026-04-15 15:15:10.026</Data></Cell>
+   </Row>
+   <Row>
+    <Cell><Data ss:Type="String">3376905d-bfe7-45bc-9791-a5fe03971681</Data></Cell>
+    <Cell><Data ss:Type="String">85a389bb-eff8-4baa-b573-8d6be537a8c6</Data></Cell>
+    <Cell><Data ss:Type="String">9bfcddd9-bd04-4231-ae3e-b1d9f7939c34</Data></Cell>
+    <Cell><Data ss:Type="String">2026-04-15 00:00:00</Data></Cell>
+    <Cell><Data ss:Type="String"></Data></Cell>
+    <Cell><Data ss:Type="String">ACTIVE</Data></Cell>
+    <Cell><Data ss:Type="String">2026-04-15 21:42:36.002</Data></Cell>
+    <Cell><Data ss:Type="String">2026-04-15 21:42:36.002</Data></Cell>
+   </Row>
+  </Table>
+  <WorksheetOptions xmlns="urn:schemas-microsoft-com:office:excel">
+   <ProtectObjects>False</ProtectObjects>
+   <ProtectScenarios>False</ProtectScenarios>
+  </WorksheetOptions>
+ </Worksheet>
+ <Worksheet ss:Name="GroupSupervisionAttendance">
+  <Table ss:ExpandedColumnCount="5" ss:ExpandedRowCount="7" x:FullColumns="1"
+   x:FullRows="1" ss:DefaultColumnWidth="60" ss:DefaultRowHeight="15">
+   <Column ss:Width="199.5"/>
+   <Column ss:Width="194.25" ss:Span="1"/>
+   <Column ss:Index="4" ss:Width="86.25"/>
+   <Column ss:Width="204"/>
+   <Row ss:Height="12.75" ss:StyleID="s62">
+    <Cell><Data ss:Type="String">id</Data></Cell>
+    <Cell><Data ss:Type="String">sessionId</Data></Cell>
+    <Cell><Data ss:Type="String">studentId</Data></Cell>
+    <Cell><Data ss:Type="String">attended</Data></Cell>
+    <Cell><Data ss:Type="String">createdAt</Data></Cell>
+   </Row>
+   <Row ss:Height="12.75" ss:StyleID="s63">
+    <Cell><Data ss:Type="String">TEXT (ID) (REQ)</Data></Cell>
+    <Cell><Data ss:Type="String">TEXT (REQ)</Data></Cell>
+    <Cell><Data ss:Type="String">TEXT (REQ)</Data></Cell>
+    <Cell><Data ss:Type="String">BOOLEAN (REQ)</Data></Cell>
+    <Cell><Data ss:Type="String">TIMESTAMP WITHOUT TIME ZONE (REQ)</Data></Cell>
+   </Row>
+   <Row>
+    <Cell><Data ss:Type="String">b8134a17-a70b-4ad5-ab04-8e1b82203d21</Data></Cell>
+    <Cell><Data ss:Type="String">613429a1-7780-416b-b733-19b41c8af0d4</Data></Cell>
+    <Cell><Data ss:Type="String">9bfcddd9-bd04-4231-ae3e-b1d9f7939c34</Data></Cell>
+    <Cell><Data ss:Type="String">t</Data></Cell>
+    <Cell><Data ss:Type="String">2026-04-22 14:50:48.466</Data></Cell>
+   </Row>
+   <Row>
+    <Cell><Data ss:Type="String">455e5078-f1f8-4428-a24c-42784a91452a</Data></Cell>
+    <Cell><Data ss:Type="String">22dece29-682b-462c-9c87-6480fa19f226</Data></Cell>
+    <Cell><Data ss:Type="String">9bfcddd9-bd04-4231-ae3e-b1d9f7939c34</Data></Cell>
+    <Cell><Data ss:Type="String">t</Data></Cell>
+    <Cell><Data ss:Type="String">2026-04-22 14:50:48.493</Data></Cell>
+   </Row>
+   <Row>
+    <Cell><Data ss:Type="String">ad2104b1-366d-430f-a843-7f85f1275cb7</Data></Cell>
+    <Cell><Data ss:Type="String">6a32f1d0-031f-462d-a741-3e31ca4815b0</Data></Cell>
+    <Cell><Data ss:Type="String">9bfcddd9-bd04-4231-ae3e-b1d9f7939c34</Data></Cell>
+    <Cell><Data ss:Type="String">t</Data></Cell>
+    <Cell><Data ss:Type="String">2026-04-22 14:50:48.513</Data></Cell>
+   </Row>
+   <Row>
+    <Cell><Data ss:Type="String">abe75ac2-4429-4f9d-817a-2d43489c30a8</Data></Cell>
+    <Cell><Data ss:Type="String">a725fed4-5aee-45e4-aa7e-e761e6a22067</Data></Cell>
+    <Cell><Data ss:Type="String">9bfcddd9-bd04-4231-ae3e-b1d9f7939c34</Data></Cell>
+    <Cell><Data ss:Type="String">t</Data></Cell>
+    <Cell><Data ss:Type="String">2026-04-22 14:50:48.532</Data></Cell>
+   </Row>
+   <Row>
+    <Cell><Data ss:Type="String">9f7ea1f2-236d-45f1-b7f2-2b4a1722f5c1</Data></Cell>
+    <Cell><Data ss:Type="String">306be293-ff23-4f6d-84e8-abc24076b4f3</Data></Cell>
+    <Cell><Data ss:Type="String">9bfcddd9-bd04-4231-ae3e-b1d9f7939c34</Data></Cell>
+    <Cell><Data ss:Type="String">t</Data></Cell>
+    <Cell><Data ss:Type="String">2026-04-22 14:50:48.551</Data></Cell>
+   </Row>
+  </Table>
+  <WorksheetOptions xmlns="urn:schemas-microsoft-com:office:excel">
+   <Panes>
+    <Pane>
+     <Number>3</Number>
+     <ActiveRow>15</ActiveRow>
+     <ActiveCol>2</ActiveCol>
+    </Pane>
+   </Panes>
+   <ProtectObjects>False</ProtectObjects>
+   <ProtectScenarios>False</ProtectScenarios>
+  </WorksheetOptions>
+ </Worksheet>
+ <Worksheet ss:Name="GroupSupervisionSession">
+  <Table ss:ExpandedColumnCount="9" ss:ExpandedRowCount="7" x:FullColumns="1"
+   x:FullRows="1" ss:DefaultColumnWidth="60" ss:DefaultRowHeight="15">
+   <Row ss:Height="12.75" ss:StyleID="s62">
+    <Cell><Data ss:Type="String">id</Data></Cell>
+    <Cell><Data ss:Type="String">supervisorId</Data></Cell>
+    <Cell><Data ss:Type="String">date</Data></Cell>
+    <Cell><Data ss:Type="String">startTime</Data></Cell>
+    <Cell><Data ss:Type="String">topic</Data></Cell>
+    <Cell><Data ss:Type="String">maxStudents</Data></Cell>
+    <Cell><Data ss:Type="String">createdAt</Data></Cell>
+    <Cell><Data ss:Type="String">groupId</Data></Cell>
+    <Cell><Data ss:Type="String">recurrenceId</Data></Cell>
+   </Row>
+   <Row ss:Height="12.75" ss:StyleID="s63">
+    <Cell><Data ss:Type="String">TEXT (ID) (REQ)</Data></Cell>
+    <Cell><Data ss:Type="String">TEXT (REQ)</Data></Cell>
+    <Cell><Data ss:Type="String">TIMESTAMP WITHOUT TIME ZONE (REQ)</Data></Cell>
+    <Cell><Data ss:Type="String">TIMESTAMP WITHOUT TIME ZONE (REQ)</Data></Cell>
+    <Cell><Data ss:Type="String">TEXT (REQ)</Data></Cell>
+    <Cell><Data ss:Type="String">INTEGER (REQ)</Data></Cell>
+    <Cell><Data ss:Type="String">TIMESTAMP WITHOUT TIME ZONE (REQ)</Data></Cell>
+    <Cell><Data ss:Type="String">TEXT</Data></Cell>
+    <Cell><Data ss:Type="String">TEXT</Data></Cell>
+   </Row>
+   <Row>
+    <Cell><Data ss:Type="String">613429a1-7780-416b-b733-19b41c8af0d4</Data></Cell>
+    <Cell><Data ss:Type="String">9064f97a-5ee1-4241-9e22-4c0d065d8009</Data></Cell>
+    <Cell><Data ss:Type="String">2026-04-13 00:00:00</Data></Cell>
+    <Cell><Data ss:Type="String">2026-04-13 19:00:00</Data></Cell>
+    <Cell><Data ss:Type="String">REGULAR Group — MONDAY 19:00–20:00</Data></Cell>
+    <Cell><Data ss:Type="String">10</Data></Cell>
+    <Cell><Data ss:Type="String">2026-04-22 14:50:48.458</Data></Cell>
+    <Cell><Data ss:Type="String">37d0330a-dfcf-4695-994e-3c717960bc2d</Data></Cell>
+    <Cell><Data ss:Type="String"></Data></Cell>
+   </Row>
+   <Row>
+    <Cell><Data ss:Type="String">22dece29-682b-462c-9c87-6480fa19f226</Data></Cell>
+    <Cell><Data ss:Type="String">9064f97a-5ee1-4241-9e22-4c0d065d8009</Data></Cell>
+    <Cell><Data ss:Type="String">2026-04-27 00:00:00</Data></Cell>
+    <Cell><Data ss:Type="String">2026-04-27 19:00:00</Data></Cell>
+    <Cell><Data ss:Type="String">REGULAR Group — MONDAY 19:00–20:00</Data></Cell>
+    <Cell><Data ss:Type="String">10</Data></Cell>
+    <Cell><Data ss:Type="String">2026-04-22 14:50:48.486</Data></Cell>
+    <Cell><Data ss:Type="String">37d0330a-dfcf-4695-994e-3c717960bc2d</Data></Cell>
+    <Cell><Data ss:Type="String"></Data></Cell>
+   </Row>
+   <Row>
+    <Cell><Data ss:Type="String">6a32f1d0-031f-462d-a741-3e31ca4815b0</Data></Cell>
+    <Cell><Data ss:Type="String">9064f97a-5ee1-4241-9e22-4c0d065d8009</Data></Cell>
+    <Cell><Data ss:Type="String">2026-05-11 00:00:00</Data></Cell>
+    <Cell><Data ss:Type="String">2026-05-11 19:00:00</Data></Cell>
+    <Cell><Data ss:Type="String">REGULAR Group — MONDAY 19:00–20:00</Data></Cell>
+    <Cell><Data ss:Type="String">10</Data></Cell>
+    <Cell><Data ss:Type="String">2026-04-22 14:50:48.508</Data></Cell>
+    <Cell><Data ss:Type="String">37d0330a-dfcf-4695-994e-3c717960bc2d</Data></Cell>
+    <Cell><Data ss:Type="String"></Data></Cell>
+   </Row>
+   <Row>
+    <Cell><Data ss:Type="String">a725fed4-5aee-45e4-aa7e-e761e6a22067</Data></Cell>
+    <Cell><Data ss:Type="String">9064f97a-5ee1-4241-9e22-4c0d065d8009</Data></Cell>
+    <Cell><Data ss:Type="String">2026-05-25 00:00:00</Data></Cell>
+    <Cell><Data ss:Type="String">2026-05-25 19:00:00</Data></Cell>
+    <Cell><Data ss:Type="String">REGULAR Group — MONDAY 19:00–20:00</Data></Cell>
+    <Cell><Data ss:Type="String">10</Data></Cell>
+    <Cell><Data ss:Type="String">2026-04-22 14:50:48.526</Data></Cell>
+    <Cell><Data ss:Type="String">37d0330a-dfcf-4695-994e-3c717960bc2d</Data></Cell>
+    <Cell><Data ss:Type="String"></Data></Cell>
+   </Row>
+   <Row>
+    <Cell><Data ss:Type="String">306be293-ff23-4f6d-84e8-abc24076b4f3</Data></Cell>
+    <Cell><Data ss:Type="String">9064f97a-5ee1-4241-9e22-4c0d065d8009</Data></Cell>
+    <Cell><Data ss:Type="String">2026-06-08 00:00:00</Data></Cell>
+    <Cell><Data ss:Type="String">2026-06-08 19:00:00</Data></Cell>
+    <Cell><Data ss:Type="String">REGULAR Group — MONDAY 19:00–20:00</Data></Cell>
+    <Cell><Data ss:Type="String">10</Data></Cell>
+    <Cell><Data ss:Type="String">2026-04-22 14:50:48.545</Data></Cell>
+    <Cell><Data ss:Type="String">37d0330a-dfcf-4695-994e-3c717960bc2d</Data></Cell>
+    <Cell><Data ss:Type="String"></Data></Cell>
+   </Row>
+  </Table>
+  <WorksheetOptions xmlns="urn:schemas-microsoft-com:office:excel">
+   <ProtectObjects>False</ProtectObjects>
+   <ProtectScenarios>False</ProtectScenarios>
+  </WorksheetOptions>
+ </Worksheet>
+ <Worksheet ss:Name="ImportBatch">
+  <Table ss:ExpandedColumnCount="5" ss:ExpandedRowCount="2" x:FullColumns="1"
+   x:FullRows="1" ss:DefaultColumnWidth="60" ss:DefaultRowHeight="15">
+   <Row ss:Height="12.75" ss:StyleID="s62">
+    <Cell><Data ss:Type="String">id</Data></Cell>
+    <Cell><Data ss:Type="String">batchString</Data></Cell>
+    <Cell><Data ss:Type="String">createdAt</Data></Cell>
+    <Cell><Data ss:Type="String">status</Data></Cell>
+    <Cell><Data ss:Type="String">revertedAt</Data></Cell>
+   </Row>
+   <Row ss:Height="12.75" ss:StyleID="s63">
+    <Cell><Data ss:Type="String">TEXT (ID) (REQ)</Data></Cell>
+    <Cell><Data ss:Type="String">TEXT (REQ)</Data></Cell>
+    <Cell><Data ss:Type="String">TIMESTAMP WITHOUT TIME ZONE (REQ)</Data></Cell>
+    <Cell><Data ss:Type="String">TEXT (REQ)</Data></Cell>
+    <Cell><Data ss:Type="String">TIMESTAMP WITHOUT TIME ZONE</Data></Cell>
+   </Row>
+  </Table>
+  <WorksheetOptions xmlns="urn:schemas-microsoft-com:office:excel">
+   <ProtectObjects>False</ProtectObjects>
+   <ProtectScenarios>False</ProtectScenarios>
+  </WorksheetOptions>
+ </Worksheet>
+ <Worksheet ss:Name="ImportLog">
+  <Table ss:ExpandedColumnCount="7" ss:ExpandedRowCount="2" x:FullColumns="1"
+   x:FullRows="1" ss:DefaultColumnWidth="60" ss:DefaultRowHeight="15">
+   <Row ss:Height="12.75" ss:StyleID="s62">
+    <Cell><Data ss:Type="String">id</Data></Cell>
+    <Cell><Data ss:Type="String">batchId</Data></Cell>
+    <Cell><Data ss:Type="String">tableName</Data></Cell>
+    <Cell><Data ss:Type="String">recordId</Data></Cell>
+    <Cell><Data ss:Type="String">action</Data></Cell>
+    <Cell><Data ss:Type="String">oldData</Data></Cell>
+    <Cell><Data ss:Type="String">newData</Data></Cell>
+   </Row>
+   <Row ss:Height="12.75" ss:StyleID="s63">
+    <Cell><Data ss:Type="String">TEXT (ID) (REQ)</Data></Cell>
+    <Cell><Data ss:Type="String">TEXT (REQ)</Data></Cell>
+    <Cell><Data ss:Type="String">TEXT (REQ)</Data></Cell>
+    <Cell><Data ss:Type="String">TEXT (REQ)</Data></Cell>
+    <Cell><Data ss:Type="String">TEXT (REQ)</Data></Cell>
+    <Cell><Data ss:Type="String">JSONB</Data></Cell>
+    <Cell><Data ss:Type="String">JSONB</Data></Cell>
+   </Row>
+  </Table>
+  <WorksheetOptions xmlns="urn:schemas-microsoft-com:office:excel">
+   <ProtectObjects>False</ProtectObjects>
+   <ProtectScenarios>False</ProtectScenarios>
+  </WorksheetOptions>
+ </Worksheet>
+ <Worksheet ss:Name="IndependentHour">
+  <Table ss:ExpandedColumnCount="14" ss:ExpandedRowCount="7" x:FullColumns="1"
+   x:FullRows="1" ss:DefaultColumnWidth="60" ss:DefaultRowHeight="15">
+   <Row ss:Height="12.75" ss:StyleID="s62">
+    <Cell><Data ss:Type="String">id</Data></Cell>
+    <Cell><Data ss:Type="String">studentId</Data></Cell>
+    <Cell><Data ss:Type="String">date</Data></Cell>
+    <Cell><Data ss:Type="String">startTime</Data></Cell>
+    <Cell><Data ss:Type="String">hours</Data></Cell>
+    <Cell><Data ss:Type="String">setting</Data></Cell>
+    <Cell><Data ss:Type="String">activityType</Data></Cell>
+    <Cell><Data ss:Type="String">notes</Data></Cell>
+    <Cell><Data ss:Type="String">isRepeating</Data></Cell>
+    <Cell><Data ss:Type="String">repeatingScheduleId</Data></Cell>
+    <Cell><Data ss:Type="String">status</Data></Cell>
+    <Cell><Data ss:Type="String">rejectReason</Data></Cell>
+    <Cell><Data ss:Type="String">createdAt</Data></Cell>
+    <Cell><Data ss:Type="String">customSetting</Data></Cell>
+   </Row>
+   <Row ss:Height="12.75" ss:StyleID="s63">
+    <Cell><Data ss:Type="String">TEXT (ID) (REQ)</Data></Cell>
+    <Cell><Data ss:Type="String">TEXT (REQ)</Data></Cell>
+    <Cell><Data ss:Type="String">TIMESTAMP WITHOUT TIME ZONE (REQ)</Data></Cell>
+    <Cell><Data ss:Type="String">TIMESTAMP WITHOUT TIME ZONE (REQ)</Data></Cell>
+    <Cell><Data ss:Type="String">NUMERIC (REQ)</Data></Cell>
+    <Cell><Data ss:Type="String">USER-DEFINED (REQ)</Data></Cell>
+    <Cell><Data ss:Type="String">USER-DEFINED (REQ)</Data></Cell>
+    <Cell><Data ss:Type="String">TEXT</Data></Cell>
+    <Cell><Data ss:Type="String">BOOLEAN (REQ)</Data></Cell>
+    <Cell><Data ss:Type="String">TEXT</Data></Cell>
+    <Cell><Data ss:Type="String">USER-DEFINED (REQ)</Data></Cell>
+    <Cell><Data ss:Type="String">TEXT</Data></Cell>
+    <Cell><Data ss:Type="String">TIMESTAMP WITHOUT TIME ZONE (REQ)</Data></Cell>
+    <Cell><Data ss:Type="String">TEXT</Data></Cell>
+   </Row>
+   <Row>
+    <Cell><Data ss:Type="String">db51f3b0-2513-4e6d-a0f8-c77c04511be5</Data></Cell>
+    <Cell><Data ss:Type="String">9bfcddd9-bd04-4231-ae3e-b1d9f7939c34</Data></Cell>
+    <Cell><Data ss:Type="String">2026-04-22 00:00:00</Data></Cell>
+    <Cell><Data ss:Type="String">2026-04-22 09:00:00</Data></Cell>
+    <Cell><Data ss:Type="String">1.0000</Data></Cell>
+    <Cell><Data ss:Type="String">CLIENTS_HOME</Data></Cell>
+    <Cell><Data ss:Type="String">UNRESTRICTED</Data></Cell>
+    <Cell><Data ss:Type="String"></Data></Cell>
+    <Cell><Data ss:Type="String">f</Data></Cell>
+    <Cell><Data ss:Type="String"></Data></Cell>
+    <Cell><Data ss:Type="String">PENDING</Data></Cell>
+    <Cell><Data ss:Type="String"></Data></Cell>
+    <Cell><Data ss:Type="String">2026-04-22 14:51:19.263</Data></Cell>
+    <Cell><Data ss:Type="String"></Data></Cell>
+   </Row>
+   <Row>
+    <Cell><Data ss:Type="String">2785f8d5-21d5-49a8-ad01-10bc315ce8a7</Data></Cell>
+    <Cell><Data ss:Type="String">9bfcddd9-bd04-4231-ae3e-b1d9f7939c34</Data></Cell>
+    <Cell><Data ss:Type="String">2026-04-23 00:00:00</Data></Cell>
+    <Cell><Data ss:Type="String">2026-04-23 09:00:00</Data></Cell>
+    <Cell><Data ss:Type="String">1.0000</Data></Cell>
+    <Cell><Data ss:Type="String">CLIENTS_HOME</Data></Cell>
+    <Cell><Data ss:Type="String">UNRESTRICTED</Data></Cell>
+    <Cell><Data ss:Type="String"></Data></Cell>
+    <Cell><Data ss:Type="String">f</Data></Cell>
+    <Cell><Data ss:Type="String"></Data></Cell>
+    <Cell><Data ss:Type="String">PENDING</Data></Cell>
+    <Cell><Data ss:Type="String"></Data></Cell>
+    <Cell><Data ss:Type="String">2026-04-22 14:51:19.288</Data></Cell>
+    <Cell><Data ss:Type="String"></Data></Cell>
+   </Row>
+   <Row>
+    <Cell><Data ss:Type="String">ee3551b2-7a80-4c2c-a460-cd9b63b44594</Data></Cell>
+    <Cell><Data ss:Type="String">9bfcddd9-bd04-4231-ae3e-b1d9f7939c34</Data></Cell>
+    <Cell><Data ss:Type="String">2026-04-24 00:00:00</Data></Cell>
+    <Cell><Data ss:Type="String">2026-04-24 09:00:00</Data></Cell>
+    <Cell><Data ss:Type="String">1.0000</Data></Cell>
+    <Cell><Data ss:Type="String">CLIENTS_HOME</Data></Cell>
+    <Cell><Data ss:Type="String">UNRESTRICTED</Data></Cell>
+    <Cell><Data ss:Type="String"></Data></Cell>
+    <Cell><Data ss:Type="String">f</Data></Cell>
+    <Cell><Data ss:Type="String"></Data></Cell>
+    <Cell><Data ss:Type="String">PENDING</Data></Cell>
+    <Cell><Data ss:Type="String"></Data></Cell>
+    <Cell><Data ss:Type="String">2026-04-22 14:51:19.294</Data></Cell>
+    <Cell><Data ss:Type="String"></Data></Cell>
+   </Row>
+   <Row>
+    <Cell><Data ss:Type="String">1920530e-7aa4-4a17-ba8e-9f05c66d03a6</Data></Cell>
+    <Cell><Data ss:Type="String">9bfcddd9-bd04-4231-ae3e-b1d9f7939c34</Data></Cell>
+    <Cell><Data ss:Type="String">2026-04-27 00:00:00</Data></Cell>
+    <Cell><Data ss:Type="String">2026-04-27 09:00:00</Data></Cell>
+    <Cell><Data ss:Type="String">1.0000</Data></Cell>
+    <Cell><Data ss:Type="String">CLIENTS_HOME</Data></Cell>
+    <Cell><Data ss:Type="String">UNRESTRICTED</Data></Cell>
+    <Cell><Data ss:Type="String"></Data></Cell>
+    <Cell><Data ss:Type="String">f</Data></Cell>
+    <Cell><Data ss:Type="String"></Data></Cell>
+    <Cell><Data ss:Type="String">PENDING</Data></Cell>
+    <Cell><Data ss:Type="String"></Data></Cell>
+    <Cell><Data ss:Type="String">2026-04-22 14:51:19.3</Data></Cell>
+    <Cell><Data ss:Type="String"></Data></Cell>
+   </Row>
+   <Row>
+    <Cell><Data ss:Type="String">c66cd5cc-7ef0-47a3-bbf8-bf98176c4723</Data></Cell>
+    <Cell><Data ss:Type="String">9bfcddd9-bd04-4231-ae3e-b1d9f7939c34</Data></Cell>
+    <Cell><Data ss:Type="String">2026-04-28 00:00:00</Data></Cell>
+    <Cell><Data ss:Type="String">2026-04-28 09:00:00</Data></Cell>
+    <Cell><Data ss:Type="String">1.0000</Data></Cell>
+    <Cell><Data ss:Type="String">CLIENTS_HOME</Data></Cell>
+    <Cell><Data ss:Type="String">UNRESTRICTED</Data></Cell>
+    <Cell><Data ss:Type="String"></Data></Cell>
+    <Cell><Data ss:Type="String">f</Data></Cell>
+    <Cell><Data ss:Type="String"></Data></Cell>
+    <Cell><Data ss:Type="String">PENDING</Data></Cell>
+    <Cell><Data ss:Type="String"></Data></Cell>
+    <Cell><Data ss:Type="String">2026-04-22 14:51:19.303</Data></Cell>
+    <Cell><Data ss:Type="String"></Data></Cell>
+   </Row>
+  </Table>
+  <WorksheetOptions xmlns="urn:schemas-microsoft-com:office:excel">
+   <ProtectObjects>False</ProtectObjects>
+   <ProtectScenarios>False</ProtectScenarios>
+  </WorksheetOptions>
+ </Worksheet>
+ <Worksheet ss:Name="Invoice">
+  <Table ss:ExpandedColumnCount="8" ss:ExpandedRowCount="3" x:FullColumns="1"
+   x:FullRows="1" ss:DefaultColumnWidth="60" ss:DefaultRowHeight="15">
+   <Row ss:Height="12.75" ss:StyleID="s62">
+    <Cell><Data ss:Type="String">id</Data></Cell>
+    <Cell><Data ss:Type="String">studentId</Data></Cell>
+    <Cell><Data ss:Type="String">invoiceDate</Data></Cell>
+    <Cell><Data ss:Type="String">amountDue</Data></Cell>
+    <Cell><Data ss:Type="String">amountPaid</Data></Cell>
+    <Cell><Data ss:Type="String">status</Data></Cell>
+    <Cell><Data ss:Type="String">sentAt</Data></Cell>
+    <Cell><Data ss:Type="String">createdAt</Data></Cell>
+   </Row>
+   <Row ss:Height="12.75" ss:StyleID="s63">
+    <Cell><Data ss:Type="String">TEXT (ID) (REQ)</Data></Cell>
+    <Cell><Data ss:Type="String">TEXT (REQ)</Data></Cell>
+    <Cell><Data ss:Type="String">TIMESTAMP WITHOUT TIME ZONE (REQ)</Data></Cell>
+    <Cell><Data ss:Type="String">NUMERIC (REQ)</Data></Cell>
+    <Cell><Data ss:Type="String">NUMERIC (REQ)</Data></Cell>
+    <Cell><Data ss:Type="String">USER-DEFINED (REQ)</Data></Cell>
+    <Cell><Data ss:Type="String">TIMESTAMP WITHOUT TIME ZONE</Data></Cell>
+    <Cell><Data ss:Type="String">TIMESTAMP WITHOUT TIME ZONE (REQ)</Data></Cell>
+   </Row>
+   <Row>
+    <Cell><Data ss:Type="String">aafdaaad-9682-4d94-bb21-a897e33c533e</Data></Cell>
+    <Cell><Data ss:Type="String">9bfcddd9-bd04-4231-ae3e-b1d9f7939c34</Data></Cell>
+    <Cell><Data ss:Type="String">2026-04-22 15:12:57.717</Data></Cell>
+    <Cell><Data ss:Type="String">1980.00</Data></Cell>
+    <Cell><Data ss:Type="String">1980.00</Data></Cell>
+    <Cell><Data ss:Type="String">PAID</Data></Cell>
+    <Cell><Data ss:Type="String">2026-04-22 15:13:28.307</Data></Cell>
+    <Cell><Data ss:Type="String">2026-04-22 15:12:57.718</Data></Cell>
+   </Row>
+  </Table>
+  <WorksheetOptions xmlns="urn:schemas-microsoft-com:office:excel">
+   <ProtectObjects>False</ProtectObjects>
+   <ProtectScenarios>False</ProtectScenarios>
+  </WorksheetOptions>
+ </Worksheet>
+ <Worksheet ss:Name="Notification">
+  <Table ss:ExpandedColumnCount="8" ss:ExpandedRowCount="3" x:FullColumns="1"
+   x:FullRows="1" ss:DefaultColumnWidth="60" ss:DefaultRowHeight="15">
+   <Row ss:Height="12.75" ss:StyleID="s62">
+    <Cell><Data ss:Type="String">id</Data></Cell>
+    <Cell><Data ss:Type="String">userId</Data></Cell>
+    <Cell><Data ss:Type="String">title</Data></Cell>
+    <Cell><Data ss:Type="String">message</Data></Cell>
+    <Cell><Data ss:Type="String">type</Data></Cell>
+    <Cell><Data ss:Type="String">isRead</Data></Cell>
+    <Cell><Data ss:Type="String">link</Data></Cell>
+    <Cell><Data ss:Type="String">createdAt</Data></Cell>
+   </Row>
+   <Row ss:Height="12.75" ss:StyleID="s63">
+    <Cell><Data ss:Type="String">TEXT (ID) (REQ)</Data></Cell>
+    <Cell><Data ss:Type="String">TEXT (REQ)</Data></Cell>
+    <Cell><Data ss:Type="String">TEXT (REQ)</Data></Cell>
+    <Cell><Data ss:Type="String">TEXT (REQ)</Data></Cell>
+    <Cell><Data ss:Type="String">USER-DEFINED (REQ)</Data></Cell>
+    <Cell><Data ss:Type="String">BOOLEAN (REQ)</Data></Cell>
+    <Cell><Data ss:Type="String">TEXT</Data></Cell>
+    <Cell><Data ss:Type="String">TIMESTAMP WITHOUT TIME ZONE (REQ)</Data></Cell>
+   </Row>
+   <Row>
+    <Cell><Data ss:Type="String">2cd839f0-20cb-4341-af7a-71a8a30a0c52</Data></Cell>
+    <Cell><Data ss:Type="String">41a7d4b4-0212-484e-b4c6-6d756d5628b2</Data></Cell>
+    <Cell><Data ss:Type="String">New Invoice Available</Data></Cell>
+    <Cell><Data ss:Type="String">An invoice for $1980.00 has been sent. Please review it in your payments section.</Data></Cell>
+    <Cell><Data ss:Type="String">HOURS</Data></Cell>
+    <Cell><Data ss:Type="String">f</Data></Cell>
+    <Cell><Data ss:Type="String"></Data></Cell>
+    <Cell><Data ss:Type="String">2026-04-22 15:13:28.31</Data></Cell>
+   </Row>
+  </Table>
+  <WorksheetOptions xmlns="urn:schemas-microsoft-com:office:excel">
+   <ProtectObjects>False</ProtectObjects>
+   <ProtectScenarios>False</ProtectScenarios>
+  </WorksheetOptions>
+ </Worksheet>
+ <Worksheet ss:Name="OfficeGroup">
+  <Table ss:ExpandedColumnCount="8" ss:ExpandedRowCount="7" x:FullColumns="1"
+   x:FullRows="1" ss:DefaultColumnWidth="60" ss:DefaultRowHeight="15">
+   <Row ss:Height="12.75" ss:StyleID="s62">
+    <Cell><Data ss:Type="String">id</Data></Cell>
+    <Cell><Data ss:Type="String">name</Data></Cell>
+    <Cell><Data ss:Type="String">groupType</Data></Cell>
+    <Cell><Data ss:Type="String">dayOfWeek</Data></Cell>
+    <Cell><Data ss:Type="String">startTime</Data></Cell>
+    <Cell><Data ss:Type="String">endTime</Data></Cell>
+    <Cell><Data ss:Type="String">createdAt</Data></Cell>
+    <Cell><Data ss:Type="String">updatedAt</Data></Cell>
+   </Row>
+   <Row ss:Height="12.75" ss:StyleID="s63">
+    <Cell><Data ss:Type="String">TEXT (ID) (REQ)</Data></Cell>
+    <Cell><Data ss:Type="String">TEXT (REQ)</Data></Cell>
+    <Cell><Data ss:Type="String">TEXT (REQ)</Data></Cell>
+    <Cell><Data ss:Type="String">TEXT (REQ)</Data></Cell>
+    <Cell><Data ss:Type="String">TEXT (REQ)</Data></Cell>
+    <Cell><Data ss:Type="String">TEXT (REQ)</Data></Cell>
+    <Cell><Data ss:Type="String">TIMESTAMP WITHOUT TIME ZONE (REQ)</Data></Cell>
+    <Cell><Data ss:Type="String">TIMESTAMP WITHOUT TIME ZONE (REQ)</Data></Cell>
+   </Row>
+   <Row>
+    <Cell><Data ss:Type="String">37d0330a-dfcf-4695-994e-3c717960bc2d</Data></Cell>
+    <Cell><Data ss:Type="String">GrupoLunesR</Data></Cell>
+    <Cell><Data ss:Type="String">REGULAR</Data></Cell>
+    <Cell><Data ss:Type="String">MONDAY</Data></Cell>
+    <Cell><Data ss:Type="String">19:00</Data></Cell>
+    <Cell><Data ss:Type="String">20:00</Data></Cell>
+    <Cell><Data ss:Type="String">2026-04-18 22:13:39.947</Data></Cell>
+    <Cell><Data ss:Type="String">2026-04-20 21:12:33.508</Data></Cell>
+   </Row>
+   <Row>
+    <Cell><Data ss:Type="String">27494137-5d5d-448e-bdfb-b776bcffe853</Data></Cell>
+    <Cell><Data ss:Type="String">GrupoMartesR</Data></Cell>
+    <Cell><Data ss:Type="String">REGULAR</Data></Cell>
+    <Cell><Data ss:Type="String">TUESDAY</Data></Cell>
+    <Cell><Data ss:Type="String">19:00</Data></Cell>
+    <Cell><Data ss:Type="String">20:00</Data></Cell>
+    <Cell><Data ss:Type="String">2026-04-18 22:22:43.747</Data></Cell>
+    <Cell><Data ss:Type="String">2026-04-20 21:12:42.403</Data></Cell>
+   </Row>
+   <Row>
+    <Cell><Data ss:Type="String">6789442e-ba57-4a59-bd7f-e21b44ac8fd8</Data></Cell>
+    <Cell><Data ss:Type="String">GrupoMiercolesR</Data></Cell>
+    <Cell><Data ss:Type="String">REGULAR</Data></Cell>
+    <Cell><Data ss:Type="String">WEDNESDAY</Data></Cell>
+    <Cell><Data ss:Type="String">19:00</Data></Cell>
+    <Cell><Data ss:Type="String">20:00</Data></Cell>
+    <Cell><Data ss:Type="String">2026-04-18 22:23:17.792</Data></Cell>
+    <Cell><Data ss:Type="String">2026-04-20 21:12:46.76</Data></Cell>
+   </Row>
+   <Row>
+    <Cell><Data ss:Type="String">fd5ab392-2df2-404f-86c4-c2a8cbbd1bae</Data></Cell>
+    <Cell><Data ss:Type="String">GrupoJuevesR</Data></Cell>
+    <Cell><Data ss:Type="String">REGULAR</Data></Cell>
+    <Cell><Data ss:Type="String">THURSDAY</Data></Cell>
+    <Cell><Data ss:Type="String">19:00</Data></Cell>
+    <Cell><Data ss:Type="String">20:00</Data></Cell>
+    <Cell><Data ss:Type="String">2026-04-18 22:23:42.259</Data></Cell>
+    <Cell><Data ss:Type="String">2026-04-20 21:12:50.964</Data></Cell>
+   </Row>
+   <Row>
+    <Cell><Data ss:Type="String">6d46f6d6-cda0-4898-aa31-6bb7b31132d9</Data></Cell>
+    <Cell><Data ss:Type="String">GrupoViernesR</Data></Cell>
+    <Cell><Data ss:Type="String">REGULAR</Data></Cell>
+    <Cell><Data ss:Type="String">FRIDAY</Data></Cell>
+    <Cell><Data ss:Type="String">19:00</Data></Cell>
+    <Cell><Data ss:Type="String">20:00</Data></Cell>
+    <Cell><Data ss:Type="String">2026-04-18 22:24:34.887</Data></Cell>
+    <Cell><Data ss:Type="String">2026-04-20 21:12:57.262</Data></Cell>
+   </Row>
+  </Table>
+  <WorksheetOptions xmlns="urn:schemas-microsoft-com:office:excel">
+   <ProtectObjects>False</ProtectObjects>
+   <ProtectScenarios>False</ProtectScenarios>
+  </WorksheetOptions>
+ </Worksheet>
+ <Worksheet ss:Name="OfficeGroupSupervisor">
+  <Table ss:ExpandedColumnCount="4" ss:ExpandedRowCount="7" x:FullColumns="1"
+   x:FullRows="1" ss:DefaultColumnWidth="60" ss:DefaultRowHeight="15">
+   <Row ss:Height="12.75" ss:StyleID="s62">
+    <Cell><Data ss:Type="String">id</Data></Cell>
+    <Cell><Data ss:Type="String">groupId</Data></Cell>
+    <Cell><Data ss:Type="String">supervisorId</Data></Cell>
+    <Cell><Data ss:Type="String">createdAt</Data></Cell>
+   </Row>
+   <Row ss:Height="12.75" ss:StyleID="s63">
+    <Cell><Data ss:Type="String">TEXT (ID) (REQ)</Data></Cell>
+    <Cell><Data ss:Type="String">TEXT (REQ)</Data></Cell>
+    <Cell><Data ss:Type="String">TEXT (REQ)</Data></Cell>
+    <Cell><Data ss:Type="String">TIMESTAMP WITHOUT TIME ZONE (REQ)</Data></Cell>
+   </Row>
+   <Row>
+    <Cell><Data ss:Type="String">2b7b57d7-dd19-490d-a633-2cbb8a977df6</Data></Cell>
+    <Cell><Data ss:Type="String">37d0330a-dfcf-4695-994e-3c717960bc2d</Data></Cell>
+    <Cell><Data ss:Type="String">9064f97a-5ee1-4241-9e22-4c0d065d8009</Data></Cell>
+    <Cell><Data ss:Type="String">2026-04-20 14:49:32.579</Data></Cell>
+   </Row>
+   <Row>
+    <Cell><Data ss:Type="String">120f0d18-4c9f-4c7d-bdfd-f0fc180cebc5</Data></Cell>
+    <Cell><Data ss:Type="String">37d0330a-dfcf-4695-994e-3c717960bc2d</Data></Cell>
+    <Cell><Data ss:Type="String">e4a635f1-9395-4f32-b712-04dc4dc45c05</Data></Cell>
+    <Cell><Data ss:Type="String">2026-04-20 14:49:34.982</Data></Cell>
+   </Row>
+   <Row>
+    <Cell><Data ss:Type="String">cd0e21ba-10d5-4cab-9c83-fadbdb916d78</Data></Cell>
+    <Cell><Data ss:Type="String">27494137-5d5d-448e-bdfb-b776bcffe853</Data></Cell>
+    <Cell><Data ss:Type="String">99ad8767-24a4-449b-84ed-07ed4cd1aa8c</Data></Cell>
+    <Cell><Data ss:Type="String">2026-04-20 14:49:54.697</Data></Cell>
+   </Row>
+   <Row>
+    <Cell><Data ss:Type="String">2503ab92-0929-4b9c-814a-87a9ecbf310f</Data></Cell>
+    <Cell><Data ss:Type="String">27494137-5d5d-448e-bdfb-b776bcffe853</Data></Cell>
+    <Cell><Data ss:Type="String">e4a635f1-9395-4f32-b712-04dc4dc45c05</Data></Cell>
+    <Cell><Data ss:Type="String">2026-04-20 14:49:57.527</Data></Cell>
+   </Row>
+   <Row>
+    <Cell><Data ss:Type="String">e43ae5da-0526-4943-b53b-db84a7d9f90e</Data></Cell>
+    <Cell><Data ss:Type="String">6789442e-ba57-4a59-bd7f-e21b44ac8fd8</Data></Cell>
+    <Cell><Data ss:Type="String">9064f97a-5ee1-4241-9e22-4c0d065d8009</Data></Cell>
+    <Cell><Data ss:Type="String">2026-04-20 14:50:03.307</Data></Cell>
+   </Row>
+  </Table>
+  <WorksheetOptions xmlns="urn:schemas-microsoft-com:office:excel">
+   <Selected/>
+   <ProtectObjects>False</ProtectObjects>
+   <ProtectScenarios>False</ProtectScenarios>
+  </WorksheetOptions>
+ </Worksheet>
+ <Worksheet ss:Name="OfficeMember">
+  <Table ss:ExpandedColumnCount="7" ss:ExpandedRowCount="5" x:FullColumns="1"
+   x:FullRows="1" ss:DefaultColumnWidth="60" ss:DefaultRowHeight="15">
+   <Row ss:Height="12.75" ss:StyleID="s62">
+    <Cell><Data ss:Type="String">id</Data></Cell>
+    <Cell><Data ss:Type="String">userId</Data></Cell>
+    <Cell><Data ss:Type="String">fullName</Data></Cell>
+    <Cell><Data ss:Type="String">officeRole</Data></Cell>
+    <Cell><Data ss:Type="String">permissions</Data></Cell>
+    <Cell><Data ss:Type="String">createdAt</Data></Cell>
+    <Cell><Data ss:Type="String">updatedAt</Data></Cell>
+   </Row>
+   <Row ss:Height="12.75" ss:StyleID="s63">
+    <Cell><Data ss:Type="String">TEXT (ID) (REQ)</Data></Cell>
+    <Cell><Data ss:Type="String">TEXT (REQ)</Data></Cell>
+    <Cell><Data ss:Type="String">TEXT (REQ)</Data></Cell>
+    <Cell><Data ss:Type="String">USER-DEFINED (REQ)</Data></Cell>
+    <Cell><Data ss:Type="String">JSONB</Data></Cell>
+    <Cell><Data ss:Type="String">TIMESTAMP WITHOUT TIME ZONE (REQ)</Data></Cell>
+    <Cell><Data ss:Type="String">TIMESTAMP WITHOUT TIME ZONE (REQ)</Data></Cell>
+   </Row>
+   <Row>
+    <Cell><Data ss:Type="String">04135694-d6ed-47b5-b15d-b80263a7b778</Data></Cell>
+    <Cell><Data ss:Type="String">cbebc440-b27f-44a4-93c2-004434a7435a</Data></Cell>
+    <Cell><Data ss:Type="String">Super Office Admin</Data></Cell>
+    <Cell><Data ss:Type="String">SUPER_ADMIN</Data></Cell>
+    <Cell><Data ss:Type="String"></Data></Cell>
+    <Cell><Data ss:Type="String">2026-04-06 22:57:14.66</Data></Cell>
+    <Cell><Data ss:Type="String">2026-04-06 22:57:14.66</Data></Cell>
+   </Row>
+   <Row>
+    <Cell><Data ss:Type="String">bda27514-3062-4dd0-aca7-7d9a7e903a9b</Data></Cell>
+    <Cell><Data ss:Type="String">fad5522d-6850-4911-b928-add0f6c130dc</Data></Cell>
+    <Cell><Data ss:Type="String">QA Office Standard</Data></Cell>
+    <Cell><Data ss:Type="String">ADMIN</Data></Cell>
+    <Cell><Data ss:Type="String"></Data></Cell>
+    <Cell><Data ss:Type="String">2026-04-07 00:47:44.536</Data></Cell>
+    <Cell><Data ss:Type="String">2026-04-07 00:47:44.536</Data></Cell>
+   </Row>
+   <Row>
+    <Cell><Data ss:Type="String">81651e02-93af-463d-9a66-3a0d456b563f</Data></Cell>
+    <Cell><Data ss:Type="String">3387d731-9437-4a57-a1f1-a16383d633d1</Data></Cell>
+    <Cell><Data ss:Type="String">QA Super Office</Data></Cell>
+    <Cell><Data ss:Type="String">SUPER_ADMIN</Data></Cell>
+    <Cell><Data ss:Type="String"></Data></Cell>
+    <Cell><Data ss:Type="String">2026-04-07 00:47:44.546</Data></Cell>
+    <Cell><Data ss:Type="String">2026-04-07 00:47:44.546</Data></Cell>
+   </Row>
+  </Table>
+  <WorksheetOptions xmlns="urn:schemas-microsoft-com:office:excel">
+   <ProtectObjects>False</ProtectObjects>
+   <ProtectScenarios>False</ProtectScenarios>
+  </WorksheetOptions>
+ </Worksheet>
+ <Worksheet ss:Name="Plan">
+  <Table ss:ExpandedColumnCount="26" ss:ExpandedRowCount="7" x:FullColumns="1"
+   x:FullRows="1" ss:DefaultColumnWidth="60" ss:DefaultRowHeight="15">
+   <Row ss:Height="12.75" ss:StyleID="s62">
+    <Cell><Data ss:Type="String">id</Data></Cell>
+    <Cell><Data ss:Type="String">name</Data></Cell>
+    <Cell><Data ss:Type="String">regHoursBcba</Data></Cell>
+    <Cell><Data ss:Type="String">regHoursBcaba</Data></Cell>
+    <Cell><Data ss:Type="String">concHours</Data></Cell>
+    <Cell><Data ss:Type="String">totalCharge</Data></Cell>
+    <Cell><Data ss:Type="String">analystPayout</Data></Cell>
+    <Cell><Data ss:Type="String">totalMonths</Data></Cell>
+    <Cell><Data ss:Type="String">fieldworkType</Data></Cell>
+    <Cell><Data ss:Type="String">createdAt</Data></Cell>
+    <Cell><Data ss:Type="String">updatedAt</Data></Cell>
+    <Cell><Data ss:Type="String">amountSupHours</Data></Cell>
+    <Cell><Data ss:Type="String">enrollmentFee</Data></Cell>
+    <Cell><Data ss:Type="String">hourlyRate</Data></Cell>
+    <Cell><Data ss:Type="String">hoursPerMonth</Data></Cell>
+    <Cell><Data ss:Type="String">monthlyPayment</Data></Cell>
+    <Cell><Data ss:Type="String">numberOfMonths</Data></Cell>
+    <Cell><Data ss:Type="String">supervisedPercentage</Data></Cell>
+    <Cell><Data ss:Type="String">supervisionNet</Data></Cell>
+    <Cell><Data ss:Type="String">supervisorCommission</Data></Cell>
+    <Cell><Data ss:Type="String">totalCost</Data></Cell>
+    <Cell><Data ss:Type="String">totalHours</Data></Cell>
+    <Cell><Data ss:Type="String">groupSupervisionTarget</Data></Cell>
+    <Cell><Data ss:Type="String">individualSupervisedTarget</Data></Cell>
+    <Cell><Data ss:Type="String">groupSupervisionDelta</Data></Cell>
+    <Cell><Data ss:Type="String">individualSupervisedDelta</Data></Cell>
+   </Row>
+   <Row ss:Height="12.75" ss:StyleID="s63">
+    <Cell><Data ss:Type="String">TEXT (ID) (REQ)</Data></Cell>
+    <Cell><Data ss:Type="String">TEXT (REQ)</Data></Cell>
+    <Cell><Data ss:Type="String">INTEGER (REQ)</Data></Cell>
+    <Cell><Data ss:Type="String">INTEGER (REQ)</Data></Cell>
+    <Cell><Data ss:Type="String">INTEGER (REQ)</Data></Cell>
+    <Cell><Data ss:Type="String">NUMERIC (REQ)</Data></Cell>
+    <Cell><Data ss:Type="String">NUMERIC (REQ)</Data></Cell>
+    <Cell><Data ss:Type="String">INTEGER (REQ)</Data></Cell>
+    <Cell><Data ss:Type="String">TEXT (REQ)</Data></Cell>
+    <Cell><Data ss:Type="String">TIMESTAMP WITHOUT TIME ZONE (REQ)</Data></Cell>
+    <Cell><Data ss:Type="String">TIMESTAMP WITHOUT TIME ZONE (REQ)</Data></Cell>
+    <Cell><Data ss:Type="String">NUMERIC</Data></Cell>
+    <Cell><Data ss:Type="String">NUMERIC</Data></Cell>
+    <Cell><Data ss:Type="String">NUMERIC</Data></Cell>
+    <Cell><Data ss:Type="String">INTEGER</Data></Cell>
+    <Cell><Data ss:Type="String">NUMERIC</Data></Cell>
+    <Cell><Data ss:Type="String">INTEGER</Data></Cell>
+    <Cell><Data ss:Type="String">NUMERIC</Data></Cell>
+    <Cell><Data ss:Type="String">NUMERIC</Data></Cell>
+    <Cell><Data ss:Type="String">NUMERIC</Data></Cell>
+    <Cell><Data ss:Type="String">NUMERIC</Data></Cell>
+    <Cell><Data ss:Type="String">INTEGER</Data></Cell>
+    <Cell><Data ss:Type="String">NUMERIC</Data></Cell>
+    <Cell><Data ss:Type="String">NUMERIC</Data></Cell>
+    <Cell><Data ss:Type="String">NUMERIC</Data></Cell>
+    <Cell><Data ss:Type="String">NUMERIC</Data></Cell>
+   </Row>
+   <Row>
+    <Cell><Data ss:Type="String">951abf2b-bfff-467e-9c56-30b5f509667a</Data></Cell>
+    <Cell><Data ss:Type="String">BCBA-Supervised Fieldwork-2000 hours</Data></Cell>
+    <Cell><Data ss:Type="String">0</Data></Cell>
+    <Cell><Data ss:Type="String">0</Data></Cell>
+    <Cell><Data ss:Type="String">0</Data></Cell>
+    <Cell><Data ss:Type="String">6000.00</Data></Cell>
+    <Cell><Data ss:Type="String">0.00</Data></Cell>
+    <Cell><Data ss:Type="String">13</Data></Cell>
+    <Cell><Data ss:Type="String">REGULAR</Data></Cell>
+    <Cell><Data ss:Type="String">2026-04-14 19:45:36.944</Data></Cell>
+    <Cell><Data ss:Type="String">2026-04-20 21:10:19.736</Data></Cell>
+    <Cell><Data ss:Type="String">100.00</Data></Cell>
+    <Cell><Data ss:Type="String">300.00</Data></Cell>
+    <Cell><Data ss:Type="String">60.00</Data></Cell>
+    <Cell><Data ss:Type="String">160</Data></Cell>
+    <Cell><Data ss:Type="String">461.54</Data></Cell>
+    <Cell><Data ss:Type="String">13</Data></Cell>
+    <Cell><Data ss:Type="String">0.0500</Data></Cell>
+    <Cell><Data ss:Type="String">5700.00</Data></Cell>
+    <Cell><Data ss:Type="String"></Data></Cell>
+    <Cell><Data ss:Type="String">6000.00</Data></Cell>
+    <Cell><Data ss:Type="String">2000</Data></Cell>
+    <Cell><Data ss:Type="String">26.0000</Data></Cell>
+    <Cell><Data ss:Type="String">74.0000</Data></Cell>
+    <Cell><Data ss:Type="String"></Data></Cell>
+    <Cell><Data ss:Type="String"></Data></Cell>
+   </Row>
+   <Row>
+    <Cell><Data ss:Type="String">0c17cdf2-e6ad-4bdd-8864-9bf19a4b7ddd</Data></Cell>
+    <Cell><Data ss:Type="String">BCBA- Concentrated Supervision-1500 hours</Data></Cell>
+    <Cell><Data ss:Type="String">0</Data></Cell>
+    <Cell><Data ss:Type="String">0</Data></Cell>
+    <Cell><Data ss:Type="String">0</Data></Cell>
+    <Cell><Data ss:Type="String">6750.00</Data></Cell>
+    <Cell><Data ss:Type="String">0.00</Data></Cell>
+    <Cell><Data ss:Type="String">10</Data></Cell>
+    <Cell><Data ss:Type="String">CONCENTRATED</Data></Cell>
+    <Cell><Data ss:Type="String">2026-04-14 22:19:58.308</Data></Cell>
+    <Cell><Data ss:Type="String">2026-04-20 21:10:39.765</Data></Cell>
+    <Cell><Data ss:Type="String">112.50</Data></Cell>
+    <Cell><Data ss:Type="String">300.00</Data></Cell>
+    <Cell><Data ss:Type="String">60.00</Data></Cell>
+    <Cell><Data ss:Type="String">160</Data></Cell>
+    <Cell><Data ss:Type="String">675.00</Data></Cell>
+    <Cell><Data ss:Type="String">10</Data></Cell>
+    <Cell><Data ss:Type="String">0.0750</Data></Cell>
+    <Cell><Data ss:Type="String">6450.00</Data></Cell>
+    <Cell><Data ss:Type="String"></Data></Cell>
+    <Cell><Data ss:Type="String">6750.00</Data></Cell>
+    <Cell><Data ss:Type="String">1500</Data></Cell>
+    <Cell><Data ss:Type="String">40.0000</Data></Cell>
+    <Cell><Data ss:Type="String">72.5000</Data></Cell>
+    <Cell><Data ss:Type="String"></Data></Cell>
+    <Cell><Data ss:Type="String"></Data></Cell>
+   </Row>
+   <Row>
+    <Cell><Data ss:Type="String">b8296eff-9064-49af-81ad-592cd3259076</Data></Cell>
+    <Cell><Data ss:Type="String">BCaBA- Supervised Fieldwork-1300 hours</Data></Cell>
+    <Cell><Data ss:Type="String">0</Data></Cell>
+    <Cell><Data ss:Type="String">0</Data></Cell>
+    <Cell><Data ss:Type="String">0</Data></Cell>
+    <Cell><Data ss:Type="String">3900.00</Data></Cell>
+    <Cell><Data ss:Type="String">0.00</Data></Cell>
+    <Cell><Data ss:Type="String">10</Data></Cell>
+    <Cell><Data ss:Type="String">REGULAR</Data></Cell>
+    <Cell><Data ss:Type="String">2026-04-14 22:24:17.07</Data></Cell>
+    <Cell><Data ss:Type="String">2026-04-20 21:10:57.73</Data></Cell>
+    <Cell><Data ss:Type="String">65.00</Data></Cell>
+    <Cell><Data ss:Type="String">300.00</Data></Cell>
+    <Cell><Data ss:Type="String">60.00</Data></Cell>
+    <Cell><Data ss:Type="String">130</Data></Cell>
+    <Cell><Data ss:Type="String">390.00</Data></Cell>
+    <Cell><Data ss:Type="String">10</Data></Cell>
+    <Cell><Data ss:Type="String">0.0500</Data></Cell>
+    <Cell><Data ss:Type="String">3600.00</Data></Cell>
+    <Cell><Data ss:Type="String"></Data></Cell>
+    <Cell><Data ss:Type="String">3900.00</Data></Cell>
+    <Cell><Data ss:Type="String">1300</Data></Cell>
+    <Cell><Data ss:Type="String">20.0000</Data></Cell>
+    <Cell><Data ss:Type="String">45.0000</Data></Cell>
+    <Cell><Data ss:Type="String"></Data></Cell>
+    <Cell><Data ss:Type="String"></Data></Cell>
+   </Row>
+   <Row>
+    <Cell><Data ss:Type="String">c6aaaf63-137d-48da-804e-75c42cffdeb7</Data></Cell>
+    <Cell><Data ss:Type="String">BCBA-Supervised Fieldwork- 2000 hours</Data></Cell>
+    <Cell><Data ss:Type="String">0</Data></Cell>
+    <Cell><Data ss:Type="String">0</Data></Cell>
+    <Cell><Data ss:Type="String">0</Data></Cell>
+    <Cell><Data ss:Type="String">6000.00</Data></Cell>
+    <Cell><Data ss:Type="String">0.00</Data></Cell>
+    <Cell><Data ss:Type="String">16</Data></Cell>
+    <Cell><Data ss:Type="String">REGULAR</Data></Cell>
+    <Cell><Data ss:Type="String">2026-04-14 22:26:51.271</Data></Cell>
+    <Cell><Data ss:Type="String">2026-04-20 21:11:22.147</Data></Cell>
+    <Cell><Data ss:Type="String">100.00</Data></Cell>
+    <Cell><Data ss:Type="String">300.00</Data></Cell>
+    <Cell><Data ss:Type="String">60.00</Data></Cell>
+    <Cell><Data ss:Type="String">130</Data></Cell>
+    <Cell><Data ss:Type="String">375.00</Data></Cell>
+    <Cell><Data ss:Type="String">16</Data></Cell>
+    <Cell><Data ss:Type="String">0.0500</Data></Cell>
+    <Cell><Data ss:Type="String">5700.00</Data></Cell>
+    <Cell><Data ss:Type="String"></Data></Cell>
+    <Cell><Data ss:Type="String">6000.00</Data></Cell>
+    <Cell><Data ss:Type="String">2000</Data></Cell>
+    <Cell><Data ss:Type="String">32.0000</Data></Cell>
+    <Cell><Data ss:Type="String">68.0000</Data></Cell>
+    <Cell><Data ss:Type="String"></Data></Cell>
+    <Cell><Data ss:Type="String"></Data></Cell>
+   </Row>
+   <Row>
+    <Cell><Data ss:Type="String">ecf29970-be65-4c59-85ee-8557988b5625</Data></Cell>
+    <Cell><Data ss:Type="String">BCBA- Concentrated  Supervision-1500 hours/B</Data></Cell>
+    <Cell><Data ss:Type="String">0</Data></Cell>
+    <Cell><Data ss:Type="String">0</Data></Cell>
+    <Cell><Data ss:Type="String">0</Data></Cell>
+    <Cell><Data ss:Type="String">7500.00</Data></Cell>
+    <Cell><Data ss:Type="String">0.00</Data></Cell>
+    <Cell><Data ss:Type="String">12</Data></Cell>
+    <Cell><Data ss:Type="String">CONCENTRATED</Data></Cell>
+    <Cell><Data ss:Type="String">2026-04-14 22:28:56.364</Data></Cell>
+    <Cell><Data ss:Type="String">2026-04-20 21:11:30.196</Data></Cell>
+    <Cell><Data ss:Type="String">150.00</Data></Cell>
+    <Cell><Data ss:Type="String">300.00</Data></Cell>
+    <Cell><Data ss:Type="String">50.00</Data></Cell>
+    <Cell><Data ss:Type="String">130</Data></Cell>
+    <Cell><Data ss:Type="String">625.00</Data></Cell>
+    <Cell><Data ss:Type="String">12</Data></Cell>
+    <Cell><Data ss:Type="String">0.1000</Data></Cell>
+    <Cell><Data ss:Type="String">7200.00</Data></Cell>
+    <Cell><Data ss:Type="String"></Data></Cell>
+    <Cell><Data ss:Type="String">7500.00</Data></Cell>
+    <Cell><Data ss:Type="String">1500</Data></Cell>
+    <Cell><Data ss:Type="String">48.0000</Data></Cell>
+    <Cell><Data ss:Type="String">102.0000</Data></Cell>
+    <Cell><Data ss:Type="String"></Data></Cell>
+    <Cell><Data ss:Type="String"></Data></Cell>
+   </Row>
+  </Table>
+  <WorksheetOptions xmlns="urn:schemas-microsoft-com:office:excel">
+   <ProtectObjects>False</ProtectObjects>
+   <ProtectScenarios>False</ProtectScenarios>
+  </WorksheetOptions>
+ </Worksheet>
+ <Worksheet ss:Name="RepeatingSchedule">
+  <Table ss:ExpandedColumnCount="11" ss:ExpandedRowCount="2" x:FullColumns="1"
+   x:FullRows="1" ss:DefaultColumnWidth="60" ss:DefaultRowHeight="15">
+   <Row ss:Height="12.75" ss:StyleID="s62">
+    <Cell><Data ss:Type="String">id</Data></Cell>
+    <Cell><Data ss:Type="String">userId</Data></Cell>
+    <Cell><Data ss:Type="String">name</Data></Cell>
+    <Cell><Data ss:Type="String">frequencyType</Data></Cell>
+    <Cell><Data ss:Type="String">frequencyValue</Data></Cell>
+    <Cell><Data ss:Type="String">daysOfWeek</Data></Cell>
+    <Cell><Data ss:Type="String">endAfterOccurrences</Data></Cell>
+    <Cell><Data ss:Type="String">endDate</Data></Cell>
+    <Cell><Data ss:Type="String">templateData</Data></Cell>
+    <Cell><Data ss:Type="String">isActive</Data></Cell>
+    <Cell><Data ss:Type="String">createdAt</Data></Cell>
+   </Row>
+   <Row ss:Height="12.75" ss:StyleID="s63">
+    <Cell><Data ss:Type="String">TEXT (ID) (REQ)</Data></Cell>
+    <Cell><Data ss:Type="String">TEXT (REQ)</Data></Cell>
+    <Cell><Data ss:Type="String">TEXT (REQ)</Data></Cell>
+    <Cell><Data ss:Type="String">TEXT (REQ)</Data></Cell>
+    <Cell><Data ss:Type="String">INTEGER (REQ)</Data></Cell>
+    <Cell><Data ss:Type="String">ARRAY</Data></Cell>
+    <Cell><Data ss:Type="String">INTEGER</Data></Cell>
+    <Cell><Data ss:Type="String">TIMESTAMP WITHOUT TIME ZONE</Data></Cell>
+    <Cell><Data ss:Type="String">JSONB (REQ)</Data></Cell>
+    <Cell><Data ss:Type="String">BOOLEAN (REQ)</Data></Cell>
+    <Cell><Data ss:Type="String">TIMESTAMP WITHOUT TIME ZONE (REQ)</Data></Cell>
+   </Row>
+  </Table>
+  <WorksheetOptions xmlns="urn:schemas-microsoft-com:office:excel">
+   <ProtectObjects>False</ProtectObjects>
+   <ProtectScenarios>False</ProtectScenarios>
+  </WorksheetOptions>
+ </Worksheet>
+ <Worksheet ss:Name="Student">
+  <Table ss:ExpandedColumnCount="43" ss:ExpandedRowCount="6" x:FullColumns="1"
+   x:FullRows="1" ss:DefaultColumnWidth="60" ss:DefaultRowHeight="15">
+   <Row ss:Height="12.75" ss:StyleID="s62">
+    <Cell><Data ss:Type="String">id</Data></Cell>
+    <Cell><Data ss:Type="String">userId</Data></Cell>
+    <Cell><Data ss:Type="String">fullName</Data></Cell>
+    <Cell><Data ss:Type="String">paymentAlias</Data></Cell>
+    <Cell><Data ss:Type="String">bacbId</Data></Cell>
+    <Cell><Data ss:Type="String">credential</Data></Cell>
+    <Cell><Data ss:Type="String">school</Data></Cell>
+    <Cell><Data ss:Type="String">level</Data></Cell>
+    <Cell><Data ss:Type="String">phone</Data></Cell>
+    <Cell><Data ss:Type="String">email</Data></Cell>
+    <Cell><Data ss:Type="String">supervisorId</Data></Cell>
+    <Cell><Data ss:Type="String">address</Data></Cell>
+    <Cell><Data ss:Type="String">city</Data></Cell>
+    <Cell><Data ss:Type="String">state</Data></Cell>
+    <Cell><Data ss:Type="String">startDate</Data></Cell>
+    <Cell><Data ss:Type="String">supervisionType</Data></Cell>
+    <Cell><Data ss:Type="String">fieldworkType</Data></Cell>
+    <Cell><Data ss:Type="String">supervisionPercentage</Data></Cell>
+    <Cell><Data ss:Type="String">hoursToDo</Data></Cell>
+    <Cell><Data ss:Type="String">hoursToPay</Data></Cell>
+    <Cell><Data ss:Type="String">amountToPay</Data></Cell>
+    <Cell><Data ss:Type="String">hourlyRate</Data></Cell>
+    <Cell><Data ss:Type="String">hoursPerMonth</Data></Cell>
+    <Cell><Data ss:Type="String">totalMonths</Data></Cell>
+    <Cell><Data ss:Type="String">endDate</Data></Cell>
+    <Cell><Data ss:Type="String">status</Data></Cell>
+    <Cell><Data ss:Type="String">availableDaysGroup</Data></Cell>
+    <Cell><Data ss:Type="String">notes</Data></Cell>
+    <Cell><Data ss:Type="String">createdAt</Data></Cell>
+    <Cell><Data ss:Type="String">updatedAt</Data></Cell>
+    <Cell><Data ss:Type="String">academicDegree</Data></Cell>
+    <Cell><Data ss:Type="String">contractStartDate</Data></Cell>
+    <Cell><Data ss:Type="String">vcsSequence</Data></Cell>
+    <Cell><Data ss:Type="String">assignedOptionPlan</Data></Cell>
+    <Cell><Data ss:Type="String">planTemplateId</Data></Cell>
+    <Cell><Data ss:Type="String">totalAmountContract</Data></Cell>
+    <Cell><Data ss:Type="String">analystPaymentRate</Data></Cell>
+    <Cell><Data ss:Type="String">officePaymentRate</Data></Cell>
+    <Cell><Data ss:Type="String">internalComments</Data></Cell>
+    <Cell><Data ss:Type="String">hoursTargetReg</Data></Cell>
+    <Cell><Data ss:Type="String">hoursTargetConc</Data></Cell>
+    <Cell><Data ss:Type="String">independentHoursTarget</Data></Cell>
+    <Cell><Data ss:Type="String">importBatchId</Data></Cell>
+   </Row>
+   <Row ss:Height="12.75" ss:StyleID="s63">
+    <Cell><Data ss:Type="String">TEXT (ID) (REQ)</Data></Cell>
+    <Cell><Data ss:Type="String">TEXT (REQ)</Data></Cell>
+    <Cell><Data ss:Type="String">TEXT (REQ)</Data></Cell>
+    <Cell><Data ss:Type="String">ARRAY</Data></Cell>
+    <Cell><Data ss:Type="String">CHARACTER VARYING (REQ)</Data></Cell>
+    <Cell><Data ss:Type="String">USER-DEFINED (REQ)</Data></Cell>
+    <Cell><Data ss:Type="String">TEXT (REQ)</Data></Cell>
+    <Cell><Data ss:Type="String">USER-DEFINED (REQ)</Data></Cell>
+    <Cell><Data ss:Type="String">TEXT (REQ)</Data></Cell>
+    <Cell><Data ss:Type="String">TEXT (REQ)</Data></Cell>
+    <Cell><Data ss:Type="String">TEXT</Data></Cell>
+    <Cell><Data ss:Type="String">TEXT (REQ)</Data></Cell>
+    <Cell><Data ss:Type="String">TEXT (REQ)</Data></Cell>
+    <Cell><Data ss:Type="String">TEXT (REQ)</Data></Cell>
+    <Cell><Data ss:Type="String">TIMESTAMP WITHOUT TIME ZONE (REQ)</Data></Cell>
+    <Cell><Data ss:Type="String">USER-DEFINED (REQ)</Data></Cell>
+    <Cell><Data ss:Type="String">USER-DEFINED (REQ)</Data></Cell>
+    <Cell><Data ss:Type="String">NUMERIC (REQ)</Data></Cell>
+    <Cell><Data ss:Type="String">INTEGER (REQ)</Data></Cell>
+    <Cell><Data ss:Type="String">INTEGER (REQ)</Data></Cell>
+    <Cell><Data ss:Type="String">NUMERIC (REQ)</Data></Cell>
+    <Cell><Data ss:Type="String">NUMERIC (REQ)</Data></Cell>
+    <Cell><Data ss:Type="String">INTEGER (REQ)</Data></Cell>
+    <Cell><Data ss:Type="String">INTEGER (REQ)</Data></Cell>
+    <Cell><Data ss:Type="String">TIMESTAMP WITHOUT TIME ZONE (REQ)</Data></Cell>
+    <Cell><Data ss:Type="String">USER-DEFINED (REQ)</Data></Cell>
+    <Cell><Data ss:Type="String">ARRAY</Data></Cell>
+    <Cell><Data ss:Type="String">TEXT</Data></Cell>
+    <Cell><Data ss:Type="String">TIMESTAMP WITHOUT TIME ZONE (REQ)</Data></Cell>
+    <Cell><Data ss:Type="String">TIMESTAMP WITHOUT TIME ZONE (REQ)</Data></Cell>
+    <Cell><Data ss:Type="String">TEXT</Data></Cell>
+    <Cell><Data ss:Type="String">TIMESTAMP WITHOUT TIME ZONE</Data></Cell>
+    <Cell><Data ss:Type="String">TEXT</Data></Cell>
+    <Cell><Data ss:Type="String">TEXT</Data></Cell>
+    <Cell><Data ss:Type="String">TEXT</Data></Cell>
+    <Cell><Data ss:Type="String">NUMERIC</Data></Cell>
+    <Cell><Data ss:Type="String">NUMERIC</Data></Cell>
+    <Cell><Data ss:Type="String">NUMERIC</Data></Cell>
+    <Cell><Data ss:Type="String">TEXT</Data></Cell>
+    <Cell><Data ss:Type="String">INTEGER</Data></Cell>
+    <Cell><Data ss:Type="String">INTEGER</Data></Cell>
+    <Cell><Data ss:Type="String">INTEGER</Data></Cell>
+    <Cell><Data ss:Type="String">TEXT</Data></Cell>
+   </Row>
+   <Row>
+    <Cell><Data ss:Type="String">ce887a56-355e-48d2-a05c-218512615314</Data></Cell>
+    <Cell><Data ss:Type="String">f95e21c3-dad0-4842-a4e5-d45bdcf7dd5e</Data></Cell>
+    <Cell><Data ss:Type="String">QA Estudiante</Data></Cell>
+    <Cell><Data ss:Type="String">{&quot;QA Student&quot;}</Data></Cell>
+    <Cell><Data ss:Type="String">192837</Data></Cell>
+    <Cell><Data ss:Type="String">BCBA</Data></Cell>
+    <Cell><Data ss:Type="String">QA Academy</Data></Cell>
+    <Cell><Data ss:Type="String">BCaBA</Data></Cell>
+    <Cell><Data ss:Type="String">555-QA-STUD</Data></Cell>
+    <Cell><Data ss:Type="String">qaestudiante@abasystem.com</Data></Cell>
+    <Cell><Data ss:Type="String">9064f97a-5ee1-4241-9e22-4c0d065d8009</Data></Cell>
+    <Cell><Data ss:Type="String">6075 Avenida Pablo Neruda</Data></Cell>
+    <Cell><Data ss:Type="String">Santiago</Data></Cell>
+    <Cell><Data ss:Type="String">Región Metropolitana de Santiago</Data></Cell>
+    <Cell><Data ss:Type="String">2026-04-07 04:00:00</Data></Cell>
+    <Cell><Data ss:Type="String">REGULAR</Data></Cell>
+    <Cell><Data ss:Type="String">CONCENTRATED</Data></Cell>
+    <Cell><Data ss:Type="String">10.000000000000000000000000000000</Data></Cell>
+    <Cell><Data ss:Type="String">130</Data></Cell>
+    <Cell><Data ss:Type="String">0</Data></Cell>
+    <Cell><Data ss:Type="String">0.00</Data></Cell>
+    <Cell><Data ss:Type="String">60.00</Data></Cell>
+    <Cell><Data ss:Type="String">130</Data></Cell>
+    <Cell><Data ss:Type="String">8</Data></Cell>
+    <Cell><Data ss:Type="String">2027-04-07 00:47:44.416</Data></Cell>
+    <Cell><Data ss:Type="String">ACTIVE</Data></Cell>
+    <Cell><Data ss:Type="String">{Monday,Wednesday}</Data></Cell>
+    <Cell><Data ss:Type="String"></Data></Cell>
+    <Cell><Data ss:Type="String">2026-04-07 00:47:44.502</Data></Cell>
+    <Cell><Data ss:Type="String">2026-04-19 20:30:30.789</Data></Cell>
+    <Cell><Data ss:Type="String"></Data></Cell>
+    <Cell><Data ss:Type="String"></Data></Cell>
+    <Cell><Data ss:Type="String">132435</Data></Cell>
+    <Cell><Data ss:Type="String">BCaBA- Concentrated Supervision-1000 hours</Data></Cell>
+    <Cell><Data ss:Type="String">d6fc3b02-2a3a-49e4-8356-aa4a54bda2f6</Data></Cell>
+    <Cell><Data ss:Type="String">6000.00</Data></Cell>
+    <Cell><Data ss:Type="String"></Data></Cell>
+    <Cell><Data ss:Type="String">1.0000</Data></Cell>
+    <Cell><Data ss:Type="String"></Data></Cell>
+    <Cell><Data ss:Type="String">1000</Data></Cell>
+    <Cell><Data ss:Type="String">0</Data></Cell>
+    <Cell><Data ss:Type="String">900</Data></Cell>
+    <Cell><Data ss:Type="String"></Data></Cell>
+   </Row>
+   <Row>
+    <Cell><Data ss:Type="String">8e5b9a3b-1fb9-4d15-8f32-9ab782d57c5c</Data></Cell>
+    <Cell><Data ss:Type="String">7683b02b-ea6f-4d83-b70e-be0c5281a9bb</Data></Cell>
+    <Cell><Data ss:Type="String">Tamara Javiera Zúñiga Zepeda</Data></Cell>
+    <Cell><Data ss:Type="String">{}</Data></Cell>
+    <Cell><Data ss:Type="String">4545458</Data></Cell>
+    <Cell><Data ss:Type="String">RBT</Data></Cell>
+    <Cell><Data ss:Type="String">FSU</Data></Cell>
+    <Cell><Data ss:Type="String">BCBA</Data></Cell>
+    <Cell><Data ss:Type="String">+56964257939</Data></Cell>
+    <Cell><Data ss:Type="String">tamaroshki@gmail.com</Data></Cell>
+    <Cell><Data ss:Type="String">9064f97a-5ee1-4241-9e22-4c0d065d8009</Data></Cell>
+    <Cell><Data ss:Type="String">4865 Camino Nos a Los Morros</Data></Cell>
+    <Cell><Data ss:Type="String">San Francisco de Nos</Data></Cell>
+    <Cell><Data ss:Type="String">Santiago Metropolitan Region</Data></Cell>
+    <Cell><Data ss:Type="String">2026-04-14 04:00:00</Data></Cell>
+    <Cell><Data ss:Type="String">REGULAR</Data></Cell>
+    <Cell><Data ss:Type="String">REGULAR</Data></Cell>
+    <Cell><Data ss:Type="String">5.000000000000000000000000000000</Data></Cell>
+    <Cell><Data ss:Type="String">2000</Data></Cell>
+    <Cell><Data ss:Type="String">2000</Data></Cell>
+    <Cell><Data ss:Type="String">1500.00</Data></Cell>
+    <Cell><Data ss:Type="String">60.00</Data></Cell>
+    <Cell><Data ss:Type="String">160</Data></Cell>
+    <Cell><Data ss:Type="String">13</Data></Cell>
+    <Cell><Data ss:Type="String">2027-04-14 00:00:00</Data></Cell>
+    <Cell><Data ss:Type="String">ACTIVE</Data></Cell>
+    <Cell><Data ss:Type="String">{}</Data></Cell>
+    <Cell><Data ss:Type="String"></Data></Cell>
+    <Cell><Data ss:Type="String">2026-04-14 22:49:12.173</Data></Cell>
+    <Cell><Data ss:Type="String">2026-04-19 18:57:04.96</Data></Cell>
+    <Cell><Data ss:Type="String"></Data></Cell>
+    <Cell><Data ss:Type="String"></Data></Cell>
+    <Cell><Data ss:Type="String">4545458</Data></Cell>
+    <Cell><Data ss:Type="String">BCBA-Supervised Fieldwork-2000 hours</Data></Cell>
+    <Cell><Data ss:Type="String">951abf2b-bfff-467e-9c56-30b5f509667a</Data></Cell>
+    <Cell><Data ss:Type="String">6000.00</Data></Cell>
+    <Cell><Data ss:Type="String"></Data></Cell>
+    <Cell><Data ss:Type="String">1.0000</Data></Cell>
+    <Cell><Data ss:Type="String">prueba de ingreso 01</Data></Cell>
+    <Cell><Data ss:Type="String">2000</Data></Cell>
+    <Cell><Data ss:Type="String">0</Data></Cell>
+    <Cell><Data ss:Type="String">1900</Data></Cell>
+    <Cell><Data ss:Type="String"></Data></Cell>
+   </Row>
+   <Row>
+    <Cell><Data ss:Type="String">dd91a94c-dc1b-4031-9c85-e6d15c0fe12b</Data></Cell>
+    <Cell><Data ss:Type="String">cbd3754b-e461-4d8f-a8c8-6ede16997e1b</Data></Cell>
+    <Cell><Data ss:Type="String">Emilio Enrique Zúñiga Zepeda</Data></Cell>
+    <Cell><Data ss:Type="String">{}</Data></Cell>
+    <Cell><Data ss:Type="String">4545457</Data></Cell>
+    <Cell><Data ss:Type="String">BCaBA</Data></Cell>
+    <Cell><Data ss:Type="String">FSU</Data></Cell>
+    <Cell><Data ss:Type="String">BCBA</Data></Cell>
+    <Cell><Data ss:Type="String">+56964257939</Data></Cell>
+    <Cell><Data ss:Type="String">emilinzzz@gmail.com</Data></Cell>
+    <Cell><Data ss:Type="String">99ad8767-24a4-449b-84ed-07ed4cd1aa8c</Data></Cell>
+    <Cell><Data ss:Type="String">4865 Camino Nos a Los Morros</Data></Cell>
+    <Cell><Data ss:Type="String">San Bernardo</Data></Cell>
+    <Cell><Data ss:Type="String">Santiago Metropolitan Region</Data></Cell>
+    <Cell><Data ss:Type="String">2026-04-14 04:00:00</Data></Cell>
+    <Cell><Data ss:Type="String">REGULAR</Data></Cell>
+    <Cell><Data ss:Type="String">CONCENTRATED</Data></Cell>
+    <Cell><Data ss:Type="String">7.500000000000000000000000000000</Data></Cell>
+    <Cell><Data ss:Type="String">2000</Data></Cell>
+    <Cell><Data ss:Type="String">2000</Data></Cell>
+    <Cell><Data ss:Type="String">1500.00</Data></Cell>
+    <Cell><Data ss:Type="String">60.00</Data></Cell>
+    <Cell><Data ss:Type="String">160</Data></Cell>
+    <Cell><Data ss:Type="String">10</Data></Cell>
+    <Cell><Data ss:Type="String">2027-04-14 00:00:00</Data></Cell>
+    <Cell><Data ss:Type="String">ACTIVE</Data></Cell>
+    <Cell><Data ss:Type="String">{}</Data></Cell>
+    <Cell><Data ss:Type="String"></Data></Cell>
+    <Cell><Data ss:Type="String">2026-04-14 22:55:10.335</Data></Cell>
+    <Cell><Data ss:Type="String">2026-04-19 20:31:08.875</Data></Cell>
+    <Cell><Data ss:Type="String"></Data></Cell>
+    <Cell><Data ss:Type="String"></Data></Cell>
+    <Cell><Data ss:Type="String">4545457</Data></Cell>
+    <Cell><Data ss:Type="String">BCBA- Concentrated Supervision-1500 hours</Data></Cell>
+    <Cell><Data ss:Type="String">0c17cdf2-e6ad-4bdd-8864-9bf19a4b7ddd</Data></Cell>
+    <Cell><Data ss:Type="String">6750.00</Data></Cell>
+    <Cell><Data ss:Type="String"></Data></Cell>
+    <Cell><Data ss:Type="String">1.0000</Data></Cell>
+    <Cell><Data ss:Type="String">Estudiante prueba 2</Data></Cell>
+    <Cell><Data ss:Type="String">1500</Data></Cell>
+    <Cell><Data ss:Type="String">0</Data></Cell>
+    <Cell><Data ss:Type="String">1388</Data></Cell>
+    <Cell><Data ss:Type="String"></Data></Cell>
+   </Row>
+   <Row>
+    <Cell><Data ss:Type="String">9bfcddd9-bd04-4231-ae3e-b1d9f7939c34</Data></Cell>
+    <Cell><Data ss:Type="String">41a7d4b4-0212-484e-b4c6-6d756d5628b2</Data></Cell>
+    <Cell><Data ss:Type="String">Camilo André Zúñiga Zepeda</Data></Cell>
+    <Cell><Data ss:Type="String">{}</Data></Cell>
+    <Cell><Data ss:Type="String">4545456</Data></Cell>
+    <Cell><Data ss:Type="String">BCaBA</Data></Cell>
+    <Cell><Data ss:Type="String">FSU</Data></Cell>
+    <Cell><Data ss:Type="String">BCBA</Data></Cell>
+    <Cell><Data ss:Type="String">+56964257939</Data></Cell>
+    <Cell><Data ss:Type="String">camilinzzz@gmail.com</Data></Cell>
+    <Cell><Data ss:Type="String">99ad8767-24a4-449b-84ed-07ed4cd1aa8c</Data></Cell>
+    <Cell><Data ss:Type="String">Camino Nos a Los Morros</Data></Cell>
+    <Cell><Data ss:Type="String">San Bernardo</Data></Cell>
+    <Cell><Data ss:Type="String">Santiago Metropolitan Region</Data></Cell>
+    <Cell><Data ss:Type="String">2026-04-07 04:00:00</Data></Cell>
+    <Cell><Data ss:Type="String">REGULAR</Data></Cell>
+    <Cell><Data ss:Type="String">REGULAR</Data></Cell>
+    <Cell><Data ss:Type="String">5.000000000000000000000000000000</Data></Cell>
+    <Cell><Data ss:Type="String">2000</Data></Cell>
+    <Cell><Data ss:Type="String">2000</Data></Cell>
+    <Cell><Data ss:Type="String">1500.00</Data></Cell>
+    <Cell><Data ss:Type="String">60.00</Data></Cell>
+    <Cell><Data ss:Type="String">160</Data></Cell>
+    <Cell><Data ss:Type="String">13</Data></Cell>
+    <Cell><Data ss:Type="String">2027-04-14 00:00:00</Data></Cell>
+    <Cell><Data ss:Type="String">ACTIVE</Data></Cell>
+    <Cell><Data ss:Type="String">{}</Data></Cell>
+    <Cell><Data ss:Type="String"></Data></Cell>
+    <Cell><Data ss:Type="String">2026-04-14 22:57:35.192</Data></Cell>
+    <Cell><Data ss:Type="String">2026-04-22 14:50:48.989</Data></Cell>
+    <Cell><Data ss:Type="String"></Data></Cell>
+    <Cell><Data ss:Type="String"></Data></Cell>
+    <Cell><Data ss:Type="String">4545456</Data></Cell>
+    <Cell><Data ss:Type="String">BCBA-Supervised Fieldwork-2000 hours</Data></Cell>
+    <Cell><Data ss:Type="String">951abf2b-bfff-467e-9c56-30b5f509667a</Data></Cell>
+    <Cell><Data ss:Type="String">6000.00</Data></Cell>
+    <Cell><Data ss:Type="String"></Data></Cell>
+    <Cell><Data ss:Type="String">1.0000</Data></Cell>
+    <Cell><Data ss:Type="String">Estudiante prueba 3</Data></Cell>
+    <Cell><Data ss:Type="String">2000</Data></Cell>
+    <Cell><Data ss:Type="String">0</Data></Cell>
+    <Cell><Data ss:Type="String">1900</Data></Cell>
+    <Cell><Data ss:Type="String"></Data></Cell>
+   </Row>
+  </Table>
+  <WorksheetOptions xmlns="urn:schemas-microsoft-com:office:excel">
+   <ProtectObjects>False</ProtectObjects>
+   <ProtectScenarios>False</ProtectScenarios>
+  </WorksheetOptions>
+ </Worksheet>
+ <Worksheet ss:Name="StudentEvaluation">
+  <Table ss:ExpandedColumnCount="7" ss:ExpandedRowCount="2" x:FullColumns="1"
+   x:FullRows="1" ss:DefaultColumnWidth="60" ss:DefaultRowHeight="15">
+   <Row ss:Height="12.75" ss:StyleID="s62">
+    <Cell><Data ss:Type="String">id</Data></Cell>
+    <Cell><Data ss:Type="String">studentId</Data></Cell>
+    <Cell><Data ss:Type="String">supervisorId</Data></Cell>
+    <Cell><Data ss:Type="String">monthYear</Data></Cell>
+    <Cell><Data ss:Type="String">criteria</Data></Cell>
+    <Cell><Data ss:Type="String">evaluationText</Data></Cell>
+    <Cell><Data ss:Type="String">createdAt</Data></Cell>
+   </Row>
+   <Row ss:Height="12.75" ss:StyleID="s63">
+    <Cell><Data ss:Type="String">TEXT (ID) (REQ)</Data></Cell>
+    <Cell><Data ss:Type="String">TEXT (REQ)</Data></Cell>
+    <Cell><Data ss:Type="String">TEXT (REQ)</Data></Cell>
+    <Cell><Data ss:Type="String">TIMESTAMP WITHOUT TIME ZONE (REQ)</Data></Cell>
+    <Cell><Data ss:Type="String">USER-DEFINED (REQ)</Data></Cell>
+    <Cell><Data ss:Type="String">TEXT</Data></Cell>
+    <Cell><Data ss:Type="String">TIMESTAMP WITHOUT TIME ZONE (REQ)</Data></Cell>
+   </Row>
+  </Table>
+  <WorksheetOptions xmlns="urn:schemas-microsoft-com:office:excel">
+   <ProtectObjects>False</ProtectObjects>
+   <ProtectScenarios>False</ProtectScenarios>
+  </WorksheetOptions>
+ </Worksheet>
+ <Worksheet ss:Name="StudentPayment">
+  <Table ss:ExpandedColumnCount="8" ss:ExpandedRowCount="3" x:FullColumns="1"
+   x:FullRows="1" ss:DefaultColumnWidth="60" ss:DefaultRowHeight="15">
+   <Row ss:Height="12.75" ss:StyleID="s62">
+    <Cell><Data ss:Type="String">id</Data></Cell>
+    <Cell><Data ss:Type="String">studentId</Data></Cell>
+    <Cell><Data ss:Type="String">paymentDate</Data></Cell>
+    <Cell><Data ss:Type="String">amount</Data></Cell>
+    <Cell><Data ss:Type="String">paymentType</Data></Cell>
+    <Cell><Data ss:Type="String">notes</Data></Cell>
+    <Cell><Data ss:Type="String">importBatchId</Data></Cell>
+    <Cell><Data ss:Type="String">createdAt</Data></Cell>
+   </Row>
+   <Row ss:Height="12.75" ss:StyleID="s63">
+    <Cell><Data ss:Type="String">TEXT (ID) (REQ)</Data></Cell>
+    <Cell><Data ss:Type="String">TEXT (REQ)</Data></Cell>
+    <Cell><Data ss:Type="String">TIMESTAMP WITHOUT TIME ZONE (REQ)</Data></Cell>
+    <Cell><Data ss:Type="String">NUMERIC (REQ)</Data></Cell>
+    <Cell><Data ss:Type="String">USER-DEFINED (REQ)</Data></Cell>
+    <Cell><Data ss:Type="String">TEXT</Data></Cell>
+    <Cell><Data ss:Type="String">TEXT</Data></Cell>
+    <Cell><Data ss:Type="String">TIMESTAMP WITHOUT TIME ZONE (REQ)</Data></Cell>
+   </Row>
+   <Row>
+    <Cell><Data ss:Type="String">5e57f009-28ae-4bf4-b30c-74ea604f0e0c</Data></Cell>
+    <Cell><Data ss:Type="String">9bfcddd9-bd04-4231-ae3e-b1d9f7939c34</Data></Cell>
+    <Cell><Data ss:Type="String">2026-04-22 15:13:39.08</Data></Cell>
+    <Cell><Data ss:Type="String">1980.00</Data></Cell>
+    <Cell><Data ss:Type="String">ZELLE</Data></Cell>
+    <Cell><Data ss:Type="String">Waterfall payment for Invoice #aafdaaad-9682-4d94-bb21-a897e33c533e. Supervisor: $226.80, Office: $1753.20</Data></Cell>
+    <Cell><Data ss:Type="String"></Data></Cell>
+    <Cell><Data ss:Type="String">2026-04-22 15:13:39.081</Data></Cell>
+   </Row>
+  </Table>
+  <WorksheetOptions xmlns="urn:schemas-microsoft-com:office:excel">
+   <ProtectObjects>False</ProtectObjects>
+   <ProtectScenarios>False</ProtectScenarios>
+  </WorksheetOptions>
+ </Worksheet>
+ <Worksheet ss:Name="StudentSupervisor">
+  <Table ss:ExpandedColumnCount="6" ss:ExpandedRowCount="7" x:FullColumns="1"
+   x:FullRows="1" ss:DefaultColumnWidth="60" ss:DefaultRowHeight="15">
+   <Row ss:Height="12.75" ss:StyleID="s62">
+    <Cell><Data ss:Type="String">id</Data></Cell>
+    <Cell><Data ss:Type="String">studentId</Data></Cell>
+    <Cell><Data ss:Type="String">supervisorId</Data></Cell>
+    <Cell><Data ss:Type="String">isPrimary</Data></Cell>
+    <Cell><Data ss:Type="String">createdAt</Data></Cell>
+    <Cell><Data ss:Type="String">updatedAt</Data></Cell>
+   </Row>
+   <Row ss:Height="12.75" ss:StyleID="s63">
+    <Cell><Data ss:Type="String">TEXT (ID) (REQ)</Data></Cell>
+    <Cell><Data ss:Type="String">TEXT (REQ)</Data></Cell>
+    <Cell><Data ss:Type="String">TEXT (REQ)</Data></Cell>
+    <Cell><Data ss:Type="String">BOOLEAN (REQ)</Data></Cell>
+    <Cell><Data ss:Type="String">TIMESTAMP WITHOUT TIME ZONE (REQ)</Data></Cell>
+    <Cell><Data ss:Type="String">TIMESTAMP WITHOUT TIME ZONE (REQ)</Data></Cell>
+   </Row>
+   <Row>
+    <Cell><Data ss:Type="String">1a826b6e-b178-4b9c-8553-40599d450885</Data></Cell>
+    <Cell><Data ss:Type="String">9bfcddd9-bd04-4231-ae3e-b1d9f7939c34</Data></Cell>
+    <Cell><Data ss:Type="String">99ad8767-24a4-449b-84ed-07ed4cd1aa8c</Data></Cell>
+    <Cell><Data ss:Type="String">t</Data></Cell>
+    <Cell><Data ss:Type="String">2026-04-22 14:50:49.003</Data></Cell>
+    <Cell><Data ss:Type="String">2026-04-22 14:50:49.003</Data></Cell>
+   </Row>
+   <Row>
+    <Cell><Data ss:Type="String">b71fb573-f4b0-4acd-9e8e-2730d23632f9</Data></Cell>
+    <Cell><Data ss:Type="String">9bfcddd9-bd04-4231-ae3e-b1d9f7939c34</Data></Cell>
+    <Cell><Data ss:Type="String">43a8be7e-8997-4127-be50-a7a32ee1bd1c</Data></Cell>
+    <Cell><Data ss:Type="String">f</Data></Cell>
+    <Cell><Data ss:Type="String">2026-04-22 14:50:49.003</Data></Cell>
+    <Cell><Data ss:Type="String">2026-04-22 14:50:49.003</Data></Cell>
+   </Row>
+   <Row>
+    <Cell><Data ss:Type="String">2385514b-1a6e-43cd-84c7-97c6e16949ca</Data></Cell>
+    <Cell><Data ss:Type="String">9bfcddd9-bd04-4231-ae3e-b1d9f7939c34</Data></Cell>
+    <Cell><Data ss:Type="String">e4a635f1-9395-4f32-b712-04dc4dc45c05</Data></Cell>
+    <Cell><Data ss:Type="String">f</Data></Cell>
+    <Cell><Data ss:Type="String">2026-04-22 14:50:49.003</Data></Cell>
+    <Cell><Data ss:Type="String">2026-04-22 14:50:49.003</Data></Cell>
+   </Row>
+   <Row>
+    <Cell><Data ss:Type="String">cc709e78-8a7d-4a8d-a128-0dddd6ecbc8d</Data></Cell>
+    <Cell><Data ss:Type="String">9bfcddd9-bd04-4231-ae3e-b1d9f7939c34</Data></Cell>
+    <Cell><Data ss:Type="String">9064f97a-5ee1-4241-9e22-4c0d065d8009</Data></Cell>
+    <Cell><Data ss:Type="String">f</Data></Cell>
+    <Cell><Data ss:Type="String">2026-04-22 14:50:49.003</Data></Cell>
+    <Cell><Data ss:Type="String">2026-04-22 14:50:49.003</Data></Cell>
+   </Row>
+   <Row>
+    <Cell><Data ss:Type="String">b236afe1-e605-4d36-9bc4-6bcdd8b03395</Data></Cell>
+    <Cell><Data ss:Type="String">8e5b9a3b-1fb9-4d15-8f32-9ab782d57c5c</Data></Cell>
+    <Cell><Data ss:Type="String">9064f97a-5ee1-4241-9e22-4c0d065d8009</Data></Cell>
+    <Cell><Data ss:Type="String">t</Data></Cell>
+    <Cell><Data ss:Type="String">2026-04-19 18:57:04.97</Data></Cell>
+    <Cell><Data ss:Type="String">2026-04-19 18:57:04.97</Data></Cell>
+   </Row>
+  </Table>
+  <WorksheetOptions xmlns="urn:schemas-microsoft-com:office:excel">
+   <ProtectObjects>False</ProtectObjects>
+   <ProtectScenarios>False</ProtectScenarios>
+  </WorksheetOptions>
+ </Worksheet>
+ <Worksheet ss:Name="SupervisionHour">
+  <Table ss:ExpandedColumnCount="21" ss:ExpandedRowCount="7" x:FullColumns="1"
+   x:FullRows="1" ss:DefaultColumnWidth="60" ss:DefaultRowHeight="15">
+   <Row ss:Height="12.75" ss:StyleID="s62">
+    <Cell><Data ss:Type="String">id</Data></Cell>
+    <Cell><Data ss:Type="String">studentId</Data></Cell>
+    <Cell><Data ss:Type="String">supervisorId</Data></Cell>
+    <Cell><Data ss:Type="String">date</Data></Cell>
+    <Cell><Data ss:Type="String">startTime</Data></Cell>
+    <Cell><Data ss:Type="String">hours</Data></Cell>
+    <Cell><Data ss:Type="String">supervisionType</Data></Cell>
+    <Cell><Data ss:Type="String">setting</Data></Cell>
+    <Cell><Data ss:Type="String">activityType</Data></Cell>
+    <Cell><Data ss:Type="String">notes</Data></Cell>
+    <Cell><Data ss:Type="String">groupTopic</Data></Cell>
+    <Cell><Data ss:Type="String">isRepeating</Data></Cell>
+    <Cell><Data ss:Type="String">repeatingScheduleId</Data></Cell>
+    <Cell><Data ss:Type="String">status</Data></Cell>
+    <Cell><Data ss:Type="String">rejectReason</Data></Cell>
+    <Cell><Data ss:Type="String">amountBilled</Data></Cell>
+    <Cell><Data ss:Type="String">supervisorPay</Data></Cell>
+    <Cell><Data ss:Type="String">invoiceId</Data></Cell>
+    <Cell><Data ss:Type="String">groupSessionId</Data></Cell>
+    <Cell><Data ss:Type="String">createdAt</Data></Cell>
+    <Cell><Data ss:Type="String">customSetting</Data></Cell>
+   </Row>
+   <Row ss:Height="12.75" ss:StyleID="s63">
+    <Cell><Data ss:Type="String">TEXT (ID) (REQ)</Data></Cell>
+    <Cell><Data ss:Type="String">TEXT (REQ)</Data></Cell>
+    <Cell><Data ss:Type="String">TEXT (REQ)</Data></Cell>
+    <Cell><Data ss:Type="String">TIMESTAMP WITHOUT TIME ZONE (REQ)</Data></Cell>
+    <Cell><Data ss:Type="String">TIMESTAMP WITHOUT TIME ZONE (REQ)</Data></Cell>
+    <Cell><Data ss:Type="String">NUMERIC (REQ)</Data></Cell>
+    <Cell><Data ss:Type="String">USER-DEFINED (REQ)</Data></Cell>
+    <Cell><Data ss:Type="String">USER-DEFINED (REQ)</Data></Cell>
+    <Cell><Data ss:Type="String">USER-DEFINED (REQ)</Data></Cell>
+    <Cell><Data ss:Type="String">TEXT</Data></Cell>
+    <Cell><Data ss:Type="String">TEXT</Data></Cell>
+    <Cell><Data ss:Type="String">BOOLEAN (REQ)</Data></Cell>
+    <Cell><Data ss:Type="String">TEXT</Data></Cell>
+    <Cell><Data ss:Type="String">USER-DEFINED (REQ)</Data></Cell>
+    <Cell><Data ss:Type="String">TEXT</Data></Cell>
+    <Cell><Data ss:Type="String">NUMERIC</Data></Cell>
+    <Cell><Data ss:Type="String">NUMERIC</Data></Cell>
+    <Cell><Data ss:Type="String">TEXT</Data></Cell>
+    <Cell><Data ss:Type="String">TEXT</Data></Cell>
+    <Cell><Data ss:Type="String">TIMESTAMP WITHOUT TIME ZONE (REQ)</Data></Cell>
+    <Cell><Data ss:Type="String">TEXT</Data></Cell>
+   </Row>
+   <Row>
+    <Cell><Data ss:Type="String">819db234-93ff-479e-8b55-c59513e4d372</Data></Cell>
+    <Cell><Data ss:Type="String">9bfcddd9-bd04-4231-ae3e-b1d9f7939c34</Data></Cell>
+    <Cell><Data ss:Type="String">9064f97a-5ee1-4241-9e22-4c0d065d8009</Data></Cell>
+    <Cell><Data ss:Type="String">2026-12-21 00:00:00</Data></Cell>
+    <Cell><Data ss:Type="String">2026-12-21 19:00:00</Data></Cell>
+    <Cell><Data ss:Type="String">1.0000</Data></Cell>
+    <Cell><Data ss:Type="String">GROUP</Data></Cell>
+    <Cell><Data ss:Type="String">OFFICE_CLINIC</Data></Cell>
+    <Cell><Data ss:Type="String">RESTRICTED</Data></Cell>
+    <Cell><Data ss:Type="String">Retroactive Group Session assigned from Contract: REGULAR</Data></Cell>
+    <Cell><Data ss:Type="String">REGULAR Group — MONDAY 19:00–20:00</Data></Cell>
+    <Cell><Data ss:Type="String">f</Data></Cell>
+    <Cell><Data ss:Type="String"></Data></Cell>
+    <Cell><Data ss:Type="String">APPROVED</Data></Cell>
+    <Cell><Data ss:Type="String"></Data></Cell>
+    <Cell><Data ss:Type="String">60.00</Data></Cell>
+    <Cell><Data ss:Type="String">0.00</Data></Cell>
+    <Cell><Data ss:Type="String">aafdaaad-9682-4d94-bb21-a897e33c533e</Data></Cell>
+    <Cell><Data ss:Type="String">f436cda8-4880-4cd8-9444-4727d4b0a7b2</Data></Cell>
+    <Cell><Data ss:Type="String">2026-04-22 14:50:48.83</Data></Cell>
+    <Cell><Data ss:Type="String"></Data></Cell>
+   </Row>
+   <Row>
+    <Cell><Data ss:Type="String">63190352-92be-4b60-9237-4109b096f857</Data></Cell>
+    <Cell><Data ss:Type="String">9bfcddd9-bd04-4231-ae3e-b1d9f7939c34</Data></Cell>
+    <Cell><Data ss:Type="String">9064f97a-5ee1-4241-9e22-4c0d065d8009</Data></Cell>
+    <Cell><Data ss:Type="String">2026-04-30 00:00:00</Data></Cell>
+    <Cell><Data ss:Type="String">2026-04-30 09:00:00</Data></Cell>
+    <Cell><Data ss:Type="String">1.0000</Data></Cell>
+    <Cell><Data ss:Type="String">INDIVIDUAL</Data></Cell>
+    <Cell><Data ss:Type="String">CLIENTS_HOME</Data></Cell>
+    <Cell><Data ss:Type="String">UNRESTRICTED</Data></Cell>
+    <Cell><Data ss:Type="String"></Data></Cell>
+    <Cell><Data ss:Type="String"></Data></Cell>
+    <Cell><Data ss:Type="String">f</Data></Cell>
+    <Cell><Data ss:Type="String"></Data></Cell>
+    <Cell><Data ss:Type="String">APPROVED</Data></Cell>
+    <Cell><Data ss:Type="String"></Data></Cell>
+    <Cell><Data ss:Type="String">60.00</Data></Cell>
+    <Cell><Data ss:Type="String">32.40</Data></Cell>
+    <Cell><Data ss:Type="String">aafdaaad-9682-4d94-bb21-a897e33c533e</Data></Cell>
+    <Cell><Data ss:Type="String"></Data></Cell>
+    <Cell><Data ss:Type="String">2026-04-22 14:51:36.014</Data></Cell>
+    <Cell><Data ss:Type="String"></Data></Cell>
+   </Row>
+   <Row>
+    <Cell><Data ss:Type="String">0dd6535a-4c6a-4dd7-8614-f843fa7daf59</Data></Cell>
+    <Cell><Data ss:Type="String">9bfcddd9-bd04-4231-ae3e-b1d9f7939c34</Data></Cell>
+    <Cell><Data ss:Type="String">9064f97a-5ee1-4241-9e22-4c0d065d8009</Data></Cell>
+    <Cell><Data ss:Type="String">2026-04-29 00:00:00</Data></Cell>
+    <Cell><Data ss:Type="String">2026-04-29 09:00:00</Data></Cell>
+    <Cell><Data ss:Type="String">1.0000</Data></Cell>
+    <Cell><Data ss:Type="String">INDIVIDUAL</Data></Cell>
+    <Cell><Data ss:Type="String">CLIENTS_HOME</Data></Cell>
+    <Cell><Data ss:Type="String">UNRESTRICTED</Data></Cell>
+    <Cell><Data ss:Type="String"></Data></Cell>
+    <Cell><Data ss:Type="String"></Data></Cell>
+    <Cell><Data ss:Type="String">f</Data></Cell>
+    <Cell><Data ss:Type="String"></Data></Cell>
+    <Cell><Data ss:Type="String">APPROVED</Data></Cell>
+    <Cell><Data ss:Type="String"></Data></Cell>
+    <Cell><Data ss:Type="String">60.00</Data></Cell>
+    <Cell><Data ss:Type="String">32.40</Data></Cell>
+    <Cell><Data ss:Type="String">aafdaaad-9682-4d94-bb21-a897e33c533e</Data></Cell>
+    <Cell><Data ss:Type="String"></Data></Cell>
+    <Cell><Data ss:Type="String">2026-04-22 14:51:36.008</Data></Cell>
+    <Cell><Data ss:Type="String"></Data></Cell>
+   </Row>
+   <Row>
+    <Cell><Data ss:Type="String">b6e7f8c3-ec00-4f5c-a321-ed2f86e2bb2b</Data></Cell>
+    <Cell><Data ss:Type="String">9bfcddd9-bd04-4231-ae3e-b1d9f7939c34</Data></Cell>
+    <Cell><Data ss:Type="String">9064f97a-5ee1-4241-9e22-4c0d065d8009</Data></Cell>
+    <Cell><Data ss:Type="String">2026-04-28 00:00:00</Data></Cell>
+    <Cell><Data ss:Type="String">2026-04-28 09:00:00</Data></Cell>
+    <Cell><Data ss:Type="String">1.0000</Data></Cell>
+    <Cell><Data ss:Type="String">INDIVIDUAL</Data></Cell>
+    <Cell><Data ss:Type="String">CLIENTS_HOME</Data></Cell>
+    <Cell><Data ss:Type="String">UNRESTRICTED</Data></Cell>
+    <Cell><Data ss:Type="String"></Data></Cell>
+    <Cell><Data ss:Type="String"></Data></Cell>
+    <Cell><Data ss:Type="String">f</Data></Cell>
+    <Cell><Data ss:Type="String"></Data></Cell>
+    <Cell><Data ss:Type="String">APPROVED</Data></Cell>
+    <Cell><Data ss:Type="String"></Data></Cell>
+    <Cell><Data ss:Type="String">60.00</Data></Cell>
+    <Cell><Data ss:Type="String">32.40</Data></Cell>
+    <Cell><Data ss:Type="String">aafdaaad-9682-4d94-bb21-a897e33c533e</Data></Cell>
+    <Cell><Data ss:Type="String"></Data></Cell>
+    <Cell><Data ss:Type="String">2026-04-22 14:51:36</Data></Cell>
+    <Cell><Data ss:Type="String"></Data></Cell>
+   </Row>
+   <Row>
+    <Cell><Data ss:Type="String">ef0c78ac-02f8-4152-92a1-fcfa0ac948c9</Data></Cell>
+    <Cell><Data ss:Type="String">9bfcddd9-bd04-4231-ae3e-b1d9f7939c34</Data></Cell>
+    <Cell><Data ss:Type="String">9064f97a-5ee1-4241-9e22-4c0d065d8009</Data></Cell>
+    <Cell><Data ss:Type="String">2026-04-27 00:00:00</Data></Cell>
+    <Cell><Data ss:Type="String">2026-04-27 09:00:00</Data></Cell>
+    <Cell><Data ss:Type="String">1.0000</Data></Cell>
+    <Cell><Data ss:Type="String">INDIVIDUAL</Data></Cell>
+    <Cell><Data ss:Type="String">CLIENTS_HOME</Data></Cell>
+    <Cell><Data ss:Type="String">UNRESTRICTED</Data></Cell>
+    <Cell><Data ss:Type="String"></Data></Cell>
+    <Cell><Data ss:Type="String"></Data></Cell>
+    <Cell><Data ss:Type="String">f</Data></Cell>
+    <Cell><Data ss:Type="String"></Data></Cell>
+    <Cell><Data ss:Type="String">APPROVED</Data></Cell>
+    <Cell><Data ss:Type="String"></Data></Cell>
+    <Cell><Data ss:Type="String">60.00</Data></Cell>
+    <Cell><Data ss:Type="String">32.40</Data></Cell>
+    <Cell><Data ss:Type="String">aafdaaad-9682-4d94-bb21-a897e33c533e</Data></Cell>
+    <Cell><Data ss:Type="String"></Data></Cell>
+    <Cell><Data ss:Type="String">2026-04-22 14:51:35.994</Data></Cell>
+    <Cell><Data ss:Type="String"></Data></Cell>
+   </Row>
+  </Table>
+  <WorksheetOptions xmlns="urn:schemas-microsoft-com:office:excel">
+   <ProtectObjects>False</ProtectObjects>
+   <ProtectScenarios>False</ProtectScenarios>
+  </WorksheetOptions>
+ </Worksheet>
+ <Worksheet ss:Name="Supervisor">
+  <Table ss:ExpandedColumnCount="30" ss:ExpandedRowCount="6" x:FullColumns="1"
+   x:FullRows="1" ss:DefaultColumnWidth="60" ss:DefaultRowHeight="15">
+   <Row ss:Height="12.75" ss:StyleID="s62">
+    <Cell><Data ss:Type="String">id</Data></Cell>
+    <Cell><Data ss:Type="String">userId</Data></Cell>
+    <Cell><Data ss:Type="String">fullName</Data></Cell>
+    <Cell><Data ss:Type="String">phone</Data></Cell>
+    <Cell><Data ss:Type="String">email</Data></Cell>
+    <Cell><Data ss:Type="String">address</Data></Cell>
+    <Cell><Data ss:Type="String">bacbId</Data></Cell>
+    <Cell><Data ss:Type="String">certificantNumber</Data></Cell>
+    <Cell><Data ss:Type="String">examDate</Data></Cell>
+    <Cell><Data ss:Type="String">training8hrDate</Data></Cell>
+    <Cell><Data ss:Type="String">availableDaysGroup</Data></Cell>
+    <Cell><Data ss:Type="String">monthStarted</Data></Cell>
+    <Cell><Data ss:Type="String">internalIdNumber</Data></Cell>
+    <Cell><Data ss:Type="String">dateQualified</Data></Cell>
+    <Cell><Data ss:Type="String">status</Data></Cell>
+    <Cell><Data ss:Type="String">companyName</Data></Cell>
+    <Cell><Data ss:Type="String">taxId</Data></Cell>
+    <Cell><Data ss:Type="String">bankName</Data></Cell>
+    <Cell><Data ss:Type="String">routingNumber</Data></Cell>
+    <Cell><Data ss:Type="String">accountNumber</Data></Cell>
+    <Cell><Data ss:Type="String">canEnterGroupHours</Data></Cell>
+    <Cell><Data ss:Type="String">rateRegular</Data></Cell>
+    <Cell><Data ss:Type="String">rateConcentrated</Data></Cell>
+    <Cell><Data ss:Type="String">paymentPercentage</Data></Cell>
+    <Cell><Data ss:Type="String">comments</Data></Cell>
+    <Cell><Data ss:Type="String">createdAt</Data></Cell>
+    <Cell><Data ss:Type="String">updatedAt</Data></Cell>
+    <Cell><Data ss:Type="String">credentialType</Data></Cell>
+    <Cell><Data ss:Type="String">maxStudents</Data></Cell>
+    <Cell><Data ss:Type="String">importBatchId</Data></Cell>
+   </Row>
+   <Row ss:Height="12.75" ss:StyleID="s63">
+    <Cell><Data ss:Type="String">TEXT (ID) (REQ)</Data></Cell>
+    <Cell><Data ss:Type="String">TEXT (REQ)</Data></Cell>
+    <Cell><Data ss:Type="String">TEXT (REQ)</Data></Cell>
+    <Cell><Data ss:Type="String">TEXT (REQ)</Data></Cell>
+    <Cell><Data ss:Type="String">TEXT (REQ)</Data></Cell>
+    <Cell><Data ss:Type="String">TEXT (REQ)</Data></Cell>
+    <Cell><Data ss:Type="String">TEXT (REQ)</Data></Cell>
+    <Cell><Data ss:Type="String">TEXT (REQ)</Data></Cell>
+    <Cell><Data ss:Type="String">TIMESTAMP WITHOUT TIME ZONE</Data></Cell>
+    <Cell><Data ss:Type="String">TIMESTAMP WITHOUT TIME ZONE</Data></Cell>
+    <Cell><Data ss:Type="String">ARRAY</Data></Cell>
+    <Cell><Data ss:Type="String">TIMESTAMP WITHOUT TIME ZONE</Data></Cell>
+    <Cell><Data ss:Type="String">TEXT</Data></Cell>
+    <Cell><Data ss:Type="String">TIMESTAMP WITHOUT TIME ZONE</Data></Cell>
+    <Cell><Data ss:Type="String">USER-DEFINED (REQ)</Data></Cell>
+    <Cell><Data ss:Type="String">TEXT</Data></Cell>
+    <Cell><Data ss:Type="String">TEXT</Data></Cell>
+    <Cell><Data ss:Type="String">TEXT</Data></Cell>
+    <Cell><Data ss:Type="String">TEXT</Data></Cell>
+    <Cell><Data ss:Type="String">TEXT</Data></Cell>
+    <Cell><Data ss:Type="String">BOOLEAN (REQ)</Data></Cell>
+    <Cell><Data ss:Type="String">NUMERIC</Data></Cell>
+    <Cell><Data ss:Type="String">NUMERIC</Data></Cell>
+    <Cell><Data ss:Type="String">NUMERIC</Data></Cell>
+    <Cell><Data ss:Type="String">TEXT</Data></Cell>
+    <Cell><Data ss:Type="String">TIMESTAMP WITHOUT TIME ZONE (REQ)</Data></Cell>
+    <Cell><Data ss:Type="String">TIMESTAMP WITHOUT TIME ZONE (REQ)</Data></Cell>
+    <Cell><Data ss:Type="String">USER-DEFINED (REQ)</Data></Cell>
+    <Cell><Data ss:Type="String">INTEGER (REQ)</Data></Cell>
+    <Cell><Data ss:Type="String">TEXT</Data></Cell>
+   </Row>
+   <Row>
+    <Cell><Data ss:Type="String">43a8be7e-8997-4127-be50-a7a32ee1bd1c</Data></Cell>
+    <Cell><Data ss:Type="String">1e4fda36-f6a0-4129-938d-8c719c0bf670</Data></Cell>
+    <Cell><Data ss:Type="String">Supervisor B</Data></Cell>
+    <Cell><Data ss:Type="String">19282736182</Data></Cell>
+    <Cell><Data ss:Type="String">supervisorb@abasystem.com</Data></Cell>
+    <Cell><Data ss:Type="String">Unknown</Data></Cell>
+    <Cell><Data ss:Type="String">PENDING</Data></Cell>
+    <Cell><Data ss:Type="String">PENDING</Data></Cell>
+    <Cell><Data ss:Type="String"></Data></Cell>
+    <Cell><Data ss:Type="String"></Data></Cell>
+    <Cell><Data ss:Type="String">{}</Data></Cell>
+    <Cell><Data ss:Type="String"></Data></Cell>
+    <Cell><Data ss:Type="String"></Data></Cell>
+    <Cell><Data ss:Type="String"></Data></Cell>
+    <Cell><Data ss:Type="String">ACTIVE</Data></Cell>
+    <Cell><Data ss:Type="String"></Data></Cell>
+    <Cell><Data ss:Type="String"></Data></Cell>
+    <Cell><Data ss:Type="String"></Data></Cell>
+    <Cell><Data ss:Type="String"></Data></Cell>
+    <Cell><Data ss:Type="String"></Data></Cell>
+    <Cell><Data ss:Type="String">f</Data></Cell>
+    <Cell><Data ss:Type="String"></Data></Cell>
+    <Cell><Data ss:Type="String"></Data></Cell>
+    <Cell><Data ss:Type="String">0.5400</Data></Cell>
+    <Cell><Data ss:Type="String"></Data></Cell>
+    <Cell><Data ss:Type="String">2026-04-07 00:59:41.078</Data></Cell>
+    <Cell><Data ss:Type="String">2026-04-09 21:23:26.264</Data></Cell>
+    <Cell><Data ss:Type="String">BCBA</Data></Cell>
+    <Cell><Data ss:Type="String">10</Data></Cell>
+    <Cell><Data ss:Type="String"></Data></Cell>
+   </Row>
+   <Row>
+    <Cell><Data ss:Type="String">9064f97a-5ee1-4241-9e22-4c0d065d8009</Data></Cell>
+    <Cell><Data ss:Type="String">ff2dc69b-79d9-4f56-abb5-398520a40878</Data></Cell>
+    <Cell><Data ss:Type="String">QA Supervisor</Data></Cell>
+    <Cell><Data ss:Type="String">+5692828736</Data></Cell>
+    <Cell><Data ss:Type="String">qasupervisor@abasystem.com</Data></Cell>
+    <Cell><Data ss:Type="String">1234 Avenida Pablo Neruda, Santiago, Región Metropolitana de Santiago</Data></Cell>
+    <Cell><Data ss:Type="String">QA-SP-001</Data></Cell>
+    <Cell><Data ss:Type="String">165432</Data></Cell>
+    <Cell><Data ss:Type="String">2025-09-30 00:00:00</Data></Cell>
+    <Cell><Data ss:Type="String"></Data></Cell>
+    <Cell><Data ss:Type="String"></Data></Cell>
+    <Cell><Data ss:Type="String"></Data></Cell>
+    <Cell><Data ss:Type="String">234561</Data></Cell>
+    <Cell><Data ss:Type="String">2024-02-01 00:00:00</Data></Cell>
+    <Cell><Data ss:Type="String">ACTIVE</Data></Cell>
+    <Cell><Data ss:Type="String"></Data></Cell>
+    <Cell><Data ss:Type="String"></Data></Cell>
+    <Cell><Data ss:Type="String"></Data></Cell>
+    <Cell><Data ss:Type="String"></Data></Cell>
+    <Cell><Data ss:Type="String"></Data></Cell>
+    <Cell><Data ss:Type="String">t</Data></Cell>
+    <Cell><Data ss:Type="String"></Data></Cell>
+    <Cell><Data ss:Type="String"></Data></Cell>
+    <Cell><Data ss:Type="String">0.6000</Data></Cell>
+    <Cell><Data ss:Type="String"></Data></Cell>
+    <Cell><Data ss:Type="String">2026-04-07 00:47:44.525</Data></Cell>
+    <Cell><Data ss:Type="String">2026-04-22 14:57:49.506</Data></Cell>
+    <Cell><Data ss:Type="String">BCaBA</Data></Cell>
+    <Cell><Data ss:Type="String">10</Data></Cell>
+    <Cell><Data ss:Type="String"></Data></Cell>
+   </Row>
+   <Row>
+    <Cell><Data ss:Type="String">99ad8767-24a4-449b-84ed-07ed4cd1aa8c</Data></Cell>
+    <Cell><Data ss:Type="String">a462eab4-08c9-40b0-86a9-f545d8ce06b1</Data></Cell>
+    <Cell><Data ss:Type="String">SupervisorA</Data></Cell>
+    <Cell><Data ss:Type="String">9128282827</Data></Cell>
+    <Cell><Data ss:Type="String">supervisora@abasystem.com</Data></Cell>
+    <Cell><Data ss:Type="String">1234 N 13th St, Phoenix, Arizona</Data></Cell>
+    <Cell><Data ss:Type="String">PENDING</Data></Cell>
+    <Cell><Data ss:Type="String">754647458</Data></Cell>
+    <Cell><Data ss:Type="String">2024-06-01 00:00:00</Data></Cell>
+    <Cell><Data ss:Type="String"></Data></Cell>
+    <Cell><Data ss:Type="String">{}</Data></Cell>
+    <Cell><Data ss:Type="String"></Data></Cell>
+    <Cell><Data ss:Type="String"></Data></Cell>
+    <Cell><Data ss:Type="String">2024-05-01 00:00:00</Data></Cell>
+    <Cell><Data ss:Type="String">ACTIVE</Data></Cell>
+    <Cell><Data ss:Type="String"></Data></Cell>
+    <Cell><Data ss:Type="String"></Data></Cell>
+    <Cell><Data ss:Type="String"></Data></Cell>
+    <Cell><Data ss:Type="String"></Data></Cell>
+    <Cell><Data ss:Type="String"></Data></Cell>
+    <Cell><Data ss:Type="String">f</Data></Cell>
+    <Cell><Data ss:Type="String"></Data></Cell>
+    <Cell><Data ss:Type="String"></Data></Cell>
+    <Cell><Data ss:Type="String">0.5400</Data></Cell>
+    <Cell><Data ss:Type="String"></Data></Cell>
+    <Cell><Data ss:Type="String">2026-04-07 00:59:08.93</Data></Cell>
+    <Cell><Data ss:Type="String">2026-04-15 15:38:05.718</Data></Cell>
+    <Cell><Data ss:Type="String">BCBA</Data></Cell>
+    <Cell><Data ss:Type="String">10</Data></Cell>
+    <Cell><Data ss:Type="String"></Data></Cell>
+   </Row>
+   <Row>
+    <Cell><Data ss:Type="String">e4a635f1-9395-4f32-b712-04dc4dc45c05</Data></Cell>
+    <Cell><Data ss:Type="String">5c7d22e7-4c97-4e9b-b589-c344bbb37c33</Data></Cell>
+    <Cell><Data ss:Type="String">SUPERVISOR C</Data></Cell>
+    <Cell><Data ss:Type="String">963067592</Data></Cell>
+    <Cell><Data ss:Type="String">supervisorc@abasystem.com</Data></Cell>
+    <Cell><Data ss:Type="String">Unknown</Data></Cell>
+    <Cell><Data ss:Type="String">PENDING</Data></Cell>
+    <Cell><Data ss:Type="String">PENDING</Data></Cell>
+    <Cell><Data ss:Type="String"></Data></Cell>
+    <Cell><Data ss:Type="String"></Data></Cell>
+    <Cell><Data ss:Type="String">{}</Data></Cell>
+    <Cell><Data ss:Type="String"></Data></Cell>
+    <Cell><Data ss:Type="String"></Data></Cell>
+    <Cell><Data ss:Type="String"></Data></Cell>
+    <Cell><Data ss:Type="String">ACTIVE</Data></Cell>
+    <Cell><Data ss:Type="String"></Data></Cell>
+    <Cell><Data ss:Type="String"></Data></Cell>
+    <Cell><Data ss:Type="String"></Data></Cell>
+    <Cell><Data ss:Type="String"></Data></Cell>
+    <Cell><Data ss:Type="String"></Data></Cell>
+    <Cell><Data ss:Type="String">f</Data></Cell>
+    <Cell><Data ss:Type="String"></Data></Cell>
+    <Cell><Data ss:Type="String"></Data></Cell>
+    <Cell><Data ss:Type="String">0.5400</Data></Cell>
+    <Cell><Data ss:Type="String"></Data></Cell>
+    <Cell><Data ss:Type="String">2026-04-18 16:41:44.894</Data></Cell>
+    <Cell><Data ss:Type="String">2026-04-18 16:41:44.894</Data></Cell>
+    <Cell><Data ss:Type="String">BCBA</Data></Cell>
+    <Cell><Data ss:Type="String">10</Data></Cell>
+    <Cell><Data ss:Type="String"></Data></Cell>
+   </Row>
+  </Table>
+  <WorksheetOptions xmlns="urn:schemas-microsoft-com:office:excel">
+   <ProtectObjects>False</ProtectObjects>
+   <ProtectScenarios>False</ProtectScenarios>
+  </WorksheetOptions>
+ </Worksheet>
+ <Worksheet ss:Name="SupervisorGroup">
+  <Table ss:ExpandedColumnCount="5" ss:ExpandedRowCount="7" x:FullColumns="1"
+   x:FullRows="1" ss:DefaultColumnWidth="60" ss:DefaultRowHeight="15">
+   <Row ss:Height="12.75" ss:StyleID="s62">
+    <Cell><Data ss:Type="String">id</Data></Cell>
+    <Cell><Data ss:Type="String">supervisorId</Data></Cell>
+    <Cell><Data ss:Type="String">name</Data></Cell>
+    <Cell><Data ss:Type="String">createdAt</Data></Cell>
+    <Cell><Data ss:Type="String">updatedAt</Data></Cell>
+   </Row>
+   <Row ss:Height="12.75" ss:StyleID="s63">
+    <Cell><Data ss:Type="String">TEXT (ID) (REQ)</Data></Cell>
+    <Cell><Data ss:Type="String">TEXT (REQ)</Data></Cell>
+    <Cell><Data ss:Type="String">TEXT (REQ)</Data></Cell>
+    <Cell><Data ss:Type="String">TIMESTAMP WITHOUT TIME ZONE (REQ)</Data></Cell>
+    <Cell><Data ss:Type="String">TIMESTAMP WITHOUT TIME ZONE (REQ)</Data></Cell>
+   </Row>
+   <Row>
+    <Cell><Data ss:Type="String">7cb82f63-944f-4ce7-a95a-4eceeb19c442</Data></Cell>
+    <Cell><Data ss:Type="String">9064f97a-5ee1-4241-9e22-4c0d065d8009</Data></Cell>
+    <Cell><Data ss:Type="String">GRUPO A</Data></Cell>
+    <Cell><Data ss:Type="String">2026-04-10 16:53:45.318</Data></Cell>
+    <Cell><Data ss:Type="String">2026-04-10 16:53:45.318</Data></Cell>
+   </Row>
+   <Row>
+    <Cell><Data ss:Type="String">6be4337f-fe6a-4443-9a70-2634bc42fcf9</Data></Cell>
+    <Cell><Data ss:Type="String">9064f97a-5ee1-4241-9e22-4c0d065d8009</Data></Cell>
+    <Cell><Data ss:Type="String">GROUP B</Data></Cell>
+    <Cell><Data ss:Type="String">2026-04-10 17:04:31.989</Data></Cell>
+    <Cell><Data ss:Type="String">2026-04-10 17:04:31.989</Data></Cell>
+   </Row>
+   <Row>
+    <Cell><Data ss:Type="String">20d27f0e-35ab-4d5a-a2e7-bb3b5912f883</Data></Cell>
+    <Cell><Data ss:Type="String">99ad8767-24a4-449b-84ed-07ed4cd1aa8c</Data></Cell>
+    <Cell><Data ss:Type="String">Hermanos Zúñiga</Data></Cell>
+    <Cell><Data ss:Type="String">2026-04-15 15:12:23.042</Data></Cell>
+    <Cell><Data ss:Type="String">2026-04-15 15:12:23.042</Data></Cell>
+   </Row>
+   <Row>
+    <Cell><Data ss:Type="String">85a389bb-eff8-4baa-b573-8d6be537a8c6</Data></Cell>
+    <Cell><Data ss:Type="String">99ad8767-24a4-449b-84ed-07ed4cd1aa8c</Data></Cell>
+    <Cell><Data ss:Type="String">HERMANOS Z</Data></Cell>
+    <Cell><Data ss:Type="String">2026-04-15 21:42:22.012</Data></Cell>
+    <Cell><Data ss:Type="String">2026-04-15 21:42:22.012</Data></Cell>
+   </Row>
+   <Row>
+    <Cell><Data ss:Type="String">3aced375-7357-4998-9fd9-ec0f8725ce40</Data></Cell>
+    <Cell><Data ss:Type="String">9064f97a-5ee1-4241-9e22-4c0d065d8009</Data></Cell>
+    <Cell><Data ss:Type="String">GRUPO DE PRUEBA</Data></Cell>
+    <Cell><Data ss:Type="String">2026-04-17 18:44:26.419</Data></Cell>
+    <Cell><Data ss:Type="String">2026-04-17 18:44:26.419</Data></Cell>
+   </Row>
+  </Table>
+  <WorksheetOptions xmlns="urn:schemas-microsoft-com:office:excel">
+   <ProtectObjects>False</ProtectObjects>
+   <ProtectScenarios>False</ProtectScenarios>
+  </WorksheetOptions>
+ </Worksheet>
+ <Worksheet ss:Name="SupervisorLedgerEntry">
+  <Table ss:ExpandedColumnCount="26" ss:ExpandedRowCount="3" x:FullColumns="1"
+   x:FullRows="1" ss:DefaultColumnWidth="60" ss:DefaultRowHeight="15">
+   <Row ss:Height="12.75" ss:StyleID="s62">
+    <Cell><Data ss:Type="String">id</Data></Cell>
+    <Cell><Data ss:Type="String">invoiceId</Data></Cell>
+    <Cell><Data ss:Type="String">supervisorId</Data></Cell>
+    <Cell><Data ss:Type="String">studentId</Data></Cell>
+    <Cell><Data ss:Type="String">paymentFromStudent</Data></Cell>
+    <Cell><Data ss:Type="String">supervisorCapTotal</Data></Cell>
+    <Cell><Data ss:Type="String">supervisorCapRemainingBefore</Data></Cell>
+    <Cell><Data ss:Type="String">supervisorPayout</Data></Cell>
+    <Cell><Data ss:Type="String">officePayout</Data></Cell>
+    <Cell><Data ss:Type="String">supervisorCapRemainingAfter</Data></Cell>
+    <Cell><Data ss:Type="String">createdAt</Data></Cell>
+    <Cell><Data ss:Type="String">individualHoursDelta</Data></Cell>
+    <Cell><Data ss:Type="String">paidAt</Data></Cell>
+    <Cell><Data ss:Type="String">paymentMethod</Data></Cell>
+    <Cell><Data ss:Type="String">paymentNotes</Data></Cell>
+    <Cell><Data ss:Type="String">paymentReference</Data></Cell>
+    <Cell><Data ss:Type="String">payoutStatus</Data></Cell>
+    <Cell><Data ss:Type="String">planHoursPerMonth</Data></Cell>
+    <Cell><Data ss:Type="String">planIndividualHours</Data></Cell>
+    <Cell><Data ss:Type="String">planMonthlyPayment</Data></Cell>
+    <Cell><Data ss:Type="String">planSupervisedHours</Data></Cell>
+    <Cell><Data ss:Type="String">supervisedHoursActual</Data></Cell>
+    <Cell><Data ss:Type="String">planGroupSupervisionDelta</Data></Cell>
+    <Cell><Data ss:Type="String">planGroupSupervisionTarget</Data></Cell>
+    <Cell><Data ss:Type="String">planIndividualSupervisedDelta</Data></Cell>
+    <Cell><Data ss:Type="String">planIndividualSupervisedTarget</Data></Cell>
+   </Row>
+   <Row ss:Height="12.75" ss:StyleID="s63">
+    <Cell><Data ss:Type="String">TEXT (ID) (REQ)</Data></Cell>
+    <Cell><Data ss:Type="String">TEXT (REQ)</Data></Cell>
+    <Cell><Data ss:Type="String">TEXT (REQ)</Data></Cell>
+    <Cell><Data ss:Type="String">TEXT (REQ)</Data></Cell>
+    <Cell><Data ss:Type="String">NUMERIC (REQ)</Data></Cell>
+    <Cell><Data ss:Type="String">NUMERIC (REQ)</Data></Cell>
+    <Cell><Data ss:Type="String">NUMERIC (REQ)</Data></Cell>
+    <Cell><Data ss:Type="String">NUMERIC (REQ)</Data></Cell>
+    <Cell><Data ss:Type="String">NUMERIC (REQ)</Data></Cell>
+    <Cell><Data ss:Type="String">NUMERIC (REQ)</Data></Cell>
+    <Cell><Data ss:Type="String">TIMESTAMP WITHOUT TIME ZONE (REQ)</Data></Cell>
+    <Cell><Data ss:Type="String">NUMERIC</Data></Cell>
+    <Cell><Data ss:Type="String">TIMESTAMP WITHOUT TIME ZONE</Data></Cell>
+    <Cell><Data ss:Type="String">TEXT</Data></Cell>
+    <Cell><Data ss:Type="String">TEXT</Data></Cell>
+    <Cell><Data ss:Type="String">TEXT</Data></Cell>
+    <Cell><Data ss:Type="String">TEXT (REQ)</Data></Cell>
+    <Cell><Data ss:Type="String">INTEGER</Data></Cell>
+    <Cell><Data ss:Type="String">NUMERIC</Data></Cell>
+    <Cell><Data ss:Type="String">NUMERIC</Data></Cell>
+    <Cell><Data ss:Type="String">NUMERIC</Data></Cell>
+    <Cell><Data ss:Type="String">NUMERIC</Data></Cell>
+    <Cell><Data ss:Type="String">NUMERIC</Data></Cell>
+    <Cell><Data ss:Type="String">NUMERIC</Data></Cell>
+    <Cell><Data ss:Type="String">NUMERIC</Data></Cell>
+    <Cell><Data ss:Type="String">NUMERIC</Data></Cell>
+   </Row>
+   <Row>
+    <Cell><Data ss:Type="String">7d73e6bb-f37c-4992-81aa-01e9df386046</Data></Cell>
+    <Cell><Data ss:Type="String">aafdaaad-9682-4d94-bb21-a897e33c533e</Data></Cell>
+    <Cell><Data ss:Type="String">99ad8767-24a4-449b-84ed-07ed4cd1aa8c</Data></Cell>
+    <Cell><Data ss:Type="String">9bfcddd9-bd04-4231-ae3e-b1d9f7939c34</Data></Cell>
+    <Cell><Data ss:Type="String">1980.00</Data></Cell>
+    <Cell><Data ss:Type="String">226.80</Data></Cell>
+    <Cell><Data ss:Type="String">226.80</Data></Cell>
+    <Cell><Data ss:Type="String">226.80</Data></Cell>
+    <Cell><Data ss:Type="String">1753.20</Data></Cell>
+    <Cell><Data ss:Type="String">0.00</Data></Cell>
+    <Cell><Data ss:Type="String">2026-04-22 15:13:39.073</Data></Cell>
+    <Cell><Data ss:Type="String"></Data></Cell>
+    <Cell><Data ss:Type="String">2026-04-22 15:13:45.913</Data></Cell>
+    <Cell><Data ss:Type="String">ZELLE</Data></Cell>
+    <Cell><Data ss:Type="String"></Data></Cell>
+    <Cell><Data ss:Type="String"></Data></Cell>
+    <Cell><Data ss:Type="String">PAID</Data></Cell>
+    <Cell><Data ss:Type="String">160</Data></Cell>
+    <Cell><Data ss:Type="String">152.0000</Data></Cell>
+    <Cell><Data ss:Type="String">461.54</Data></Cell>
+    <Cell><Data ss:Type="String">7.6923</Data></Cell>
+    <Cell><Data ss:Type="String"></Data></Cell>
+    <Cell><Data ss:Type="String"></Data></Cell>
+    <Cell><Data ss:Type="String">26.0000</Data></Cell>
+    <Cell><Data ss:Type="String"></Data></Cell>
+    <Cell><Data ss:Type="String">74.0000</Data></Cell>
+   </Row>
+  </Table>
+  <WorksheetOptions xmlns="urn:schemas-microsoft-com:office:excel">
+   <ProtectObjects>False</ProtectObjects>
+   <ProtectScenarios>False</ProtectScenarios>
+  </WorksheetOptions>
+ </Worksheet>
+ <Worksheet ss:Name="SupervisorPayment">
+  <Table ss:ExpandedColumnCount="10" ss:ExpandedRowCount="3" x:FullColumns="1"
+   x:FullRows="1" ss:DefaultColumnWidth="60" ss:DefaultRowHeight="15">
+   <Row ss:Height="12.75" ss:StyleID="s62">
+    <Cell><Data ss:Type="String">id</Data></Cell>
+    <Cell><Data ss:Type="String">supervisorId</Data></Cell>
+    <Cell><Data ss:Type="String">studentId</Data></Cell>
+    <Cell><Data ss:Type="String">monthYear</Data></Cell>
+    <Cell><Data ss:Type="String">amountDue</Data></Cell>
+    <Cell><Data ss:Type="String">amountPaidThisMonth</Data></Cell>
+    <Cell><Data ss:Type="String">amountAlreadyPaid</Data></Cell>
+    <Cell><Data ss:Type="String">balanceDue</Data></Cell>
+    <Cell><Data ss:Type="String">importBatchId</Data></Cell>
+    <Cell><Data ss:Type="String">createdAt</Data></Cell>
+   </Row>
+   <Row ss:Height="12.75" ss:StyleID="s63">
+    <Cell><Data ss:Type="String">TEXT (ID) (REQ)</Data></Cell>
+    <Cell><Data ss:Type="String">TEXT (REQ)</Data></Cell>
+    <Cell><Data ss:Type="String">TEXT (REQ)</Data></Cell>
+    <Cell><Data ss:Type="String">TIMESTAMP WITHOUT TIME ZONE (REQ)</Data></Cell>
+    <Cell><Data ss:Type="String">NUMERIC (REQ)</Data></Cell>
+    <Cell><Data ss:Type="String">NUMERIC (REQ)</Data></Cell>
+    <Cell><Data ss:Type="String">NUMERIC (REQ)</Data></Cell>
+    <Cell><Data ss:Type="String">NUMERIC (REQ)</Data></Cell>
+    <Cell><Data ss:Type="String">TEXT</Data></Cell>
+    <Cell><Data ss:Type="String">TIMESTAMP WITHOUT TIME ZONE (REQ)</Data></Cell>
+   </Row>
+   <Row>
+    <Cell><Data ss:Type="String">10e6efd9-1b8b-4405-a028-78139a562296</Data></Cell>
+    <Cell><Data ss:Type="String">99ad8767-24a4-449b-84ed-07ed4cd1aa8c</Data></Cell>
+    <Cell><Data ss:Type="String">9bfcddd9-bd04-4231-ae3e-b1d9f7939c34</Data></Cell>
+    <Cell><Data ss:Type="String">2026-04-01 00:00:00</Data></Cell>
+    <Cell><Data ss:Type="String">226.80</Data></Cell>
+    <Cell><Data ss:Type="String">0.00</Data></Cell>
+    <Cell><Data ss:Type="String">0.00</Data></Cell>
+    <Cell><Data ss:Type="String">226.80</Data></Cell>
+    <Cell><Data ss:Type="String"></Data></Cell>
+    <Cell><Data ss:Type="String">2026-04-22 15:13:06.517</Data></Cell>
+   </Row>
+  </Table>
+  <WorksheetOptions xmlns="urn:schemas-microsoft-com:office:excel">
+   <ProtectObjects>False</ProtectObjects>
+   <ProtectScenarios>False</ProtectScenarios>
+  </WorksheetOptions>
+ </Worksheet>
+ <Worksheet ss:Name="SupervisorPayout">
+  <Table ss:ExpandedColumnCount="8" ss:ExpandedRowCount="3" x:FullColumns="1"
+   x:FullRows="1" ss:DefaultColumnWidth="60" ss:DefaultRowHeight="15">
+   <Row ss:Height="12.75" ss:StyleID="s62">
+    <Cell><Data ss:Type="String">id</Data></Cell>
+    <Cell><Data ss:Type="String">invoiceId</Data></Cell>
+    <Cell><Data ss:Type="String">supervisorId</Data></Cell>
+    <Cell><Data ss:Type="String">amount</Data></Cell>
+    <Cell><Data ss:Type="String">method</Data></Cell>
+    <Cell><Data ss:Type="String">reference</Data></Cell>
+    <Cell><Data ss:Type="String">notes</Data></Cell>
+    <Cell><Data ss:Type="String">createdAt</Data></Cell>
+   </Row>
+   <Row ss:Height="12.75" ss:StyleID="s63">
+    <Cell><Data ss:Type="String">TEXT (ID) (REQ)</Data></Cell>
+    <Cell><Data ss:Type="String">TEXT (REQ)</Data></Cell>
+    <Cell><Data ss:Type="String">TEXT (REQ)</Data></Cell>
+    <Cell><Data ss:Type="String">NUMERIC (REQ)</Data></Cell>
+    <Cell><Data ss:Type="String">TEXT (REQ)</Data></Cell>
+    <Cell><Data ss:Type="String">TEXT</Data></Cell>
+    <Cell><Data ss:Type="String">TEXT</Data></Cell>
+    <Cell><Data ss:Type="String">TIMESTAMP WITHOUT TIME ZONE (REQ)</Data></Cell>
+   </Row>
+   <Row>
+    <Cell><Data ss:Type="String">69e3e73d-3277-424f-943e-27858008c1f2</Data></Cell>
+    <Cell><Data ss:Type="String">aafdaaad-9682-4d94-bb21-a897e33c533e</Data></Cell>
+    <Cell><Data ss:Type="String">99ad8767-24a4-449b-84ed-07ed4cd1aa8c</Data></Cell>
+    <Cell><Data ss:Type="String">226.80</Data></Cell>
+    <Cell><Data ss:Type="String">ZELLE</Data></Cell>
+    <Cell><Data ss:Type="String"></Data></Cell>
+    <Cell><Data ss:Type="String"></Data></Cell>
+    <Cell><Data ss:Type="String">2026-04-22 15:13:45.92</Data></Cell>
+   </Row>
+  </Table>
+  <WorksheetOptions xmlns="urn:schemas-microsoft-com:office:excel">
+   <ProtectObjects>False</ProtectObjects>
+   <ProtectScenarios>False</ProtectScenarios>
+  </WorksheetOptions>
+ </Worksheet>
+ <Worksheet ss:Name="User">
+  <Table ss:ExpandedColumnCount="15" ss:ExpandedRowCount="7" x:FullColumns="1"
+   x:FullRows="1" ss:DefaultColumnWidth="60" ss:DefaultRowHeight="15">
+   <Row ss:Height="12.75" ss:StyleID="s62">
+    <Cell><Data ss:Type="String">id</Data></Cell>
+    <Cell><Data ss:Type="String">email</Data></Cell>
+    <Cell><Data ss:Type="String">passwordHash</Data></Cell>
+    <Cell><Data ss:Type="String">role</Data></Cell>
+    <Cell><Data ss:Type="String">isActive</Data></Cell>
+    <Cell><Data ss:Type="String">isHidden</Data></Cell>
+    <Cell><Data ss:Type="String">isFirstLogin</Data></Cell>
+    <Cell><Data ss:Type="String">onboardingCompleted</Data></Cell>
+    <Cell><Data ss:Type="String">onboardingStep</Data></Cell>
+    <Cell><Data ss:Type="String">signatureUrl</Data></Cell>
+    <Cell><Data ss:Type="String">initialsUrl</Data></Cell>
+    <Cell><Data ss:Type="String">createdAt</Data></Cell>
+    <Cell><Data ss:Type="String">updatedAt</Data></Cell>
+    <Cell><Data ss:Type="String">requiresWizard</Data></Cell>
+    <Cell><Data ss:Type="String">inviteSent</Data></Cell>
+   </Row>
+   <Row ss:Height="12.75" ss:StyleID="s63">
+    <Cell><Data ss:Type="String">TEXT (ID) (REQ)</Data></Cell>
+    <Cell><Data ss:Type="String">TEXT (REQ)</Data></Cell>
+    <Cell><Data ss:Type="String">TEXT (REQ)</Data></Cell>
+    <Cell><Data ss:Type="String">USER-DEFINED (REQ)</Data></Cell>
+    <Cell><Data ss:Type="String">BOOLEAN (REQ)</Data></Cell>
+    <Cell><Data ss:Type="String">BOOLEAN (REQ)</Data></Cell>
+    <Cell><Data ss:Type="String">BOOLEAN (REQ)</Data></Cell>
+    <Cell><Data ss:Type="String">BOOLEAN (REQ)</Data></Cell>
+    <Cell><Data ss:Type="String">INTEGER (REQ)</Data></Cell>
+    <Cell><Data ss:Type="String">TEXT</Data></Cell>
+    <Cell><Data ss:Type="String">TEXT</Data></Cell>
+    <Cell><Data ss:Type="String">TIMESTAMP WITHOUT TIME ZONE (REQ)</Data></Cell>
+    <Cell><Data ss:Type="String">TIMESTAMP WITHOUT TIME ZONE (REQ)</Data></Cell>
+    <Cell><Data ss:Type="String">BOOLEAN (REQ)</Data></Cell>
+    <Cell><Data ss:Type="String">BOOLEAN (REQ)</Data></Cell>
+   </Row>
+   <Row>
+    <Cell><Data ss:Type="String">fad5522d-6850-4911-b928-add0f6c130dc</Data></Cell>
+    <Cell><Data ss:Type="String">qaoffice@abasystem.com</Data></Cell>
+    <Cell><Data ss:Type="String">$2b$10$cxhdEs4rDC93B/pBP13M3eFcOiRqCWZxA3d1LzXJ7J07KGc6vAtii</Data></Cell>
+    <Cell><Data ss:Type="String">OFFICE</Data></Cell>
+    <Cell><Data ss:Type="String">t</Data></Cell>
+    <Cell><Data ss:Type="String">f</Data></Cell>
+    <Cell><Data ss:Type="String">f</Data></Cell>
+    <Cell><Data ss:Type="String">f</Data></Cell>
+    <Cell><Data ss:Type="String">1</Data></Cell>
+    <Cell><Data ss:Type="String"></Data></Cell>
+    <Cell><Data ss:Type="String"></Data></Cell>
+    <Cell><Data ss:Type="String">2026-04-07 00:47:44.536</Data></Cell>
+    <Cell><Data ss:Type="String">2026-04-20 00:46:22.961</Data></Cell>
+    <Cell><Data ss:Type="String">f</Data></Cell>
+    <Cell><Data ss:Type="String">f</Data></Cell>
+   </Row>
+   <Row>
+    <Cell><Data ss:Type="String">3387d731-9437-4a57-a1f1-a16383d633d1</Data></Cell>
+    <Cell><Data ss:Type="String">qa-super@abasystem.com</Data></Cell>
+    <Cell><Data ss:Type="String">$2b$10$7c.GKq/PD3.8DWH8t47Ic.a/nGL3KJzEX2chFja1k4KL9U0qcZH7O</Data></Cell>
+    <Cell><Data ss:Type="String">OFFICE</Data></Cell>
+    <Cell><Data ss:Type="String">t</Data></Cell>
+    <Cell><Data ss:Type="String">f</Data></Cell>
+    <Cell><Data ss:Type="String">f</Data></Cell>
+    <Cell><Data ss:Type="String">t</Data></Cell>
+    <Cell><Data ss:Type="String">3</Data></Cell>
+    <Cell><Data ss:Type="String"></Data></Cell>
+    <Cell><Data ss:Type="String"></Data></Cell>
+    <Cell><Data ss:Type="String">2026-04-07 00:47:44.546</Data></Cell>
+    <Cell><Data ss:Type="String">2026-04-07 00:52:35.348</Data></Cell>
+    <Cell><Data ss:Type="String">f</Data></Cell>
+    <Cell><Data ss:Type="String">f</Data></Cell>
+   </Row>
+   <Row>
+    <Cell><Data ss:Type="String">cbebc440-b27f-44a4-93c2-004434a7435a</Data></Cell>
+    <Cell><Data ss:Type="String">testsuperoffice@abasystem.com</Data></Cell>
+    <Cell><Data ss:Type="String">$2b$10$yqXARkvx9mWdeAocKdSUnOitK6x.q32cryJhKXHFB5NtzYCIxNA7C</Data></Cell>
+    <Cell><Data ss:Type="String">OFFICE</Data></Cell>
+    <Cell><Data ss:Type="String">t</Data></Cell>
+    <Cell><Data ss:Type="String">f</Data></Cell>
+    <Cell><Data ss:Type="String">t</Data></Cell>
+    <Cell><Data ss:Type="String">f</Data></Cell>
+    <Cell><Data ss:Type="String">0</Data></Cell>
+    <Cell><Data ss:Type="String"></Data></Cell>
+    <Cell><Data ss:Type="String"></Data></Cell>
+    <Cell><Data ss:Type="String">2026-04-06 22:57:14.66</Data></Cell>
+    <Cell><Data ss:Type="String">2026-04-07 00:57:26.056</Data></Cell>
+    <Cell><Data ss:Type="String">f</Data></Cell>
+    <Cell><Data ss:Type="String">f</Data></Cell>
+   </Row>
+   <Row>
+    <Cell><Data ss:Type="String">f95e21c3-dad0-4842-a4e5-d45bdcf7dd5e</Data></Cell>
+    <Cell><Data ss:Type="String">qaestudiante@abasystem.com</Data></Cell>
+    <Cell><Data ss:Type="String">$2b$10$DYgC0saIXzvy2RdMP9GA5ehBWMc9E0jEI2yc20b/tjqjmccZcg7f6</Data></Cell>
+    <Cell><Data ss:Type="String">STUDENT</Data></Cell>
+    <Cell><Data ss:Type="String">t</Data></Cell>
+    <Cell><Data ss:Type="String">f</Data></Cell>
+    <Cell><Data ss:Type="String">f</Data></Cell>
+    <Cell><Data ss:Type="String">t</Data></Cell>
+    <Cell><Data ss:Type="String">3</Data></Cell>
+    <Cell><Data ss:Type="String">data:image/png;base64,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</Data></Cell>
+    <Cell><Data ss:Type="String">data:image/png;base64,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</Data></Cell>
+    <Cell><Data ss:Type="String">2026-04-07 00:47:44.502</Data></Cell>
+    <Cell><Data ss:Type="String">2026-04-08 13:13:21.287</Data></Cell>
+    <Cell><Data ss:Type="String">f</Data></Cell>
+    <Cell><Data ss:Type="String">f</Data></Cell>
+   </Row>
+   <Row>
+    <Cell><Data ss:Type="String">ff2dc69b-79d9-4f56-abb5-398520a40878</Data></Cell>
+    <Cell><Data ss:Type="String">qasupervisor@abasystem.com</Data></Cell>
+    <Cell><Data ss:Type="String">$2b$10$bYEUZKN1XhqHYcp2yxsJFeh6ROZmsBFWWn2izfeHNTh/isFRBzmvK</Data></Cell>
+    <Cell><Data ss:Type="String">SUPERVISOR</Data></Cell>
+    <Cell><Data ss:Type="String">t</Data></Cell>
+    <Cell><Data ss:Type="String">f</Data></Cell>
+    <Cell><Data ss:Type="String">f</Data></Cell>
+    <Cell><Data ss:Type="String">t</Data></Cell>
+    <Cell><Data ss:Type="String">3</Data></Cell>
+    <Cell><Data ss:Type="String">data:image/png;base64,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</Data></Cell>
+    <Cell><Data ss:Type="String">data:image/png;base64,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</Data></Cell>
+    <Cell><Data ss:Type="String">2026-04-07 00:47:44.525</Data></Cell>
+    <Cell><Data ss:Type="String">2026-04-08 19:43:43.55</Data></Cell>
+    <Cell><Data ss:Type="String">f</Data></Cell>
+    <Cell><Data ss:Type="String">f</Data></Cell>
+   </Row>
+  </Table>
+  <WorksheetOptions xmlns="urn:schemas-microsoft-com:office:excel">
+   <ProtectObjects>False</ProtectObjects>
+   <ProtectScenarios>False</ProtectScenarios>
+  </WorksheetOptions>
+ </Worksheet>
+</Workbook>

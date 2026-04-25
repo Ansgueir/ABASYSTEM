@@ -178,7 +178,7 @@ export function ImportStaging() {
                     </CardDescription>
                 </CardHeader>
                 <CardContent>
-                    <div className="flex items-end gap-4 p-4 bg-slate-50 rounded-xl border border-slate-100">
+                    <div className="flex items-end gap-4 p-4 bg-slate-50 rounded-xl border border-slate-100 flex-wrap">
                         <div className="grid w-full max-w-sm items-center gap-1.5">
                             <Label htmlFor="import-excel">Archivo Excel (.xlsx)</Label>
                             <Input id="import-excel" type="file" accept=".xlsx" onChange={handleFileChange} className="bg-white" />
@@ -186,6 +186,11 @@ export function ImportStaging() {
                         <Button onClick={handleUpload} disabled={!file || isStaging} className="bg-indigo-600 hover:bg-indigo-700">
                             {isStaging ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <FileSpreadsheet className="h-4 w-4 mr-2" />}
                             Run Staging Phase
+                        </Button>
+                        <div className="flex-1 min-w-[20px]" />
+                        <Button onClick={() => window.open('/api/office/vault/export', '_blank')} className="bg-emerald-600 hover:bg-emerald-700 shadow-md">
+                            <Download className="h-4 w-4 mr-2" />
+                            Download DB Export (Consolidated)
                         </Button>
                     </div>
                 </CardContent>
