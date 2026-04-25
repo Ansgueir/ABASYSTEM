@@ -224,45 +224,12 @@ function pendingInvoicesSection(entries: LedgerEntry[], setSelected: any) {
                     </div>
                     
                     <div className="flex items-center gap-6">
-                        <div className="text-right">
-                             <p className="text-[9px] text-slate-300 uppercase font-black tracking-widest leading-none mb-1">Math Basis</p>
-                             <div className="flex flex-col items-end">
-                                <span className="text-[10px] font-mono text-slate-400">
-                                    {fmtUSD(entry.mathData?.individualBilledTotal)} × {(entry.mathData?.effectiveCommission || 0.6) * 100}%
-                                </span>
-                             </div>
-                        </div>
-
-                        <div className="text-right border-l pl-4 border-slate-100">
+                        <div className="text-right pl-4">
                             <p className="text-[9px] text-primary uppercase font-black tracking-widest leading-none mb-1">Supervisor Share</p>
                             <p className="text-sm font-black text-green-700 leading-none">{fmtUSD(entry.supervisorPayout)}</p>
                         </div>
                         
                         <div className="flex items-center gap-2 pl-4 border-l border-slate-100">
-                            <Popover>
-                                <PopoverTrigger asChild>
-                                    <Button variant="ghost" size="sm" className="h-8 w-8 p-0 text-slate-300 hover:text-primary">
-                                        <Calculator className="h-3.5 w-3.5" />
-                                    </Button>
-                                </PopoverTrigger>
-                                <PopoverContent className="w-64 p-3 rounded-xl shadow-lg border-border" align="end">
-                                    <p className="text-[10px] font-bold text-primary uppercase tracking-widest mb-2 border-b pb-1">Calculation Proof</p>
-                                    <div className="space-y-1.5 text-[10px]">
-                                        <div className="flex justify-between text-muted-foreground">
-                                            <span>Individual Billed Volume</span>
-                                            <span>{fmtUSD(entry.mathData?.individualBilledTotal)}</span>
-                                        </div>
-                                        <div className="flex justify-between text-muted-foreground">
-                                            <span>Effective Cap Rate ({(entry.mathData?.effectiveCommission || 0.6) * 100}%)</span>
-                                            <span className="font-bold text-slate-700">{fmtUSD(entry.supervisorCapTotal)}</span>
-                                        </div>
-                                        <div className="pt-1.5 mt-1.5 border-t border-dashed flex justify-between font-black text-xs text-primary">
-                                            <span>Final Share Payout</span>
-                                            <span>{fmtUSD(entry.supervisorPayout)}</span>
-                                        </div>
-                                    </div>
-                                </PopoverContent>
-                            </Popover>
                             
                             <Button
                                 size="sm"
@@ -293,7 +260,6 @@ function settledInvoicesSection(entries: LedgerEntry[]) {
                         <tr className="border-b bg-muted/40 text-muted-foreground">
                             <th className="text-left py-2 px-4 font-bold uppercase text-[9px]">Student</th>
                             <th className="text-left py-2 px-4 font-bold uppercase text-[9px]">Settled Date</th>
-                            <th className="text-center py-2 px-4 font-bold uppercase text-[9px]">Formula Proof</th>
                             <th className="text-right py-2 px-4 font-bold uppercase text-[9px]">Final Payout</th>
                             <th className="text-left py-2 px-4 font-bold uppercase text-[9px]">Method</th>
                         </tr>
@@ -303,30 +269,6 @@ function settledInvoicesSection(entries: LedgerEntry[]) {
                             <tr key={entry.id} className="hover:bg-muted/10 transition-colors">
                                 <td className="py-2.5 px-4 font-extrabold text-slate-700">{entry.student.fullName}</td>
                                 <td className="py-2.5 px-4 text-slate-400 font-medium">{fmtDate(entry.paidAt || entry.createdAt)}</td>
-                                <td className="py-2.5 px-4 text-center">
-                                    <Popover>
-                                        <PopoverTrigger className="text-[10px] font-mono text-slate-400 bg-slate-50 px-2 py-0.5 rounded border border-slate-100 hover:text-primary transition-colors">
-                                            {fmtUSD(entry.mathData?.individualBilledTotal)} × {(entry.mathData?.effectiveCommission || 0.6) * 100}%
-                                        </PopoverTrigger>
-                                        <PopoverContent className="w-64 p-3 rounded-xl border-border shadow-lg" side="top">
-                                            <p className="text-[10px] font-black text-primary uppercase tracking-widest mb-2 border-b pb-1">Waterfall Settlement Proof</p>
-                                            <div className="space-y-1 text-[10px]">
-                                                <div className="flex justify-between">
-                                                    <span>Billed Indiv Hours</span>
-                                                    <span className="font-bold">{fmtUSD(entry.mathData?.individualBilledTotal)}</span>
-                                                </div>
-                                                <div className="flex justify-between text-slate-400">
-                                                    <span>Supervisor Rate</span>
-                                                    <span>{(entry.mathData?.effectiveCommission || 0.6) * 100}%</span>
-                                                </div>
-                                                <div className="flex justify-between font-black text-green-700 border-t pt-1 mt-1">
-                                                    <span>Settled Payout</span>
-                                                    <span>{fmtUSD(entry.supervisorPayout)}</span>
-                                                </div>
-                                            </div>
-                                        </PopoverContent>
-                                    </Popover>
-                                </td>
                                 <td className="py-2.5 px-4 text-right font-black text-green-700 text-sm">{fmtUSD(entry.supervisorPayout)}</td>
                                 <td className="py-2.5 px-4">
                                     <div className="flex items-center gap-2">
