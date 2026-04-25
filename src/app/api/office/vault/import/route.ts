@@ -593,16 +593,28 @@ export async function POST(request: Request) {
                     }
                 })
                 
-                if (studentsToCreate.length > 0) {
-                    await tx.student.createMany({ data: studentsToCreate, skipDuplicates: true })
-                }
-                
-                // Update existing students to refresh their profile data (BACB ID, Plans, Supervisor)
-                for (const stu of studentsToUpdate) {
-                    await tx.student.update({
-                        where: { userId: stu.userId },
-                        data: stu
-                    })
+                try {
+                    if (studentsToCreate.length > 0) {
+                        console.log(`[IMPORT] Attempting to create ${studentsToCreate.length} new students...`);
+                        await tx.student.createMany({ data: studentsToCreate, skipDuplicates: true })
+                    }
+                    
+                    // Update existing students to refresh their profile data (BACB ID, Plans, Supervisor)
+                    if (studentsToUpdate.length > 0) {
+                        console.log(`[IMPORT] Refreshing ${studentsToUpdate.length} existing students...`);
+                        for (const stu of studentsToUpdate) {
+                            await tx.student.update({
+                                where: { userId: stu.userId },
+                                data: stu
+                            })
+                        }
+                    }
+                } catch (importErr) {
+                    console.error("[FATAL IMPORT] Student phase failed:", importErr);
+                    if (studentsToCreate.length > 0) {
+                        console.error("[FATAL IMPORT] Sample Create Data (first 2):", JSON.stringify(studentsToCreate.slice(0, 2), null, 2));
+                    }
+                    throw importErr;
                 }
 
                 const allStuds = await tx.student.findMany()
