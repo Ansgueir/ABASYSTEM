@@ -568,7 +568,7 @@ export async function POST(request: Request) {
                         status: normalizeStudentStatus(nu.fields.status || "ACTIVE"),
                         supervisorId,
                         phone: nu.fields.phone || "000-000-0000",
-                        bacbId: nu.fields.bacbId || "N/A", 
+                        bacbId: (nu.fields.bacbId || "N/A").toString().substring(0, 10), 
                         credential: normalizeCredentialType(nu.fields.credential || ""), 
                         school: nu.fields.school || "N/A", 
                         level: normalizeLevelType(nu.fields.level || ""), 
