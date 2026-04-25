@@ -4,14 +4,30 @@ const prisma = new PrismaClient();
 async function main() {
   console.log("Iniciando purga de datos...");
   
-  // 1. Borrar usuarios con rol STUDENT o SUPERVISOR
-  // El borrado en cascada en el esquema de Prisma se encargará de Student, Supervisor, 
-  // Contract, Invoice, Document, etc. vinculados a estos usuarios.
+  // 1. Borrar dependencias primero
+  await prisma.independentHour.deleteMany({});
+  await prisma.groupSupervisionAttendance.deleteMany({});
+  await prisma.contractGroupAssignment.deleteMany({});
+  await prisma.groupStudent.deleteMany({});
+  await prisma.contract.deleteMany({});
+  await prisma.invoice.deleteMany({});
+  await prisma.document.deleteMany({
+    where: {
+      user: {
+        role: { in: ["STUDENT", "SUPERVISOR"] }
+      }
+    }
+  });
+  await prisma.studentSupervisor.deleteMany({});
+  
+  // 2. Borrar perfiles
+  await prisma.student.deleteMany({});
+  await prisma.supervisor.deleteMany({});
+  
+  // 3. Borrar usuarios
   const deletedUsers = await prisma.user.deleteMany({
     where: {
-      role: {
-        in: ["STUDENT", "SUPERVISOR"]
-      }
+      role: { in: ["STUDENT", "SUPERVISOR"] }
     }
   });
   
