@@ -39,6 +39,21 @@ async function main() {
     }
   }
 
+  // Especial: Auditoría y Logs
+  try {
+    await prisma.auditLog.deleteMany({
+      where: {
+        user: {
+          role: { in: ["STUDENT", "SUPERVISOR"] }
+        }
+      }
+    });
+    await prisma.importLog.deleteMany({});
+    console.log("- Logs de auditoría e importación eliminados.");
+  } catch (e) {
+    console.warn("- Error al borrar logs, saltando...");
+  }
+
   // Especial: Documentos (solo de estudiantes y supervisores)
   try {
     const deletedDocs = await prisma.document.deleteMany({
