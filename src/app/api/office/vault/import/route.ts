@@ -594,9 +594,11 @@ export async function POST(request: Request) {
                 })
                 
                 try {
+                    console.log(`[DEBUG-IMPORT] Phase 3 Start: Students. Unique: ${uniqueStudents.length}, ToCreate: ${studentsToCreate.length}, ToUpdate: ${studentsToUpdate.length}`);
                     if (studentsToCreate.length > 0) {
                         console.log(`[IMPORT] Attempting to create ${studentsToCreate.length} new students...`);
                         await tx.student.createMany({ data: studentsToCreate, skipDuplicates: true })
+                        console.log(`[DEBUG-IMPORT] Student createMany SUCCESS`);
                     }
                     
                     // Update existing students to refresh their profile data (BACB ID, Plans, Supervisor)
@@ -608,11 +610,12 @@ export async function POST(request: Request) {
                                 data: stu
                             })
                         }
+                        console.log(`[DEBUG-IMPORT] Student updates SUCCESS`);
                     }
                 } catch (importErr) {
                     console.error("[FATAL IMPORT] Student phase failed:", importErr);
                     if (studentsToCreate.length > 0) {
-                        console.error("[FATAL IMPORT] Sample Create Data (first 2):", JSON.stringify(studentsToCreate.slice(0, 2), null, 2));
+                        console.error("[FATAL IMPORT] Sample Create Data (first 1):", JSON.stringify(studentsToCreate[0], null, 2));
                     }
                     throw importErr;
                 }
