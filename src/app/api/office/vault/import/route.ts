@@ -549,7 +549,9 @@ export async function POST(request: Request) {
                 const studentsToCreate: any[] = []
                 const studentsToUpdate: any[] = []
 
-                uniqueStudents.forEach(nu => {
+                console.log(`[DEBUG-MAP] Starting mapping for ${uniqueStudents.length} students. Batch ID: ${batch.id}`);
+                uniqueStudents.forEach((nu, idx) => {
+                    if (idx % 10 === 0) console.log(`[DEBUG-MAP] Mapping student ${idx}/${uniqueStudents.length}: ${nu.fullName}`);
                     const cleanSupName = nu.fields.supervisorName?.toLowerCase().trim().replace(/,/g, '').replace(/\s+/g, ' ')
                     let supervisorId = cleanSupName ? (supMap.get(cleanSupName) || null) : null
                     
@@ -592,6 +594,7 @@ export async function POST(request: Request) {
                         studentsToCreate.push(data)
                     }
                 })
+                console.log(`[DEBUG-MAP] Mapping complete. ToCreate: ${studentsToCreate.length}, ToUpdate: ${studentsToUpdate.length}`);
                 
                 try {
                     console.log(`[DEBUG-IMPORT] Phase 3 Start: Students. Unique: ${uniqueStudents.length}, ToCreate: ${studentsToCreate.length}, ToUpdate: ${studentsToUpdate.length}`);
