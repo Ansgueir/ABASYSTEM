@@ -44,7 +44,6 @@ async function main() {
       user = await prisma.user.create({
         data: {
           id: crypto.randomUUID(),
-          name: s.fullName,
           email,
           passwordHash: defaultPasswordHash,
           role: 'SUPERVISOR'
@@ -82,7 +81,6 @@ async function main() {
       user = await prisma.user.create({
         data: {
           id: crypto.randomUUID(),
-          name: s.fullName,
           email,
           passwordHash: defaultPasswordHash,
           role: 'STUDENT'
