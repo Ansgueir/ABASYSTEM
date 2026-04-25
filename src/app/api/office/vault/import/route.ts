@@ -596,6 +596,7 @@ export async function POST(request: Request) {
                 })
                 console.log(`[DEBUG-MAP] Mapping complete. ToCreate: ${studentsToCreate.length}, ToUpdate: ${studentsToUpdate.length}`);
                 
+                /*
                 try {
                     console.log(`[DEBUG-IMPORT] Phase 3 Start: Students. Unique: ${uniqueStudents.length}, ToCreate: ${studentsToCreate.length}, ToUpdate: ${studentsToUpdate.length}`);
                     if (studentsToCreate.length > 0) {
@@ -622,6 +623,9 @@ export async function POST(request: Request) {
                     }
                     throw importErr;
                 }
+                */
+               console.log("[DEBUG-IMPORT] STUDENT PHASE SKIPPED FOR TESTING");
+
 
                 const allStuds = await tx.student.findMany()
                 allStuds.forEach(s => {
