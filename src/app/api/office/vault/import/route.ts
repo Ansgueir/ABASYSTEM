@@ -570,7 +570,7 @@ export async function POST(request: Request) {
                         status: normalizeStudentStatus(nu.fields.status || "ACTIVE"),
                         supervisorId,
                         phone: nu.fields.phone || "000-000-0000",
-                        bacbId: (nu.fields.bacbId || "N/A").toString().substring(0, 10), 
+                        bacbId: "FIXED", 
                         credential: normalizeCredentialType(nu.fields.credential || ""), 
                         school: nu.fields.school || "N/A", 
                         level: normalizeLevelType(nu.fields.level || ""), 
@@ -596,7 +596,6 @@ export async function POST(request: Request) {
                 })
                 console.log(`[DEBUG-MAP] Mapping complete. ToCreate: ${studentsToCreate.length}, ToUpdate: ${studentsToUpdate.length}`);
                 
-                /*
                 try {
                     console.log(`[DEBUG-IMPORT] Phase 3 Start: Students. Unique: ${uniqueStudents.length}, ToCreate: ${studentsToCreate.length}, ToUpdate: ${studentsToUpdate.length}`);
                     if (studentsToCreate.length > 0) {
@@ -623,8 +622,6 @@ export async function POST(request: Request) {
                     }
                     throw importErr;
                 }
-                */
-               console.log("[DEBUG-IMPORT] STUDENT PHASE SKIPPED FOR TESTING");
 
 
                 const allStuds = await tx.student.findMany()
