@@ -57,14 +57,35 @@ async function main() {
             }
         }
 
-        // 2. REPARAR SUPERVISOR
-        const expectedSupCleanName = excelMap.get(cleanStudentName);
+        // 2. REPARAR SUPERVISOR (Fuzzy Matching)
+        let expectedSupCleanName = excelMap.get(cleanStudentName);
+        
+        // Si no hay match exacto, buscar el estudiante más parecido en el mapa de Excel
+        if (!expectedSupCleanName) {
+            for (const [exStud, exSup] of excelMap.entries()) {
+                if (cleanStudentName.includes(exStud) || exStud.includes(cleanStudentName)) {
+                    expectedSupCleanName = exSup;
+                    break;
+                }
+            }
+        }
+
         if (expectedSupCleanName) {
-            const supId = supMap.get(expectedSupCleanName);
+            let supId = supMap.get(expectedSupCleanName);
+            
+            // Si el supervisor tampoco coincide exacto, buscarlo parecido
+            if (!supId) {
+                for (const [sName, sId] of supMap.entries()) {
+                    if (expectedSupCleanName.includes(sName) || sName.includes(expectedSupCleanName)) {
+                        supId = sId;
+                        break;
+                    }
+                }
+            }
+
             if (supId) {
                 updates.supervisorId = supId;
                 
-                // Asegurar registro en StudentSupervisor
                 await prisma.studentSupervisor.upsert({
                     where: {
                         studentId_supervisorId: {
