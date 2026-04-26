@@ -699,10 +699,21 @@ export async function POST(request: Request) {
                             status: rp.status || "PAID", importBatchId: batch.id
                         })
                     } else if (rp.type === "STUDENT_PAYMENT" && sid) {
+                        const rawType = cellStrFromObj(rp.paymentType || rp.paymenttype || "ZELLE").toUpperCase().trim().replace(/\s+/g, '_')
+                        // Basic normalization for common types
+                        let normalizedType = "ZELLE"
+                        if (rawType.includes("CASH")) normalizedType = "CASH"
+                        if (rawType.includes("CHECK")) normalizedType = "CHECK"
+                        if (rawType.includes("VENMO")) normalizedType = "VENMO"
+                        if (rawType.includes("PAYPAL")) normalizedType = "PAYPAL"
+                        if (rawType.includes("TRANSFER")) normalizedType = "BANK_TRANSFER"
+                        if (rawType.includes("CARD")) normalizedType = "CREDIT_CARD"
+                        if (rawType.includes("ZELLE")) normalizedType = "ZELLE"
+
                         paymentsToCreate.push({
                             studentId: sid, amount: Number(rp.amount || 0), 
                             paymentDate: safeDate(rp.paymentDate || rp.paymentdate || rp.date), 
-                            paymentType: rp.paymentType || rp.paymenttype || "ZELLE", importBatchId: batch.id
+                            paymentType: normalizedType, importBatchId: batch.id
                         })
                     } else if (rp.type === "SUPERVISOR_PAYMENT") {
                         const supName = cellStrFromObj(rp.supervisorName || rp.supervisorname || rp.supervisorid)
