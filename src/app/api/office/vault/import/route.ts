@@ -759,15 +759,38 @@ export async function POST(request: Request) {
                         }
                     } else if (rp.type === "LEDGER_ENTRY" && sid) {
                         const supName = cellStrFromObj(rp.supervisorName || rp.supervisorname || rp.supervisorid)
-                        const cleanSupName = supName?.toLowerCase().trim().replace(/\s+/g, ' ')
+                        const cleanSupName = supName?.toLowerCase().trim().replace(/[,.\s]/g, '')
                         const supId = cleanSupName ? supMap.get(cleanSupName) : null
                         
                         if (supId) {
-                            ledgerToCreate.push({
-                                invoiceId: "00000000-0000-0000-0000-000000000000", supervisorId: supId, studentId: sid,
-                                paymentFromStudent: Number(rp.paymentfromstudent || rp.amount || 0), supervisorPayout: Number(rp.supervisorpayout || 0),
-                                officePayout: Number(rp.officepayout || 0), payoutStatus: rp.payoutstatus || "PAID",
-                                importBatchId: batch.id, supervisorCapTotal: 0, supervisorCapRemainingBefore: 0, supervisorCapRemainingAfter: 0
+                            // Create technical invoice for ledger entry
+                            const technicalInvoice = await tx.invoice.create({
+                                data: {
+                                    studentId: sid,
+                                    invoiceDate: safeDate(rp.paymentDate || rp.paymentdate || rp.date),
+                                    amountDue: Number(rp.amount || rp.paymentfromstudent || 0),
+                                    amountPaid: Number(rp.amount || rp.paymentfromstudent || 0),
+                                    status: "PAID",
+                                    importBatchId: batch.id
+                                }
+                            })
+
+                            await tx.supervisorLedgerEntry.create({
+                                data: {
+                                    invoiceId: technicalInvoice.id,
+                                    supervisorId: supId,
+                                    studentId: sid,
+                                    paymentFromStudent: Number(rp.paymentfromstudent || rp.amount || 0),
+                                    supervisorPayout: Number(rp.supervisorpayout || 0),
+                                    officePayout: Number(rp.officepayout || 0),
+                                    payoutStatus: rp.payoutstatus || "PAID",
+                                    supervisorCapTotal: 0,
+                                    supervisorCapRemainingBefore: 0,
+                                    supervisorCapRemainingAfter: 0,
+                                    paymentMethod: rp.paymentType || rp.paymenttype || "SYSTEM_IMPORT",
+                                    paidAt: safeDate(rp.paymentDate || rp.paymentdate || rp.date),
+                                    importBatchId: batch.id
+                                }
                             })
                         }
                     }
@@ -777,7 +800,6 @@ export async function POST(request: Request) {
                 if (orphanedSamples.length > 0) console.log(`[IMPORT] Sample orphaned names: ${JSON.stringify(orphanedSamples)}`)
                 if (invoicesToCreate.length > 0) await tx.invoice.createMany({ data: invoicesToCreate, skipDuplicates: true })
                 if (paymentsToCreate.length > 0) await tx.studentPayment.createMany({ data: paymentsToCreate, skipDuplicates: true })
-                if (ledgerToCreate.length > 0) await tx.supervisorLedgerEntry.createMany({ data: ledgerToCreate, skipDuplicates: true })
                 console.timeEnd("db_finance_phase")
             }, { timeout: 600000 })
             console.timeEnd("bulk_import_total")
