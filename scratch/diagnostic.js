@@ -34,8 +34,16 @@ async function main() {
         console.log(`Valores en el perfil -> Horas: ${sample.hoursToDo}, Monto: ${sample.amountToPay}`);
     }
 
+    const sampleStudents = await prisma.student.findMany({
+        take: 10,
+        select: { fullName: true, planTemplateId: true, assignedOptionPlan: true, credential: true, supervisorId: true }
+    });
+    console.log("\nMuestra de 10 estudiantes y sus campos de plan/supervisor:");
+    console.table(sampleStudents);
+
     const plans = await prisma.plan.findMany();
-    console.log("\nPlanes configurados en el sistema:", plans.map(p => p.name));
+    console.log("\nPlanes configurados en el sistema:");
+    console.table(plans.map(p => ({ id: p.id, name: p.name })));
 }
 
 main()
