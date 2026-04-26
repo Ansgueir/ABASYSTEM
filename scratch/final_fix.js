@@ -33,38 +33,53 @@ async function main() {
 
     let countPlans = 0;
     let countSups = 0;
+    let debugCount = 0;
 
     for (const student of students) {
         let updates = {};
         const cleanStudentName = clean(student.fullName);
         
+        if (debugCount < 5) {
+            console.log(`DEBUG Student: "${student.fullName}" (Clean: "${cleanStudentName}")`);
+        }
+
         // 1. REPARAR PLAN
         const currentPlanVal = student.planTemplateId || student.assignedOptionPlan;
         if (currentPlanVal) {
-            const planId = planMap.get(clean(currentPlanVal));
+            // Si ya es un ID válido (UUID), no lo "limpiamos" para la búsqueda
+            const isUUID = currentPlanVal.includes("-");
+            const planId = isUUID ? currentPlanVal : planMap.get(clean(currentPlanVal));
             const plan = plans.find(p => p.id === planId);
             
             if (plan) {
-                updates.planTemplateId = plan.id;
-                updates.assignedOptionPlan = plan.name;
-                updates.hoursToDo = plan.totalHours || student.hoursToDo;
-                updates.hoursPerMonth = plan.hoursPerMonth || student.hoursPerMonth;
-                updates.totalMonths = plan.numberOfMonths || plan.totalMonths || student.totalMonths;
-                updates.amountToPay = plan.monthlyPayment || plan.totalCost || student.amountToPay;
-                updates.supervisionPercentage = plan.supervisedPercentage || student.supervisionPercentage;
-                updates.hourlyRate = plan.hourlyRate || student.hourlyRate;
-                countPlans++;
+                // Sincronizar solo si los valores están vacíos o el ID cambió
+                if (student.planTemplateId !== plan.id || student.hoursToDo === 0) {
+                    updates.planTemplateId = plan.id;
+                    updates.assignedOptionPlan = plan.name;
+                    updates.hoursToDo = plan.totalHours || student.hoursToDo;
+                    updates.hoursPerMonth = plan.hoursPerMonth || student.hoursPerMonth;
+                    updates.totalMonths = plan.numberOfMonths || plan.totalMonths || student.totalMonths;
+                    updates.amountToPay = plan.monthlyPayment || plan.totalCost || student.amountToPay;
+                    updates.supervisionPercentage = plan.supervisedPercentage || student.supervisionPercentage;
+                    updates.hourlyRate = plan.hourlyRate || student.hourlyRate;
+                    countPlans++;
+                }
             }
         }
 
         // 2. REPARAR SUPERVISOR (Fuzzy Matching)
         let expectedSupCleanName = excelMap.get(cleanStudentName);
         
+        if (debugCount < 5 && !expectedSupCleanName) {
+            console.log(`  - No exact student match in Excel for "${cleanStudentName}". Trying fuzzy...`);
+        }
+
         // Si no hay match exacto, buscar el estudiante más parecido en el mapa de Excel
         if (!expectedSupCleanName) {
             for (const [exStud, exSup] of excelMap.entries()) {
                 if (cleanStudentName.includes(exStud) || exStud.includes(cleanStudentName)) {
                     expectedSupCleanName = exSup;
+                    if (debugCount < 5) console.log(`  - Found fuzzy student match: "${exStud}" -> Supervisor: "${exSup}"`);
                     break;
                 }
             }
@@ -73,11 +88,16 @@ async function main() {
         if (expectedSupCleanName) {
             let supId = supMap.get(expectedSupCleanName);
             
+            if (debugCount < 5 && !supId) {
+                console.log(`  - No exact supervisor match for "${expectedSupCleanName}". Trying fuzzy...`);
+            }
+
             // Si el supervisor tampoco coincide exacto, buscarlo parecido
             if (!supId) {
                 for (const [sName, sId] of supMap.entries()) {
                     if (expectedSupCleanName.includes(sName) || sName.includes(expectedSupCleanName)) {
                         supId = sId;
+                        if (debugCount < 5) console.log(`  - Found fuzzy supervisor match: "${sName}"`);
                         break;
                     }
                 }
@@ -110,6 +130,7 @@ async function main() {
                 data: updates
             });
         }
+        debugCount++;
     }
 
     console.log(`Planes sincronizados: ${countPlans}`);
