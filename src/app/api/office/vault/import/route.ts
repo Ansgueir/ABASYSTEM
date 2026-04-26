@@ -657,36 +657,32 @@ export async function POST(request: Request) {
                 const combinedPayments = [...(newPayments || []), ...(newRawPayments || [])]
                 console.log(`[IMPORT] Processing ${combinedPayments.length} financial records. Combined keys: newPayments=${(newPayments || []).length}, newRawPayments=${(newRawPayments || []).length}`)
 
-                // DIAGNOSTIC: Print sample of map keys
-                const sampleKeys = Array.from(studMap.keys()).slice(0, 10)
-                console.log(`[IMPORT] Sample Student Map Keys (Normalized): ${JSON.stringify(sampleKeys)}`)
-
                 let linkedCount = 0
                 let orphanedCount = 0
                 const orphanedSamples: string[] = []
 
                 for (const rp of combinedPayments) {
-                    const rawName = cellStrFromObj(rp.studentName || rp.studentname || rp.studentid || rp.alumno)
-                    if (!rawName) continue
+                    const rawName = cellStrFromObj(rp.studentName || rp.studentname || rp.nombre || rp.alumno || rp.estudiante)
+                    const rawId = cellStrFromObj(rp.studentId || rp.studentid || rp.id)
+                    
+                    if (!rawName && !rawId) continue
 
-                    const cleanName = rawName.toLowerCase().trim().replace(/,/g, '').replace(/\s+/g, ' ')
+                    let sid = null
                     
-                    // Try direct match
-                    let sid = studMap.get(cleanName)
+                    // 1. Try search by NAME first (most reliable in technical/business migration)
+                    if (rawName) {
+                        const cleanName = rawName.toLowerCase().trim().replace(/[,.\s]/g, '')
+                        sid = studMap.get(cleanName)
+                    }
                     
-                    // Try reversed match (if it contains a space)
-                    if (!sid && cleanName.includes(' ')) {
-                        const parts = cleanName.split(' ')
-                        if (parts.length >= 2) {
-                            // Try: "Part2, Part1" or "Part2 Part1"
-                            const reversed = `${parts[parts.length - 1]} ${parts.slice(0, -1).join(' ')}`
-                            sid = studMap.get(reversed)
-                        }
+                    // 2. Fallback to ID if provided
+                    if (!sid && rawId) {
+                        sid = studMap.get(rawId)
                     }
 
                     if (!sid) {
                         orphanedCount++
-                        if (orphanedSamples.length < 10) orphanedSamples.push(rawName)
+                        if (orphanedSamples.length < 10) orphanedSamples.push(rawName || rawId)
                         continue
                     }
                     
