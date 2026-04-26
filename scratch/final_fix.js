@@ -52,18 +52,16 @@ async function main() {
             const plan = plans.find(p => p.id === planId);
             
             if (plan) {
-                // Sincronizar solo si los valores están vacíos o el ID cambió
-                if (student.planTemplateId !== plan.id || student.hoursToDo === 0) {
-                    updates.planTemplateId = plan.id;
-                    updates.assignedOptionPlan = plan.name;
-                    updates.hoursToDo = plan.totalHours || student.hoursToDo;
-                    updates.hoursPerMonth = plan.hoursPerMonth || student.hoursPerMonth;
-                    updates.totalMonths = plan.numberOfMonths || plan.totalMonths || student.totalMonths;
-                    updates.amountToPay = plan.monthlyPayment || plan.totalCost || student.amountToPay;
-                    updates.supervisionPercentage = plan.supervisedPercentage || student.supervisionPercentage;
-                    updates.hourlyRate = plan.hourlyRate || student.hourlyRate;
-                    countPlans++;
-                }
+                console.log(`- Sincronizando plan '${plan.name}' para ${student.fullName}`);
+                updates.planTemplateId = plan.id;
+                updates.assignedOptionPlan = plan.name;
+                updates.hoursToDo = plan.totalHours || student.hoursToDo;
+                updates.hoursPerMonth = plan.hoursPerMonth || student.hoursPerMonth;
+                updates.totalMonths = plan.numberOfMonths || plan.totalMonths || student.totalMonths;
+                updates.amountToPay = plan.monthlyPayment || plan.totalCost || student.amountToPay;
+                updates.supervisionPercentage = plan.supervisedPercentage || student.supervisionPercentage;
+                updates.hourlyRate = plan.hourlyRate || student.hourlyRate;
+                countPlans++;
             }
         }
 
