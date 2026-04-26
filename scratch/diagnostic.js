@@ -23,14 +23,12 @@ async function main() {
     }
 
     const studentsWithPlan = await prisma.student.findMany({
-        where: { NOT: { planTemplateId: null } },
-        include: { plan: true }
+        where: { NOT: { planTemplateId: null } }
     });
     
     console.log(`Estudiantes con Plan asignado: ${studentsWithPlan.length}`);
     if (studentsWithPlan.length > 0) {
         const sample = studentsWithPlan[0];
-        console.log(`Ejemplo Plan: ${sample.plan?.name || "Sin Nombre"}`);
         console.log(`Valores en el perfil -> Horas: ${sample.hoursToDo}, Monto: ${sample.amountToPay}`);
     }
 
