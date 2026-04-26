@@ -14,11 +14,20 @@ async function main() {
     for (const student of students) {
         let updates = {};
         
-        // 2. REPARAR PLAN (Si tiene un ID de plan pero valores en cero/nulos)
+        // 2. REPARAR PLAN (Buscar por ID o por Nombre)
         if (student.planTemplateId) {
-            const plan = plans.find(p => p.id === student.planTemplateId);
+            // Intentar buscar por ID primero, luego por Nombre
+            let plan = plans.find(p => p.id === student.planTemplateId || p.name === student.planTemplateId);
+            
+            // Si el nombre del plan está en assignedOptionPlan, intentar por ahí también
+            if (!plan && student.assignedOptionPlan) {
+                plan = plans.find(p => p.name === student.assignedOptionPlan);
+            }
+
             if (plan) {
                 console.log(`- Sincronizando plan '${plan.name}' para ${student.fullName}`);
+                updates.planTemplateId = plan.id;
+                updates.assignedOptionPlan = plan.name;
                 updates.hoursToDo = plan.totalHours || student.hoursToDo;
                 updates.hoursPerMonth = plan.hoursPerMonth || student.hoursPerMonth;
                 updates.totalMonths = plan.numberOfMonths || plan.totalMonths || student.totalMonths;
